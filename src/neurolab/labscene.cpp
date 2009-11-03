@@ -57,13 +57,24 @@ namespace NeuroLab
                 }
                 return;
                 
-            case MODE_ADD_LINK:
+            case MODE_ADD_E_LINK:
                 // pick up link end if we're on it
                 
                 // otherwise, start rubber-banding new link
                 {
                     const QPointF & pos = event->scenePos();
-                    NeuroLinkItem *item = new NeuroLinkItem();                    
+                    NeuroExcitoryLinkItem *item = new NeuroExcitoryLinkItem();
+                    item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
+                    
+                    addItem(item);
+                    movingLink = item;
+                }
+                return;
+                
+            case MODE_ADD_I_LINK:
+                {
+                    const QPointF & pos = event->scenePos();
+                    NeuroInhibitoryLinkItem *item = new NeuroInhibitoryLinkItem();
                     item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
                     
                     addItem(item);
@@ -89,7 +100,8 @@ namespace NeuroLab
         case MODE_ADD_NODE:
             movingNode = 0;
             break;
-        case MODE_ADD_LINK:
+        case MODE_ADD_E_LINK:
+        case MODE_ADD_I_LINK:
             movingLink = 0;
             break;
         default:
@@ -112,7 +124,8 @@ namespace NeuroLab
                 movingNode->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
             }
             break;
-        case MODE_ADD_LINK:
+        case MODE_ADD_E_LINK:
+        case MODE_ADD_I_LINK:
             if (movingLink)
             {
                 const QPointF & pos = event->scenePos();

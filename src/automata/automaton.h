@@ -93,7 +93,7 @@ namespace Automata
         
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
         {
-            //QWriteLocker write(&state.lock);
+            QWriteLocker write(&state.lock);
             
             if (state.r == 0)
             {
@@ -108,7 +108,7 @@ namespace Automata
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->nodes[neighbors[i]];
                         
-                        //QReadLocker read(&neighbor.lock);
+                        QReadLocker read(&neighbor.lock);
                         
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;

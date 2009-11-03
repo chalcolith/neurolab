@@ -18,7 +18,7 @@ namespace Automata
         TState q0, q1;
         int r;
         
-        //mutable QReadWriteLock lock;
+        mutable QReadWriteLock lock;
 
         AsyncState() : index(static_cast<TIndex>(-1)), r(0) {}
         AsyncState(const TState & s0, const TState & s1) : index(static_cast<TIndex>(-1)), q0(s0), q1(s1), r(0) {}
@@ -42,7 +42,7 @@ namespace Automata
     template <typename TState, typename TIndex>
     QDataStream & operator<< (QDataStream & ds, const AsyncState<TState, TIndex> & as)
     {
-        //QReadLocker read(&as.lock);
+        QReadLocker read(&as.lock);
         
         ds.setVersion(QDataStream::Qt_4_5);
         
@@ -57,7 +57,7 @@ namespace Automata
     template <typename TState, typename TIndex>
     QDataStream & operator>> (QDataStream & ds, AsyncState<TState, TIndex> & as)
     {
-        //QWriteLocker write(&as.lock);
+        QWriteLocker write(&as.lock);
         
         ds.setVersion(QDataStream::Qt_4_5);
         

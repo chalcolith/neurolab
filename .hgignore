@@ -1,0 +1,5 @@
+glob:debug
+glob:Makefile*
+glob:*.user
+glob:ui_*.h
+glob:object_script.*

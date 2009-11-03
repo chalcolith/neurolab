@@ -24,7 +24,8 @@ namespace NeuroLab
         {
             MODE_NONE = 0,
             MODE_ADD_NODE,
-            MODE_ADD_LINK,
+            MODE_ADD_E_LINK,
+            MODE_ADD_I_LINK,
             MODE_MOVE_NODE,
             MODE_MOVE_LINK,
 

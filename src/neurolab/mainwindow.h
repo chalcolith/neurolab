@@ -48,7 +48,8 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
                 
     private slots:
-        void on_linkButton_toggled(bool checked);
+        void on_iLinkButton_toggled(bool checked);
+        void on_eLinkButton_toggled(bool checked);
         void on_nodeButton_toggled(bool checked);
         void on_action_Sidebar_triggered();
         void on_action_New_triggered();

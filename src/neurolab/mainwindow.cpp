@@ -168,8 +168,14 @@ void NeuroLab::MainWindow::on_nodeButton_toggled(bool checked)
         currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_NODE);
 }
 
-void NeuroLab::MainWindow::on_linkButton_toggled(bool checked)
+void NeuroLab::MainWindow::on_eLinkButton_toggled(bool checked)
 {
     if (checked && currentNetwork)
-        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_LINK);
+        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_E_LINK);    
+}
+
+void NeuroLab::MainWindow::on_iLinkButton_toggled(bool checked)
+{
+    if (checked && currentNetwork)
+        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_I_LINK);
 }
