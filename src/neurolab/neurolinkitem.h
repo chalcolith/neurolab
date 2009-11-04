@@ -1,17 +1,29 @@
 #ifndef NEUROLINKITEM_H
 #define NEUROLINKITEM_H
 
-#include <QGraphicsLineItem>
+#include <QGraphicsItem>
 
 namespace NeuroLab
 {
     
     class NeuroLinkItem 
-            : public QGraphicsLineItem
+            : public QGraphicsItem
     {
+        QLineF _line;
+        
     public:
         NeuroLinkItem();
         virtual ~NeuroLinkItem();
+        
+        QLineF line() const { return _line; }
+        void setLine(const QLineF & l);
+        void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
+        
+        virtual QRectF boundingRect() const;
+        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        
+    private:
+        void updatePos();
     };
     
     class NeuroExcitoryLinkItem
@@ -19,7 +31,7 @@ namespace NeuroLab
     {
     public:
         NeuroExcitoryLinkItem();
-        virtual ~NeuroExcitoryLinkItem();
+        virtual ~NeuroExcitoryLinkItem();        
     };
     
     class NeuroInhibitoryLinkItem

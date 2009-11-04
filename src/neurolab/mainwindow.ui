@@ -80,7 +80,7 @@
           <x>0</x>
           <y>0</y>
           <width>104</width>
-          <height>224</height>
+          <height>240</height>
          </rect>
         </property>
         <attribute name="label">
@@ -121,6 +121,12 @@
            <property name="text">
             <string>Inhibitory Link</string>
            </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
         </layout>
@@ -130,8 +136,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>100</width>
-          <height>30</height>
+          <width>98</width>
+          <height>28</height>
          </rect>
         </property>
         <attribute name="label">
