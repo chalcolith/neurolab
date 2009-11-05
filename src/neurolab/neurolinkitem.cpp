@@ -7,6 +7,8 @@ namespace NeuroLab
     
     //////////////////////////////////////////////////////////////////
 
+    static const int ELLIPSE_WIDTH = 8;
+    
     NeuroLinkItem::NeuroLinkItem()
             : QGraphicsItem()
     {
@@ -40,7 +42,7 @@ namespace NeuroLab
         qreal w = qAbs(_line.x2() - _line.x1());
         qreal h = qAbs(_line.y2() - _line.y1());
         
-        return QRectF(-(w/2+1), -(h/2+1), w+2, h+2);
+        return QRectF(-(w/2+ELLIPSE_WIDTH/2+1), -(h/2+ELLIPSE_WIDTH/2+1), w+ELLIPSE_WIDTH+2, h+ELLIPSE_WIDTH+2);
     }
     
     void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -66,7 +68,18 @@ namespace NeuroLab
     {
     }
     
-
+    void NeuroExcitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    {
+        int x1 = static_cast<int>(_line.x1() - pos().x());
+        int y1 = static_cast<int>(_line.y1() - pos().y());
+        int x2 = static_cast<int>(_line.x2() - pos().x());
+        int y2 = static_cast<int>(_line.y2() - pos().y());
+        
+        NeuroLinkItem::paint(painter, option, widget);
+        painter->drawEllipse(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
+    }
+    
+    
     //////////////////////////////////////////////////////////////////
 
     NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem()
@@ -76,6 +89,17 @@ namespace NeuroLab
     
     NeuroInhibitoryLinkItem::~NeuroInhibitoryLinkItem()
     {
+    }
+    
+    void NeuroInhibitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    {
+        int x1 = static_cast<int>(_line.x1() - pos().x());
+        int y1 = static_cast<int>(_line.y1() - pos().y());
+        int x2 = static_cast<int>(_line.x2() - pos().x());
+        int y2 = static_cast<int>(_line.y2() - pos().y());
+        
+        NeuroLinkItem::paint(painter, option, widget);
+        //painter->drawEllipse(x2, y2, 4, 4);
     }
     
 } // namespace NeuroLab

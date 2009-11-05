@@ -9,6 +9,7 @@ namespace NeuroLab
     class NeuroLinkItem 
             : public QGraphicsItem
     {
+    protected:
         QLineF _line;
         
     public:
@@ -26,13 +27,17 @@ namespace NeuroLab
         void updatePos();
     };
     
+    
     class NeuroExcitoryLinkItem
             : public NeuroLinkItem
     {
     public:
         NeuroExcitoryLinkItem();
         virtual ~NeuroExcitoryLinkItem();        
+
+        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     };
+    
     
     class NeuroInhibitoryLinkItem
             : public NeuroLinkItem
@@ -40,6 +45,8 @@ namespace NeuroLab
     public:
         NeuroInhibitoryLinkItem();
         virtual ~NeuroInhibitoryLinkItem();
+
+        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     };
     
 } // namespace NeuroLab
