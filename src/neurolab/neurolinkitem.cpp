@@ -1,13 +1,14 @@
 #include "neurolinkitem.h"
 
 #include <QPainter>
+#include <cmath>
 
 namespace NeuroLab
 {
     
     //////////////////////////////////////////////////////////////////
 
-    static const int ELLIPSE_WIDTH = 8;
+    static const int ELLIPSE_WIDTH = 16;
     
     NeuroLinkItem::NeuroLinkItem()
             : QGraphicsItem()
@@ -70,8 +71,8 @@ namespace NeuroLab
     
     void NeuroExcitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
     {
-        int x1 = static_cast<int>(_line.x1() - pos().x());
-        int y1 = static_cast<int>(_line.y1() - pos().y());
+        //int x1 = static_cast<int>(_line.x1() - pos().x());
+        //int y1 = static_cast<int>(_line.y1() - pos().y());
         int x2 = static_cast<int>(_line.x2() - pos().x());
         int y2 = static_cast<int>(_line.y2() - pos().y());
         
@@ -93,13 +94,22 @@ namespace NeuroLab
     
     void NeuroInhibitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
     {
-        int x1 = static_cast<int>(_line.x1() - pos().x());
-        int y1 = static_cast<int>(_line.y1() - pos().y());
+        NeuroLinkItem::paint(painter, option, widget);
+        
+        //int x1 = static_cast<int>(_line.x1() - pos().x());
+        //int y1 = static_cast<int>(_line.y1() - pos().y());
         int x2 = static_cast<int>(_line.x2() - pos().x());
         int y2 = static_cast<int>(_line.y2() - pos().y());
         
-        NeuroLinkItem::paint(painter, option, widget);
-        //painter->drawEllipse(x2, y2, 4, 4);
+        QRectF r(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
+
+        qreal theta = ::atan2(-y2, x2);
+        if (theta < 0)
+            theta = (2.0 * M_PI) + theta;
+        theta += M_PI / 2.0;
+        
+        int angle = static_cast<int>(theta * 180.0 / M_PI);
+        painter->drawArc(r, 16 * angle, 16 * 180);
     }
     
 } // namespace NeuroLab
