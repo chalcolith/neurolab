@@ -39,9 +39,12 @@ namespace NeuroLab
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *);
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *);
-        
+                
     private:
         QStack<Mode> mode;
+        
+        bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
+        bool mousePressAddNode(QGraphicsSceneMouseEvent *event);
     };
     
 } // namespace NeuroLab

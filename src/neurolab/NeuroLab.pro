@@ -12,14 +12,16 @@ SOURCES += main.cpp \
     labview.cpp \
     labtree.cpp \
     neuronodeitem.cpp \
-    neurolinkitem.cpp
+    neurolinkitem.cpp \
+    neuroitem.cpp
 HEADERS += mainwindow.h \
     labnetwork.h \
     labscene.h \
     labview.h \
     labtree.h \
     neuronodeitem.h \
-    neurolinkitem.h
+    neurolinkitem.h \
+    neuroitem.h
 FORMS += mainwindow.ui
 debug:LIBS = -L../neurolib/debug \
     -lneurolib \

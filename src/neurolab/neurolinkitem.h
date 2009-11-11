@@ -1,13 +1,13 @@
 #ifndef NEUROLINKITEM_H
 #define NEUROLINKITEM_H
 
-#include <QGraphicsItem>
+#include "neuroitem.h"
 
 namespace NeuroLab
 {
     
     class NeuroLinkItem 
-            : public QGraphicsItem
+            : public NeuroItem
     {
     protected:
         QLineF _line;

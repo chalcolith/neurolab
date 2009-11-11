@@ -11,7 +11,7 @@ namespace NeuroLab
     static const int ELLIPSE_WIDTH = 16;
     
     NeuroLinkItem::NeuroLinkItem()
-            : QGraphicsItem()
+            : NeuroItem()
     {
     }
     

@@ -32,7 +32,18 @@ namespace NeuroLab
     {
         return mode.top();
     }
+
+    bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
+    {
+        const QPointF & pos = event->scenePos();
+        NeuroExcitoryLinkItem *item = new NeuroExcitoryLinkItem();
+        item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
         
+        addItem(item);
+        movingLink = item;
+    }
+    
+    
     void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
         movingNode = 0;
@@ -40,50 +51,37 @@ namespace NeuroLab
         
         if (event->buttons() == Qt::LeftButton)
         {
-            switch (mode.top())
+            // pick up node if we're on one
+            if (!mousePressPickupNode(event))
             {
-            case MODE_ADD_NODE:
-                // pick up node if we're on one
-                // if we're not on a node, make a new one
+                switch (mode.top())
                 {
-                    NeuroNodeItem *item = new NeuroNodeItem();
-                    const QRectF & ir = item->rect();
-                    const QPointF & pos = event->scenePos();
+                case MODE_ADD_NODE:
+                    // if we're not on a node, make a new one
+                    if (mousePressAddNode(event))
+                        return;
+                    break;
                     
-                    item->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
+                case MODE_ADD_E_LINK:                    
+                    // start rubber-banding new link
+                    if (mousePressAdd(event, new NeuroExcitoryLinkItem()))
+                        return;
+                    break;
                     
-                    addItem(item);
-                    movingNode = item;
+                case MODE_ADD_I_LINK:
+                    {
+                        const QPointF & pos = event->scenePos();
+                        NeuroInhibitoryLinkItem *item = new NeuroInhibitoryLinkItem();
+                        item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
+                        
+                        addItem(item);
+                        movingLink = item;
+                    }
+                    return;
+                    
+                default:
+                    break;
                 }
-                return;
-                
-            case MODE_ADD_E_LINK:
-                // pick up link end if we're on it
-                
-                // otherwise, start rubber-banding new link
-                {
-                    const QPointF & pos = event->scenePos();
-                    NeuroExcitoryLinkItem *item = new NeuroExcitoryLinkItem();
-                    item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
-                    
-                    addItem(item);
-                    movingLink = item;
-                }
-                return;
-                
-            case MODE_ADD_I_LINK:
-                {
-                    const QPointF & pos = event->scenePos();
-                    NeuroInhibitoryLinkItem *item = new NeuroInhibitoryLinkItem();
-                    item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
-                    
-                    addItem(item);
-                    movingLink = item;
-                }
-                return;
-                
-            default:
-                break;
             }
         }
         else if (event->buttons() == Qt::RightButton)
@@ -91,6 +89,25 @@ namespace NeuroLab
         }
 
         QGraphicsScene::mousePressEvent(event);
+    }
+    
+    bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *event)
+    {
+        return false;
+    }
+    
+    bool LabScene::mousePressAddNode(QGraphicsSceneMouseEvent *event)
+    {
+        NeuroNodeItem *item = new NeuroNodeItem();
+        const QRectF & ir = item->rect();
+        const QPointF & pos = event->scenePos();
+        
+        item->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
+        
+        addItem(item);
+        movingNode = item;
+        
+        return true;
     }
     
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
