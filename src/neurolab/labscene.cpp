@@ -33,17 +33,6 @@ namespace NeuroLab
         return mode.top();
     }
 
-    bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
-    {
-        const QPointF & pos = event->scenePos();
-        NeuroExcitoryLinkItem *item = new NeuroExcitoryLinkItem();
-        item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
-        
-        addItem(item);
-        movingLink = item;
-    }
-    
-    
     void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
         movingNode = 0;
@@ -64,20 +53,14 @@ namespace NeuroLab
                     
                 case MODE_ADD_E_LINK:                    
                     // start rubber-banding new link
-                    if (mousePressAdd(event, new NeuroExcitoryLinkItem()))
+                    if (mousePressAddLink(event, new NeuroExcitoryLinkItem()))
                         return;
                     break;
                     
                 case MODE_ADD_I_LINK:
-                    {
-                        const QPointF & pos = event->scenePos();
-                        NeuroInhibitoryLinkItem *item = new NeuroInhibitoryLinkItem();
-                        item->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
-                        
-                        addItem(item);
-                        movingLink = item;
-                    }
-                    return;
+                    if (mousePressAddLink(event, new NeuroInhibitoryLinkItem()))
+                        return;
+                    break;
                     
                 default:
                     break;
@@ -106,6 +89,17 @@ namespace NeuroLab
         
         addItem(item);
         movingNode = item;
+        
+        return true;
+    }
+        
+    bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
+    {
+        const QPointF & pos = event->scenePos();
+        linkItem->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
+        
+        addItem(linkItem);
+        movingLink = linkItem;
         
         return true;
     }

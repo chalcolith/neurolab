@@ -11,7 +11,7 @@ namespace NeuroLab
 {
     
     class LabScene 
-            : public QGraphicsScene
+        : public QGraphicsScene
     {
         NeuroNodeItem *movingNode;
         NeuroLinkItem *movingLink;
@@ -45,6 +45,7 @@ namespace NeuroLab
         
         bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
         bool mousePressAddNode(QGraphicsSceneMouseEvent *event);
+        bool mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem);
     };
     
 } // namespace NeuroLab
