@@ -3,11 +3,13 @@
 
 #include "neuroitem.h"
 
+#include <QPainterPath>
+
 namespace NeuroLab
 {
     
-    class NeuroLinkItem 
-            : public NeuroItem
+    class NeuroLinkItem
+        : public NeuroItem
     {
     protected:
         QLineF _line;
@@ -29,24 +31,26 @@ namespace NeuroLab
     
     
     class NeuroExcitoryLinkItem
-            : public NeuroLinkItem
+        : public NeuroLinkItem
     {
     public:
         NeuroExcitoryLinkItem();
         virtual ~NeuroExcitoryLinkItem();        
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        virtual QPainterPath shape() const;
     };
     
     
     class NeuroInhibitoryLinkItem
-            : public NeuroLinkItem
+        : public NeuroLinkItem
     {
     public:
         NeuroInhibitoryLinkItem();
         virtual ~NeuroInhibitoryLinkItem();
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        virtual QPainterPath shape() const;
     };
     
 } // namespace NeuroLab

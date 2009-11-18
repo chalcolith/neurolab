@@ -17,12 +17,14 @@ namespace Ui
 }
 
 namespace NeuroLab
-{
+{    
     
-    class MainWindow 
-            : public QMainWindow
+    class MainWindow
+        : public QMainWindow
     {
         Q_OBJECT
+        
+        static MainWindow *_instance;
         
         Ui::MainWindow *ui;
         QVBoxLayout *layout;
@@ -32,6 +34,8 @@ namespace NeuroLab
     public:
         MainWindow(QWidget *parent = 0, const QString & initialFname = QString());
         ~MainWindow();
+        
+        static MainWindow *instance();
         
     signals:
         void quitting();        
@@ -57,7 +61,17 @@ namespace NeuroLab
         void on_action_Close_triggered();
         void on_action_Save_triggered();
         void on_action_Quit_triggered();
-};
+    };
+    
+    
+    class Exception
+    {
+        QString _message;
+        
+    public:
+        Exception(const QString & _message) : _message(_message) {}
+        const QString & message() const { return _message; }
+    };
     
 } // namespace NeuroLab
 

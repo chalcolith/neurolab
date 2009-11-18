@@ -17,7 +17,8 @@ namespace Automata
     /// \param TState A state in the automaton.  Must implement \c bool \c shouldUpdate().
     /// \param TFUpdate A functor by which to update states.  Must implement \c ()(const TState & prev, TState & next, const int & numNeighbors, const TState * const * const neighbors).
     template <typename TState, typename TFUpdate, typename TIndex = qint32>
-    class Automaton : public Graph<AsyncState<TState, TIndex>, TIndex>
+    class Automaton 
+        : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
         const TFUpdate fUpdate;
         QVector<const TState *> temp_neighbors;

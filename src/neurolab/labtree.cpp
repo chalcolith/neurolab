@@ -6,7 +6,7 @@ namespace NeuroLab
     // LabTreeNode
     
     LabTreeNode::LabTreeNode(LabTree *tree, LabTreeNode *parent)
-            : tree(tree), parent(parent)
+        : tree(tree), parent(parent)
     {
         scene = QSharedPointer<LabScene>(new LabScene());
         scene->setSceneRect(0, 0, 1000000, 1000000);
@@ -17,12 +17,12 @@ namespace NeuroLab
     }
     
     LabTreeNode::LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent)
-            : tree(tree), parent(parent), scene(scene), view(view)
+        : tree(tree), parent(parent), scene(scene), view(view)
     {
     }
     
     LabTreeNode::LabTreeNode(const LabTreeNode & node)
-            : tree(node.tree), parent(node.parent), scene(node.scene), view(node.view), children(node.children)
+        : tree(node.tree), parent(node.parent), scene(node.scene), view(node.view), children(node.children)
     {
     }
     
@@ -46,7 +46,7 @@ namespace NeuroLab
     // LabTree
     
     LabTree::LabTree(QWidget *parent)
-            : parent(parent), root(this), current(&root)
+        : parent(parent), root(this), current(&root)
     {
     }
     

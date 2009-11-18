@@ -11,12 +11,11 @@ namespace Automata
     /// Base class for exceptions.
     class AUTOMATASHARED_EXPORT Exception
     {
-        QString message;
+        QString _message;
 
     public:
-        Exception(const QString & message) : message(message) {}
-
-        const QString & Message() { return message; }
+        Exception(const QString & _message) : _message(_message) {}
+        const QString & message() const { return _message; }
     };
 
     /// Index overflow exceptions.

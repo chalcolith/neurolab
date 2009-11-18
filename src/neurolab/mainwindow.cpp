@@ -8,12 +8,19 @@
 namespace NeuroLab
 {
     
+    MainWindow *MainWindow::_instance = 0;
+    
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
-            : QMainWindow(parent), 
-              ui(new Ui::MainWindow),
-              layout(0),
-              currentNetwork(0)
+        : QMainWindow(parent), 
+          ui(new Ui::MainWindow),
+          layout(0),
+          currentNetwork(0)
     {
+        if (_instance)
+            throw new Exception("You cannot create more than one main window.");
+
+        _instance = this;
+        
         // set up ui and other connections
         ui->setupUi(this);
         
@@ -39,6 +46,11 @@ namespace NeuroLab
     {
         setNetwork(0);
         delete ui;
+    }
+    
+    MainWindow *MainWindow::instance()
+    {
+        return _instance;
     }
 
     void MainWindow::loadStateSettings()

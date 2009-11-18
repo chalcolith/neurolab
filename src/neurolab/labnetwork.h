@@ -11,7 +11,7 @@ namespace NeuroLab
     
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
     class LabNetwork
-            : public QObject
+        : public QObject
     {
         Q_OBJECT
         

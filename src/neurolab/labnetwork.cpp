@@ -7,7 +7,7 @@ namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *parent)
-            : sceneTree(0), network(0), running(false), dirty(false), first_change(true)
+        : sceneTree(0), network(0), running(false), dirty(false), first_change(true)
     {
         network = new NeuroLib::NeuroNet();
         sceneTree = new LabTree(parent);

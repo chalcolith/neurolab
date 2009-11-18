@@ -8,8 +8,8 @@
 namespace NeuroLab
 {
     
-    class LabView 
-            : public QGraphicsView
+    class LabView
+        : public QGraphicsView
     {
     public:
         LabView(LabScene *scene, QWidget *parent);

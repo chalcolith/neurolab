@@ -6,7 +6,7 @@ namespace NeuroLab
 {
     
     LabScene::LabScene()
-            : QGraphicsScene(0), movingNode(0), movingLink(0)
+        : QGraphicsScene(0), movingNode(0), movingLink(0)
     {
         mode.push(MODE_NONE);
     }
@@ -82,10 +82,9 @@ namespace NeuroLab
     bool LabScene::mousePressAddNode(QGraphicsSceneMouseEvent *event)
     {
         NeuroNodeItem *item = new NeuroNodeItem();
-        const QRectF & ir = item->rect();
         const QPointF & pos = event->scenePos();
         
-        item->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
+        item->setPos(pos.x(), pos.y());
         
         addItem(item);
         movingNode = item;
@@ -135,8 +134,8 @@ namespace NeuroLab
                 movingNode->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
             }
             break;
-        case MODE_ADD_E_LINK:
-        case MODE_ADD_I_LINK:
+            case MODE_ADD_E_LINK:
+            case MODE_ADD_I_LINK:
             if (movingLink)
             {
                 const QPointF & pos = event->scenePos();
@@ -145,7 +144,7 @@ namespace NeuroLab
                 movingLink->setLine(line.x1(), line.y1(), pos.x(), pos.y());
             }
             break;
-        default:
+            default:
             break;
         }
         
