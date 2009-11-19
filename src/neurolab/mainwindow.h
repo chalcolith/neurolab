@@ -6,11 +6,6 @@
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>
 
-extern int NEUROLAB_APP_MAINVERSION;
-extern int NEUROLAB_APP_SUBVERSION;
-
-#define NEUROLAB_APP_VERSION (NEUROLAB_APP_MAINVERSION*1000 + NEUROLAB_APP_SUBVERSION)
-
 namespace Ui
 {
     class MainWindow;
@@ -18,6 +13,8 @@ namespace Ui
 
 namespace NeuroLab
 {    
+    
+    extern const QString NEUROLAB_VERSION;
     
     class MainWindow
         : public QMainWindow

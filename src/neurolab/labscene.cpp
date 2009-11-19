@@ -128,10 +128,9 @@ namespace NeuroLab
         case MODE_ADD_NODE:
             if (movingNode)
             {
-                const QRectF & ir = movingNode->rect();
                 const QPointF & pos = event->scenePos();
                 
-                movingNode->setPos(pos.x() - ir.width()/2, pos.y() - ir.height()/2);
+                movingNode->setPos(pos.x(), pos.y());
             }
             break;
             case MODE_ADD_E_LINK:

@@ -59,6 +59,15 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(Qt::white);
         
+        if (_in_hover || isSelected())
+        {
+            pen.setWidth(3);
+        }
+        else   
+        {
+            pen.setWidth(1);
+        }
+        
         painter->setPen(pen);
         painter->setBrush(brush);
         painter->drawLine(x1, y1, x2, y2);
@@ -78,10 +87,11 @@ namespace NeuroLab
     
     void NeuroExcitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
     {        
+        NeuroLinkItem::paint(painter, option, widget);
+
         int x2 = static_cast<int>(_line.x2() - pos().x());
         int y2 = static_cast<int>(_line.y2() - pos().y());
         
-        NeuroLinkItem::paint(painter, option, widget);
         painter->drawEllipse(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
     }
     
@@ -89,11 +99,13 @@ namespace NeuroLab
     {
         QPainterPath path;
 
+        int x1 = static_cast<int>(_line.x1() - pos().x());
+        int y1 = static_cast<int>(_line.y1() - pos().y());
         int x2 = static_cast<int>(_line.x2() - pos().x());
         int y2 = static_cast<int>(_line.y2() - pos().y());
+        
+        path.addEllipse(x1 - ELLIPSE_WIDTH/2, y1 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
         path.addEllipse(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        path.moveTo(_line.x1(), _line.y1());
-        path.lineTo(_line.x2(), _line.y2());
         
         return path;
     }
@@ -125,15 +137,20 @@ namespace NeuroLab
         theta += M_PI / 2.0;
         
         int angle = static_cast<int>(theta * 180.0 / M_PI);
-        painter->drawArc(r, 16 * angle, 16 * 180);
+        painter->drawChord(r, 16 * angle, 16 * 180);
     }
     
     QPainterPath NeuroInhibitoryLinkItem::shape() const
     {
         QPainterPath path;
+
+        int x1 = static_cast<int>(_line.x1() - pos().x());
+        int y1 = static_cast<int>(_line.y1() - pos().y());
         int x2 = static_cast<int>(_line.x2() - pos().x());
         int y2 = static_cast<int>(_line.y2() - pos().y());
         
+        path.addEllipse(x1 - ELLIPSE_WIDTH/2, y1 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
+
         QRectF r(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
 
         qreal theta = ::atan2(-y2, x2);
@@ -144,9 +161,7 @@ namespace NeuroLab
         int angle = static_cast<int>(theta * 180.0 / M_PI);
         path.moveTo(_line.x2(), _line.y2());
         path.arcTo(r, 16* angle, 16 * 180);
-        path.moveTo(_line.x1(), _line.y1());
-        path.lineTo(_line.x2(), _line.y2());
-        
+                
         return path;
     }
     

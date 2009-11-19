@@ -15,6 +15,8 @@ namespace NeuroLab
         NeuroItem();
         
     protected:
+        bool _in_hover;
+        
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     };

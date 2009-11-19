@@ -5,9 +5,14 @@
 
 #include <QSettings>
 
+extern const QString NEUROLAB_VERSION;
+
 namespace NeuroLab
 {
-    
+    const QString NEUROLAB_VERSION = QString(
+#include "../neurolab_version.txt"
+    );
+        
     MainWindow *MainWindow::_instance = 0;
     
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
@@ -53,13 +58,24 @@ namespace NeuroLab
         return _instance;
     }
 
+    static int NEUROLAB_APP_VERSION()
+    {
+        QStringList nums = NEUROLAB_VERSION.split(".");
+        int result = 0;
+        for (int i = 0; i < nums.length(); ++i)
+        {
+            result = (result * 100) + nums[i].toInt();
+        }
+        return result;
+    }
+    
     void MainWindow::loadStateSettings()
     {
         QSettings settings;
         settings.beginGroup("MainWindow");
         resize(settings.value("size", QSize(800, 600)).toSize());
         move(settings.value("pos", QPoint(10, 10)).toPoint());
-        restoreState(settings.value("status", QByteArray()).toByteArray(), NEUROLAB_APP_VERSION);
+        restoreState(settings.value("status", QByteArray()).toByteArray(), NEUROLAB_APP_VERSION());
         settings.endGroup();
     }
     
@@ -69,7 +85,7 @@ namespace NeuroLab
         settings.beginGroup("MainWindow");
         settings.setValue("size", size());
         settings.setValue("pos", pos());
-        settings.setValue("status", saveState(NEUROLAB_APP_VERSION));
+        settings.setValue("status", saveState(NEUROLAB_APP_VERSION()));
         settings.endGroup();
     }
     

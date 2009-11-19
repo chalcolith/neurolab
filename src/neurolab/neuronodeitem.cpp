@@ -24,10 +24,9 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(Qt::white);
         
-        if (isSelected())
+        if (_in_hover || isSelected())
         {
             pen.setWidth(3);
-            pen.setColor(Qt::green);
         }
         else
         {

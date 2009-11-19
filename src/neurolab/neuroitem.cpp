@@ -7,7 +7,7 @@ namespace NeuroLab
 {
     
     NeuroItem::NeuroItem()
-        : QGraphicsItem()
+        : QGraphicsItem(), _in_hover(false)
     {
         setAcceptHoverEvents(true);
     }
@@ -15,14 +15,14 @@ namespace NeuroLab
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     {
         MainWindow::instance()->statusBar()->showMessage(QString("Hover enter %1").arg((int)this));        
-        setSelected(true);
+        _in_hover = true;
         update(boundingRect());
     }
     
     void NeuroItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     {
         MainWindow::instance()->statusBar()->showMessage(QString("Hover exit %1").arg((int)this));
-        setSelected(false);
+        _in_hover = false;
         update(boundingRect());
     }
     
