@@ -1,12 +1,13 @@
 #include "labscene.h"
 
 #include <QGraphicsSceneMouseEvent>
+#include <cmath>
 
 namespace NeuroLab
 {
     
     LabScene::LabScene()
-        : QGraphicsScene(0), movingNode(0), movingLink(0)
+        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true)
     {
         mode.push(MODE_NONE);
     }
@@ -74,8 +75,38 @@ namespace NeuroLab
         QGraphicsScene::mousePressEvent(event);
     }
     
+    static qreal mag(const QPointF & p)
+    {
+        return ::sqrt(p.x()*p.x() + p.y()*p.y());
+    }
+    
     bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *event)
     {
+        QGraphicsItem *item = itemAt(event->pos());
+        
+        if (item)
+        {
+            NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
+            if (nodeItem)
+            {
+                movingNode = nodeItem;
+                return true;
+            }
+            
+            NeuroLinkItem *linkItem = dynamic_cast<NeuroLinkItem *>(item);
+            if (linkItem)
+            {
+                movingLink = linkItem;
+                
+                qreal frontDist = mag(event->pos() - linkItem->line().p2());
+                qreal backDist = mag(event->pos() - linkItem->line().p1());
+                
+                linkFront = frontDist < backDist;
+                
+                return true;
+            }
+        }
+        
         return false;
     }
     
@@ -91,7 +122,7 @@ namespace NeuroLab
         
         return true;
     }
-        
+    
     bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
     {
         const QPointF & pos = event->scenePos();
@@ -99,55 +130,39 @@ namespace NeuroLab
         
         addItem(linkItem);
         movingLink = linkItem;
+        linkFront = true;
         
         return true;
     }
     
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
-        switch (mode.top())
-        {
-        case MODE_ADD_NODE:
-            movingNode = 0;
-            break;
-        case MODE_ADD_E_LINK:
-        case MODE_ADD_I_LINK:
-            movingLink = 0;
-            break;
-        default:
-            break;
-        }
+        movingNode = 0;
+        movingLink = 0;
         
         QGraphicsScene::mouseReleaseEvent(event);
     }
     
     void LabScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     {
-        switch (mode.top())
+        if (movingNode)
         {
-        case MODE_ADD_NODE:
-            if (movingNode)
-            {
-                const QPointF & pos = event->scenePos();
-                
-                movingNode->setPos(pos.x(), pos.y());
-            }
-            break;
-            case MODE_ADD_E_LINK:
-            case MODE_ADD_I_LINK:
-            if (movingLink)
-            {
-                const QPointF & pos = event->scenePos();
-                const QLineF & line = movingLink->line();
-                
+            const QPointF & pos = event->scenePos();
+            
+            movingNode->setPos(pos.x(), pos.y());
+        }
+        else if (movingLink)
+        {
+            const QPointF & pos = event->scenePos();
+            const QLineF & line = movingLink->line();
+            
+            if (linkFront)
                 movingLink->setLine(line.x1(), line.y1(), pos.x(), pos.y());
-            }
-            break;
-            default:
-            break;
+            else
+                movingLink->setLine(pos.x(), pos.y(), line.x2(), line.y2());
         }
         
         QGraphicsScene::mouseMoveEvent(event);
     }
-        
+    
 } // namespace NeuroLab

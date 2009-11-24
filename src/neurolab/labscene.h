@@ -15,6 +15,7 @@ namespace NeuroLab
     {
         NeuroNodeItem *movingNode;
         NeuroLinkItem *movingLink;
+        bool linkFront;
                 
     public:
         LabScene();
