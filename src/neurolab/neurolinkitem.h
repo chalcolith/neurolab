@@ -36,7 +36,7 @@ namespace NeuroLab
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
         virtual QPainterPath shape() const;
         
-        virtual void adjustIncomingLinks();
+        virtual void adjustLinks();
         
     private:
         void updatePos();

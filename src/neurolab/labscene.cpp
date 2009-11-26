@@ -88,7 +88,7 @@ namespace NeuroLab
     
     bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *event)
     {
-        QGraphicsItem *item = itemAt(event->scenePos());
+        QGraphicsItem *item = this->itemAt(event->scenePos());
         
         if (item)
         {
@@ -163,7 +163,7 @@ namespace NeuroLab
             const QPointF & pos = event->scenePos();
             
             movingNode->setPos(pos.x(), pos.y());
-            movingNode->adjustIncomingLinks();
+            movingNode->adjustLinks();
         }
         else if (movingLink)
         {
@@ -180,8 +180,14 @@ namespace NeuroLab
                 
                 endToMove = pos;
                 
-                movingLink->setLine(back.x(), back.y(), front.x(), front.y());                
-                movingLink->adjustIncomingLinks();
+                movingLink->setLine(back.x(), back.y(), front.x(), front.y());
+                
+                if (movingLink->frontLinkTarget())
+                    movingLink->frontLinkTarget()->adjustLinks();
+                if (movingLink->backLinkTarget())
+                    movingLink->backLinkTarget()->adjustLinks();
+                                
+                movingLink->adjustLinks();
             }
         }
         
@@ -223,7 +229,7 @@ namespace NeuroLab
             else
                 link->setBackLinkTarget(itemAtPos);
             
-            itemAtPos->adjustIncomingLinks();
+            itemAtPos->adjustLinks();
             return true;
         }
         

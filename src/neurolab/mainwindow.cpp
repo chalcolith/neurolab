@@ -132,10 +132,10 @@ namespace NeuroLab
             layout->removeWidget(currentNetwork->getView());
         delete currentNetwork;
         
-        ui->nodeButton->setChecked(true);
-        
         if (network)
         {
+            ui->nodeButton->setChecked(true);
+            
             currentNetwork = network;
             layout->addWidget(currentNetwork->getView());
             currentNetwork->getView()->show();

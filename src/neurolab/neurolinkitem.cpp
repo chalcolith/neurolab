@@ -20,8 +20,11 @@ namespace NeuroLab
     {
         if (_frontLinkTarget)
             _frontLinkTarget->removeIncoming(this);
+        _frontLinkTarget = 0;
+        
         if (_backLinkTarget)
             _backLinkTarget->removeOutgoing(this);
+        _backLinkTarget = 0;
     }
     
     void NeuroLinkItem::setLine(const QLineF & l)
@@ -85,7 +88,7 @@ namespace NeuroLab
         qreal w = qAbs(_line.x2() - _line.x1());
         qreal h = qAbs(_line.y2() - _line.y1());
         
-        return QRectF(-(w/2.0+ELLIPSE_WIDTH/2.0+1.0), -(h/2.0+ELLIPSE_WIDTH/2.0+1.0), w+ELLIPSE_WIDTH+2.0, h+ELLIPSE_WIDTH+2.0);
+        return QRectF(-(w/2.0+ELLIPSE_WIDTH), -(h/2.0+ELLIPSE_WIDTH), w+ELLIPSE_WIDTH*2, h+ELLIPSE_WIDTH*2);
     }
     
     void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -112,18 +115,21 @@ namespace NeuroLab
     QPainterPath NeuroLinkItem::shape() const
     {
         QPainterPath path;
+        
+        path.setFillRule(Qt::WindingFill);
         path.moveTo(_line.p1() - pos());
         path.lineTo(_line.p2() - pos());
         
         QPainterPathStroker stroker;        
-        stroker.setWidth(3);
+        stroker.setWidth(ELLIPSE_WIDTH);
                 
         QPainterPath path2 = stroker.createStroke(path);
+        path2.setFillRule(Qt::WindingFill);
         path2.addPath(path);
         return path2;
     }
     
-    void NeuroLinkItem::adjustIncomingLinks()
+    void NeuroLinkItem::adjustLinks()
     {
         QVector2D myFront(_line.p2());
         QVector2D myBack(_line.p1());
@@ -135,12 +141,9 @@ namespace NeuroLab
         for (int i = 0; i < numLinks; ++i)
         {
             NeuroLinkItem *link = _incoming[i];
-            if (!link)
-                continue;
-            
-            //link->setLine(link->line().p1(), (myFront + (frontToBack * ((i+1) * myLength/(numLinks+1)))).toPointF());
-            link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
-        }        
+            if (link)
+                link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
+        }
     }
     
     void NeuroLinkItem::setPenWidth(QPen & pen)
@@ -206,8 +209,9 @@ namespace NeuroLab
     {
         QPainterPath path;
         
-        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH/2.0 + 2.0, ELLIPSE_WIDTH/2.0 + 2.0);
-        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH/2.0 + 2.0, ELLIPSE_WIDTH/2.0 + 2.0);
+        path.setFillRule(Qt::WindingFill);
+        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
+        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
         path.addPath(NeuroLinkItem::shape());
         
         return path;
@@ -262,8 +266,9 @@ namespace NeuroLab
     {
         QPainterPath path;
         
-        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH/2.0 + 2.0, ELLIPSE_WIDTH/2.0 + 2.0);
-        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH/2.0 + 2.0, ELLIPSE_WIDTH/2.0 + 2.0);
+        path.setFillRule(Qt::WindingFill);
+        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
+        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
         path.addPath(NeuroLinkItem::shape());
         
         return path;

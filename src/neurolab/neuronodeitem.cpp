@@ -48,31 +48,42 @@ namespace NeuroLab
         return path;
     }
     
-    void NeuroNodeItem::adjustIncomingLinks()
+    void NeuroNodeItem::adjustLinks()
     {
-        QListIterator<NeuroLinkItem *> i(_incoming);
-        while (i.hasNext())
+        QListIterator<NeuroLinkItem *> in(_incoming);
+        while (in.hasNext())
         {
-            NeuroLinkItem *link = i.next();
-            if (!link)
-                continue;
-            
-            QVector2D center(pos());
-            QVector2D front(link->line().p2());
-            QVector2D back(link->line().p1());
-            
-            qreal front_dist = (center - front).lengthSquared();
-            qreal back_dist = (center - back).lengthSquared();
-            
-            QVector2D & pointToAdjust = front_dist < back_dist ? front : back;
-            QVector2D & pointSource = front_dist < back_dist ? back : front;
-
-            QVector2D toSource = pointSource - center;
-            toSource.normalize();
-            
-            pointToAdjust = center + (toSource * (NODE_WIDTH / 1.8));
-            link->setLine(back.toPointF(), front.toPointF());
+            NeuroLinkItem *link = in.next();
+            if (link)
+                adjustLinksAux(link);
         }
+        
+        QListIterator<NeuroLinkItem *> out(_outgoing);
+        while (out.hasNext())
+        {
+            NeuroLinkItem *link = out.next();
+            if (link)
+                adjustLinksAux(link);
+        }
+    }
+    
+    void NeuroNodeItem::adjustLinksAux(NeuroLinkItem *link)
+    {
+        QVector2D center(pos());
+        QVector2D front(link->line().p2());
+        QVector2D back(link->line().p1());
+        
+        qreal front_dist = (center - front).lengthSquared();
+        qreal back_dist = (center - back).lengthSquared();
+        
+        QVector2D & pointToAdjust = front_dist < back_dist ? front : back;
+        QVector2D & pointSource = front_dist < back_dist ? back : front;
+
+        QVector2D toSource = pointSource - center;
+        toSource.normalize();
+        
+        pointToAdjust = center + (toSource * (NODE_WIDTH / 1.8));
+        link->setLine(back.toPointF(), front.toPointF());
     }
     
 } // namespace NeuroLab

@@ -35,6 +35,9 @@ namespace NeuroLab
         bool inHover() const { return _in_hover; }
         void setInHover(bool ih) { _in_hover = ih; update(boundingRect()); }
         
+        const QList<NeuroLinkItem *> incoming() const { return _incoming; }
+        const QList<NeuroLinkItem *> outgoing() const { return _outgoing; }
+        
         void bringToFront();
         
         void addIncoming(NeuroLinkItem *linkItem);
@@ -43,7 +46,7 @@ namespace NeuroLab
         void addOutgoing(NeuroLinkItem *linkItem);
         void removeOutgoing(NeuroLinkItem *linkItem);
                 
-        virtual void adjustIncomingLinks() = 0;
+        virtual void adjustLinks() = 0;
         
     protected:
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
