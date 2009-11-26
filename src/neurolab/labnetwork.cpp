@@ -153,10 +153,10 @@ namespace NeuroLab
     
     void LabNetwork::changed(const QList<QRectF> &)
     {
-        if (!first_change)
-            this->dirty = true;
-        else
-            first_change = false;
+//        if (!first_change)
+//            this->dirty = true;
+//        else
+//            first_change = false;
     }
     
 } // namespace NeuroLab

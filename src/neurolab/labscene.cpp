@@ -1,7 +1,7 @@
 #include "labscene.h"
 
 #include <QGraphicsSceneMouseEvent>
-#include <cmath>
+#include <QVector2D>
 
 namespace NeuroLab
 {
@@ -74,15 +74,10 @@ namespace NeuroLab
 
         QGraphicsScene::mousePressEvent(event);
     }
-    
-    static qreal mag(const QPointF & p)
-    {
-        return ::sqrt(p.x()*p.x() + p.y()*p.y());
-    }
-    
+        
     bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *event)
     {
-        QGraphicsItem *item = itemAt(event->pos());
+        QGraphicsItem *item = itemAt(event->scenePos());
         
         if (item)
         {
@@ -98,10 +93,10 @@ namespace NeuroLab
             {
                 movingLink = linkItem;
                 
-                qreal frontDist = mag(event->pos() - linkItem->line().p2());
-                qreal backDist = mag(event->pos() - linkItem->line().p1());
-                
-                linkFront = frontDist < backDist;
+                qreal front_dist = (QVector2D(event->scenePos()) - QVector2D(linkItem->line().p2())).lengthSquared();
+                qreal back_dist = (QVector2D(event->scenePos()) - QVector2D(linkItem->line().p1())).lengthSquared();
+                                
+                linkFront = front_dist < back_dist;
                 
                 return true;
             }
@@ -150,19 +145,84 @@ namespace NeuroLab
             const QPointF & pos = event->scenePos();
             
             movingNode->setPos(pos.x(), pos.y());
+            movingNode->adjustIncomingLinks();
         }
         else if (movingLink)
         {
-            const QPointF & pos = event->scenePos();
-            const QLineF & line = movingLink->line();
+            QPointF pos = event->scenePos();
             
-            if (linkFront)
-                movingLink->setLine(line.x1(), line.y1(), pos.x(), pos.y());
-            else
-                movingLink->setLine(pos.x(), pos.y(), line.x2(), line.y2());
+            // check for break/form link
+            if (!mouseMoveHandleLinks(event, pos, movingLink))
+            {
+                // update line            
+                const QLineF & line = movingLink->line();
+                QPointF front = line.p2();
+                QPointF back = line.p1();            
+                QPointF & endToMove = linkFront ? front : back;
+                
+                endToMove = pos;
+                
+                movingLink->setLine(back.x(), back.y(), front.x(), front.y());                
+                movingLink->adjustIncomingLinks();
+            }
         }
         
         QGraphicsScene::mouseMoveEvent(event);
+    }
+    
+    bool LabScene::mouseMoveHandleLinks(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroLinkItem *link)
+    {
+        // get topmost item that is not the link itself
+        NeuroItem *itemAtPos = 0;
+        QListIterator<QGraphicsItem *> i(this->items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder));
+        while (i.hasNext())
+        {
+            itemAtPos = dynamic_cast<NeuroItem *>(i.next());
+            if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != link)
+                break;
+            else
+                itemAtPos = 0;
+        }
+        
+        // break links
+        NeuroItem *linkedItem = linkFront ? link->frontLinkTarget() : link->backLinkTarget();
+        if (linkedItem)
+        {
+            if (itemAtPos != linkedItem)
+            {
+                if (linkFront)
+                    link->setFrontLinkTarget(0);
+                else
+                    link->setBackLinkTarget(0);
+            }
+        }
+        
+        // form links
+        if (itemAtPos && canLink(link, itemAtPos))
+        {
+            if (linkFront)
+                link->setFrontLinkTarget(itemAtPos);
+            else
+                link->setBackLinkTarget(itemAtPos);
+            
+            itemAtPos->adjustIncomingLinks();
+            return true;
+        }
+        
+        return false;
+    }
+    
+    bool LabScene::canLink(NeuroItem *moving, NeuroItem *fixed)
+    {
+        // cannot link the back of a link to another link
+        if (dynamic_cast<NeuroLinkItem *>(fixed) && !linkFront)
+            return false;
+        
+        // cannot link an excitory link to another link
+        if (dynamic_cast<NeuroExcitoryLinkItem*>(moving) && dynamic_cast<NeuroLinkItem *>(fixed))
+            return false;
+        
+        return true;
     }
     
 } // namespace NeuroLab

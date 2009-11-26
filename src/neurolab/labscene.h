@@ -47,6 +47,9 @@ namespace NeuroLab
         bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
         bool mousePressAddNode(QGraphicsSceneMouseEvent *event);
         bool mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem);
+        
+        bool mouseMoveHandleLinks(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroLinkItem *link);
+        bool canLink(NeuroItem *moving, NeuroItem *fixed);
     };
     
 } // namespace NeuroLab
