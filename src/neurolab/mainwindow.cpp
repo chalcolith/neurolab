@@ -207,3 +207,9 @@ void NeuroLab::MainWindow::on_iLinkButton_toggled(bool checked)
     if (checked && currentNetwork)
         currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_I_LINK);
 }
+
+void NeuroLab::MainWindow::on_actionDelete_triggered()
+{
+    if (currentNetwork)
+        currentNetwork->deleteSelectedItem();
+}

@@ -21,6 +21,13 @@ namespace NeuroLab
         delete network; network = 0;
     }
     
+    void LabNetwork::deleteSelectedItem()
+    {
+        if (!sceneTree)
+            return;
+        sceneTree->getScene()->deleteSelectedItem();
+    }
+    
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
         QString nln_fname = fname;

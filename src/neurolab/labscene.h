@@ -35,6 +35,8 @@ namespace NeuroLab
         
         void setMode(const Mode &);
         const Mode getMode() const;
+        
+        void deleteSelectedItem();
                 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *);

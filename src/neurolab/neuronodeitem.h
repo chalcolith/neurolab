@@ -16,6 +16,7 @@ namespace NeuroLab
         
     public:
         NeuroNodeItem();
+        virtual ~NeuroNodeItem();
         
         const QRectF & rect() const { return _rect; }
         void setRect(const QRectF & r) { _rect = r; }

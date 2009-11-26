@@ -18,6 +18,10 @@ namespace NeuroLab
     
     NeuroLinkItem::~NeuroLinkItem()
     {
+        if (_frontLinkTarget)
+            _frontLinkTarget->removeIncoming(this);
+        if (_backLinkTarget)
+            _backLinkTarget->removeOutgoing(this);
     }
     
     void NeuroLinkItem::setLine(const QLineF & l)
@@ -60,12 +64,12 @@ namespace NeuroLab
     {
         if (_backLinkTarget)
         {
-            _backLinkTarget->removeIncoming(this);
+            _backLinkTarget->removeOutgoing(this);
         }
         
         if (linkTarget)
         {
-            linkTarget->addIncoming(this);
+            linkTarget->addOutgoing(this);
         }
         
         _backLinkTarget = linkTarget;
@@ -81,7 +85,7 @@ namespace NeuroLab
         qreal w = qAbs(_line.x2() - _line.x1());
         qreal h = qAbs(_line.y2() - _line.y1());
         
-        return QRectF(-(w/2+ELLIPSE_WIDTH/2+1), -(h/2+ELLIPSE_WIDTH/2+1), w+ELLIPSE_WIDTH+2, h+ELLIPSE_WIDTH+2);
+        return QRectF(-(w/2.0+ELLIPSE_WIDTH/2.0+1.0), -(h/2.0+ELLIPSE_WIDTH/2.0+1.0), w+ELLIPSE_WIDTH+2.0, h+ELLIPSE_WIDTH+2.0);
     }
     
     void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -108,8 +112,8 @@ namespace NeuroLab
     QPainterPath NeuroLinkItem::shape() const
     {
         QPainterPath path;
-        path.moveTo(_line.p1());
-        path.lineTo(_line.p2());
+        path.moveTo(_line.p1() - pos());
+        path.lineTo(_line.p2() - pos());
         
         QPainterPathStroker stroker;        
         stroker.setWidth(3);
@@ -134,7 +138,8 @@ namespace NeuroLab
             if (!link)
                 continue;
             
-            link->setLine(link->line().p1(), (myFront + (frontToBack * ((i+1) * myLength/(numLinks+1)))).toPointF());
+            //link->setLine(link->line().p1(), (myFront + (frontToBack * ((i+1) * myLength/(numLinks+1)))).toPointF());
+            link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
         }        
     }
     
@@ -224,6 +229,8 @@ namespace NeuroLab
     {        
         NeuroLinkItem::paint(painter, option, widget);
         
+        QBrush brush(Qt::NoBrush);
+        
         QPen pen(Qt::SolidLine);
         if (_frontLinkTarget)
             pen.setColor(NORMAL_LINE_COLOR);
@@ -239,12 +246,14 @@ namespace NeuroLab
         qreal theta = ::atan2(-y2, x2);
         if (theta < 0)
             theta = (2.0 * M_PI) + theta;
-        theta -= M_PI / 2.0;
+        theta += M_PI / 2.0;
         
         int angle = static_cast<int>(theta * 180.0 / M_PI);
         
+        painter->setBrush(brush);
         painter->setPen(pen);
-        painter->drawChord(r, 16 * angle, 16 * 180);
+        //painter->drawChord(r, 16 * angle, 16 * 180);
+        painter->drawArc(r, 16 * angle, 16 * 180);
         
         paintBackLink(painter);
     }

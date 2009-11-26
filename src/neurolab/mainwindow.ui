@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -39,8 +39,15 @@
     </property>
     <addaction name="action_Sidebar"/>
    </widget>
+   <widget class="QMenu" name="menuItem">
+    <property name="title">
+     <string>Item</string>
+    </property>
+    <addaction name="actionDelete"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
+   <addaction name="menuItem"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -72,7 +79,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page_1">
         <property name="geometry">
@@ -80,11 +87,11 @@
           <x>0</x>
           <y>0</y>
           <width>104</width>
-          <height>240</height>
+          <height>246</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Page 1</string>
+         <string>Items</string>
         </attribute>
         <layout class="QFormLayout" name="formLayout">
          <item row="0" column="0">
@@ -136,12 +143,12 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>104</width>
+          <height>246</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Page 2</string>
+         <string>Properties</string>
         </attribute>
        </widget>
       </widget>
@@ -153,25 +160,40 @@
    <property name="text">
     <string>&amp;Open Network...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="action_Close">
    <property name="text">
     <string>&amp;Close Network</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="action_Quit">
    <property name="text">
     <string>&amp;Quit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
   </action>
   <action name="action_New">
    <property name="text">
     <string>&amp;New Network...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="action_Save">
    <property name="text">
     <string>&amp;Save Network As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
   <action name="action_Sidebar">
@@ -183,6 +205,14 @@
    </property>
    <property name="text">
     <string>&amp;Sidebar</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="text">
+    <string>&amp;Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>

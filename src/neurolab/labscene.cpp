@@ -33,6 +33,17 @@ namespace NeuroLab
     {
         return mode.top();
     }
+    
+    void LabScene::deleteSelectedItem()
+    {
+        QListIterator<QGraphicsItem *> i(this->selectedItems());
+        while (i.hasNext())
+        {
+            QGraphicsItem *item = i.next();
+            this->removeItem(item);
+            delete item;
+        }
+    }
 
     void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
@@ -74,7 +85,7 @@ namespace NeuroLab
 
         QGraphicsScene::mousePressEvent(event);
     }
-        
+    
     bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *event)
     {
         QGraphicsItem *item = itemAt(event->scenePos());
@@ -84,6 +95,7 @@ namespace NeuroLab
             NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
             if (nodeItem)
             {
+                nodeItem->bringToFront();
                 movingNode = nodeItem;
                 return true;
             }
@@ -91,6 +103,7 @@ namespace NeuroLab
             NeuroLinkItem *linkItem = dynamic_cast<NeuroLinkItem *>(item);
             if (linkItem)
             {
+                linkItem->bringToFront();
                 movingLink = linkItem;
                 
                 qreal front_dist = (QVector2D(event->scenePos()) - QVector2D(linkItem->line().p2())).lengthSquared();
@@ -132,7 +145,12 @@ namespace NeuroLab
     
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
+        if (movingNode)
+            movingNode->setInHover(false);
         movingNode = 0;
+        
+        if (movingLink)
+            movingLink->setInHover(false);
         movingLink = 0;
         
         QGraphicsScene::mouseReleaseEvent(event);

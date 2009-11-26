@@ -31,6 +31,8 @@ namespace NeuroLab
         LabView *getView() { return sceneTree ? sceneTree->getView() : 0; }
         const QString & getFName() const { return fname; }
         
+        void deleteSelectedItem();
+        
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
         
     public slots:

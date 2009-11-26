@@ -16,6 +16,7 @@ namespace NeuroLab
     protected:
         bool _in_hover;
         QList<NeuroLinkItem *> _incoming;
+        QList<NeuroLinkItem *> _outgoing;
         
         static const QColor NORMAL_LINE_COLOR;
         static const QColor UNLINKED_LINE_COLOR;
@@ -29,9 +30,18 @@ namespace NeuroLab
         
     public:
         NeuroItem();
+        virtual ~NeuroItem();
+        
+        bool inHover() const { return _in_hover; }
+        void setInHover(bool ih) { _in_hover = ih; update(boundingRect()); }
+        
+        void bringToFront();
         
         void addIncoming(NeuroLinkItem *linkItem);
         void removeIncoming(NeuroLinkItem *linkItem);
+        
+        void addOutgoing(NeuroLinkItem *linkItem);
+        void removeOutgoing(NeuroLinkItem *linkItem);
                 
         virtual void adjustIncomingLinks() = 0;
         

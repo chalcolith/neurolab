@@ -11,6 +11,10 @@ namespace NeuroLab
     {
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
+    
+    NeuroNodeItem::~NeuroNodeItem()
+    {
+    }
 
     QRectF NeuroNodeItem::boundingRect() const
     {
@@ -66,7 +70,7 @@ namespace NeuroLab
             QVector2D toSource = pointSource - center;
             toSource.normalize();
             
-            pointToAdjust = center + (toSource * (NODE_WIDTH * 2.0 / 3.0));
+            pointToAdjust = center + (toSource * (NODE_WIDTH / 1.8));
             link->setLine(back.toPointF(), front.toPointF());
         }
     }
