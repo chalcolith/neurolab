@@ -18,6 +18,7 @@ namespace NeuroLab
         QList<NeuroLinkItem *> _incoming;
         QList<NeuroLinkItem *> _outgoing;
         
+    public:
         static const QColor NORMAL_LINE_COLOR;
         static const QColor UNLINKED_LINE_COLOR;
         static const QColor BACKGROUND_COLOR;
@@ -28,7 +29,6 @@ namespace NeuroLab
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
         
-    public:
         NeuroItem();
         virtual ~NeuroItem();
         
@@ -51,6 +51,8 @@ namespace NeuroLab
     protected:
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+        
+        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
     };
     
 } // namespace NeuroLab

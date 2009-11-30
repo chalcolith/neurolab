@@ -29,7 +29,7 @@ namespace NeuroLab
         virtual void adjustLinks();
         
     private:
-        void adjustLinksAux(NeuroLinkItem *link);
+        void adjustLinksAux(QList<NeuroLinkItem *> & list);
     };
     
 }

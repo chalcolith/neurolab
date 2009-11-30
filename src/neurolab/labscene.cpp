@@ -53,7 +53,11 @@ namespace NeuroLab
         if (event->buttons() == Qt::LeftButton)
         {
             // pick up node if we're on one
-            if (!mousePressPickupNode(event))
+            if (mousePressPickupNode(event))
+            {
+                return;
+            }
+            else
             {
                 switch (mode.top())
                 {
@@ -93,7 +97,7 @@ namespace NeuroLab
         if (item)
         {
             NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
-            if (nodeItem)
+            if (nodeItem && mode.top() == MODE_ADD_NODE)
             {
                 nodeItem->bringToFront();
                 movingNode = nodeItem;
@@ -108,7 +112,7 @@ namespace NeuroLab
                 
                 qreal front_dist = (QVector2D(event->scenePos()) - QVector2D(linkItem->line().p2())).lengthSquared();
                 qreal back_dist = (QVector2D(event->scenePos()) - QVector2D(linkItem->line().p1())).lengthSquared();
-                                
+                
                 linkFront = front_dist < back_dist;
                 
                 return true;
@@ -124,6 +128,7 @@ namespace NeuroLab
         const QPointF & pos = event->scenePos();
         
         item->setPos(pos.x(), pos.y());
+        item->setInHover(true);
         
         addItem(item);
         movingNode = item;
@@ -133,11 +138,16 @@ namespace NeuroLab
     
     bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
     {
-        const QPointF & pos = event->scenePos();
-        linkItem->setLine(pos.x(), pos.y(), pos.x()+20, pos.y()-20);
+        QPointF pos = event->scenePos();
+        linkItem->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
         
         addItem(linkItem);
         movingLink = linkItem;
+        linkFront = true;
+        
+        // link back end if we're on a node
+        linkFront = false;
+        mouseMoveHandleLinks(event, pos, movingLink);
         linkFront = true;
         
         return true;
@@ -145,12 +155,7 @@ namespace NeuroLab
     
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
-        if (movingNode)
-            movingNode->setInHover(false);
         movingNode = 0;
-        
-        if (movingLink)
-            movingLink->setInHover(false);
         movingLink = 0;
         
         QGraphicsScene::mouseReleaseEvent(event);
@@ -160,10 +165,15 @@ namespace NeuroLab
     {
         if (movingNode)
         {
-            const QPointF & pos = event->scenePos();
+            QPointF pos = event->scenePos();
             
-            movingNode->setPos(pos.x(), pos.y());
-            movingNode->adjustLinks();
+            if (!mouseMoveHandleNode(event, pos, movingNode))
+            {
+                movingNode->setPos(pos.x(), pos.y());
+                movingNode->adjustLinks();
+            }
+            
+            return;
         }
         else if (movingLink)
         {
@@ -180,18 +190,58 @@ namespace NeuroLab
                 
                 endToMove = pos;
                 
-                movingLink->setLine(back.x(), back.y(), front.x(), front.y());
+                movingLink->setLine(back.x(), back.y(), front.x(), front.y());                
+                movingLink->adjustLinks();
                 
                 if (movingLink->frontLinkTarget())
                     movingLink->frontLinkTarget()->adjustLinks();
-                if (movingLink->backLinkTarget())
+                else if (movingLink->backLinkTarget())
                     movingLink->backLinkTarget()->adjustLinks();
-                                
-                movingLink->adjustLinks();
             }
+            
+            return;
         }
         
         QGraphicsScene::mouseMoveEvent(event);
+    }
+    
+    bool LabScene::mouseMoveHandleNode(QGraphicsSceneMouseEvent *event, QPointF &scenePos, NeuroNodeItem *node)
+    {
+        // get topmost link
+        NeuroLinkItem *itemAtPos = 0;
+        bool front = false;
+        QListIterator<QGraphicsItem *> i(node->collidingItems(Qt::IntersectsItemShape));
+        while (i.hasNext())
+        {
+            itemAtPos = dynamic_cast<NeuroLinkItem *>(i.next());
+            if (itemAtPos && !(itemAtPos->frontLinkTarget() == node || itemAtPos->backLinkTarget() == node))
+            {
+                // figure out which end to link
+                qreal frontDist = (QVector2D(scenePos) - QVector2D(itemAtPos->line().p2())).lengthSquared();
+                qreal backDist = (QVector2D(scenePos) - QVector2D(itemAtPos->line().p1())).lengthSquared();
+                front = frontDist < backDist;
+
+                // don't attach to a link that's already attached to something                
+                if (!(front ? itemAtPos->frontLinkTarget() : itemAtPos->backLinkTarget()) && canLink(itemAtPos, node))
+                    break;
+            }
+
+            itemAtPos = 0;
+        }
+        
+        // connect to link
+        if (itemAtPos)
+        {
+            if (front)
+                itemAtPos->setFrontLinkTarget(node);
+            else
+                itemAtPos->setBackLinkTarget(node);
+            
+            node->adjustLinks();
+            return true;
+        }
+        
+        return false;
     }
     
     bool LabScene::mouseMoveHandleLinks(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroLinkItem *link)
@@ -202,7 +252,7 @@ namespace NeuroLab
         while (i.hasNext())
         {
             itemAtPos = dynamic_cast<NeuroItem *>(i.next());
-            if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != link)
+            if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != link && canLink(link, itemAtPos))
                 break;
             else
                 itemAtPos = 0;
@@ -222,7 +272,7 @@ namespace NeuroLab
         }
         
         // form links
-        if (itemAtPos && canLink(link, itemAtPos))
+        if (itemAtPos)
         {
             if (linkFront)
                 link->setFrontLinkTarget(itemAtPos);

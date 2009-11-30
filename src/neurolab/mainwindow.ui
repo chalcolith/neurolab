@@ -43,7 +43,7 @@
     <property name="title">
      <string>Item</string>
     </property>
-    <addaction name="actionDelete"/>
+    <addaction name="action_Delete"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
@@ -73,13 +73,13 @@
      <item>
       <widget class="QToolBox" name="sidebarToolbox">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_1">
         <property name="geometry">
@@ -143,8 +143,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>104</width>
-          <height>246</height>
+          <width>98</width>
+          <height>28</height>
          </rect>
         </property>
         <attribute name="label">
@@ -207,7 +207,7 @@
     <string>&amp;Sidebar</string>
    </property>
   </action>
-  <action name="actionDelete">
+  <action name="action_Delete">
    <property name="text">
     <string>&amp;Delete</string>
    </property>

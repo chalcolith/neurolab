@@ -2,7 +2,11 @@
 #include "mainwindow.h"
 #include "neurolinkitem.h"
 
+#include "ui_mainwindow.h"
+
 #include <QStatusBar>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QMenu>
 
 namespace NeuroLab
 {
@@ -22,6 +26,8 @@ namespace NeuroLab
     NeuroItem::NeuroItem()
         : QGraphicsItem(), _in_hover(true)
     {
+        this->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        this->setFlag(QGraphicsItem::ItemIsMovable, true);
         this->setAcceptHoverEvents(true);
     }
     
@@ -98,6 +104,13 @@ namespace NeuroLab
         _in_hover = false;
         setSelected(false);
         update(this->boundingRect());
+    }
+    
+    void NeuroItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+    {
+        setSelected(true);
+        MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
+        // don't do anything here, because this may have been deleted!
     }
 
 } // namespace NeuroLab

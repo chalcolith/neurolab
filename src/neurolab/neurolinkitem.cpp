@@ -18,6 +18,16 @@ namespace NeuroLab
     
     NeuroLinkItem::~NeuroLinkItem()
     {
+        QListIterator<NeuroLinkItem *> i(_incoming);
+        while (i.hasNext())
+        {
+            NeuroLinkItem *link = i.next();
+            if (link && link->frontLinkTarget() == this)
+                link->setFrontLinkTarget(0);
+            else if (link && link->backLinkTarget() == this)
+                link->setBackLinkTarget(0);
+        }
+        
         if (_frontLinkTarget)
             _frontLinkTarget->removeIncoming(this);
         _frontLinkTarget = 0;
@@ -81,6 +91,7 @@ namespace NeuroLab
     void NeuroLinkItem::updatePos()
     {
         setPos( (_line.x1() + _line.x2())/2, (_line.y1() + _line.y2())/2 );
+        adjustLinks();
     }
     
     QRectF NeuroLinkItem::boundingRect() const
@@ -148,7 +159,7 @@ namespace NeuroLab
     
     void NeuroLinkItem::setPenWidth(QPen & pen)
     {
-        if (_in_hover)
+        if (_in_hover || this->isSelected())
             pen.setWidth(HOVER_LINE_WIDTH);
         else   
             pen.setWidth(NORMAL_LINE_WIDTH);
@@ -161,12 +172,8 @@ namespace NeuroLab
             int x1 = static_cast<int>(_line.x1() - pos().x());
             int y1 = static_cast<int>(_line.y1() - pos().y());
             
-            QPen pen(Qt::SolidLine);
-            
-            if (_backLinkTarget)
-                pen.setColor(NORMAL_LINE_COLOR);
-            else
-                pen.setColor(UNLINKED_LINE_COLOR);
+            QPen pen(Qt::SolidLine);            
+            pen.setColor(NORMAL_LINE_COLOR);
             
             setPenWidth(pen);
             painter->drawEllipse(x1 - ELLIPSE_WIDTH/4, y1 - ELLIPSE_WIDTH/4, ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);

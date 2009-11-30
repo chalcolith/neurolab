@@ -5,17 +5,35 @@
 
 namespace NeuroLab
 {
-        
+
     NeuroNodeItem::NeuroNodeItem()
         : NeuroItem()
     {
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
     
+    static void remove_links(QList<NeuroLinkItem *> & list, NeuroNodeItem *node)
+    {
+        QListIterator<NeuroLinkItem *> ln(list);
+        while (ln.hasNext())
+        {
+            NeuroLinkItem *link = ln.next();
+            
+            if (link && link->frontLinkTarget() == node)
+                link->setFrontLinkTarget(0);
+            else if (link && link->backLinkTarget() == node)
+                link->setBackLinkTarget(0);
+        }
+        
+        list.clear();
+    }
+    
     NeuroNodeItem::~NeuroNodeItem()
     {
+        remove_links(_incoming, this);
+        remove_links(_outgoing, this);
     }
-
+    
     QRectF NeuroNodeItem::boundingRect() const
     {
         return _rect;
@@ -31,7 +49,7 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(BACKGROUND_COLOR);
         
-        if (_in_hover)
+        if (_in_hover || this->isSelected())
             pen.setWidth(HOVER_LINE_WIDTH);
         else
             pen.setWidth(NORMAL_LINE_WIDTH);
@@ -50,40 +68,35 @@ namespace NeuroLab
     
     void NeuroNodeItem::adjustLinks()
     {
-        QListIterator<NeuroLinkItem *> in(_incoming);
-        while (in.hasNext())
-        {
-            NeuroLinkItem *link = in.next();
-            if (link)
-                adjustLinksAux(link);
-        }
-        
-        QListIterator<NeuroLinkItem *> out(_outgoing);
-        while (out.hasNext())
-        {
-            NeuroLinkItem *link = out.next();
-            if (link)
-                adjustLinksAux(link);
-        }
+        adjustLinksAux(_incoming);
+        adjustLinksAux(_outgoing);        
     }
     
-    void NeuroNodeItem::adjustLinksAux(NeuroLinkItem *link)
+    void NeuroNodeItem::adjustLinksAux(QList<NeuroLinkItem *> & list)
     {
-        QVector2D center(pos());
-        QVector2D front(link->line().p2());
-        QVector2D back(link->line().p1());
-        
-        qreal front_dist = (center - front).lengthSquared();
-        qreal back_dist = (center - back).lengthSquared();
-        
-        QVector2D & pointToAdjust = front_dist < back_dist ? front : back;
-        QVector2D & pointSource = front_dist < back_dist ? back : front;
-
-        QVector2D toSource = pointSource - center;
-        toSource.normalize();
-        
-        pointToAdjust = center + (toSource * (NODE_WIDTH / 1.8));
-        link->setLine(back.toPointF(), front.toPointF());
+        QListIterator<NeuroLinkItem *> ln(list);
+        while (ln.hasNext())
+        {
+            NeuroLinkItem *link = ln.next();
+            if (!link)
+                continue;
+            
+            QVector2D center(pos());
+            QVector2D front(link->line().p2());
+            QVector2D back(link->line().p1());
+            
+            qreal front_dist = (center - front).lengthSquared();
+            qreal back_dist = (center - back).lengthSquared();
+            
+            QVector2D & pointToAdjust = front_dist < back_dist ? front : back;
+            QVector2D & pointSource = front_dist < back_dist ? back : front;
+            
+            QVector2D toSource = pointSource - center;
+            toSource.normalize();
+            
+            pointToAdjust = center + (toSource * (NODE_WIDTH / 1.8));
+            link->setLine(back.toPointF(), front.toPointF());
+        }
     }
     
 } // namespace NeuroLab

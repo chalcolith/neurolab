@@ -23,7 +23,7 @@ namespace NeuroLab
         
         static MainWindow *_instance;
         
-        Ui::MainWindow *ui;
+        Ui::MainWindow *_ui;
         QVBoxLayout *layout;
         
         LabNetwork *currentNetwork;
@@ -33,6 +33,7 @@ namespace NeuroLab
         ~MainWindow();
         
         static MainWindow *instance();
+        Ui::MainWindow *ui() { return _ui; }
         
     signals:
         void quitting();        
@@ -49,7 +50,6 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
                 
     private slots:
-        void on_actionDelete_triggered();
         void on_iLinkButton_toggled(bool checked);
         void on_eLinkButton_toggled(bool checked);
         void on_nodeButton_toggled(bool checked);
@@ -59,6 +59,7 @@ namespace NeuroLab
         void on_action_Close_triggered();
         void on_action_Save_triggered();
         void on_action_Quit_triggered();
+        void on_action_Delete_triggered();
     };
     
     

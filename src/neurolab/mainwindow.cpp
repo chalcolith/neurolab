@@ -17,7 +17,7 @@ namespace NeuroLab
     
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent), 
-          ui(new Ui::MainWindow),
+          _ui(new Ui::MainWindow()),
           layout(0),
           currentNetwork(0)
     {
@@ -27,13 +27,13 @@ namespace NeuroLab
         _instance = this;
         
         // set up ui and other connections
-        ui->setupUi(this);
+        _ui->setupUi(this);
         
         setupConnections();
         
         // central widget layout
         layout = new QVBoxLayout();
-        ui->centralWidget->setLayout(layout);
+        _ui->centralWidget->setLayout(layout);
         
         this->setWindowTitle(tr("NeuroLab"));
         
@@ -50,7 +50,8 @@ namespace NeuroLab
     MainWindow::~MainWindow()
     {
         setNetwork(0);
-        delete ui;
+        delete _ui;
+        _instance = 0;
     }
     
     MainWindow *MainWindow::instance()
@@ -64,7 +65,7 @@ namespace NeuroLab
         int result = 0;
         for (int i = 0; i < nums.length(); ++i)
         {
-            result = (result * 100) + nums[i].toInt();
+            result = (result * 1000) + nums[i].toInt();
         }
         return result;
     }
@@ -91,7 +92,7 @@ namespace NeuroLab
     
     void MainWindow::setupConnections()
     {
-        connect(ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), ui->action_Sidebar, SLOT(setChecked(bool)));
+        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)));
     }
     
     bool MainWindow::newNetwork()
@@ -134,7 +135,7 @@ namespace NeuroLab
         
         if (network)
         {
-            ui->nodeButton->setChecked(true);
+            _ui->nodeButton->setChecked(true);
             
             currentNetwork = network;
             layout->addWidget(currentNetwork->getView());
@@ -146,7 +147,7 @@ namespace NeuroLab
         else
         {
             currentNetwork = 0;
-            ui->centralWidget = 0;
+            _ui->centralWidget = 0;
             this->setWindowTitle(tr("NeuroLab"));
         }
 
@@ -187,7 +188,7 @@ void NeuroLab::MainWindow::on_action_Quit_triggered()
 
 void NeuroLab::MainWindow::on_action_Sidebar_triggered()
 {
-    ui->sidebarDockWidget->toggleViewAction()->trigger();
+    _ui->sidebarDockWidget->toggleViewAction()->trigger();
 }
 
 void NeuroLab::MainWindow::on_nodeButton_toggled(bool checked)
@@ -208,8 +209,8 @@ void NeuroLab::MainWindow::on_iLinkButton_toggled(bool checked)
         currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_I_LINK);
 }
 
-void NeuroLab::MainWindow::on_actionDelete_triggered()
+void NeuroLab::MainWindow::on_action_Delete_triggered()
 {
     if (currentNetwork)
-        currentNetwork->deleteSelectedItem();
+        currentNetwork->deleteSelectedItem();    
 }
