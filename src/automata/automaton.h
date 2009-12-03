@@ -3,6 +3,7 @@
 
 #include <QtGlobal>
 #include <QtConcurrentMap>
+#include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
 
@@ -16,12 +17,14 @@ namespace Automata
     /// An automaton over graphs, with asynchronous update capability.
     /// \param TState A state in the automaton.  Must implement \c bool \c shouldUpdate().
     /// \param TFUpdate A functor by which to update states.  Must implement \c ()(const TState & prev, TState & next, const int & numNeighbors, const TState * const * const neighbors).
-    template <typename TState, typename TFUpdate, typename TIndex = qint32>
+    template <typename TState, typename TFUpdate, typename TIndex = qint32, int NUM_PER_LOCK = 1024>
     class Automaton 
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
         const TFUpdate fUpdate;
         QVector<const TState *> temp_neighbors;
+        QList<QReadWriteLock *> locks;
+        TIndex num_assigned_lock;
         
         struct MapFunctor
         {
@@ -40,12 +43,20 @@ namespace Automata
 
     public:
         Automaton(const int initialCapacity = 0, bool directed = true)
-            : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate())
+            : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate()),
+              num_assigned_lock(0)
         {
         }
 
         virtual ~Automaton()
         {
+            QListIterator<QReadWriteLock *> i(locks);
+            while (i.hasNext())
+            {
+                delete i.next();
+            }
+            
+            locks.clear();
         }
         
         virtual void step()
@@ -57,7 +68,9 @@ namespace Automata
 
         TIndex addNode(const TState & node)
         {
-            return Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));
+            TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));            
+            this->nodes[result].setLock(getNextLock());            
+            return result;
         }
 
         const TState & operator[](const TIndex & index) const
@@ -94,7 +107,7 @@ namespace Automata
         
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
         {
-            QWriteLocker write(&state.lock);
+            QWriteLocker write(state.lock);
             
             if (state.r == 0)
             {
@@ -109,7 +122,7 @@ namespace Automata
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->nodes[neighbors[i]];
                         
-                        QReadLocker read(&neighbor.lock);
+                        QReadLocker read(neighbor.lock);
                         
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;
@@ -150,6 +163,18 @@ namespace Automata
                 throw IndexOverflow();
             }
         }
+        
+    private:
+        QReadWriteLock *getNextLock()
+        {
+            if ((num_assigned_lock++ % NUM_PER_LOCK) == 0)
+            {
+                locks.append(new QReadWriteLock());
+            }
+            
+            return locks.last();
+        }
+        
     }; // class Automaton
     
 } // namespace Automata
