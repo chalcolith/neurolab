@@ -49,10 +49,10 @@ namespace NeuroLab
         virtual void adjustLinks() = 0;
         
     protected:
+        virtual bool shouldHighlight() const;
+        
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-        
-        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
     };
     
 } // namespace NeuroLab

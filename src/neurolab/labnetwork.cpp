@@ -69,6 +69,7 @@ namespace NeuroLab
             file.open(QIODevice::ReadOnly);
             {
                 QDataStream ds(&file);
+                
                 /// \todo initialize from scene data
             }
             file.close();

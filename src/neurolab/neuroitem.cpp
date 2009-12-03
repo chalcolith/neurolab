@@ -1,8 +1,7 @@
 #include "neuroitem.h"
 #include "mainwindow.h"
 #include "neurolinkitem.h"
-
-#include "ui_mainwindow.h"
+#include "labscene.h"
 
 #include <QStatusBar>
 #include <QGraphicsSceneContextMenuEvent>
@@ -90,6 +89,18 @@ namespace NeuroLab
         _outgoing.removeAll(linkItem);
     }
     
+    bool NeuroItem::shouldHighlight() const
+    {
+        if (_in_hover || isSelected())
+            return true;
+        
+        const LabScene *sc = dynamic_cast<const LabScene *>(this->scene());
+        if (sc && sc->itemToDelete() == dynamic_cast<const QGraphicsItem *>(this))
+            return true;
+        
+        return false;
+    }
+    
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
     {
         MainWindow::instance()->statusBar()->showMessage(QString("Hover enter %1; underMouse %2").arg((int)this).arg(this->isUnderMouse()));
@@ -106,11 +117,4 @@ namespace NeuroLab
         update(this->boundingRect());
     }
     
-    void NeuroItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
-    {
-        setSelected(true);
-        MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
-        // don't do anything here, because this may have been deleted!
-    }
-
 } // namespace NeuroLab

@@ -49,7 +49,7 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(BACKGROUND_COLOR);
         
-        if (_in_hover || this->isSelected())
+        if (shouldHighlight())
             pen.setWidth(HOVER_LINE_WIDTH);
         else
             pen.setWidth(NORMAL_LINE_WIDTH);

@@ -1,4 +1,6 @@
 #include "labscene.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QVector2D>
@@ -7,7 +9,7 @@ namespace NeuroLab
 {
     
     LabScene::LabScene()
-        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true)
+        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true), _itemToDelete(0)
     {
         mode.push(MODE_NONE);
     }
@@ -36,6 +38,13 @@ namespace NeuroLab
     
     void LabScene::deleteSelectedItem()
     {
+        if (_itemToDelete)
+        {
+            this->removeItem(_itemToDelete);
+            delete _itemToDelete;
+            _itemToDelete = 0;
+        }
+        
         QListIterator<QGraphicsItem *> i(this->selectedItems());
         while (i.hasNext())
         {
@@ -85,6 +94,14 @@ namespace NeuroLab
         }
         else if (event->buttons() == Qt::RightButton)
         {
+            QGraphicsItem *item = this->itemAt(event->scenePos());
+            if (item)
+            {
+                _itemToDelete = item;
+                MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
+                // item may be destroyed here
+                return;
+            }
         }
 
         QGraphicsScene::mousePressEvent(event);

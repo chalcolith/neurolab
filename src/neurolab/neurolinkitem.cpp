@@ -159,7 +159,7 @@ namespace NeuroLab
     
     void NeuroLinkItem::setPenWidth(QPen & pen)
     {
-        if (_in_hover || this->isSelected())
+        if (shouldHighlight())
             pen.setWidth(HOVER_LINE_WIDTH);
         else   
             pen.setWidth(NORMAL_LINE_WIDTH);
