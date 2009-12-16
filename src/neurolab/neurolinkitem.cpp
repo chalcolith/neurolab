@@ -179,7 +179,15 @@ namespace NeuroLab
             painter->drawEllipse(x1 - ELLIPSE_WIDTH/4, y1 - ELLIPSE_WIDTH/4, ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
         }
     }
-        
+    
+    void NeuroLinkItem::writeBinary(QDataStream & data) const
+    {
+    }
+    
+    void NeuroLinkItem::readBinary(QDataStream & data)
+    {
+    }
+    
     
     //////////////////////////////////////////////////////////////////
     

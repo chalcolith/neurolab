@@ -117,4 +117,16 @@ namespace NeuroLab
         update(this->boundingRect());
     }
     
+    QDataStream & operator<< (QDataStream & data, const NeuroItem & item)
+    {
+        item.writeBinary(data);
+        return data;
+    }
+    
+    QDataStream & operator>> (QDataStream & data, NeuroItem & item)
+    {
+        item.readBinary(data);
+        return data;
+    }
+    
 } // namespace NeuroLab

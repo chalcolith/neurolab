@@ -99,4 +99,12 @@ namespace NeuroLab
         }
     }
     
+    void NeuroNodeItem::writeBinary(QDataStream & data) const
+    {
+    }
+    
+    void NeuroNodeItem::readBinary(QDataStream & data)
+    {
+    }
+    
 } // namespace NeuroLab

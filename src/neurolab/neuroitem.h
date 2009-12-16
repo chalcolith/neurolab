@@ -19,6 +19,14 @@ namespace NeuroLab
         QList<NeuroLinkItem *> _outgoing;
         
     public:
+        enum NODE_TYPE
+        {
+            NEURO_NULL = 0,
+            NEURO_NODE,
+            NEURO_EXCITORY_LINK,
+            NEURO_INHIBITORY_LINK
+        };
+        
         static const QColor NORMAL_LINE_COLOR;
         static const QColor UNLINKED_LINE_COLOR;
         static const QColor BACKGROUND_COLOR;
@@ -53,7 +61,16 @@ namespace NeuroLab
         
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+        
+        virtual void writeBinary(QDataStream &) const = 0;
+        virtual void readBinary(QDataStream &) = 0;
+        
+        friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
+        friend QDataStream & operator>> (QDataStream &, NeuroItem &);
     };
+    
+    extern QDataStream & operator<< (QDataStream &, const NeuroItem &);
+    extern QDataStream & operator>> (QDataStream &, NeuroItem &);
     
 } // namespace NeuroLab
 

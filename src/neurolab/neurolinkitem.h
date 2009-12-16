@@ -44,6 +44,9 @@ namespace NeuroLab
     protected:
         void setPenWidth(QPen & pen);
         void paintBackLink(QPainter *painter);
+        
+        void writeBinary(QDataStream &) const;
+        void readBinary(QDataStream &);
     };
     
     

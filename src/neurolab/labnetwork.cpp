@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "mainwindow.h"
 #include "labnetwork.h"
 
 namespace NeuroLab
@@ -28,6 +29,9 @@ namespace NeuroLab
         sceneTree->getScene()->deleteSelectedItem();
     }
     
+    static const QString LAB_NETWORK_COOKIE("NeuroLab 0 NETWORK");
+    static const QString LAB_SCENE_COOKIE("Neurolab 0 SCENE");
+    
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
         QString nln_fname = fname;
@@ -50,6 +54,8 @@ namespace NeuroLab
         }
         
         // read network
+        QString cookie;
+        
         LabNetwork *ln = new LabNetwork(parent);
         ln->fname = nln_fname;
         
@@ -58,23 +64,36 @@ namespace NeuroLab
             file.open(QIODevice::ReadOnly);
             {
                 QDataStream ds(&file);
+                ds >> cookie;
+                if (cookie != LAB_NETWORK_COOKIE)
+                {
+                    delete ln;
+                    throw new Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                }
+                
                 ds >> *ln->network;
             }
-            file.close();
         }
         
-        // initialize from scene data
+        // read scene data
         {
             QFile file(nln_fname);
             file.open(QIODevice::ReadOnly);
+            
             {
                 QDataStream ds(&file);
+                ds >> cookie;
+                if (cookie != LAB_SCENE_COOKIE)
+                {
+                    delete ln;
+                    throw new Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                }
                 
-                /// \todo initialize from scene data
+                ds >> *ln->sceneTree;
             }
-            file.close();
         }
         
+        //
         return ln;
     }
     
@@ -117,17 +136,23 @@ namespace NeuroLab
             file.open(QIODevice::WriteOnly);
             {
                 QDataStream data(&file);
+                data << LAB_NETWORK_COOKIE;
                 data << *network;
             }
-            file.close();
         }
         
-        /// \todo go through the scene and write
+        // write scene
         {
             QFile file(this->fname);
             file.open(QIODevice::WriteOnly);
             
-            file.close();
+            // items
+            if (sceneTree)
+            {
+                QDataStream data(&file);
+                data << LAB_SCENE_COOKIE;
+                data << *sceneTree;
+            }
         }
         
         this->dirty = false;
@@ -145,11 +170,12 @@ namespace NeuroLab
         return true;
     }
     
-    static void setSceneMode(LabTreeNode & n, const LabScene::Mode & m)
+    static void setSceneMode(LabTreeNode *n, const LabScene::Mode & m)
     {
-        n.getScene()->setMode(m);
+        n->getScene()->setMode(m);
         
-        for (QMutableListIterator<LabTreeNode> i(n.getChildren()); i.hasNext(); )
+        QMutableListIterator<LabTreeNode *> i(n->getChildren());
+        while (i.hasNext())
             setSceneMode(i.next(), m);
     }
     

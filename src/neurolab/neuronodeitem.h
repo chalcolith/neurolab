@@ -30,8 +30,12 @@ namespace NeuroLab
         
     private:
         void adjustLinksAux(QList<NeuroLinkItem *> & list);
+
+    protected:
+        virtual void writeBinary(QDataStream &) const;
+        virtual void readBinary(QDataStream &);
     };
     
-}
+} // namespace NeuroLab
 
 #endif // NEURONODEITEM_H
