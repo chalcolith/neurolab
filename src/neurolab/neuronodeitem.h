@@ -19,7 +19,7 @@ namespace NeuroLab
         virtual ~NeuroNodeItem();
         
         const QRectF & rect() const { return _rect; }
-        void setRect(const QRectF & r) { _rect = r; }
+        void setRect(const QRectF & r) { _rect = r; update(_rect); }
         
         virtual QRectF boundingRect() const;
         

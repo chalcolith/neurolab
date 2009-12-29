@@ -50,10 +50,9 @@ namespace Automata
 
         virtual ~Automaton()
         {
-            QListIterator<QReadWriteLock *> i(locks);
-            while (i.hasNext())
+            for (QListIterator<QReadWriteLock *> i(locks); i.hasNext(); i.next())
             {
-                delete i.next();
+                delete i.peekNext();
             }
             
             locks.clear();

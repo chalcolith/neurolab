@@ -68,7 +68,7 @@ namespace NeuroLab
                 if (cookie != LAB_NETWORK_COOKIE)
                 {
                     delete ln;
-                    throw new Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                    throw Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
                 }
                 
                 ds >> *ln->network;
@@ -86,7 +86,7 @@ namespace NeuroLab
                 if (cookie != LAB_SCENE_COOKIE)
                 {
                     delete ln;
-                    throw new Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
                 
                 ds >> *ln->sceneTree;
@@ -174,9 +174,8 @@ namespace NeuroLab
     {
         n->getScene()->setMode(m);
         
-        QMutableListIterator<LabTreeNode *> i(n->getChildren());
-        while (i.hasNext())
-            setSceneMode(i.next(), m);
+        for (QMutableListIterator<LabTreeNode *> i(n->getChildren()); i.hasNext(); i.next())
+            setSceneMode(i.peekNext(), m);
     }
     
     void LabNetwork::setMode(const LabScene::Mode & m)
@@ -187,10 +186,10 @@ namespace NeuroLab
     
     void LabNetwork::changed(const QList<QRectF> &)
     {
-//        if (!first_change)
-//            this->dirty = true;
-//        else
-//            first_change = false;
+        if (!first_change)
+            this->dirty = true;
+        else
+            first_change = false;
     }
     
 } // namespace NeuroLab

@@ -22,7 +22,7 @@ namespace NeuroLab
           currentNetwork(0)
     {
         if (_instance)
-            throw new Exception("You cannot create more than one main window.");
+            throw Exception("You cannot create more than one main window.");
 
         _instance = this;
         
@@ -106,11 +106,26 @@ namespace NeuroLab
     
     bool MainWindow::openNetwork()
     {
-        if (!closeNetwork())
-            return false;
-                
-        setNetwork(LabNetwork::open(this, QString()));
-        return true;
+        LabNetwork *newNetwork = LabNetwork::open(this, QString());
+        
+        if (newNetwork)
+        {
+            closeNetwork();
+            setNetwork(newNetwork);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    bool MainWindow::saveNetwork()
+    {
+        if (currentNetwork)
+        {
+            return currentNetwork->save(false);
+        }
+        
+        return false;
     }
     
     /// \return True if we closed the network successfully; false otherwise.
@@ -176,7 +191,7 @@ void NeuroLab::MainWindow::on_action_Close_triggered()
 
 void NeuroLab::MainWindow::on_action_Save_triggered()
 {
-    /// \todo Handle save as.
+    saveNetwork();
 }
 
 void NeuroLab::MainWindow::on_action_Quit_triggered()

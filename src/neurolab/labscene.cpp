@@ -9,7 +9,7 @@ namespace NeuroLab
 {
     
     LabScene::LabScene()
-        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true), _itemToDelete(0)
+        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true), _itemToSelect(0)
     {
         mode.push(MODE_NONE);
     }
@@ -38,17 +38,16 @@ namespace NeuroLab
     
     void LabScene::deleteSelectedItem()
     {
-        if (_itemToDelete)
+        if (_itemToSelect)
         {
-            this->removeItem(_itemToDelete);
-            delete _itemToDelete;
-            _itemToDelete = 0;
+            this->removeItem(_itemToSelect);
+            delete _itemToSelect;
+            _itemToSelect = 0;
         }
         
-        QListIterator<QGraphicsItem *> i(this->selectedItems());
-        while (i.hasNext())
+        for (QListIterator<QGraphicsItem *> i(this->selectedItems()); i.hasNext(); i.next())
         {
-            QGraphicsItem *item = i.next();
+            QGraphicsItem *item = i.peekNext();
             this->removeItem(item);
             delete item;
         }
@@ -97,7 +96,7 @@ namespace NeuroLab
             QGraphicsItem *item = this->itemAt(event->scenePos());
             if (item)
             {
-                _itemToDelete = item;
+                _itemToSelect = item;
                 MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
                 // item may be destroyed here
                 return;
@@ -227,10 +226,9 @@ namespace NeuroLab
         // get topmost link
         NeuroLinkItem *itemAtPos = 0;
         bool front = false;
-        QListIterator<QGraphicsItem *> i(node->collidingItems(Qt::IntersectsItemShape));
-        while (i.hasNext())
+        for (QListIterator<QGraphicsItem *> i(node->collidingItems(Qt::IntersectsItemShape)); i.hasNext(); i.next())
         {
-            itemAtPos = dynamic_cast<NeuroLinkItem *>(i.next());
+            itemAtPos = dynamic_cast<NeuroLinkItem *>(i.peekNext());
             if (itemAtPos && !(itemAtPos->frontLinkTarget() == node || itemAtPos->backLinkTarget() == node))
             {
                 // figure out which end to link
@@ -265,10 +263,9 @@ namespace NeuroLab
     {
         // get topmost item that is not the link itself
         NeuroItem *itemAtPos = 0;
-        QListIterator<QGraphicsItem *> i(this->items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder));
-        while (i.hasNext())
+        for (QListIterator<QGraphicsItem *> i(this->items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); i.next())
         {
-            itemAtPos = dynamic_cast<NeuroItem *>(i.next());
+            itemAtPos = dynamic_cast<NeuroItem *>(i.peekNext());
             if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != link && canLink(link, itemAtPos))
                 break;
             else

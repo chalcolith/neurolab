@@ -14,10 +14,9 @@ namespace NeuroLab
     
     static void remove_links(QList<NeuroLinkItem *> & list, NeuroNodeItem *node)
     {
-        QListIterator<NeuroLinkItem *> ln(list);
-        while (ln.hasNext())
+        for (QListIterator<NeuroLinkItem *> ln(list); ln.hasNext(); ln.next())
         {
-            NeuroLinkItem *link = ln.next();
+            NeuroLinkItem *link = ln.peekNext();
             
             if (link && link->frontLinkTarget() == node)
                 link->setFrontLinkTarget(0);
@@ -74,10 +73,9 @@ namespace NeuroLab
     
     void NeuroNodeItem::adjustLinksAux(QList<NeuroLinkItem *> & list)
     {
-        QListIterator<NeuroLinkItem *> ln(list);
-        while (ln.hasNext())
+        for (QListIterator<NeuroLinkItem *> ln(list); ln.hasNext(); ln.next())
         {
-            NeuroLinkItem *link = ln.next();
+            NeuroLinkItem *link = ln.peekNext();
             if (!link)
                 continue;
             
@@ -101,10 +99,22 @@ namespace NeuroLab
     
     void NeuroNodeItem::writeBinary(QDataStream & data) const
     {
+        data << _id;
+        data << pos();
+        data << _rect;
     }
     
     void NeuroNodeItem::readBinary(QDataStream & data)
     {
+        data >> _id;
+        
+        QPointF p;
+        data >> p;
+        setPos(p);
+        
+        QRectF r;
+        data >> r;
+        setRect(r);
     }
     
 } // namespace NeuroLab

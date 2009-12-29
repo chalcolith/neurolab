@@ -17,7 +17,7 @@ namespace NeuroLab
         NeuroLinkItem *movingLink;
         bool linkFront;
         
-        QGraphicsItem *_itemToDelete;
+        QGraphicsItem *_itemToSelect;
                 
     public:
         LabScene();
@@ -36,7 +36,7 @@ namespace NeuroLab
         void setMode(const Mode &);
         const Mode getMode() const;
         
-        const QGraphicsItem *itemToDelete() const { return _itemToDelete; }
+        const QGraphicsItem *itemToSelect() const { return _itemToSelect; }
         void deleteSelectedItem();
                 
     protected:

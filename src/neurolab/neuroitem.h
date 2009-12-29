@@ -13,7 +13,10 @@ namespace NeuroLab
     class NeuroItem 
         : public QGraphicsItem
     {
+        static int NEXT_ID;
+        
     protected:
+        int _id;
         bool _in_hover;
         QList<NeuroLinkItem *> _incoming;
         QList<NeuroLinkItem *> _outgoing;
@@ -40,6 +43,7 @@ namespace NeuroLab
         NeuroItem();
         virtual ~NeuroItem();
         
+        int id() { return _id; }        
         bool inHover() const { return _in_hover; }
         void setInHover(bool ih) { _in_hover = ih; update(boundingRect()); }
         
@@ -56,6 +60,8 @@ namespace NeuroLab
                 
         virtual void adjustLinks() = 0;
         
+        virtual void idsToPointers(QGraphicsScene *);
+
     protected:
         virtual bool shouldHighlight() const;
         
@@ -64,6 +70,11 @@ namespace NeuroLab
         
         virtual void writeBinary(QDataStream &) const = 0;
         virtual void readBinary(QDataStream &) = 0;
+        
+        virtual void writePointerIds(QDataStream &) const;
+        virtual void readPointerIds(QDataStream &);
+        
+        virtual void idsToPointersAux(QList<NeuroLinkItem *> list, QGraphicsScene *sc);
         
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
         friend QDataStream & operator>> (QDataStream &, NeuroItem &);

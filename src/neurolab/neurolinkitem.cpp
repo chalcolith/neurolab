@@ -1,5 +1,6 @@
 #include "neurolinkitem.h"
 
+#include <QGraphicsScene>
 #include <QPainter>
 #include <QPainterPathStroker>
 #include <QPolygonF>
@@ -18,10 +19,9 @@ namespace NeuroLab
     
     NeuroLinkItem::~NeuroLinkItem()
     {
-        QListIterator<NeuroLinkItem *> i(_incoming);
-        while (i.hasNext())
+        for (QListIterator<NeuroLinkItem *> i(_incoming); i.hasNext(); i.next())
         {
-            NeuroLinkItem *link = i.next();
+            NeuroLinkItem *link = i.peekNext();
             if (link && link->frontLinkTarget() == this)
                 link->setFrontLinkTarget(0);
             else if (link && link->backLinkTarget() == this)
@@ -174,7 +174,7 @@ namespace NeuroLab
             
             QPen pen(Qt::SolidLine);            
             pen.setColor(NORMAL_LINE_COLOR);
-            
+            painter->setPen(pen);
             setPenWidth(pen);
             painter->drawEllipse(x1 - ELLIPSE_WIDTH/4, y1 - ELLIPSE_WIDTH/4, ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
         }
@@ -182,10 +182,69 @@ namespace NeuroLab
     
     void NeuroLinkItem::writeBinary(QDataStream & data) const
     {
+        data << _id;
+        data << pos();
+        data << _line;
     }
     
     void NeuroLinkItem::readBinary(QDataStream & data)
     {
+        data >> _id;
+        
+        QPointF p;
+        data >> p;
+        setPos(p);
+        
+        QLineF l;
+        data >> l;
+        setLine(l);
+    }
+    
+    void NeuroLinkItem::writePointerIds(QDataStream & data) const
+    {
+        NeuroItem::writePointerIds(data);
+        
+        data << (_frontLinkTarget ? _frontLinkTarget->id() : 0);
+        data << (_backLinkTarget ? _backLinkTarget->id() : 0);
+    }
+    
+    void NeuroLinkItem::readPointerIds(QDataStream & data)
+    {
+        NeuroItem::readPointerIds(data);
+        
+        setFrontLinkTarget(0);
+        setBackLinkTarget(0);
+
+        int id;
+        data >> id;
+        
+        if (id)
+            _frontLinkTarget = (NeuroItem *) id;
+        
+        data >> id;
+        
+        if (id)
+            _backLinkTarget = (NeuroItem *) id;
+    }
+    
+    void NeuroLinkItem::idsToPointers(QGraphicsScene *sc)
+    {
+        NeuroItem::idsToPointers(sc);
+        
+        int frontId = (int) _frontLinkTarget;
+        int backId = (int) _backLinkTarget;
+        
+        for (QListIterator<QGraphicsItem *> i(sc->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+            {
+                if (item->id() == frontId)
+                    setFrontLinkTarget(item);
+                else if (item->id() == backId)
+                    setBackLinkTarget(item);
+            }
+        }
     }
     
     

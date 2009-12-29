@@ -45,6 +45,7 @@ namespace NeuroLab
         
         bool newNetwork();
         bool openNetwork();
+        bool saveNetwork();
         bool closeNetwork();
         
         void setNetwork(LabNetwork *network);

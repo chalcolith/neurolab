@@ -8,7 +8,7 @@ namespace NeuroLab
 {
     
     // LabTreeNode
-    int LabTreeNode::NEXT_ID = 0;
+    int LabTreeNode::NEXT_ID = 1;
     
     LabTreeNode::LabTreeNode(LabTree *tree, LabTreeNode *parent)
         : _id(NEXT_ID++), tree(tree), parent(parent)
@@ -31,10 +31,9 @@ namespace NeuroLab
         tree = 0;
         parent = 0;
         
-        QListIterator<LabTreeNode *> i(children);
-        while (i.hasNext())
+        for (QListIterator<LabTreeNode *> i(children); i.hasNext(); i.next())
         {
-            delete i.next();
+            delete i.peekNext();
         }
         children.clear();
     }
@@ -116,8 +115,16 @@ namespace NeuroLab
             }
             else
             {
-                throw new Exception(QObject::tr("Error loading; unknown type %1").arg(type));
+                throw Exception(QObject::tr("Error loading; unknown type %1").arg(type));
             }
+        }
+
+        // turn ids into pointers
+        for (QListIterator<QGraphicsItem *> i(node.scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->idsToPointers(node.scene.data());
         }
         
         // children
@@ -131,6 +138,7 @@ namespace NeuroLab
         }
         
         //
+        node.scene->update();
         return data;
     }
     

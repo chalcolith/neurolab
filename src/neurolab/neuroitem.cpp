@@ -22,8 +22,10 @@ namespace NeuroLab
     
     //////////////////////////////////////////////    
     
+    int NeuroItem::NEXT_ID = 1;
+    
     NeuroItem::NeuroItem()
-        : QGraphicsItem(), _in_hover(true)
+        : QGraphicsItem(), _id(NEXT_ID++), _in_hover(true)
     {
         this->setFlag(QGraphicsItem::ItemIsSelectable, true);
         this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -35,16 +37,14 @@ namespace NeuroLab
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(this);
         if (link)
         {
-            QListIterator<NeuroLinkItem *> in(_incoming);
-            while (in.hasNext())
+            for (QListIterator<NeuroLinkItem *> in(_incoming); in.hasNext(); in.next())
             {
-                in.next()->removeOutgoing(link);
+                in.peekNext()->removeOutgoing(link);
             }
             
-            QListIterator<NeuroLinkItem *> out(_outgoing);
-            while (out.hasNext())
+            for (QListIterator<NeuroLinkItem *> out(_outgoing); out.hasNext(); out.next())
             {
-                out.next()->removeIncoming(link);
+                out.peekNext()->removeIncoming(link);
             }
         }
     }
@@ -52,10 +52,9 @@ namespace NeuroLab
     void NeuroItem::bringToFront()
     {
         qreal highest_z = this->zValue();
-        QListIterator<QGraphicsItem *> i(this->collidingItems());
-        while (i.hasNext())
+        for (QListIterator<QGraphicsItem *> i(this->collidingItems()); i.hasNext(); i.next())
         {
-            QGraphicsItem *item = i.next();
+            QGraphicsItem *item = i.peekNext();
             if (!item)
                 continue;
             
@@ -95,7 +94,7 @@ namespace NeuroLab
             return true;
         
         const LabScene *sc = dynamic_cast<const LabScene *>(this->scene());
-        if (sc && sc->itemToDelete() == dynamic_cast<const QGraphicsItem *>(this))
+        if (sc && sc->itemToSelect() == dynamic_cast<const QGraphicsItem *>(this))
             return true;
         
         return false;
@@ -117,16 +116,102 @@ namespace NeuroLab
         update(this->boundingRect());
     }
     
+    /// Writes ids of incoming and outgoing pointers.
+    void NeuroItem::writePointerIds(QDataStream & ds) const
+    {
+        int n = _incoming.size();
+        ds << n;
+        for (int i = 0; i < n; ++i)
+        {
+            if (_incoming[i])
+                ds << (int) _incoming[i]->_id;
+            else
+                ds << (int) 0;
+        }
+        
+        n = _outgoing.size();
+        ds << n;
+        for (int i = 0; i < n; ++i)
+        {
+            if (_outgoing[i])
+                ds << (int) _outgoing[i]->_id;
+            else
+                ds << (int) 0;
+        }
+    }
+    
+    void NeuroItem::readPointerIds(QDataStream & ds)
+    {
+        int n;
+        
+        _incoming.clear();
+        ds >> n;
+        for (int i = 0; i < n; ++i)
+        {
+            int id;
+            ds >> id;
+            if (id)
+            {
+                _incoming.append((NeuroLinkItem *) id);
+            }
+        }
+        
+        _outgoing.clear();
+        ds >> n;
+        for (int i = 0; i < n; ++i)
+        {
+            int id;
+            ds >> id;
+            if (id)
+            {
+                _outgoing.append((NeuroLinkItem *) id);
+            }
+        }
+    }
+    
+    void NeuroItem::idsToPointers(QGraphicsScene *sc)
+    {
+        idsToPointersAux(_incoming, sc);
+        idsToPointersAux(_outgoing, sc);
+    }
+    
+    void NeuroItem::idsToPointersAux(QList<NeuroLinkItem *>list, QGraphicsScene *sc)
+    {
+        QList<QGraphicsItem *> items = sc->items();
+        
+        for (QMutableListIterator<NeuroLinkItem *> in(list); in.hasNext(); in.next())
+        {
+            bool found = false;
+            int id = (int) in.peekNext();
+            for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); i.next())
+            {
+                NeuroLinkItem *item = dynamic_cast<NeuroLinkItem *>(i.peekNext());
+                if (item && item->_id == id)
+                {
+                    in.peekNext() = item;
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found)
+                throw Exception(QObject::tr("Dangling node ID %1").arg(id));
+        }        
+    }
+    
     QDataStream & operator<< (QDataStream & data, const NeuroItem & item)
     {
         item.writeBinary(data);
+        item.writePointerIds(data);
         return data;
     }
     
     QDataStream & operator>> (QDataStream & data, NeuroItem & item)
     {
         item.readBinary(data);
+        item.readPointerIds(data);
+        item._in_hover = false;
         return data;
     }
-    
+        
 } // namespace NeuroLab

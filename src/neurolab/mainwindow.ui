@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -29,6 +29,7 @@
     </property>
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
+    <addaction name="action_Save"/>
     <addaction name="action_Close"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
@@ -58,6 +59,7 @@
    </attribute>
    <addaction name="action_New"/>
    <addaction name="action_Open"/>
+   <addaction name="action_Save"/>
    <addaction name="action_Close"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -87,7 +89,7 @@
           <x>0</x>
           <y>0</y>
           <width>104</width>
-          <height>246</height>
+          <height>242</height>
          </rect>
         </property>
         <attribute name="label">
@@ -190,10 +192,10 @@
   </action>
   <action name="action_Save">
    <property name="text">
-    <string>&amp;Save Network As...</string>
+    <string>&amp;Save Network</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="action_Sidebar">

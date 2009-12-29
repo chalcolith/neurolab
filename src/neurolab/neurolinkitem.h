@@ -47,6 +47,10 @@ namespace NeuroLab
         
         void writeBinary(QDataStream &) const;
         void readBinary(QDataStream &);
+        
+        virtual void writePointerIds(QDataStream &) const;
+        virtual void readPointerIds(QDataStream &);
+        virtual void idsToPointers(QGraphicsScene *);
     };
     
     
