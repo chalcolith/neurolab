@@ -23,8 +23,8 @@ namespace NeuroLib
             }
         };
         
-        friend QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
-        friend QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
+        friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
+        friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
     };
     
     // IO Functions

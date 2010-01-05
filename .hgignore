@@ -3,3 +3,16 @@ glob:Makefile*
 glob:*.user
 glob:ui_*.h
 glob:object_script.*
+glob:*.ncb
+glob:*.suo
+glob:src/automata/Debug
+glob:src/automata/Release
+glob:src/neurolab/Debug
+glob:src/neurolab/Release
+glob:src/neurolib/Debug
+glob:src/neurolib/Release
+glob:src/debug
+glob:src/release
+glob:src/neurolab/GeneratedFiles
+glob:src/neurolab/*.nln
+glob:src/neurolab/*.nnn

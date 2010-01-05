@@ -5,6 +5,8 @@
 #include <QPainterPathStroker>
 #include <QPolygonF>
 #include <QVector2D>
+
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace NeuroLab
@@ -321,9 +323,9 @@ namespace NeuroLab
         
         QRectF r(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
 
-        qreal theta = ::atan2(-y2, x2);
+        qreal theta = ::atan2((double)-y2, (double)x2);
         if (theta < 0)
-            theta = (2.0 * M_PI) + theta;
+			theta = (2.0 * M_PI) + theta;
         theta += M_PI / 2.0;
         
         int angle = static_cast<int>(theta * 180.0 / M_PI);

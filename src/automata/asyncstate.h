@@ -48,9 +48,7 @@ namespace Automata
     QDataStream & operator<< (QDataStream & ds, const AsyncState<TState, TIndex> & as)
     {
         QReadLocker read(as.lock);
-        
-        ds.setVersion(QDataStream::Qt_4_5);
-        
+                
         ds << as.index;
         ds << as.q0;
         ds << as.q1;
@@ -63,9 +61,7 @@ namespace Automata
     QDataStream & operator>> (QDataStream & ds, AsyncState<TState, TIndex> & as)
     {
         QWriteLocker write(as.lock);
-        
-        ds.setVersion(QDataStream::Qt_4_5);
-        
+                
         qint32 & idx = const_cast<qint32 &>(as.index);
         
         ds >> idx;
