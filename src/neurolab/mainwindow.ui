@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -42,8 +42,12 @@
    </widget>
    <widget class="QMenu" name="menuItem">
     <property name="title">
-     <string>Item</string>
+     <string>&amp;Node</string>
     </property>
+    <addaction name="actionNew_Node"/>
+    <addaction name="actionNew_Excitory_Link"/>
+    <addaction name="actionNew_Inhibitory_Link"/>
+    <addaction name="separator"/>
     <addaction name="action_Delete"/>
    </widget>
    <addaction name="menu_File"/>
@@ -83,74 +87,17 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="page_1">
+       <widget class="QWidget" name="sidebar_page_1">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>104</width>
-          <height>242</height>
+          <height>276</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Items</string>
-        </attribute>
-        <layout class="QFormLayout" name="formLayout">
-         <item row="0" column="0">
-          <widget class="QToolButton" name="nodeButton">
-           <property name="text">
-            <string>Node</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QToolButton" name="eLinkButton">
-           <property name="text">
-            <string>Excitory Link</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QToolButton" name="iLinkButton">
-           <property name="text">
-            <string>Inhibitory Link</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="page_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>98</width>
-          <height>28</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Properties</string>
+         <string>Tools</string>
         </attribute>
        </widget>
       </widget>
@@ -215,6 +162,21 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
+   </property>
+  </action>
+  <action name="actionNew_Excitory_Link">
+   <property name="text">
+    <string>New &amp;Excitory Link</string>
+   </property>
+  </action>
+  <action name="actionNew_Inhibitory_Link">
+   <property name="text">
+    <string>New &amp;Inhibitory Link</string>
+   </property>
+  </action>
+  <action name="actionNew_Node">
+   <property name="text">
+    <string>New No&amp;de</string>
    </property>
   </action>
  </widget>

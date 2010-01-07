@@ -10,49 +10,53 @@
 namespace NeuroLab
 {
     
+    class LabNetwork;
+
     class LabScene 
         : public QGraphicsScene
     {
+        LabNetwork *_network;
+
         NeuroNodeItem *movingNode;
         NeuroLinkItem *movingLink;
         bool linkFront;
         
         QGraphicsItem *_itemToSelect;
+        QPointF _lastMousePos;
                 
     public:
-        LabScene();
+        LabScene(LabNetwork *_network);
         virtual ~LabScene();
-        
-        enum Mode
-        {
-            MODE_NONE = 0,
-            MODE_ADD_NODE,
-            MODE_ADD_E_LINK,
-            MODE_ADD_I_LINK,
-
-            MODE_NUM_MODES
-        };
-        
-        void setMode(const Mode &);
-        const Mode getMode() const;
         
         const QGraphicsItem *itemToSelect() const { return _itemToSelect; }
         void deleteSelectedItem();
-                
+        
+        enum ItemType
+        {
+            NO_ITEM = 0,
+            NODE_ITEM,
+            EXCITORY_LINK_ITEM,
+            INHIBITORY_LINK_ITEM,
+
+            NUM_ITEM_TYPES
+        };
+
+    public slots:
+        void newItem(const ItemType type);
+
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *);
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *);
                 
     private:
-        QStack<Mode> mode;
-        
         bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
-        bool mousePressAddNode(QGraphicsSceneMouseEvent *event);
-        bool mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem);
         
-        bool mouseMoveHandleNode(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroNodeItem *node);
-        bool mouseMoveHandleLinks(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroLinkItem *link);
+        bool addNode(const QPointF & scenePos);
+        bool addLink(const QPointF & scenePos, NeuroLinkItem *linkItem);
+        
+        bool mouseMoveHandleNode(const QPointF & scenePos, NeuroNodeItem *node);
+        bool mouseMoveHandleLinks(const QPointF & scenePos, NeuroLinkItem *link);
         bool canLink(NeuroItem *moving, NeuroItem *fixed);
     };
     

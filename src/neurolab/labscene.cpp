@@ -1,6 +1,7 @@
 #include "labscene.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "labnetwork.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QVector2D>
@@ -8,34 +9,15 @@
 namespace NeuroLab
 {
     
-    LabScene::LabScene()
-        : QGraphicsScene(0), movingNode(0), movingLink(0), linkFront(true), _itemToSelect(0)
+    LabScene::LabScene(LabNetwork *_network)
+        : QGraphicsScene(0), _network(_network), movingNode(0), movingLink(0), linkFront(true), _itemToSelect(0)
     {
-        mode.push(MODE_NONE);
     }
     
     LabScene::~LabScene()
     {
     }
-    
-    void LabScene::setMode(const Mode & m)
-    {
-        // transition from other modes
-        switch (mode.top())
-        {
-        default:
-            break;
-        }
         
-        // set new mode
-        mode.top() = m;
-    }
-    
-    const LabScene::Mode LabScene::getMode() const
-    {
-        return mode.top();
-    }
-    
     void LabScene::deleteSelectedItem()
     {
         if (_itemToSelect)
@@ -55,52 +37,26 @@ namespace NeuroLab
 
     void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
+        _lastMousePos = event->scenePos();
+
         movingNode = 0;
         movingLink = 0;
         
-        if (event->buttons() == Qt::LeftButton)
+        if (event->buttons() & Qt::LeftButton)
         {
             // pick up node if we're on one
             if (mousePressPickupNode(event))
-            {
                 return;
-            }
-            else
-            {
-                switch (mode.top())
-                {
-                case MODE_ADD_NODE:
-                    // if we're not on a node, make a new one
-                    if (mousePressAddNode(event))
-                        return;
-                    break;
-                    
-                case MODE_ADD_E_LINK:                    
-                    // start rubber-banding new link
-                    if (mousePressAddLink(event, new NeuroExcitoryLinkItem()))
-                        return;
-                    break;
-                    
-                case MODE_ADD_I_LINK:
-                    if (mousePressAddLink(event, new NeuroInhibitoryLinkItem()))
-                        return;
-                    break;
-                    
-                default:
-                    break;
-                }
-            }
         }
-        else if (event->buttons() == Qt::RightButton)
+        else if (event->buttons() & Qt::RightButton)
         {
             QGraphicsItem *item = this->itemAt(event->scenePos());
-            if (item)
-            {
-                _itemToSelect = item;
-                MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
-                // item may be destroyed here
-                return;
-            }
+            _itemToSelect = item;
+
+            MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
+
+            _itemToSelect = 0;
+            return;
         }
 
         QGraphicsScene::mousePressEvent(event);
@@ -113,7 +69,7 @@ namespace NeuroLab
         if (item)
         {
             NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
-            if (nodeItem && mode.top() == MODE_ADD_NODE)
+            if (nodeItem)
             {
                 nodeItem->bringToFront();
                 movingNode = nodeItem;
@@ -138,23 +94,41 @@ namespace NeuroLab
         return false;
     }
     
-    bool LabScene::mousePressAddNode(QGraphicsSceneMouseEvent *event)
+    void LabScene::newItem(ItemType type)
+    {
+        switch (type)
+        {
+        case NODE_ITEM:
+            addNode(_lastMousePos);
+            break;
+        case EXCITORY_LINK_ITEM:
+            addLink(_lastMousePos, new NeuroExcitoryLinkItem());
+            break;
+        case INHIBITORY_LINK_ITEM:
+            addLink(_lastMousePos, new NeuroInhibitoryLinkItem());
+            break;
+        }
+    }
+
+    bool LabScene::addNode(const QPointF & pos)
     {
         NeuroNodeItem *item = new NeuroNodeItem();
-        const QPointF & pos = event->scenePos();
         
         item->setPos(pos.x(), pos.y());
-        item->setInHover(true);
         
         addItem(item);
         movingNode = item;
-        
+
+        mouseMoveHandleNode(pos, movingNode);
+
+        // don't go into move mode anymore
+        movingNode = 0;
+
         return true;
     }
-    
-    bool LabScene::mousePressAddLink(QGraphicsSceneMouseEvent *event, NeuroLinkItem *linkItem)
+
+    bool LabScene::addLink(const QPointF & pos, NeuroLinkItem *linkItem)
     {
-        QPointF pos = event->scenePos();
         linkItem->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
         
         addItem(linkItem);
@@ -163,14 +137,19 @@ namespace NeuroLab
         
         // link back end if we're on a node
         linkFront = false;
-        mouseMoveHandleLinks(event, pos, movingLink);
+        mouseMoveHandleLinks(pos, movingLink);
         linkFront = true;
         
+        // don't go into move mode
+        movingLink = 0;
+
         return true;
     }
     
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
+        _lastMousePos = event->scenePos();
+
         movingNode = 0;
         movingLink = 0;
         
@@ -179,16 +158,21 @@ namespace NeuroLab
     
     void LabScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     {
+        _lastMousePos = event->scenePos();
+
         if (movingNode)
         {
             QPointF pos = event->scenePos();
             
-            if (!mouseMoveHandleNode(event, pos, movingNode))
+            if (!mouseMoveHandleNode(pos, movingNode))
             {
                 movingNode->setPos(pos.x(), pos.y());
                 movingNode->adjustLinks();
             }
             
+            if (_network)
+                _network->changed();
+
             return;
         }
         else if (movingLink)
@@ -196,7 +180,7 @@ namespace NeuroLab
             QPointF pos = event->scenePos();
             
             // check for break/form link
-            if (!mouseMoveHandleLinks(event, pos, movingLink))
+            if (!mouseMoveHandleLinks(pos, movingLink))
             {
                 // update line            
                 const QLineF & line = movingLink->line();
@@ -214,6 +198,9 @@ namespace NeuroLab
                 else if (movingLink->backLinkTarget())
                     movingLink->backLinkTarget()->adjustLinks();
             }
+
+            if (_network)
+                _network->changed();
             
             return;
         }
@@ -221,7 +208,7 @@ namespace NeuroLab
         QGraphicsScene::mouseMoveEvent(event);
     }
     
-    bool LabScene::mouseMoveHandleNode(QGraphicsSceneMouseEvent *event, QPointF &scenePos, NeuroNodeItem *node)
+    bool LabScene::mouseMoveHandleNode(const QPointF & scenePos, NeuroNodeItem *node)
     {
         // get topmost link
         NeuroLinkItem *itemAtPos = 0;
@@ -259,7 +246,7 @@ namespace NeuroLab
         return false;
     }
     
-    bool LabScene::mouseMoveHandleLinks(QGraphicsSceneMouseEvent *event, QPointF & scenePos, NeuroLinkItem *link)
+    bool LabScene::mouseMoveHandleLinks(const QPointF & scenePos, NeuroLinkItem *link)
     {
         // get topmost item that is not the link itself
         NeuroItem *itemAtPos = 0;

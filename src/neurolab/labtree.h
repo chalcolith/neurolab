@@ -12,6 +12,7 @@ namespace NeuroLab
 {
     
     class LabTree;
+    class LabNetwork;
     
     /// A node in the hierarchy of scenes.
     class LabTreeNode
@@ -19,22 +20,22 @@ namespace NeuroLab
         int _id;
         static int NEXT_ID;
                 
-        LabTree *tree;
-        LabTreeNode *parent;
+        LabTree *_tree;
+        LabTreeNode *_parent;
         
-        QSharedPointer<LabScene> scene;
-        QSharedPointer<LabView> view;
+        QSharedPointer<LabScene> _scene;
+        QSharedPointer<LabView> _view;
                 
-        QList<LabTreeNode *> children;
+        QList<LabTreeNode *> _children;
         
     public:
         LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
         LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);        
         virtual ~LabTreeNode();
         
-        LabScene *getScene() { return scene.data(); }
-        LabView *getView() { return view.data(); }
-        QList<LabTreeNode *> & getChildren() { return children; }
+        LabScene *scene() { return _scene.data(); }
+        LabView *view() { return _view.data(); }
+        QList<LabTreeNode *> & children() { return _children; }
         
         friend QDataStream & operator<< (QDataStream &, const LabTreeNode &);
         friend QDataStream & operator>> (QDataStream &, LabTreeNode &);
@@ -48,22 +49,26 @@ namespace NeuroLab
     /// Encapsulate the hierarchy of scenes.
     class LabTree
     {
-        QWidget *parent;
-        LabTreeNode *root;
-        LabTreeNode *current;
+        QWidget *_parent;
+
+        LabNetwork *_network;
+        LabTreeNode *_root;
+        LabTreeNode *_current;
         
         friend class LabTreeNode;
         
     public:
-        LabTree(QWidget *parent);
+        LabTree(QWidget *_parent, LabNetwork *_network);
         virtual ~LabTree();
         
-        LabTreeNode *getRoot() { return root; }
-        LabTreeNode *getCurrent() { return current; }
-        void setCurrent(LabTreeNode *node) { current = node; }
+        LabNetwork *network() { return _network; }
+
+        LabTreeNode *root() { return _root; }
+        LabTreeNode *current() { return _current; }
+        void setCurrent(LabTreeNode *node) { _current = node; }
         
-        LabScene *getScene() { return current ? current->getScene() : 0; }
-        LabView *getView() { return current ? current->getView() : 0; }
+        LabScene *scene() { return _current ? _current->scene() : 0; }
+        LabView *view() { return _current ? _current->view() : 0; }
         
         friend QDataStream & operator<< (QDataStream &, const LabTree &);
         friend QDataStream & operator>> (QDataStream &, LabTree &);

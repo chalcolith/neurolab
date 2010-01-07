@@ -74,7 +74,7 @@ namespace NeuroLab
         virtual void writePointerIds(QDataStream &) const;
         virtual void readPointerIds(QDataStream &);
         
-        virtual void idsToPointersAux(QList<NeuroLinkItem *> list, QGraphicsScene *sc);
+        virtual void idsToPointersAux(QList<NeuroLinkItem *> & list, QGraphicsScene *sc);
         
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
         friend QDataStream & operator>> (QDataStream &, NeuroItem &);

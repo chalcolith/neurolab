@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "neurolinkitem.h"
 #include "labscene.h"
+#include "../automata/exception.h"
 
 #include <QStatusBar>
 #include <QGraphicsSceneContextMenuEvent>
@@ -25,7 +26,7 @@ namespace NeuroLab
     int NeuroItem::NEXT_ID = 1;
     
     NeuroItem::NeuroItem()
-        : QGraphicsItem(), _id(NEXT_ID++), _in_hover(true)
+        : QGraphicsItem(), _id(NEXT_ID++), _in_hover(false)
     {
         this->setFlag(QGraphicsItem::ItemIsSelectable, true);
         this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -175,7 +176,7 @@ namespace NeuroLab
         idsToPointersAux(_outgoing, sc);
     }
     
-    void NeuroItem::idsToPointersAux(QList<NeuroLinkItem *>list, QGraphicsScene *sc)
+    void NeuroItem::idsToPointersAux(QList<NeuroLinkItem *> & list, QGraphicsScene *sc)
     {
         QList<QGraphicsItem *> items = sc->items();
         
@@ -195,7 +196,7 @@ namespace NeuroLab
             }
             
             if (!found)
-                throw Exception(QObject::tr("Dangling node ID %1").arg(id));
+                throw Automata::Exception(QObject::tr("Dangling node ID %1").arg(id));
         }        
     }
     

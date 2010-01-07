@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
 #include "labscene.h"
+#include "../automata/exception.h"
 
 #include <QSettings>
 
@@ -22,7 +22,7 @@ namespace NeuroLab
           currentNetwork(0)
     {
         if (_instance)
-            throw Exception("You cannot create more than one main window.");
+            throw Automata::Exception("You cannot create more than one main window.");
 
         _instance = this;
         
@@ -93,6 +93,7 @@ namespace NeuroLab
     void MainWindow::setupConnections()
     {
         connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)));
+        connect(_ui->menuItem, SIGNAL(aboutToShow()), this, SLOT(enableItemMenu()));
     }
     
     bool MainWindow::newNetwork()
@@ -120,9 +121,10 @@ namespace NeuroLab
     
     bool MainWindow::saveNetwork()
     {
-        if (currentNetwork)
+        if (currentNetwork && currentNetwork->save(false))
         {
-            return currentNetwork->save(false);
+            this->setWindowTitle(tr("NeuroLab: %1").arg(currentNetwork->fname()));
+            return true;
         }
         
         return false;
@@ -145,19 +147,19 @@ namespace NeuroLab
     void MainWindow::setNetwork(LabNetwork *network)
     {
         if (currentNetwork)
-            layout->removeWidget(currentNetwork->getView());
+            layout->removeWidget(currentNetwork->view());
         delete currentNetwork;
         
         if (network)
         {
-            _ui->nodeButton->setChecked(true);
-            
             currentNetwork = network;
-            layout->addWidget(currentNetwork->getView());
-            currentNetwork->getView()->show();
-            currentNetwork->setMode(LabScene::MODE_ADD_NODE);
+            layout->addWidget(currentNetwork->view());
+            currentNetwork->view()->show();
             
-            this->setWindowTitle(tr("NeuroLab: %1").arg(currentNetwork->getFName()));
+            if (network->fname().isEmpty())
+                this->setWindowTitle(tr("NeuroLab: <unsaved>"));
+            else
+                this->setWindowTitle(tr("NeuroLab: %1").arg(currentNetwork->fname()));
         }
         else
         {
@@ -167,6 +169,12 @@ namespace NeuroLab
         }
 
         this->update();
+    }
+
+    void MainWindow::enableItemMenu()
+    {
+        bool enableDelete = currentNetwork && currentNetwork->scene() && currentNetwork->scene()->itemToSelect();
+        _ui->action_Delete->setEnabled(enableDelete);
     }
     
 } // namespace NeuroLab
@@ -206,22 +214,22 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
     _ui->sidebarDockWidget->toggleViewAction()->trigger();
 }
 
-void NeuroLab::MainWindow::on_nodeButton_toggled(bool checked)
+void NeuroLab::MainWindow::on_actionNew_Node_triggered()
 {
-    if (checked && currentNetwork)
-        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_NODE);
+    if (currentNetwork)
+        currentNetwork->newNode();
 }
 
-void NeuroLab::MainWindow::on_eLinkButton_toggled(bool checked)
+void NeuroLab::MainWindow::on_actionNew_Excitory_Link_triggered()
 {
-    if (checked && currentNetwork)
-        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_E_LINK);    
+    if (currentNetwork)
+        currentNetwork->newExcitoryLink();
 }
 
-void NeuroLab::MainWindow::on_iLinkButton_toggled(bool checked)
+void NeuroLab::MainWindow::on_actionNew_Inhibitory_Link_triggered()
 {
-    if (checked && currentNetwork)
-        currentNetwork->setMode(NeuroLab::LabScene::MODE_ADD_I_LINK);
+    if (currentNetwork)
+        currentNetwork->newInhibitoryLink();
 }
 
 void NeuroLab::MainWindow::on_action_Delete_triggered()

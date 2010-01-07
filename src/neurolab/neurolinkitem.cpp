@@ -242,9 +242,9 @@ namespace NeuroLab
             if (item)
             {
                 if (item->id() == frontId)
-                    setFrontLinkTarget(item);
+                    _frontLinkTarget = item;
                 else if (item->id() == backId)
-                    setBackLinkTarget(item);
+                    _backLinkTarget = item;
             }
         }
     }

@@ -51,9 +51,6 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
                 
     private slots:
-        void on_iLinkButton_toggled(bool checked);
-        void on_eLinkButton_toggled(bool checked);
-        void on_nodeButton_toggled(bool checked);
         void on_action_Sidebar_triggered();
         void on_action_New_triggered();
         void on_action_Open_triggered();
@@ -61,18 +58,14 @@ namespace NeuroLab
         void on_action_Save_triggered();
         void on_action_Quit_triggered();
         void on_action_Delete_triggered();
+
+        void on_actionNew_Node_triggered();
+        void on_actionNew_Excitory_Link_triggered();
+        void on_actionNew_Inhibitory_Link_triggered();
+
+        void enableItemMenu();
     };
-    
-    
-    class Exception
-    {
-        QString _message;
         
-    public:
-        Exception(const QString & _message) : _message(_message) {}
-        const QString & message() const { return _message; }
-    };
-    
 } // namespace NeuroLab
 
 #endif // MAINWINDOW_H

@@ -3,6 +3,7 @@
 #include "neurolinkitem.h"
 #include "neuronodeitem.h"
 #include "mainwindow.h"
+#include "../automata/exception.h"
 
 namespace NeuroLab
 {
@@ -10,32 +11,32 @@ namespace NeuroLab
     // LabTreeNode
     int LabTreeNode::NEXT_ID = 1;
     
-    LabTreeNode::LabTreeNode(LabTree *tree, LabTreeNode *parent)
-        : _id(NEXT_ID++), tree(tree), parent(parent)
+    LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
+        : _id(NEXT_ID++), _tree(_tree), _parent(_parent)
     {
-        scene = QSharedPointer<LabScene>(new LabScene());
-        scene->setSceneRect(0, 0, 1000000, 1000000);
+        _scene = QSharedPointer<LabScene>(new LabScene(_tree->network()));
+        _scene->setSceneRect(0, 0, 1000000, 1000000);
         
-        view = QSharedPointer<LabView>(new LabView(scene.data(), tree ? tree->parent : 0));
+        _view = QSharedPointer<LabView>(new LabView(_scene.data(), _tree ? _tree->_parent : 0));
         
-        view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+        _view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     }
     
-    LabTreeNode::LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent)
-        : _id(NEXT_ID++), tree(tree), parent(parent), scene(scene), view(view)
+    LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
+        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view)
     {
     }
     
     LabTreeNode::~LabTreeNode()
     {
-        tree = 0;
-        parent = 0;
+        _tree = 0;
+        _parent = 0;
         
-        for (QListIterator<LabTreeNode *> i(children); i.hasNext(); i.next())
+        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); i.next())
         {
             delete i.peekNext();
         }
-        children.clear();
+        _children.clear();
     }
     
     static int get_item_type(NeuroItem const * const item)
@@ -69,7 +70,7 @@ namespace NeuroLab
         data << node._id;
         
         // graphics items in this scene
-        QList<QGraphicsItem *> items = node.scene->items();
+        QList<QGraphicsItem *> items = node._scene->items();
         data << items.size();
         
         for (int i = 0; i < items.size(); ++i)
@@ -83,11 +84,11 @@ namespace NeuroLab
         }
         
         // children
-        data << node.children.size();
+        data << node._children.size();
         
-        for (int i = 0; i < node.children.size(); ++i)
+        for (int i = 0; i < node._children.size(); ++i)
         {
-            data << *node.children[i];
+            data << *node._children[i];
         }
         
         //
@@ -111,20 +112,20 @@ namespace NeuroLab
             if (new_item)
             {
                 data >> *new_item;
-                node.scene->addItem(new_item);
+                node._scene->addItem(new_item);
             }
             else
             {
-                throw Exception(QObject::tr("Error loading; unknown type %1").arg(type));
+                throw Automata::Exception(QObject::tr("Error loading; unknown type %1").arg(type));
             }
         }
 
         // turn ids into pointers
-        for (QListIterator<QGraphicsItem *> i(node.scene->items()); i.hasNext(); )
+        for (QListIterator<QGraphicsItem *> i(node._scene->items()); i.hasNext(); )
         {
             NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
             if (item)
-                item->idsToPointers(node.scene.data());
+                item->idsToPointers(node._scene.data());
         }
         
         // children
@@ -133,35 +134,38 @@ namespace NeuroLab
         
         for (int i = 0; i < num_children; ++i)
         {
-            LabTreeNode *child = new LabTreeNode(node.tree, &node);
+            LabTreeNode *child = new LabTreeNode(node._tree, &node);
             data >> *child;
         }
         
         //
-        node.scene->update();
+        node._scene->update();
         return data;
     }
     
+
+    //////////////////////////////////////////////////////////////////
     // LabTree
     
-    LabTree::LabTree(QWidget *parent)
-        : parent(parent), root(new LabTreeNode(this, 0))
+    LabTree::LabTree(QWidget *_parent, LabNetwork *_network)
+        : _parent(_parent), _network(_network), _root(new LabTreeNode(this, 0)), _current(0)
     {
-        current = root;
+        _current = _root;
     }
     
     LabTree::~LabTree()
     {
-        parent = 0;
-        delete root;
-        current = 0;
+        _parent = 0;
+        _network = 0;
+        _current = 0;
+        delete _root;
     }
     
     QDataStream & operator<< (QDataStream & data, const LabTree & ctree)
     {
         LabTree & tree = const_cast<LabTree &>(ctree);
-        data << tree.getCurrent()->_id;
-        data << *tree.getRoot();
+        data << tree.current()->_id;
+        data << *tree.root();
         return data;
     }
     
@@ -171,7 +175,7 @@ namespace NeuroLab
         data >> current_id;
         
         LabTreeNode *node = new LabTreeNode(&tree, 0);
-        tree.root = tree.current = node;
+        tree._root = tree._current = node;
         
         data >> *node;
         return data;

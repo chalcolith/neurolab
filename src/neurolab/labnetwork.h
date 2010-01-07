@@ -15,21 +15,21 @@ namespace NeuroLab
     {
         Q_OBJECT
         
-        LabTree *sceneTree;
-        NeuroLib::NeuroNet *network;
+        LabTree *_tree;
+        NeuroLib::NeuroNet *_network;
         
         bool running;
         
         bool dirty, first_change;
-        QString fname;
+        QString _fname;
         
     public:
-        LabNetwork(QWidget *parent = 0);
+        LabNetwork(QWidget *_parent = 0);
         virtual ~LabNetwork();
         
-        LabScene *getScene() { return sceneTree ? sceneTree->getScene() : 0; }
-        LabView *getView() { return sceneTree ? sceneTree->getView() : 0; }
-        const QString & getFName() const { return fname; }
+        LabScene *scene() { return _tree ? _tree->scene() : 0; }
+        LabView *view() { return _tree ? _tree->view() : 0; }
+        const QString & fname() const { return _fname; }
         
         void deleteSelectedItem();
         
@@ -42,9 +42,11 @@ namespace NeuroLab
         bool save(bool saveAs = false);
         bool close();
 
-        void setMode(const LabScene::Mode &);
-        
-    private slots:
+        void newNode();
+        void newExcitoryLink();
+        void newInhibitoryLink();
+
+        void changed();
         void changed(const QList<QRectF> &);
     };
     

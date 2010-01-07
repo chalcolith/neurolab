@@ -128,13 +128,13 @@ namespace Automata
                 throw IndexOverflow();
         }
 
-        const TIndex * const getNeighbors(const TIndex & index, int & num) const
+        const TIndex * const neighbors(const TIndex & index, int & num) const
         {
             if (index < nodes.size())
             {
-                const QVector<TIndex> & neighbors = edges[index];
-                num = neighbors.size();
-                return neighbors.data();
+                const QVector<TIndex> & nbrs = edges[index];
+                num = nbrs.size();
+                return nbrs.data();
             }
             else
             {

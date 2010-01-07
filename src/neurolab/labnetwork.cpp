@@ -3,33 +3,33 @@
 
 #include "mainwindow.h"
 #include "labnetwork.h"
+#include "../automata/exception.h"
 
 namespace NeuroLab
 {
     
-    LabNetwork::LabNetwork(QWidget *parent)
-        : sceneTree(0), network(0), running(false), dirty(false), first_change(true)
+    LabNetwork::LabNetwork(QWidget *_parent)
+        : _tree(0), _network(0), running(false), dirty(false), first_change(true)
     {
-        network = new NeuroLib::NeuroNet();
-        sceneTree = new LabTree(parent);
-                
-        connect(sceneTree->getScene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)));
+        _network = new NeuroLib::NeuroNet();
+        _tree = new LabTree(_parent, this);
+
+        if (_tree->scene())
+            connect(_tree->scene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)));
     }
     
     LabNetwork::~LabNetwork()
     {
-        delete sceneTree; sceneTree = 0;
-        delete network; network = 0;
+        delete _tree; _tree = 0;
+        delete _network; _network = 0;
     }
     
     void LabNetwork::deleteSelectedItem()
     {
-        if (!sceneTree)
-            return;
-        sceneTree->getScene()->deleteSelectedItem();
+        if (_tree && _tree->scene())
+            _tree->scene()->deleteSelectedItem();
     }
     
-    static const QString LAB_NETWORK_COOKIE("NeuroLab 0 NETWORK");
     static const QString LAB_SCENE_COOKIE("Neurolab 0 SCENE");
     
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
@@ -38,7 +38,7 @@ namespace NeuroLab
         
         if (nln_fname.isEmpty() || nln_fname.isNull())
         {
-            nln_fname = QFileDialog::getOpenFileName(0, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln)"));
+            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return 0;
@@ -54,24 +54,22 @@ namespace NeuroLab
         }
         
         // read network
-        QString cookie;
-        
         LabNetwork *ln = new LabNetwork(parent);
-        ln->fname = nln_fname;
+        ln->_fname = nln_fname;
         
         {
             QFile file(network_fname);
             file.open(QIODevice::ReadOnly);
+
+            try
             {
                 QDataStream ds(&file);
-                ds >> cookie;
-                if (cookie != LAB_NETWORK_COOKIE)
-                {
-                    delete ln;
-                    throw Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
-                }
-                
-                ds >> *ln->network;
+                ds >> *ln->_network;
+            }
+            catch (...)
+            {
+                delete ln;
+                throw;
             }
         }
         
@@ -82,14 +80,15 @@ namespace NeuroLab
             
             {
                 QDataStream ds(&file);
+                QString cookie;
                 ds >> cookie;
                 if (cookie != LAB_SCENE_COOKIE)
                 {
                     delete ln;
-                    throw Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw Automata::Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
                 
-                ds >> *ln->sceneTree;
+                ds >> *ln->_tree;
             }
         }
         
@@ -112,22 +111,22 @@ namespace NeuroLab
         bool prevRunning = this->running;
         stop();
         
-        if (!this->sceneTree || !this->network)
+        if (!this->_tree || !this->_network)
             return false;
         
-        if (this->fname.isEmpty() || this->fname.isNull() || saveAs)
+        if (this->_fname.isEmpty() || this->_fname.isNull() || saveAs)
         {
-            this->fname.clear();
+            this->_fname.clear();
             
             QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return false;
             
-            this->fname = nln_fname;
+            this->_fname = nln_fname;
         }
         
-        QString base_name = this->fname.endsWith(".nln", Qt::CaseInsensitive) ? this->fname.left(this->fname.length() - 4) : this->fname;
+        QString base_name = this->_fname.endsWith(".nln", Qt::CaseInsensitive) ? this->_fname.left(this->_fname.length() - 4) : this->_fname;
         QString network_fname = base_name + ".nnn";
         
         // write network
@@ -136,22 +135,21 @@ namespace NeuroLab
             file.open(QIODevice::WriteOnly);
             {
                 QDataStream data(&file);
-                data << LAB_NETWORK_COOKIE;
-                data << *network;
+                data << *_network;
             }
         }
         
         // write scene
         {
-            QFile file(this->fname);
+            QFile file(this->_fname);
             file.open(QIODevice::WriteOnly);
             
             // items
-            if (sceneTree)
+            if (_tree)
             {
                 QDataStream data(&file);
                 data << LAB_SCENE_COOKIE;
-                data << *sceneTree;
+                data << *_tree;
             }
         }
         
@@ -169,22 +167,31 @@ namespace NeuroLab
             return false;
         return true;
     }
-    
-    static void setSceneMode(LabTreeNode *n, const LabScene::Mode & m)
+
+    void LabNetwork::newNode()
     {
-        n->getScene()->setMode(m);
-        
-        for (QMutableListIterator<LabTreeNode *> i(n->getChildren()); i.hasNext(); i.next())
-            setSceneMode(i.peekNext(), m);
+        if (this->scene())
+            this->scene()->newItem(LabScene::NODE_ITEM);
     }
-    
-    void LabNetwork::setMode(const LabScene::Mode & m)
+
+    void LabNetwork::newExcitoryLink()
     {
-        if (sceneTree)
-            setSceneMode(sceneTree->getRoot(), m);
+        if (this->scene())
+            this->scene()->newItem(LabScene::EXCITORY_LINK_ITEM);
+    }
+
+    void LabNetwork::newInhibitoryLink()
+    {
+        if (this->scene())
+            this->scene()->newItem(LabScene::INHIBITORY_LINK_ITEM);
     }
     
     void LabNetwork::changed(const QList<QRectF> &)
+    {
+        changed();
+    }
+
+    void LabNetwork::changed()
     {
         if (!first_change)
             this->dirty = true;
