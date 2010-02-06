@@ -69,7 +69,7 @@ namespace NeuroLab
             catch (...)
             {
                 delete ln;
-                throw;
+                    throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
             }
         }
         
@@ -85,7 +85,7 @@ namespace NeuroLab
                 if (cookie != LAB_SCENE_COOKIE)
                 {
                     delete ln;
-                    throw Automata::Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw LabException(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
                 
                 ds >> *ln->_tree;

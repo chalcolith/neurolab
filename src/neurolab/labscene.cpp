@@ -107,6 +107,8 @@ namespace NeuroLab
         case INHIBITORY_LINK_ITEM:
             addLink(_lastMousePos, new NeuroInhibitoryLinkItem());
             break;
+        default:
+            break;
         }
     }
 

@@ -19,15 +19,15 @@ namespace Automata
     protected:
         bool directed;
         
-        QVector<TNode> nodes;
-        QVector< QVector<TIndex> > edges;
+        QVector<TNode> _nodes;
+        QVector< QVector<TIndex> > _edges;
 
     public:
         Graph(const int initialCapacity = 0, bool directed = false)
             : directed(directed)
         {
-            nodes.reserve(initialCapacity);
-            edges.reserve(initialCapacity);
+            _nodes.reserve(initialCapacity);
+            _edges.reserve(initialCapacity);
         }
 
         virtual ~Graph()
@@ -36,21 +36,21 @@ namespace Automata
 
         TIndex addNode(const TNode & node)
         {
-            TIndex index = nodes.size();
+            TIndex index = _nodes.size();
 
-            nodes.append(node);
-            nodes[index].setIndex(index);
+            _nodes.append(node);
+            _nodes[index].setIndex(index);
 
-            edges.append(QVector<TIndex>());
+            _edges.append(QVector<TIndex>());
             
             return index;
         }
         
         void addEdge(const TIndex & from, const TIndex & to)
         {
-            if (from < edges.size())
+            if (from < _edges.size())
             {
-                QVector<TIndex> & outgoing = edges[from];
+                QVector<TIndex> & outgoing = _edges[from];
                 
                 if (!outgoing.contains(to))
                     outgoing.append(to);
@@ -62,9 +62,9 @@ namespace Automata
             
             if (!directed)
             {
-                if (to < edges.size())
+                if (to < _edges.size())
                 {
-                    QVector<TIndex> & incoming = edges[to];
+                    QVector<TIndex> & incoming = _edges[to];
                     
                     if (!incoming.contains(from))
                         incoming.append(from);
@@ -78,9 +78,9 @@ namespace Automata
         
         void removeEdge(const TIndex & from, const TIndex & to)
         {
-            if (from < edges.size())
+            if (from < _edges.size())
             {
-                QVector<TIndex> & outgoing = edges[from];
+                QVector<TIndex> & outgoing = _edges[from];
                 int i = outgoing.indexOf(to);
                 while (i != -1)
                 {
@@ -95,9 +95,9 @@ namespace Automata
             
             if (!directed)
             {
-                if (to < edges.size())
+                if (to < _edges.size())
                 {
-                    QVector<TIndex> & incoming = edges[to];
+                    QVector<TIndex> & incoming = _edges[to];
                     int i = incoming.indexOf(from);
                     while (i != -1)
                     {
@@ -114,25 +114,25 @@ namespace Automata
 
         const TNode & operator[] (const TIndex & index) const
         {
-            if (index < nodes.size())
-                return nodes[index];
+            if (index < _nodes.size())
+                return _nodes[index];
             else
                 throw IndexOverflow();
         }
 
         TNode & operator[] (const TIndex & index)
         {
-            if (index < nodes.size())
-                return nodes[index];
+            if (index < _nodes.size())
+                return _nodes[index];
             else
                 throw IndexOverflow();
         }
 
         const TIndex * const neighbors(const TIndex & index, int & num) const
         {
-            if (index < nodes.size())
+            if (index < _nodes.size())
             {
-                const QVector<TIndex> & nbrs = edges[index];
+                const QVector<TIndex> & nbrs = _edges[index];
                 num = nbrs.size();
                 return nbrs.data();
             }
@@ -153,8 +153,8 @@ namespace Automata
             
             // data
             ds << this->directed;
-            ds << this->nodes;
-            ds << this->edges;
+            ds << this->_nodes;
+            ds << this->_edges;
             
             return ds;
         }
@@ -168,8 +168,8 @@ namespace Automata
             
             // data
             ds >> this->directed;
-            ds >> this->nodes;
-            ds >> this->edges;
+            ds >> this->_nodes;
+            ds >> this->_edges;
             
             return ds;
         }

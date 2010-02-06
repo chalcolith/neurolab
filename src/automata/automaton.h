@@ -61,37 +61,37 @@ namespace Automata
         virtual void step()
         {
             MapFunctor functor(*this);
-            QFuture<void> future = QtConcurrent::map(this->nodes, functor);
+            QFuture<void> future = QtConcurrent::map(this->_nodes, functor);
             future.waitForFinished();
         }
 
         TIndex addNode(const TState & node)
         {
             TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));            
-            this->nodes[result].setLock(getNextLock());            
+            this->_nodes[result].setLock(getNextLock());            
             return result;
         }
 
         const TState & operator[](const TIndex & index) const
         {
-            if (index < this->nodes.size())
-                return this->nodes[index].q1;
+            if (index < this->_nodes.size())
+                return this->_nodes[index].q1;
             else
                 throw IndexOverflow();
         }
 
         TState & operator[](const TIndex & index)
         {
-            if (index < this->nodes.size())
-                return this->nodes[index].q1;
+            if (index < this->_nodes.size())
+                return this->_nodes[index].q1;
             else
                 throw IndexOverflow();
         }
 
         const int & readyState(const TIndex & index) const
         {
-            if (index < this->nodes.size())
-                return this->nodes[index].r;
+            if (index < this->_nodes.size())
+                return this->_nodes[index].r;
             else
                 throw IndexOverflow();
         }
@@ -101,7 +101,7 @@ namespace Automata
 
         inline AsyncState<TState, TIndex> & update(const TIndex & index)
         {
-            return update(this->nodes[index]);
+            return update(this->_nodes[index]);
         }
         
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
@@ -112,14 +112,14 @@ namespace Automata
             {
                 if (isReady(state.index, 0))
                 {
-                    const QVector<TIndex> & neighbors = this->edges[state.index];
+                    const QVector<TIndex> & neighbors = this->_edges[state.index];
                     if (neighbors.size() > temp_neighbors.size())
                         temp_neighbors.resize(neighbors.size());
                     
                     const TState ** const temp_ptr = temp_neighbors.data();
                     for (int i = 0; i < neighbors.size(); ++i)
                     {
-                        const AsyncState<TState, TIndex> & neighbor = this->nodes[neighbors[i]];
+                        const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
                         
                         QReadLocker read(neighbor.lock);
                         
@@ -145,13 +145,13 @@ namespace Automata
 
         inline bool isReady(const TIndex & index, const int & r) const
         {
-            if (index < this->nodes.size())
+            if (index < this->_nodes.size())
             {
-                const QVector<TIndex> & neighbors = this->edges[index];
+                const QVector<TIndex> & neighbors = this->_edges[index];
                 
                 for (int i = 0; i < neighbors.size(); ++i)
                 {
-                    if (this->nodes[neighbors[i]].r == ((r+2) % 3))
+                    if (this->_nodes[neighbors[i]].r == ((r+2) % 3))
                         return false;
                 }
                 

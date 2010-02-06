@@ -14,7 +14,7 @@ namespace Automata
         QString _message;
 
     public:
-        Exception(const QString & _message) : _message(_message) {}
+        Exception(const QString & message) : _message(message) {}
         const QString & message() const { return _message; }
     };
 

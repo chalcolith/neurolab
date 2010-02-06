@@ -66,6 +66,13 @@ namespace NeuroLab
         void enableItemMenu();
     };
         
+    class LabException
+        : public Automata::Exception
+    {
+    public:
+        LabException(const QString & message) : Automata::Exception(message) {}
+    };
+    
 } // namespace NeuroLab
 
 #endif // MAINWINDOW_H
