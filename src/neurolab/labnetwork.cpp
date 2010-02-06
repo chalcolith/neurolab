@@ -68,7 +68,7 @@ namespace NeuroLab
                 if (cookie != LAB_NETWORK_COOKIE)
                 {
                     delete ln;
-                    throw new Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                    throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
                 }
                 
                 ds >> *ln->network;
@@ -86,7 +86,7 @@ namespace NeuroLab
                 if (cookie != LAB_SCENE_COOKIE)
                 {
                     delete ln;
-                    throw new Exception(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw LabException(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
                 
                 ds >> *ln->sceneTree;

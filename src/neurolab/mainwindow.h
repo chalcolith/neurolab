@@ -63,13 +63,11 @@ namespace NeuroLab
     };
     
     
-    class Exception
+    class LabException
+        : public Automata::Exception
     {
-        QString _message;
-        
     public:
-        Exception(const QString & _message) : _message(_message) {}
-        const QString & message() const { return _message; }
+        LabException(const QString & _message) : Automata::Exception(_message) {}
     };
     
 } // namespace NeuroLab

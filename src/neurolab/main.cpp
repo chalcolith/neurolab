@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         window.show();
         return application.exec();
     }
-    catch (NeuroLab::Exception & ne)
+    catch (Automata::Exception & ne)
     {
         QMessageBox::critical(0, "Critical Error", ne.message());
     }

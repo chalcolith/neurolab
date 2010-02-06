@@ -22,7 +22,7 @@ namespace NeuroLab
           currentNetwork(0)
     {
         if (_instance)
-            throw new Exception("You cannot create more than one main window.");
+            throw LabException("You cannot create more than one main window.");
 
         _instance = this;
         

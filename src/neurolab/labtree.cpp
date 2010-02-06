@@ -116,7 +116,7 @@ namespace NeuroLab
             }
             else
             {
-                throw new Exception(QObject::tr("Error loading; unknown type %1").arg(type));
+                throw LabException(QObject::tr("Error loading; unknown type %1").arg(type));
             }
         }
         

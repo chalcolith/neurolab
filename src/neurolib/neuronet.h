@@ -13,7 +13,7 @@ namespace NeuroLib
 
     /// A neurocognitive network.
     class NEUROLIBSHARED_EXPORT NeuroNet
-            : public Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex>
+        : public Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex>
     {
     public:
         NeuroNet();
