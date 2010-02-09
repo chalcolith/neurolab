@@ -305,3 +305,10 @@ void NeuroLab::MainWindow::on_actionStep_triggered()
     }
 }
 
+void NeuroLab::MainWindow::on_actionReset_triggered()
+{
+    if (currentNetwork)
+    {
+        currentNetwork->reset();
+    }
+}

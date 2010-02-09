@@ -3,7 +3,6 @@
 
 #include <QSet>
 #include <QDataStream>
-#include <cmath>
 
 #include "neurolib_global.h"
 
@@ -34,39 +33,7 @@ namespace NeuroLib
         
         struct Update
         {
-            inline void operator() (const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
-            {
-                next._frozen = prev._frozen;
-                
-                if (prev._frozen)
-                {
-                    next._value = prev._value;
-                    return;
-                }
-                
-                NeuroValue input_sum = 0;
-                for (int i = 0; i < numNeighbors; ++i)
-                    input_sum += neighbors[i]->_value;
-                
-                if (input_sum < 0)
-                    input_sum = 0;
-                
-                switch (prev._kind)
-                {
-                case NODE:
-                case EXCITORY_LINK:
-                    next._value = static_cast<NeuroValue>(1) 
-                                  / (static_cast<NeuroValue>(1) 
-                                     + ::exp(static_cast<NeuroValue>(4) - static_cast<NeuroValue>(8) * input_sum / prev._input_threshold));
-                    break;
-                case INHIBITORY_LINK:
-                    next._value = prev._input_threshold ? -input_sum : static_cast<NeuroValue>(-1000);
-                    
-                    break;
-                default:
-                    return;
-                }
-            }
+            void operator() (const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const;
         };
         
         void addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);

@@ -44,6 +44,16 @@ namespace NeuroLab
         _parent = 0;
     }
     
+    void LabTreeNode::reset()
+    {
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); i.next())
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+            if (item)
+                item->reset();
+        }
+    }
+    
     void LabTreeNode::update()
     {
         _scene->update();
@@ -174,16 +184,24 @@ namespace NeuroLab
         delete _root;
     }
     
+    void LabTree::reset(LabTreeNode *n)
+    {
+        if (!n)
+            n = _root;
+                
+        n->reset();
+        
+        for (QListIterator<LabTreeNode *> i(n->_children); i.hasNext(); i.next())
+            reset(i.peekNext());
+    }
+    
     void LabTree::update(LabTreeNode *n)
     {
         if (!n)
             n = _root;
         
-        int num_children = n->_children.size();
-        for (int i = 0; i < num_children; ++i)
-        {
-            update(n->_children[i]);
-        }
+        for (QListIterator<LabTreeNode *> i(n->_children); i.hasNext(); i.next())
+            update(i.peekNext());
         
         n->update();
     }

@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -62,6 +62,7 @@
     <addaction name="actionStart"/>
     <addaction name="actionStop"/>
     <addaction name="actionStep"/>
+    <addaction name="actionReset"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
@@ -83,6 +84,7 @@
    <addaction name="actionStart"/>
    <addaction name="actionStop"/>
    <addaction name="actionStep"/>
+   <addaction name="actionReset"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="sidebarDockWidget">
@@ -110,8 +112,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>69</width>
-          <height>269</height>
+          <width>79</width>
+          <height>250</height>
          </rect>
         </property>
         <attribute name="label">
@@ -230,6 +232,11 @@
   <action name="actionToggleFrozen">
    <property name="text">
     <string>Toggle Frozen</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

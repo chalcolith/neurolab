@@ -29,7 +29,7 @@ namespace NeuroLab
         virtual void adjustLinks();
         
     private:
-        void adjustLinksAux(QList<NeuroLinkItem *> & list);
+        void adjustLinksAux(QList<NeuroItem *> & list);
 
     protected:
         virtual void writeBinary(QDataStream &) const;

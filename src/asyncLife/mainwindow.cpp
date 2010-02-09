@@ -44,9 +44,3 @@ void MainWindow::on_actionStep_triggered()
 {
     lifeWidget->step();
 }
-
-void MainWindow::on_actionReset_triggered()
-{
-    lifeWidget->reset();
-}
-

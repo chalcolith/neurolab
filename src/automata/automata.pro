@@ -11,5 +11,11 @@ HEADERS += automaton.h \
     graph.h \
     exception.h \
     asyncstate.h
-debug:DLLDESTDIR = ../neurolab/debug
-else:DLLDESTDIR = ../neurolab/release
+
+debug:BUILDDIR=debug
+else:BUILDDIR=release
+
+DESTDIR = ../$$BUILDDIR
+OBJECTS_DIR = $$BUILDDIR
+MOC_DIR = $$BUILDDIR
+UI_DIR = $$BUILDDIR

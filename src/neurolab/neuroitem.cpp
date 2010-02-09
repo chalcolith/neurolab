@@ -34,7 +34,7 @@ namespace NeuroLab
     int NeuroItem::NEXT_ID = 1;
     
     NeuroItem::NeuroItem(LabNetwork *network, NeuroCell::NeuroIndex cellIndex)
-        : QGraphicsItem(), _network(network), _id(NEXT_ID++), _in_hover(false), _labelRect(20, -10, 0, 20), _cellIndex(cellIndex)
+        : QGraphicsItem(), _network(network), _id(NEXT_ID++), _in_hover(false), _labelRect(20, -10, 100, 20), _cellIndex(cellIndex)
     {
         // we don't use qt selection because it seems to be broken
         //this->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -44,19 +44,10 @@ namespace NeuroLab
     
     NeuroItem::~NeuroItem()
     {
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(this);
-        if (link)
-        {
-            for (QListIterator<NeuroLinkItem *> in(_incoming); in.hasNext(); in.next())
-            {
-                in.peekNext()->removeOutgoing(link);
-            }
-            
-            for (QListIterator<NeuroLinkItem *> out(_outgoing); out.hasNext(); out.next())
-            {
-                out.peekNext()->removeIncoming(link);
-            }
-        }
+        while (_incoming.size() > 0)
+            removeIncoming(_incoming.front());
+        while (_outgoing.size() > 0)
+            removeOutgoing(_outgoing.front());
     }
     
     void NeuroItem::bringToFront()
@@ -76,43 +67,55 @@ namespace NeuroLab
             this->setZValue(highest_z + 0.1);
     }
     
-    void NeuroItem::addIncoming(NeuroLinkItem *linkItem)
+    void NeuroItem::addIncoming(NeuroItem *linkItem)
     {
-        if (_cellIndex != -1 && linkItem && linkItem->_cellIndex != -1)
+        if (linkItem && !_incoming.contains(linkItem))
         {
-            NeuroLib::NeuroNet *neuronet = _network->neuronet();
-            neuronet->addEdge(_cellIndex, linkItem->_cellIndex);
-        }
-        
-        if (!_incoming.contains(linkItem))
             _incoming.append(linkItem);
-    }
-    
-    void NeuroItem::removeIncoming(NeuroLinkItem *linkItem)
-    {
-        if (_cellIndex != -1 && linkItem && linkItem->_cellIndex != -1)
-        {
-            NeuroLib::NeuroNet *neuronet = _network->neuronet();
-            neuronet->removeEdge(_cellIndex, linkItem->_cellIndex);
+            
+            if (_cellIndex != -1 && linkItem->_cellIndex != -1)
+                _network->neuronet()->addEdge(_cellIndex, linkItem->_cellIndex);            
+            
+            linkItem->addOutgoing(this);
         }
-        
-        _incoming.removeAll(linkItem);
     }
     
-    void NeuroItem::addOutgoing(NeuroLinkItem *linkItem)
+    void NeuroItem::removeIncoming(NeuroItem *linkItem)
     {
-        if (!_outgoing.contains(linkItem))
+        if (linkItem && _incoming.contains(linkItem))
+        {
+            _incoming.removeAll(linkItem);
+            
+            if (_cellIndex != -1 && linkItem->_cellIndex != -1)
+                _network->neuronet()->removeEdge(_cellIndex, linkItem->_cellIndex);
+
+            linkItem->removeOutgoing(this);
+        }
+    }
+    
+    void NeuroItem::addOutgoing(NeuroItem *linkItem)
+    {
+        if (linkItem && !_outgoing.contains(linkItem))
+        {
             _outgoing.append(linkItem);
+            
+            linkItem->addIncoming(this);
+        }
     }
     
-    void NeuroItem::removeOutgoing(NeuroLinkItem *linkItem)
+    void NeuroItem::removeOutgoing(NeuroItem *linkItem)
     {
-        _outgoing.removeAll(linkItem);
+        if (linkItem && _outgoing.contains(linkItem))
+        {
+            _outgoing.removeAll(linkItem);
+            
+            linkItem->removeIncoming(this);
+        }
     }
     
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
     {
-        MainWindow::instance()->statusBar()->showMessage(QString("Hover enter %1; underMouse %2").arg((int)this).arg(this->isUnderMouse()));
+        MainWindow::instance()->statusBar()->showMessage(QString("Hover enter %1; underMouse %2").arg(reinterpret_cast<qint64>(this)).arg(this->isUnderMouse()));
         _in_hover = true;
         
         if (_network && _network->scene())
@@ -126,7 +129,7 @@ namespace NeuroLab
     
     void NeuroItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
     {
-        MainWindow::instance()->statusBar()->showMessage(QString("Hover exit %1; underMouse %2").arg((int)this).arg(this->isUnderMouse()));
+        MainWindow::instance()->statusBar()->showMessage(QString("Hover exit %1; underMouse %2").arg(reinterpret_cast<qint64>(this)).arg(this->isUnderMouse()));
         _in_hover = false;
 
         update(this->boundingRect());
@@ -189,7 +192,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            qreal t = static_cast<qreal>(cell->value());
+            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->value())), static_cast<qreal>(1));            
             
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
             
@@ -220,52 +223,56 @@ namespace NeuroLab
     /// Writes ids of incoming and outgoing pointers.
     void NeuroItem::writePointerIds(QDataStream & ds) const
     {
-        int n = _incoming.size();
+        qint32 n = _incoming.size();
         ds << n;
-        for (int i = 0; i < n; ++i)
+        
+        for (qint32 i = 0; i < n; ++i)
         {
             if (_incoming[i])
-                ds << (int) _incoming[i]->_id;
+                ds << static_cast<IdType>(_incoming[i]->_id);
             else
-                ds << (int) 0;
+                ds << static_cast<IdType>(0);
         }
         
         n = _outgoing.size();
         ds << n;
-        for (int i = 0; i < n; ++i)
+        
+        for (qint32 i = 0; i < n; ++i)
         {
             if (_outgoing[i])
-                ds << (int) _outgoing[i]->_id;
+                ds << static_cast<IdType>(_outgoing[i]->_id);
             else
-                ds << (int) 0;
+                ds << static_cast<IdType>(0);
         }
     }
     
     void NeuroItem::readPointerIds(QDataStream & ds)
     {
-        int n;
+        qint32 n;
         
         _incoming.clear();
         ds >> n;
-        for (int i = 0; i < n; ++i)
+        for (qint32 i = 0; i < n; ++i)
         {
-            int id;
+            IdType id;
             ds >> id;
+            
             if (id)
             {
-                _incoming.append((NeuroLinkItem *) id);
+                _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
             }
         }
         
         _outgoing.clear();
         ds >> n;
-        for (int i = 0; i < n; ++i)
+        for (qint32 i = 0; i < n; ++i)
         {
-            int id;
+            IdType id;
             ds >> id;
+            
             if (id)
             {
-                _outgoing.append((NeuroLinkItem *) id);
+                _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
             }
         }
     }
@@ -276,17 +283,17 @@ namespace NeuroLab
         idsToPointersAux(_outgoing, sc);
     }
     
-    void NeuroItem::idsToPointersAux(QList<NeuroLinkItem *> & list, QGraphicsScene *sc)
+    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc)
     {
         QList<QGraphicsItem *> items = sc->items();
         
-        for (QMutableListIterator<NeuroLinkItem *> in(list); in.hasNext(); in.next())
+        for (QMutableListIterator<NeuroItem *> in(list); in.hasNext(); in.next())
         {
             bool found = false;
-            int id = (int) in.peekNext();
+            IdType id = reinterpret_cast<IdType>(in.peekNext());
             for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); i.next())
             {
-                NeuroLinkItem *item = dynamic_cast<NeuroLinkItem *>(i.peekNext());
+                NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
                 if (item && item->_id == id)
                 {
                     in.peekNext() = item;
@@ -303,23 +310,25 @@ namespace NeuroLab
     QDataStream & operator<< (QDataStream & data, const NeuroItem & item)
     {
         data << item._label;
-        data << static_cast<qint32>(item._cellIndex);
+        data << static_cast<qint64>(item._cellIndex);
+
         item.writeBinary(data);
         item.writePointerIds(data);
+
         return data;
     }
     
     QDataStream & operator>> (QDataStream & data, NeuroItem & item)
     {
+        qint64 n;
+        
         data >> item._label;
-
-        qint32 n;
-        data >> n;
-        item._cellIndex = static_cast<NeuroCell::NeuroIndex>(n);
+        data >> n; item._cellIndex = static_cast<NeuroCell::NeuroIndex>(n);
         
         item.readBinary(data);
         item.readPointerIds(data);
         item._in_hover = false;
+
         return data;
     }
     
@@ -328,6 +337,13 @@ namespace NeuroLab
     NeuroCell *NeuroItem::getCell()
     {
         return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;
+    }
+    
+    void NeuroItem::reset()
+    {
+        NeuroCell *cell = getCell();
+        if (cell && !cell->frozen())
+            deactivate();
     }
     
     void NeuroItem::activate()

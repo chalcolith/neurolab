@@ -3,10 +3,7 @@
 # -------------------------------------------------
 TARGET = asyncLife
 TEMPLATE = app
-debug:LIBS = -L../automata/debug \
-    -lautomata
-else:LIBS = -L../automata/release \
-    -lautomata
+
 SOURCES += main.cpp \
     mainwindow.cpp \
     lifecell.cpp \
@@ -18,3 +15,12 @@ HEADERS += \
     lifeboard.h \
     lifewidget.h
 FORMS += mainwindow.ui
+
+debug:BUILDDIR=debug
+else:BUILDDIR=release
+
+DESTDIR = ../$$BUILDDIR
+OBJECTS_DIR = $$BUILDDIR
+MOC_DIR = $$BUILDDIR
+UI_DIR = $$BUILDDIR
+LIBS = -L$$DESTDIR -lautomata

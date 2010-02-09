@@ -37,6 +37,7 @@ namespace NeuroLab
         LabView *view() { return _view; }
         QList<LabTreeNode *> & children() { return _children; }
         
+        void reset();
         void update();
         
         friend class LabTree;
@@ -73,6 +74,7 @@ namespace NeuroLab
         LabScene *scene() { return _current ? _current->scene() : 0; }
         LabView *view() { return _current ? _current->view() : 0; }
         
+        void reset(LabTreeNode *n = 0);
         void update(LabTreeNode *n = 0);
         
         static const int SCENE_WIDTH;

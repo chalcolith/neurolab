@@ -25,21 +25,7 @@ namespace NeuroLab
     
     NeuroLinkItem::~NeuroLinkItem()
     {
-        for (QListIterator<NeuroLinkItem *> i(_incoming); i.hasNext(); i.next())
-        {
-            NeuroLinkItem *link = i.peekNext();
-            if (link && link->frontLinkTarget() == this)
-                link->setFrontLinkTarget(0);
-            else if (link && link->backLinkTarget() == this)
-                link->setBackLinkTarget(0);
-        }
-        
-        if (_frontLinkTarget)
-            _frontLinkTarget->removeIncoming(this);
         _frontLinkTarget = 0;
-        
-        if (_backLinkTarget)
-            _backLinkTarget->removeOutgoing(this);
         _backLinkTarget = 0;
     }
     
@@ -63,18 +49,38 @@ namespace NeuroLab
         _line = QLineF(p1, p2);
         updatePos();
     }
+    
+    void NeuroLinkItem::addIncoming(NeuroItem *linkItem)
+    {
+        NeuroItem::addIncoming(linkItem);
+    }
+    
+    void NeuroLinkItem::removeIncoming(NeuroItem *linkItem)
+    {
+        if (linkItem && linkItem == _backLinkTarget)
+            setBackLinkTarget(0);
+        NeuroItem::removeIncoming(linkItem);
+    }
+    
+    void NeuroLinkItem::addOutgoing(NeuroItem *linkItem)
+    {
+        NeuroItem::addOutgoing(linkItem);
+    }
+    
+    void NeuroLinkItem::removeOutgoing(NeuroItem *linkItem)
+    {
+        if (linkItem && linkItem == _frontLinkTarget)
+            setFrontLinkTarget(0);
+        NeuroItem::removeOutgoing(linkItem);
+    }
 
     void NeuroLinkItem::setFrontLinkTarget(NeuroItem *linkTarget)
     {
         if (_frontLinkTarget)
-        {
-            _frontLinkTarget->removeIncoming(this);
-        }
+            NeuroItem::removeOutgoing(_frontLinkTarget);
         
         if (linkTarget)
-        {
-            linkTarget->addIncoming(this);
-        }
+            addOutgoing(linkTarget);
         
         _frontLinkTarget = linkTarget;
     }
@@ -82,14 +88,10 @@ namespace NeuroLab
     void NeuroLinkItem::setBackLinkTarget(NeuroItem *linkTarget)
     {
         if (_backLinkTarget)
-        {
-            _backLinkTarget->removeOutgoing(this);
-        }
+            NeuroItem::removeIncoming(_backLinkTarget);
         
         if (linkTarget)
-        {
-            linkTarget->addOutgoing(this);
-        }
+            addIncoming(linkTarget);
         
         _backLinkTarget = linkTarget;
     }
@@ -110,7 +112,7 @@ namespace NeuroLab
         return result.united(NeuroItem::boundingRect());
     }
     
-    void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
         painter->setRenderHint(QPainter::Antialiasing);
         
@@ -159,10 +161,9 @@ namespace NeuroLab
         qreal myLength = frontToBack.length();
         frontToBack.normalize();
         
-        int numLinks = _incoming.length();
-        for (int i = 0; i < numLinks; ++i)
+        for (QListIterator<NeuroItem *> i(_incoming); i.hasNext(); i.next())
         {
-            NeuroLinkItem *link = _incoming[i];
+            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.peekNext());
             if (link)
                 link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
         }
@@ -206,9 +207,12 @@ namespace NeuroLab
     void NeuroLinkItem::writePointerIds(QDataStream & data) const
     {
         NeuroItem::writePointerIds(data);
+
+        IdType id = _frontLinkTarget ? _frontLinkTarget->id() : 0;
+        data << id;
         
-        data << (_frontLinkTarget ? _frontLinkTarget->id() : 0);
-        data << (_backLinkTarget ? _backLinkTarget->id() : 0);
+        id = _backLinkTarget ? _backLinkTarget->id() : 0;
+        data << id;
     }
     
     void NeuroLinkItem::readPointerIds(QDataStream & data)
@@ -218,24 +222,23 @@ namespace NeuroLab
         setFrontLinkTarget(0);
         setBackLinkTarget(0);
 
-        int id;
-        data >> id;
-        
-        if (id)
-            _frontLinkTarget = (NeuroItem *) id;
+        IdType id;
         
         data >> id;
-        
         if (id)
-            _backLinkTarget = (NeuroItem *) id;
+            _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        
+        data >> id;
+        if (id)
+            _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
     }
     
     void NeuroLinkItem::idsToPointers(QGraphicsScene *sc)
     {
         NeuroItem::idsToPointers(sc);
         
-        int frontId = (int) _frontLinkTarget;
-        int backId = (int) _backLinkTarget;
+        IdType frontId = reinterpret_cast<IdType>(_frontLinkTarget);
+        IdType backId = reinterpret_cast<IdType>(_backLinkTarget);
         
         for (QListIterator<QGraphicsItem *> i(sc->items()); i.hasNext(); )
         {

@@ -115,11 +115,11 @@ namespace NeuroLab
             addNode(_lastMousePos, new NeuroNodeItem(_network, index));
             break;
         case EXCITORY_LINK_ITEM:
-            index = neuronet->addNode(NeuroCell(NeuroCell::NODE));
+            index = neuronet->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
             addLink(_lastMousePos, new NeuroExcitoryLinkItem(_network, index));
             break;
         case INHIBITORY_LINK_ITEM:
-            index = neuronet->addNode(NeuroCell(NeuroCell::NODE));
+            index = neuronet->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK));
             addLink(_lastMousePos, new NeuroInhibitoryLinkItem(_network, index));
             break;
         default:

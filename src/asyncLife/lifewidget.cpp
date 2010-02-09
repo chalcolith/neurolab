@@ -5,7 +5,7 @@ LifeWidget::LifeWidget(QWidget *parent) : QWidget(parent), autoStep(false)
 {
 }
 
-void LifeWidget::paintEvent(QPaintEvent *paintEvent)
+void LifeWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     QRect viewport = painter.viewport();
@@ -34,7 +34,7 @@ void LifeWidget::paintEvent(QPaintEvent *paintEvent)
                 cellColor = Qt::white;
             }
             
-            cellColor = Qt::white;
+            //cellColor = Qt::white;
 
             painter.fillRect(x*x_step, y*y_step, x_step, y_step, cellColor);
 

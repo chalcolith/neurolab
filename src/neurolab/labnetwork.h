@@ -42,6 +42,7 @@ namespace NeuroLab
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
         
     public slots:
+        void reset();
         void start();
         void stop();
         void step();

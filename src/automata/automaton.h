@@ -75,7 +75,7 @@ namespace Automata
         const TState & operator[](const TIndex & index) const
         {
             if (index < this->_nodes.size())
-                return this->_nodes[index].q1;
+                return this->_nodes[index].q0;
             else
                 throw IndexOverflow();
         }
@@ -83,7 +83,7 @@ namespace Automata
         TState & operator[](const TIndex & index)
         {
             if (index < this->_nodes.size())
-                return this->_nodes[index].q1;
+                return this->_nodes[index].q0;
             else
                 throw IndexOverflow();
         }
@@ -121,7 +121,7 @@ namespace Automata
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
                         
-                        QReadLocker read(state.lock != neighbor.lock ? neighbor.lock : 0);
+                        //QReadLocker read(state.lock != neighbor.lock ? neighbor.lock : 0);
                         
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;

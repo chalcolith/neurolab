@@ -26,6 +26,11 @@ namespace NeuroLab
         void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
         void setLine(const QPointF & p1, const QPointF & p2);
         
+        virtual void addIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
+        virtual void addOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
+        
         NeuroItem *frontLinkTarget() { return _frontLinkTarget; }
         void setFrontLinkTarget(NeuroItem *linkTarget);
         

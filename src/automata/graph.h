@@ -128,7 +128,7 @@ namespace Automata
                 throw IndexOverflow();
         }
 
-        const TIndex * const neighbors(const TIndex & index, int & num) const
+        TIndex * neighbors(const TIndex & index, int & num) const
         {
             if (index < _nodes.size())
             {

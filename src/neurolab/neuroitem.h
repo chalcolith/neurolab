@@ -21,10 +21,12 @@ namespace NeuroLab
     protected:
         LabNetwork *_network;
         
-        int _id;
+        typedef qint64 IdType;
+        
+        IdType _id;
         bool _in_hover;
-        QList<NeuroLinkItem *> _incoming;
-        QList<NeuroLinkItem *> _outgoing;
+        QList<NeuroItem *> _incoming;
+        QList<NeuroItem *> _outgoing;
         
         QString _label;
         QRectF  _labelRect;
@@ -61,17 +63,17 @@ namespace NeuroLab
         bool inHover() const { return _in_hover; }
         void setInHover(bool ih) { _in_hover = ih; update(boundingRect()); }
         
-        const QList<NeuroLinkItem *> incoming() const { return _incoming; }
-        const QList<NeuroLinkItem *> outgoing() const { return _outgoing; }
+        const QList<NeuroItem *> incoming() const { return _incoming; }
+        const QList<NeuroItem *> outgoing() const { return _outgoing; }
         
         void bringToFront();
         
-        virtual void addIncoming(NeuroLinkItem *linkItem);
-        virtual void removeIncoming(NeuroLinkItem *linkItem);
+        virtual void addIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
         
-        virtual void addOutgoing(NeuroLinkItem *linkItem);
-        virtual void removeOutgoing(NeuroLinkItem *linkItem);
-                
+        virtual void addOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
+        
         virtual void adjustLinks() = 0;
         
         virtual void idsToPointers(QGraphicsScene *);
@@ -79,6 +81,7 @@ namespace NeuroLab
         virtual QRectF boundingRect() const;
         virtual QPainterPath shape() const;
 
+        virtual void reset();
         virtual void activate();
         virtual void deactivate();
         virtual void toggleFrozen();
@@ -101,7 +104,7 @@ namespace NeuroLab
         virtual void writePointerIds(QDataStream &) const;
         virtual void readPointerIds(QDataStream &);
         
-        virtual void idsToPointersAux(QList<NeuroLinkItem *> & list, QGraphicsScene *sc);
+        virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
         
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
         friend QDataStream & operator>> (QDataStream &, NeuroItem &);

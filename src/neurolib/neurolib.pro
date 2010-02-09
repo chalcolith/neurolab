@@ -11,9 +11,12 @@ SOURCES += neuronet.cpp \
 HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
-debug:LIBS = -L../automata/debug \
-    -lautomata
-else:LIBS = -L../automata/release \
-    -lautomata
-debug:DLLDESTDIR = ../neurolab/debug
-else:DLLDESTDIR = ../neurolab/release
+
+debug:BUILDDIR=debug
+else:BUILDDIR=release
+
+DESTDIR = ../$$BUILDDIR
+OBJECTS_DIR = $$BUILDDIR
+MOC_DIR = $$BUILDDIR
+UI_DIR = $$BUILDDIR
+LIBS = -L$$DESTDIR -lautomata

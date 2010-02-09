@@ -14,26 +14,9 @@ namespace NeuroLab
     {
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
-    
-    static void remove_links(QList<NeuroLinkItem *> & list, NeuroNodeItem *node)
-    {
-        for (QListIterator<NeuroLinkItem *> ln(list); ln.hasNext(); ln.next())
-        {
-            NeuroLinkItem *link = ln.peekNext();
-            
-            if (link && link->frontLinkTarget() == node)
-                link->setFrontLinkTarget(0);
-            else if (link && link->backLinkTarget() == node)
-                link->setBackLinkTarget(0);
-        }
         
-        list.clear();
-    }
-    
     NeuroNodeItem::~NeuroNodeItem()
     {
-        remove_links(_incoming, this);
-        remove_links(_outgoing, this);
     }
     
     QRectF NeuroNodeItem::boundingRect() const
@@ -41,7 +24,7 @@ namespace NeuroLab
         return _rect.united(NeuroItem::boundingRect());
     }
     
-    void NeuroNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    void NeuroNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
         painter->setRenderHint(QPainter::Antialiasing);
 
@@ -58,6 +41,14 @@ namespace NeuroLab
         painter->setBrush(brush);
         painter->setPen(pen);
         painter->drawEllipse(rect());
+        
+        NeuroCell *cell = getCell();
+        if (cell)
+        {
+            int threshold = static_cast<int>(cell->input_threshold() + static_cast<NeuroCell::NeuroValue>(0.5));
+            QString str("%1");
+            painter->drawText(-4, 3, str.arg(threshold));
+        }
     }
     
     QPainterPath NeuroNodeItem::shape() const
@@ -73,11 +64,11 @@ namespace NeuroLab
         adjustLinksAux(_outgoing);        
     }
     
-    void NeuroNodeItem::adjustLinksAux(QList<NeuroLinkItem *> & list)
+    void NeuroNodeItem::adjustLinksAux(QList<NeuroItem *> & list)
     {
-        for (QListIterator<NeuroLinkItem *> ln(list); ln.hasNext(); ln.next())
+        for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); ln.next())
         {
-            NeuroLinkItem *link = ln.peekNext();
+            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.peekNext());
             if (!link)
                 continue;
             

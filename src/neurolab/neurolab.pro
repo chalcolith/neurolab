@@ -1,9 +1,8 @@
 # -------------------------------------------------
 # Project created by QtCreator 2009-10-10T12:17:33
 # -------------------------------------------------
-QT += opengl \
-    svg
-TARGET = NeuroLab
+QT += svg
+TARGET = neurolab
 TEMPLATE = app
 SOURCES += main.cpp \
     mainwindow.cpp \
@@ -26,11 +25,12 @@ HEADERS += mainwindow.h \
     labeldialog.h
 FORMS += mainwindow.ui \
     labeldialog.ui
-debug:LIBS = -L../neurolib/debug \
-    -lneurolib \
-    -L../automata/debug \
-    -lautomata
-else:LIBS = -L../neurolib/release \
-    -lneurolib \
-    -L../automata/release \
-    -lautomata
+
+debug:BUILDDIR=debug
+else:BUILDDIR=release
+
+DESTDIR = ../$$BUILDDIR
+OBJECTS_DIR = $$BUILDDIR
+MOC_DIR = $$BUILDDIR
+UI_DIR = $$BUILDDIR
+LIBS = -L$$DESTDIR -lneurolib -lautomata

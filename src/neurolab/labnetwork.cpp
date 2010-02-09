@@ -49,7 +49,7 @@ namespace NeuroLab
         
         if (nln_fname.isEmpty() || nln_fname.isNull())
         {
-            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln)"));
+            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*.*)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return 0;
@@ -110,16 +110,21 @@ namespace NeuroLab
     void LabNetwork::start()
     {
         running = true;
+        dirty = true;
     }
     
     void LabNetwork::stop()
     {
         running = false;
+        dirty = true;
+        _tree->update();
     }
     
     void LabNetwork::step()
     {
+        dirty = true;
         running = true;
+        
         // three times to fully run through the asynchronous algorithm
         _neuronet->step();
         _neuronet->step();
@@ -127,6 +132,11 @@ namespace NeuroLab
         running = false;
         
         _tree->update();
+    }
+    
+    void LabNetwork::reset()
+    {
+        _tree->reset();
     }
     
     bool LabNetwork::save(bool saveAs)
@@ -141,7 +151,7 @@ namespace NeuroLab
         {
             this->_fname.clear();
             
-            QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln)"));
+            QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*.*)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return false;
