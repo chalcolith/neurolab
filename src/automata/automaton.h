@@ -121,7 +121,7 @@ namespace Automata
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
                         
-                        QReadLocker read(neighbor.lock);
+                        QReadLocker read(state.lock != neighbor.lock ? neighbor.lock : 0);
                         
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;

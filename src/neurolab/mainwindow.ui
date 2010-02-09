@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -53,6 +53,7 @@
     <addaction name="separator"/>
     <addaction name="actionActivate"/>
     <addaction name="actionDeactivate"/>
+    <addaction name="actionToggleFrozen"/>
    </widget>
    <widget class="QMenu" name="menuSimulation">
     <property name="title">
@@ -109,8 +110,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>61</width>
-          <height>273</height>
+          <width>69</width>
+          <height>269</height>
          </rect>
         </property>
         <attribute name="label">
@@ -224,6 +225,11 @@
   <action name="actionStep">
    <property name="text">
     <string>Step</string>
+   </property>
+  </action>
+  <action name="actionToggleFrozen">
+   <property name="text">
+    <string>Toggle Frozen</string>
    </property>
   </action>
  </widget>

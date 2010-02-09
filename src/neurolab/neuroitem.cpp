@@ -186,12 +186,17 @@ namespace NeuroLab
     
     void NeuroItem::setPenColor(QPen & pen)
     {
-        if (_cellIndex != -1)
+        NeuroCell *cell = getCell();
+        if (cell)
         {
-            NeuroCell & cell = (*_network->neuronet())[_cellIndex];
-            qreal t = static_cast<qreal>(cell.value());
+            qreal t = static_cast<qreal>(cell->value());
             
-            pen.setColor(lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t));
+            QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
+            
+            if (cell->frozen())
+                pen.setColor(lerp(result, Qt::gray, 0.5f));
+            else
+                pen.setColor(result);
         }
         else
         {
@@ -320,24 +325,37 @@ namespace NeuroLab
     
     // neuro stuff
     
+    NeuroCell *NeuroItem::getCell()
+    {
+        return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;
+    }
+    
     void NeuroItem::activate()
     {
-        if (_cellIndex != -1)
+        NeuroCell *cell = getCell();
+        if (cell)
         {
-            NeuroCell & cell = (*_network->neuronet())[_cellIndex];
-            cell.setValue(1);
-            
+            cell->setValue(1);
             update(boundingRect());
         }
     }
     
     void NeuroItem::deactivate()
     {
-        if (_cellIndex != -1)
+        NeuroCell *cell = getCell();
+        if (cell)
         {
-            NeuroCell & cell = (*_network->neuronet())[_cellIndex];
-            cell.setValue(0);
-            
+            cell->setValue(0);
+            update(boundingRect());
+        }
+    }
+    
+    void NeuroItem::toggleFrozen()
+    {
+        NeuroCell *cell = getCell();
+        if (cell)
+        {
+            cell->setFrozen(!cell->frozen());
             update(boundingRect());
         }
     }

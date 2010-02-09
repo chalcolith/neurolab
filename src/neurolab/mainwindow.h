@@ -56,6 +56,7 @@ namespace NeuroLab
         void on_actionStart_triggered();
         void on_actionDeactivate_triggered();
         void on_actionActivate_triggered();
+        void on_actionToggleFrozen_triggered();
         void on_actionLabel_triggered();
         void on_action_Sidebar_triggered();
         void on_action_New_triggered();

@@ -81,8 +81,11 @@ namespace NeuroLab
 
         virtual void activate();
         virtual void deactivate();
+        virtual void toggleFrozen();
                 
     protected:
+        NeuroLib::NeuroCell *getCell();
+        
         virtual void setPenWidth(QPen & pen);
         virtual void setPenColor(QPen & pen);
         virtual void drawLabel(QPainter *painter, QPen & pen, QBrush & brush);

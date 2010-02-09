@@ -49,3 +49,4 @@ void MainWindow::on_actionReset_triggered()
 {
     lifeWidget->reset();
 }
+

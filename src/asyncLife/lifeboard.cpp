@@ -23,8 +23,8 @@ void LifeBoard::reset()
 {
     for (int i = 0; i < width*height; ++i)
     {
-        this->nodes[i].q0.alive = this->nodes[i].q1.alive = !(qrand() % 2);
-        this->nodes[i].r = 0;
+        this->_nodes[i].q0.alive = this->_nodes[i].q1.alive = !(qrand() % 2);
+        this->_nodes[i].r = 0;
     }
 }
 

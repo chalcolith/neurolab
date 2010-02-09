@@ -7,7 +7,7 @@ namespace NeuroLib
 {
     
     NeuroCell::NeuroCell(const Kind & k, const NeuroValue & input_threshold)
-        : _kind(k), _value(0), _input_threshold(input_threshold)
+        : _kind(k), _value(0), _input_threshold(input_threshold), _frozen(false)
     {
         if (input_threshold == 0 && _kind != INHIBITORY_LINK)
             throw Automata::Exception(QObject::tr("Input threshold must be greater than zero."));
@@ -29,6 +29,7 @@ namespace NeuroLib
         ds << static_cast<qint32>(nc._kind);
         ds << static_cast<double>(nc._value);
         ds << static_cast<double>(nc._input_threshold);
+        ds << nc._frozen;
         return ds;
     }
     

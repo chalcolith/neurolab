@@ -36,6 +36,14 @@ namespace NeuroLib
         {
             inline void operator() (const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
             {
+                next._frozen = prev._frozen;
+                
+                if (prev._frozen)
+                {
+                    next._value = prev._value;
+                    return;
+                }
+                
                 NeuroValue input_sum = 0;
                 for (int i = 0; i < numNeighbors; ++i)
                     input_sum += neighbors[i]->_value;
@@ -68,11 +76,19 @@ namespace NeuroLib
         const NeuroValue & value() const { return _value; }
         void setValue(const NeuroValue & v) { _value = v; }
         
+        const NeuroValue & input_threshold() const { return _input_threshold; }
+        void setInputThreshold(const NeuroValue & input_threshold) { _input_threshold = input_threshold; }
+        
+        const bool & frozen() const { return _frozen; }
+        void setFrozen(const bool & frozen) { _frozen = frozen; }
+        
     private:
         Kind _kind;
                 
         NeuroValue _value;
         NeuroValue _input_threshold;
+        
+        bool _frozen;
         
         friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
         friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);

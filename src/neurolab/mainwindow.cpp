@@ -277,6 +277,16 @@ void NeuroLab::MainWindow::on_actionDeactivate_triggered()
     }
 }
 
+void NeuroLab::MainWindow::on_actionToggleFrozen_triggered()
+{
+    if (currentNetwork)
+    {
+        NeuroItem *item = currentNetwork->getSelectedItem();
+        if (item)
+            item->toggleFrozen();
+    }
+}
+
 void NeuroLab::MainWindow::on_actionStart_triggered()
 {
     
@@ -294,3 +304,4 @@ void NeuroLab::MainWindow::on_actionStep_triggered()
         currentNetwork->step();
     }
 }
+
