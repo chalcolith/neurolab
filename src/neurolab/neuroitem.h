@@ -1,6 +1,8 @@
 #ifndef NEUROITEM_H
 #define NEUROITEM_H
 
+#include "../neurolib/neurocell.h"
+
 #include <QGraphicsItem>
 #include <QColor>
 #include <QList>
@@ -8,18 +10,26 @@
 namespace NeuroLab
 {
     
+    class LabNetwork;
     class NeuroLinkItem;
     
     class NeuroItem 
         : public QGraphicsItem
-    {
+    {        
         static int NEXT_ID;
         
     protected:
+        LabNetwork *_network;
+        
         int _id;
         bool _in_hover;
         QList<NeuroLinkItem *> _incoming;
         QList<NeuroLinkItem *> _outgoing;
+        
+        QString _label;
+        QRectF  _labelRect;
+        
+        NeuroLib::NeuroCell::NeuroIndex _cellIndex;
         
     public:
         enum NODE_TYPE
@@ -33,6 +43,7 @@ namespace NeuroLab
         static const QColor NORMAL_LINE_COLOR;
         static const QColor UNLINKED_LINE_COLOR;
         static const QColor BACKGROUND_COLOR;
+        static const QColor ACTIVE_COLOR;
         
         static const int NORMAL_LINE_WIDTH;
         static const int HOVER_LINE_WIDTH;
@@ -40,8 +51,11 @@ namespace NeuroLab
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
         
-        NeuroItem();
+        NeuroItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex = -1);
         virtual ~NeuroItem();
+        
+        const QString & label() const { return _label; }
+        void setLabel(const QString & s) { _label = s; _labelRect.setWidth(200); update(boundingRect()); }
         
         int id() { return _id; }        
         bool inHover() const { return _in_hover; }
@@ -52,17 +66,27 @@ namespace NeuroLab
         
         void bringToFront();
         
-        void addIncoming(NeuroLinkItem *linkItem);
-        void removeIncoming(NeuroLinkItem *linkItem);
+        virtual void addIncoming(NeuroLinkItem *linkItem);
+        virtual void removeIncoming(NeuroLinkItem *linkItem);
         
-        void addOutgoing(NeuroLinkItem *linkItem);
-        void removeOutgoing(NeuroLinkItem *linkItem);
+        virtual void addOutgoing(NeuroLinkItem *linkItem);
+        virtual void removeOutgoing(NeuroLinkItem *linkItem);
                 
         virtual void adjustLinks() = 0;
         
         virtual void idsToPointers(QGraphicsScene *);
+        
+        virtual QRectF boundingRect() const;
+        virtual QPainterPath shape() const;
 
+        virtual void activate();
+        virtual void deactivate();
+                
     protected:
+        virtual void setPenWidth(QPen & pen);
+        virtual void setPenColor(QPen & pen);
+        virtual void drawLabel(QPainter *painter, QPen & pen, QBrush & brush);
+        
         virtual bool shouldHighlight() const;
         
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);

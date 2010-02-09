@@ -51,6 +51,12 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
                 
     private slots:
+        void on_actionStep_triggered();
+        void on_actionStop_triggered();
+        void on_actionStart_triggered();
+        void on_actionDeactivate_triggered();
+        void on_actionActivate_triggered();
+        void on_actionLabel_triggered();
         void on_action_Sidebar_triggered();
         void on_action_New_triggered();
         void on_action_Open_triggered();

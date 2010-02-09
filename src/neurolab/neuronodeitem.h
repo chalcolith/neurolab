@@ -15,7 +15,7 @@ namespace NeuroLab
         QRectF _rect;
         
     public:
-        NeuroNodeItem();
+        NeuroNodeItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
         virtual ~NeuroNodeItem();
         
         const QRectF & rect() const { return _rect; }

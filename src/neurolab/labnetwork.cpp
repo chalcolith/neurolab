@@ -9,9 +9,9 @@ namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *_parent)
-        : _tree(0), _network(0), running(false), dirty(false), first_change(true)
+        : _tree(0), _neuronet(0), running(false), dirty(false), first_change(true)
     {
-        _network = new NeuroLib::NeuroNet();
+        _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(_parent, this);
 
         if (_tree->scene())
@@ -21,7 +21,12 @@ namespace NeuroLab
     LabNetwork::~LabNetwork()
     {
         delete _tree; _tree = 0;
-        delete _network; _network = 0;
+        delete _neuronet; _neuronet = 0;
+    }
+    
+    NeuroItem *LabNetwork::getSelectedItem()
+    {
+        return (_tree && _tree->scene()) ? _tree->scene()->selectedItem() : 0;
     }
     
     void LabNetwork::deleteSelectedItem()
@@ -30,7 +35,13 @@ namespace NeuroLab
             _tree->scene()->deleteSelectedItem();
     }
     
-    static const QString LAB_SCENE_COOKIE("Neurolab 0 SCENE");
+    void LabNetwork::labelSelectedItem(const QString & s)
+    {
+        if (_tree && _tree->scene())
+            _tree->scene()->labelSelectedItem(s);
+    }    
+    
+    static const QString LAB_SCENE_COOKIE("Neurolab 1 SCENE");
     
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
@@ -64,7 +75,7 @@ namespace NeuroLab
             try
             {
                 QDataStream ds(&file);
-                ds >> *ln->_network;
+                ds >> *ln->_neuronet;
             }
             catch (...)
             {
@@ -106,12 +117,21 @@ namespace NeuroLab
         running = false;
     }
     
+    void LabNetwork::step()
+    {
+        running = true;
+        _neuronet->step();
+        running = false;
+        
+        _tree->update();
+    }
+    
     bool LabNetwork::save(bool saveAs)
     {
         bool prevRunning = this->running;
         stop();
         
-        if (!this->_tree || !this->_network)
+        if (!this->_tree || !this->_neuronet)
             return false;
         
         if (this->_fname.isEmpty() || this->_fname.isNull() || saveAs)
@@ -135,7 +155,7 @@ namespace NeuroLab
             file.open(QIODevice::WriteOnly);
             {
                 QDataStream data(&file);
-                data << *_network;
+                data << *_neuronet;
             }
         }
         

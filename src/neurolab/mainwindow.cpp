@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "labscene.h"
+#include "neuroitem.h"
+#include "labeldialog.h"
 #include "../automata/exception.h"
 
 #include <QSettings>
@@ -173,7 +175,7 @@ namespace NeuroLab
 
     void MainWindow::enableItemMenu()
     {
-        bool enableDelete = currentNetwork && currentNetwork->scene() && currentNetwork->scene()->itemToSelect();
+        bool enableDelete = currentNetwork && currentNetwork->scene() && currentNetwork->scene()->selectedItem();
         _ui->action_Delete->setEnabled(enableDelete);
     }
     
@@ -236,4 +238,59 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
 {
     if (currentNetwork)
         currentNetwork->deleteSelectedItem();    
+}
+
+void NeuroLab::MainWindow::on_actionLabel_triggered()
+{
+    if (currentNetwork)
+    {
+        LabelDialog ld(this);
+
+        NeuroItem *item = currentNetwork->getSelectedItem();
+        if (item)
+            ld.setLabel(item->label());
+        
+        if (ld.exec() == QDialog::Accepted && !ld.label().isNull() && !ld.label().isEmpty())
+        {
+            currentNetwork->labelSelectedItem(ld.label());
+        }
+    }
+}
+
+void NeuroLab::MainWindow::on_actionActivate_triggered()
+{
+    if (currentNetwork)
+    {
+        NeuroItem *item = currentNetwork->getSelectedItem();
+        if (item)
+            item->activate();
+    }
+}
+
+void NeuroLab::MainWindow::on_actionDeactivate_triggered()
+{
+    if (currentNetwork)
+    {
+        NeuroItem *item = currentNetwork->getSelectedItem();
+        if (item)
+            item->deactivate();
+    }
+}
+
+void NeuroLab::MainWindow::on_actionStart_triggered()
+{
+    
+}
+
+void NeuroLab::MainWindow::on_actionStop_triggered()
+{
+    
+}
+
+void NeuroLab::MainWindow::on_actionStep_triggered()
+{
+    if (currentNetwork)
+    {
+        currentNetwork->step();
+    }
 }

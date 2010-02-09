@@ -18,7 +18,7 @@ namespace NeuroLab
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
         
     public:
-        NeuroLinkItem();
+        NeuroLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
         virtual ~NeuroLinkItem();
         
         QLineF line() const { return _line; }
@@ -42,7 +42,6 @@ namespace NeuroLab
         void updatePos();
         
     protected:
-        void setPenWidth(QPen & pen);
         void paintBackLink(QPainter *painter);
         
         void writeBinary(QDataStream &) const;
@@ -58,7 +57,7 @@ namespace NeuroLab
         : public NeuroLinkItem
     {
     public:
-        NeuroExcitoryLinkItem();
+        NeuroExcitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
         virtual ~NeuroExcitoryLinkItem();        
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -70,7 +69,7 @@ namespace NeuroLab
         : public NeuroLinkItem
     {
     public:
-        NeuroInhibitoryLinkItem();
+        NeuroInhibitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
         virtual ~NeuroInhibitoryLinkItem();
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

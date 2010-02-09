@@ -1,4 +1,6 @@
 #include "neurolinkitem.h"
+#include "labnetwork.h"
+#include "../neurolib/neuronet.h"
 
 #include <QGraphicsScene>
 #include <QPainter>
@@ -9,13 +11,15 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+using namespace NeuroLib;
+
 namespace NeuroLab
 {
     
     //////////////////////////////////////////////////////////////////
 
-    NeuroLinkItem::NeuroLinkItem()
-        : NeuroItem(), _frontLinkTarget(0), _backLinkTarget(0)
+    NeuroLinkItem::NeuroLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+        : NeuroItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0)
     {
     }
     
@@ -101,7 +105,9 @@ namespace NeuroLab
         qreal w = qAbs(_line.x2() - _line.x1());
         qreal h = qAbs(_line.y2() - _line.y1());
         
-        return QRectF(-(w/2.0+ELLIPSE_WIDTH), -(h/2.0+ELLIPSE_WIDTH), w+ELLIPSE_WIDTH*2, h+ELLIPSE_WIDTH*2);
+        QRectF result(-(w/2.0+ELLIPSE_WIDTH), -(h/2.0+ELLIPSE_WIDTH), w+ELLIPSE_WIDTH*2, h+ELLIPSE_WIDTH*2);
+
+        return result.united(NeuroItem::boundingRect());
     }
     
     void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -119,7 +125,10 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(BACKGROUND_COLOR);
         
-        setPenWidth(pen);        
+        drawLabel(painter, pen, brush);
+        
+        setPenWidth(pen);       
+        setPenColor(pen);
         painter->setPen(pen);
         painter->setBrush(brush);
         painter->drawLine(x1, y1, x2, y2);
@@ -127,7 +136,7 @@ namespace NeuroLab
     
     QPainterPath NeuroLinkItem::shape() const
     {
-        QPainterPath path;
+        QPainterPath path = NeuroItem::shape();
         
         path.setFillRule(Qt::WindingFill);
         path.moveTo(_line.p1() - pos());
@@ -157,14 +166,6 @@ namespace NeuroLab
             if (link)
                 link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
         }
-    }
-    
-    void NeuroLinkItem::setPenWidth(QPen & pen)
-    {
-        if (shouldHighlight())
-            pen.setWidth(HOVER_LINE_WIDTH);
-        else   
-            pen.setWidth(NORMAL_LINE_WIDTH);
     }
     
     void NeuroLinkItem::paintBackLink(QPainter *painter)
@@ -252,8 +253,8 @@ namespace NeuroLab
     
     //////////////////////////////////////////////////////////////////
     
-    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem()
-        : NeuroLinkItem()
+    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+        : NeuroLinkItem(network, cellIndex)
     {
     }
     
@@ -296,8 +297,8 @@ namespace NeuroLab
     
     //////////////////////////////////////////////////////////////////
 
-    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem()
-        : NeuroLinkItem()
+    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+        : NeuroLinkItem(network, cellIndex)
     {
     }
     
@@ -316,6 +317,7 @@ namespace NeuroLab
             pen.setColor(NORMAL_LINE_COLOR);
         else
             pen.setColor(UNLINKED_LINE_COLOR);
+        
         setPenWidth(pen);
         
         int x2 = static_cast<int>(_line.x2() - pos().x());
@@ -332,7 +334,6 @@ namespace NeuroLab
         
         painter->setBrush(brush);
         painter->setPen(pen);
-        //painter->drawChord(r, 16 * angle, 16 * 180);
         painter->drawArc(r, 16 * angle, 16 * 180);
         
         paintBackLink(painter);

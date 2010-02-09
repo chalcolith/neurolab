@@ -4,7 +4,7 @@
 namespace NeuroLib
 {
 
-    static const QString NETWORK_COOKIE("NeuroLib 0 NETWORK");
+    static const QString NETWORK_COOKIE("NeuroLib 1 NETWORK");
 
     NeuroNet::NeuroNet()
             : BASE()

@@ -66,6 +66,7 @@ namespace NeuroLib
         
         /// Output value of the cell.
         const NeuroValue & value() const { return _value; }
+        void setValue(const NeuroValue & v) { _value = v; }
         
     private:
         Kind _kind;

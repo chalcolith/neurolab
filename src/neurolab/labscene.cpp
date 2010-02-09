@@ -2,15 +2,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "labnetwork.h"
+#include "../neurolib/neuronet.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QVector2D>
+
+using namespace NeuroLib;
 
 namespace NeuroLab
 {
     
     LabScene::LabScene(LabNetwork *_network)
-        : QGraphicsScene(0), _network(_network), movingNode(0), movingLink(0), linkFront(true), _itemToSelect(0)
+        : QGraphicsScene(0), _network(_network), movingNode(0), movingLink(0), linkFront(true), _selectedItem(0)
     {
     }
     
@@ -20,18 +23,19 @@ namespace NeuroLab
         
     void LabScene::deleteSelectedItem()
     {
-        if (_itemToSelect)
+        if (_selectedItem)
         {
-            this->removeItem(_itemToSelect);
-            delete _itemToSelect;
-            _itemToSelect = 0;
+            this->removeItem(_selectedItem);
+            delete _selectedItem;
+            _selectedItem = 0;
         }
-        
-        for (QListIterator<QGraphicsItem *> i(this->selectedItems()); i.hasNext(); i.next())
+    }
+    
+    void LabScene::labelSelectedItem(const QString & s)
+    {
+        if (_selectedItem)
         {
-            QGraphicsItem *item = i.peekNext();
-            this->removeItem(item);
-            delete item;
+            _selectedItem->setLabel(s);
         }
     }
 
@@ -46,16 +50,21 @@ namespace NeuroLab
         {
             // pick up node if we're on one
             if (mousePressPickupNode(event))
+            {
+                if (movingNode)
+                    setSelectedItem(movingNode);
+                else if (movingLink)
+                    setSelectedItem(movingLink);
                 return;
+            }
+            else
+                setSelectedItem(0);
         }
         else if (event->buttons() & Qt::RightButton)
         {
             QGraphicsItem *item = this->itemAt(event->scenePos());
-            _itemToSelect = item;
-
+            _selectedItem = dynamic_cast<NeuroItem *>(item);
             MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
-
-            _itemToSelect = 0;
             return;
         }
 
@@ -96,25 +105,30 @@ namespace NeuroLab
     
     void LabScene::newItem(ItemType type)
     {
+        NeuroNet *neuronet = _network->neuronet();
+        NeuroCell::NeuroIndex index = -1;
+        
         switch (type)
         {
         case NODE_ITEM:
-            addNode(_lastMousePos);
+            index = neuronet->addNode(NeuroCell(NeuroCell::NODE));
+            addNode(_lastMousePos, new NeuroNodeItem(_network, index));
             break;
         case EXCITORY_LINK_ITEM:
-            addLink(_lastMousePos, new NeuroExcitoryLinkItem());
+            index = neuronet->addNode(NeuroCell(NeuroCell::NODE));
+            addLink(_lastMousePos, new NeuroExcitoryLinkItem(_network, index));
             break;
         case INHIBITORY_LINK_ITEM:
-            addLink(_lastMousePos, new NeuroInhibitoryLinkItem());
+            index = neuronet->addNode(NeuroCell(NeuroCell::NODE));
+            addLink(_lastMousePos, new NeuroInhibitoryLinkItem(_network, index));
             break;
         default:
             break;
         }
     }
 
-    bool LabScene::addNode(const QPointF & pos)
+    bool LabScene::addNode(const QPointF & pos, NeuroNodeItem *item)
     {
-        NeuroNodeItem *item = new NeuroNodeItem();
         
         item->setPos(pos.x(), pos.y());
         

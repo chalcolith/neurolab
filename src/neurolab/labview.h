@@ -11,6 +11,8 @@ namespace NeuroLab
     class LabView
         : public QGraphicsView
     {
+        Q_OBJECT
+        
     public:
         LabView(LabScene *scene, QWidget *parent);
         virtual ~LabView();

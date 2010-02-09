@@ -23,8 +23,8 @@ namespace NeuroLab
         LabTree *_tree;
         LabTreeNode *_parent;
         
-        QSharedPointer<LabScene> _scene;
-        QSharedPointer<LabView> _view;
+        LabScene *_scene;
+        LabView *_view;
                 
         QList<LabTreeNode *> _children;
         
@@ -33,10 +33,13 @@ namespace NeuroLab
         LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);        
         virtual ~LabTreeNode();
         
-        LabScene *scene() { return _scene.data(); }
-        LabView *view() { return _view.data(); }
+        LabScene *scene() { return _scene; }
+        LabView *view() { return _view; }
         QList<LabTreeNode *> & children() { return _children; }
         
+        void update();
+        
+        friend class LabTree;
         friend QDataStream & operator<< (QDataStream &, const LabTreeNode &);
         friend QDataStream & operator>> (QDataStream &, LabTreeNode &);
         friend QDataStream & operator<< (QDataStream &, const LabTree &);
@@ -69,6 +72,11 @@ namespace NeuroLab
         
         LabScene *scene() { return _current ? _current->scene() : 0; }
         LabView *view() { return _current ? _current->view() : 0; }
+        
+        void update(LabTreeNode *n = 0);
+        
+        static const int SCENE_WIDTH;
+        static const int SCENE_HEIGHT;
         
         friend QDataStream & operator<< (QDataStream &, const LabTree &);
         friend QDataStream & operator>> (QDataStream &, LabTree &);

@@ -13,7 +13,8 @@ SOURCES += main.cpp \
     labtree.cpp \
     neuronodeitem.cpp \
     neurolinkitem.cpp \
-    neuroitem.cpp
+    neuroitem.cpp \
+    labeldialog.cpp
 HEADERS += mainwindow.h \
     labnetwork.h \
     labscene.h \
@@ -21,8 +22,10 @@ HEADERS += mainwindow.h \
     labtree.h \
     neuronodeitem.h \
     neurolinkitem.h \
-    neuroitem.h
-FORMS += mainwindow.ui
+    neuroitem.h \
+    labeldialog.h
+FORMS += mainwindow.ui \
+    labeldialog.ui
 debug:LIBS = -L../neurolib/debug \
     -lneurolib \
     -L../automata/debug \

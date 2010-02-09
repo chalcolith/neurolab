@@ -15,21 +15,27 @@ namespace NeuroLab
     class LabScene 
         : public QGraphicsScene
     {
+        Q_OBJECT
+        
         LabNetwork *_network;
 
         NeuroNodeItem *movingNode;
         NeuroLinkItem *movingLink;
         bool linkFront;
         
-        QGraphicsItem *_itemToSelect;
+        NeuroItem *_selectedItem;
         QPointF _lastMousePos;
                 
     public:
         LabScene(LabNetwork *_network);
         virtual ~LabScene();
         
-        const QGraphicsItem *itemToSelect() const { return _itemToSelect; }
+        LabNetwork *network() { return _network; }
+        NeuroItem *selectedItem() const { return _selectedItem; }
+        void setSelectedItem(NeuroItem *item) { if (_selectedItem) _selectedItem->update(); _selectedItem = item; }
+        
         void deleteSelectedItem();
+        void labelSelectedItem(const QString & s);
         
         enum ItemType
         {
@@ -52,7 +58,7 @@ namespace NeuroLab
     private:
         bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
         
-        bool addNode(const QPointF & scenePos);
+        bool addNode(const QPointF & scenePos, NeuroNodeItem *nodeItem);
         bool addLink(const QPointF & scenePos, NeuroLinkItem *linkItem);
         
         bool mouseMoveHandleNode(const QPointF & scenePos, NeuroNodeItem *node);

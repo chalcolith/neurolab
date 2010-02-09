@@ -9,6 +9,8 @@
 namespace NeuroLab
 {
     
+    class NeuroItem;
+    
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
     class LabNetwork
         : public QObject
@@ -16,7 +18,7 @@ namespace NeuroLab
         Q_OBJECT
         
         LabTree *_tree;
-        NeuroLib::NeuroNet *_network;
+        NeuroLib::NeuroNet *_neuronet;
         
         bool running;
         
@@ -31,13 +33,18 @@ namespace NeuroLab
         LabView *view() { return _tree ? _tree->view() : 0; }
         const QString & fname() const { return _fname; }
         
+        NeuroLib::NeuroNet *neuronet() { return _neuronet; }
+        
+        NeuroItem *getSelectedItem();
         void deleteSelectedItem();
+        void labelSelectedItem(const QString & s);
         
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
         
     public slots:
         void start();
         void stop();
+        void step();
         
         bool save(bool saveAs = false);
         bool close();

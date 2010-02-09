@@ -1,13 +1,16 @@
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
+#include "labnetwork.h"
 
 #include <QVector2D>
+
+using namespace NeuroLib;
 
 namespace NeuroLab
 {
 
-    NeuroNodeItem::NeuroNodeItem()
-        : NeuroItem()
+    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+        : NeuroItem(network, cellIndex)
     {
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
@@ -35,7 +38,7 @@ namespace NeuroLab
     
     QRectF NeuroNodeItem::boundingRect() const
     {
-        return _rect;
+        return _rect.united(NeuroItem::boundingRect());
     }
     
     void NeuroNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -48,11 +51,10 @@ namespace NeuroLab
         QBrush brush(Qt::SolidPattern);
         brush.setColor(BACKGROUND_COLOR);
         
-        if (shouldHighlight())
-            pen.setWidth(HOVER_LINE_WIDTH);
-        else
-            pen.setWidth(NORMAL_LINE_WIDTH);
+        drawLabel(painter, pen, brush);
         
+        setPenWidth(pen);
+        setPenColor(pen);
         painter->setBrush(brush);
         painter->setPen(pen);
         painter->drawEllipse(rect());
@@ -60,7 +62,7 @@ namespace NeuroLab
     
     QPainterPath NeuroNodeItem::shape() const
     {
-        QPainterPath path;
+        QPainterPath path = NeuroItem::shape();
         path.addEllipse(QPointF(), NODE_WIDTH/2.0 + 2.0, NODE_WIDTH/2.0 + 2.0);
         return path;
     }

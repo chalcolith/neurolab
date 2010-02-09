@@ -26,12 +26,22 @@ namespace NeuroLib
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
     {
         ds.setVersion(QDataStream::Qt_4_5);
+        ds << static_cast<qint32>(nc._kind);
+        ds << static_cast<double>(nc._value);
+        ds << static_cast<double>(nc._input_threshold);
         return ds;
     }
     
     QDataStream & operator>> (QDataStream & ds, NeuroCell & nc)
     {
         ds.setVersion(QDataStream::Qt_4_5);
+        qint32 k;
+        ds >> k; nc._kind = static_cast<NeuroCell::Kind>(k);
+        
+        double n;
+        ds >> n; nc._value = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._input_threshold = static_cast<NeuroCell::NeuroValue>(n);
+        
         return ds;
     }
     
