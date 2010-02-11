@@ -104,6 +104,11 @@ namespace NeuroLab
         {
             addItem(item);
             item->buildShape();
+            
+            editInfo.linkFront = false;
+            item->handleMove(editInfo);
+            editInfo.movingItem = item;
+            editInfo.linkFront = true;
         }
     }
 

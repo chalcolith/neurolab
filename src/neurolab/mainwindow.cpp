@@ -10,13 +10,12 @@
 
 #include <QSettings>
 
-extern const QString NEUROLAB_VERSION;
-
 namespace NeuroLab
 {
-    const QString NEUROLAB_VERSION = QString(
+        
+    extern const QString 
 #include "../neurolab_version.txt"
-    );
+    ;
         
     MainWindow *MainWindow::_instance = 0;
     
@@ -66,7 +65,7 @@ namespace NeuroLab
 
     static int NEUROLAB_APP_VERSION()
     {
-        QStringList nums = NEUROLAB_VERSION.split(".");
+        QStringList nums = VERSION.split(".");
         int result = 0;
         for (int i = 0; i < nums.length(); ++i)
         {
@@ -103,10 +102,10 @@ namespace NeuroLab
     
     bool MainWindow::newNetwork()
     {
-        if (!closeNetwork())
+        if (currentNetwork && !closeNetwork())
             return false;
                 
-        setNetwork(new LabNetwork());        
+        setNetwork(new LabNetwork());
         return true;
     }
     
@@ -195,8 +194,22 @@ namespace NeuroLab
 
     void MainWindow::enableItemMenu()
     {
-        bool enableDelete = currentNetwork && currentNetwork->scene() && currentNetwork->scene()->selectedItem();
-        _ui->action_Delete->setEnabled(enableDelete);
+        NeuroItem *item = (currentNetwork && currentNetwork->scene()) ? currentNetwork->scene()->selectedItem() : 0;
+        
+        bool onItem = item != 0;
+        bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
+        bool onLink = dynamic_cast<NeuroLinkItem *>(item) != 0;
+
+        _ui->actionNew_Node->setEnabled(!onNode);
+        _ui->actionNew_Excitory_Link->setEnabled(!onLink);
+        _ui->actionNew_Inhibitory_Link->setEnabled(!onLink);
+        
+        _ui->action_Delete->setEnabled(onItem);
+        _ui->actionLabel->setEnabled(onItem);
+        
+        _ui->actionActivate->setEnabled(onNode);
+        _ui->actionDeactivate->setEnabled(onNode);
+        _ui->actionToggleFrozen->setEnabled(onNode);
     }
     
 } // namespace NeuroLab

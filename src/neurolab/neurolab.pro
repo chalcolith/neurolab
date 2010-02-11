@@ -2,8 +2,10 @@
 # Project created by QtCreator 2009-10-10T12:17:33
 # -------------------------------------------------
 QT += svg
-TARGET = neurolab
 TEMPLATE = app
+TARGET = neurolab
+include(../neurolab_version.txt)
+
 SOURCES += main.cpp \
     mainwindow.cpp \
     labnetwork.cpp \

@@ -3,6 +3,7 @@
 
 #include <QtGlobal>
 #include <QtConcurrentMap>
+#include <QVarLengthArray>
 #include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
@@ -23,8 +24,7 @@ namespace Automata
     {
         const TFUpdate fUpdate;
         QVector<const TState *> temp_neighbors;
-        QList<QReadWriteLock *> locks;
-        TIndex num_assigned_lock;
+        QVector<QReadWriteLock *> locks;
         
         struct MapFunctor
         {
@@ -43,19 +43,15 @@ namespace Automata
 
     public:
         Automaton(const int initialCapacity = 0, bool directed = true)
-            : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate()),
-              num_assigned_lock(0)
+            : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate())
         {
         }
 
         virtual ~Automaton()
         {
-            for (QListIterator<QReadWriteLock *> i(locks); i.hasNext(); i.next())
-            {
-                delete i.peekNext();
-            }
-            
-            locks.clear();
+            const int n = locks.size();
+            for (int i = 0; i < n; ++i)
+                delete locks[i];
         }
         
         virtual void step()
@@ -68,7 +64,6 @@ namespace Automata
         TIndex addNode(const TState & node)
         {
             TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));            
-            this->_nodes[result].setLock(getNextLock());            
             return result;
         }
 
@@ -106,22 +101,29 @@ namespace Automata
         
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
         {
-            QWriteLocker write(state.lock);
+            TIndex index = &state - this->_nodes.data();
             
+            // write lock
+            TIndex lock_index = index/NUM_PER_LOCK;            
+            while (locks.size() <= lock_index)
+                locks.append(new QReadWriteLock());
+            QWriteLocker write(locks[lock_index]);
+            
+            // update
             if (state.r == 0)
             {
-                if (isReady(state.index, 0))
+                if (isReady(index, 0))
                 {
-                    const QVector<TIndex> & neighbors = this->_edges[state.index];
+                    // temporary neighbor array
+                    const QVector<TIndex> & neighbors = this->_edges[index];
                     if (neighbors.size() > temp_neighbors.size())
                         temp_neighbors.resize(neighbors.size());
                     
+                    // get appropriate states of neighbors
                     const TState ** const temp_ptr = temp_neighbors.data();
                     for (int i = 0; i < neighbors.size(); ++i)
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
-                        
-                        //QReadLocker read(state.lock != neighbor.lock ? neighbor.lock : 0);
                         
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;
@@ -131,11 +133,11 @@ namespace Automata
                     
                     // update
                     state.q1 = state.q0;
-                    fUpdate(state.q1, state.q0, neighbors.size(), temp_ptr);
+                    fUpdate(this, index, state.q1, state.q0, neighbors.size(), temp_ptr);
                     state.r = 1;                    
                 }
             }
-            else if (isReady(state.index, state.r))
+            else if (isReady(index, state.r))
             {
                 state.r = (state.r+1) % 3;
             }
@@ -162,18 +164,7 @@ namespace Automata
                 throw IndexOverflow();
             }
         }
-        
-    private:
-        QReadWriteLock *getNextLock()
-        {
-            if ((num_assigned_lock++ % NUM_PER_LOCK) == 0)
-            {
-                locks.append(new QReadWriteLock());
-            }
-            
-            return locks.last();
-        }
-        
+                
     }; // class Automaton
     
 } // namespace Automata

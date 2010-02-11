@@ -113,13 +113,22 @@ namespace NeuroLab
         myBack = myBack - myPos;
         
         // calculate control points
-        QVector2D c1 = myBack + (myFront - myBack) * 0.33;
-        QVector2D c2 = myBack + (myFront - myBack) * 0.66;
+        c1 = myBack + (myFront - myBack) * 0.33;
+        c2 = myBack + (myFront - myBack) * 0.66;
         
         if (_backLinkTarget)
-            c1 = QVector2D(myBack.x(), myBack.y() - NODE_WIDTH*3/2);
+        {
+            QVector2D center(_backLinkTarget->pos());
+            QVector2D toBack = QVector2D(_line.p1()) - center;
+            c1 = (center + toBack * 3) - myPos;
+        }
+        
         if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
-            c2 = QVector2D(myFront.x(), myFront.y() + NODE_WIDTH*3/2);
+        {
+            QVector2D center(_frontLinkTarget->pos());
+            QVector2D toFront = QVector2D(_line.p2()) - center;
+            c2 = (center + toFront * 3) - myPos;
+        }
         
         _path->moveTo(myBack.toPointF());
         _path->cubicTo(c1.toPointF(), c2.toPointF(), myFront.toPointF());
@@ -317,7 +326,33 @@ namespace NeuroLab
         item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
         return item;
     }
+    
+    void NeuroExcitoryLinkItem::buildShape()
+    {
+        NeuroLinkItem::buildShape();
         
+        QVector2D center(pos());        
+        QVector2D front(_line.p2());
+        QVector2D fromFront((center + c2) - front);
+        double angle = ::atan2(fromFront.y(), fromFront.x());
+        
+        double langle = angle + (20.0 * M_PI / 180.0);
+        QVector2D left(::cos(langle), ::sin(langle));
+        
+        QVector2D end = front + left * ELLIPSE_WIDTH;
+        
+        _path->moveTo((front - center).toPointF());
+        _path->lineTo((end - center).toPointF());
+        
+        double rangle = angle - (20.0 * M_PI / 180.0);
+        QVector2D right(::cos(rangle), ::sin(rangle));
+        
+        end = front + right * ELLIPSE_WIDTH;
+        
+        _path->moveTo((front - center).toPointF());
+        _path->lineTo((end - center).toPointF());
+    }
+    
     
     //////////////////////////////////////////////////////////////////
     
@@ -334,10 +369,20 @@ namespace NeuroLab
     
     NeuroItem *NeuroInhibitoryLinkItem::create_new(LabScene *scene, const QPointF & pos)
     {
-        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK));
+        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, 1, -1000000000));
         NeuroLinkItem *item = new NeuroInhibitoryLinkItem(scene->network(), index);
         item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
         return item;
+    }
+    
+    void NeuroInhibitoryLinkItem::buildShape()
+    {
+        NeuroLinkItem::buildShape();
+        
+        QVector2D center(pos());
+        QVector2D front(_line.p2());
+        
+        _path->addEllipse((front-center).toPointF(), ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
     }
     
 } // namespace NeuroLab

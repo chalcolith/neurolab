@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Balafon");
     QCoreApplication::setOrganizationDomain("balafon.net");
     QCoreApplication::setApplicationName("NeuroLab");
-    QCoreApplication::setApplicationVersion(NeuroLab::NEUROLAB_VERSION);
+    QCoreApplication::setApplicationVersion(NeuroLab::VERSION);
     
     QApplication application(argc, argv);
     NeuroLab::MainWindow window;

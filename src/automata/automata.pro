@@ -2,8 +2,10 @@
 # Project created by QtCreator 2009-07-30T14:22:13
 # -------------------------------------------------
 QT -= gui
-TARGET = automata
 TEMPLATE = lib
+TARGET = automata
+include(../neurolab_version.txt)
+
 DEFINES += AUTOMATA_LIBRARY
 SOURCES += exception.cpp
 HEADERS += automaton.h \

@@ -3,6 +3,7 @@
 
 #include "neuroitem.h"
 
+#include <QVector2D>
 #include <QPainterPath>
 #include <QList>
 
@@ -13,7 +14,9 @@ namespace NeuroLab
         : public NeuroItem
     {
     protected:
-        QLineF _line;        
+        QLineF _line;
+        QVector2D c1, c2;
+        
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
         
     public:
@@ -66,6 +69,8 @@ namespace NeuroLab
         virtual ~NeuroExcitoryLinkItem();        
 
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
+        
+        virtual void buildShape();
     };
     
     
@@ -77,6 +82,8 @@ namespace NeuroLab
         virtual ~NeuroInhibitoryLinkItem();
 
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
+        
+        virtual void buildShape();
     };
     
 } // namespace NeuroLab

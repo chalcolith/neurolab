@@ -30,6 +30,9 @@ namespace NeuroLab
         virtual void handleMove(EditInfo & info);
         virtual void adjustLinks();
         
+    private:
+        void adjustLinksAux(QList<NeuroItem *> &);
+        
     protected:
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);

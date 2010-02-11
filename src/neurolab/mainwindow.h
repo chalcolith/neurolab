@@ -14,7 +14,7 @@ namespace Ui
 namespace NeuroLab
 {    
     
-    extern const QString NEUROLAB_VERSION;
+    extern const QString VERSION;
     
     class MainWindow
         : public QMainWindow

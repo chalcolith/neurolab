@@ -1,6 +1,8 @@
 #ifndef LIFECELL_H
 #define LIFECELL_H
 
+#include "../automata/automaton.h"
+
 #include <QtGlobal>
 #include <QDataStream>
 
@@ -27,7 +29,7 @@ public:
         
     struct Update
     {
-        void operator() (const LifeCell & prev, LifeCell & next, const int & numNeighbors, const LifeCell * const * const neighbors) const
+        void operator() (Automata::Automaton<LifeCell, LifeCell::Update, LifeCell::LifeIndex> *, const LifeIndex &, const LifeCell & prev, LifeCell & next, const int & numNeighbors, const LifeCell * const * const neighbors) const
         {
             int num_alive_neighbors = 0;
             for (int i = 0; i < numNeighbors; ++i)

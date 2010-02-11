@@ -216,7 +216,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->value())), static_cast<qreal>(1));
+            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->outputValue())), static_cast<qreal>(1));
 
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
@@ -250,6 +250,7 @@ namespace NeuroLab
         textPen.setColor(NORMAL_LINE_COLOR);
         textPen.setWidth(NORMAL_LINE_WIDTH);
         painter->setPen(textPen);
+                
         painter->drawPath(*_textPath);
     }
 
@@ -386,7 +387,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            cell->setValue(1);
+            cell->setOutputValue(1);
             update(boundingRect());
         }
     }
@@ -396,7 +397,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            cell->setValue(0);
+            cell->setOutputValue(0);
             update(boundingRect());
         }
     }

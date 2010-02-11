@@ -4,6 +4,7 @@
 #include <QSet>
 #include <QDataStream>
 
+#include "../automata/automaton.h"
 #include "neurolib_global.h"
 
 namespace NeuroLib
@@ -27,24 +28,31 @@ namespace NeuroLib
         typedef double NeuroValue;
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
-        NeuroCell(const Kind & k = NODE, const NeuroValue & input_threshold = 1);
+        NeuroCell(const Kind & k = NODE, const NeuroValue & input_threshold = 1, const NeuroValue & output_weight = 1, const NeuroValue & output_value = 0);
         
         const Kind & kind() const { return _kind; }
         
         struct Update
         {
-            void operator() (const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const;
+            void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const;
         };
         
         void addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
         void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
         
-        /// Output value of the cell.
-        const NeuroValue & value() const { return _value; }
-        void setValue(const NeuroValue & v) { _value = v; }
-        
-        const NeuroValue & input_threshold() const { return _input_threshold; }
+        /// Input threshold (roughly the number of fully active inputs it takes to fully activate the node)
+        const NeuroValue & inputThreshold() const { return _input_threshold; }
         void setInputThreshold(const NeuroValue & input_threshold) { _input_threshold = input_threshold; }
+
+        /// Output weight (proportion of full output the cell will output)
+        const NeuroValue & outputWeight() const { return _output_weight; }
+        void setOutputWeight(const NeuroValue & output_weight) { _output_weight = output_weight; }
+        
+        /// Output value of the cell.
+        const NeuroValue & outputValue() const { return _output_value; }
+        void setOutputValue(const NeuroValue & v) { _output_value = v; }
+        
+        ///
         
         const bool & frozen() const { return _frozen; }
         void setFrozen(const bool & frozen) { _frozen = frozen; }
@@ -52,8 +60,9 @@ namespace NeuroLib
     private:
         Kind _kind;
                 
-        NeuroValue _value;
         NeuroValue _input_threshold;
+        NeuroValue _output_weight;
+        NeuroValue _output_value;
         
         bool _frozen;
         

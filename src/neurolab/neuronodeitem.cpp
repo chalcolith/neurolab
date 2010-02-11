@@ -38,7 +38,7 @@ namespace NeuroLab
         NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
         if (cell)
         {
-            int threshold = static_cast<int>(cell->input_threshold() + static_cast<NeuroCell::NeuroValue>(0.5));
+            int threshold = static_cast<int>(cell->inputThreshold() + static_cast<NeuroCell::NeuroValue>(0.5));
             QString str("%1");
             _textPath->addText(-3, 2, QApplication::font(), str.arg(threshold));
         }
@@ -95,23 +95,32 @@ namespace NeuroLab
 
     void NeuroNodeItem::adjustLinks()
     {
+        adjustLinksAux(_incoming);
+        adjustLinksAux(_outgoing);
+    }
+    
+    void NeuroNodeItem::adjustLinksAux(QList<NeuroItem *> & list)
+    {
         QVector2D center(pos());
-        QVector2D bottom = QVector2D(center.x(), center.y() + NeuroItem::NODE_WIDTH/2);
-        QVector2D top = QVector2D(center.x(), center.y() - NeuroItem::NODE_WIDTH/2);
-
-        for (QListIterator<NeuroItem *> ln(_incoming); ln.hasNext(); ln.next())
+        
+        for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); ln.next())
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.peekNext());
             if (link)
-                link->setLine(link->line().p1(), bottom.toPointF());
-        }
-
-        for (QListIterator<NeuroItem *> ln(_outgoing); ln.hasNext(); ln.next())
-        {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.peekNext());
-            if (link)
-                link->setLine(top.toPointF(), link->line().p2());
-        }
+            {
+                QPointF front = link->line().p2();
+                QPointF back = link->line().p1();
+                QPointF *point = (link->frontLinkTarget() == this) ? &front : &back;
+                
+                QVector2D toPos = QVector2D(link->pos()) - center;
+                toPos.normalize();
+                toPos *= NeuroItem::NODE_WIDTH/2;
+                
+                *point = (center + toPos).toPointF();
+                
+                link->setLine(back, front);
+            }
+        }        
     }
 
     void NeuroNodeItem::writeBinary(QDataStream & data) const

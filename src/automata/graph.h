@@ -39,8 +39,6 @@ namespace Automata
             TIndex index = _nodes.size();
 
             _nodes.append(node);
-            _nodes[index].setIndex(index);
-
             _edges.append(QVector<TIndex>());
             
             return index;

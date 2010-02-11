@@ -3,9 +3,14 @@
 # -------------------------------------------------
 QT -= gui
 QT += testlib
-TARGET = neurolib
 TEMPLATE = lib
+TARGET = neurolib
+include(../neurolab_version.txt)
+
 DEFINES += NEUROLIB_LIBRARY
+
+INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
+
 SOURCES += neuronet.cpp \
     neurocell.cpp
 HEADERS += neuronet.h \

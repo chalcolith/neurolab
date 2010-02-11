@@ -6,11 +6,9 @@
 namespace NeuroLib
 {
     
-    NeuroCell::NeuroCell(const Kind & k, const NeuroValue & input_threshold)
-        : _kind(k), _value(0), _input_threshold(input_threshold), _frozen(false)
+    NeuroCell::NeuroCell(const Kind & k, const NeuroValue & input_threshold, const NeuroValue & output_weight, const NeuroValue & output_value)
+        : _kind(k), _input_threshold(input_threshold), _output_weight(output_weight), _output_value(output_value), _frozen(false)
     {
-        if (input_threshold == 0 && _kind != INHIBITORY_LINK)
-            throw Automata::Exception(QObject::tr("Input threshold must be greater than zero."));
     }
         
     void NeuroCell::addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index)
@@ -23,43 +21,32 @@ namespace NeuroLib
         network->removeEdge(my_index, input_index);
     }
 
-    void NeuroCell::Update::operator() (const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
+    void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *, const NeuroIndex &, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
     {
         next._frozen = prev._frozen;
         
         if (prev._frozen)
         {
-            next._value = prev._value;
+            next._output_value = prev._output_value;
             return;
         }
         
         NeuroValue input_sum = 0;
         for (int i = 0; i < numNeighbors; ++i)
-            input_sum += neighbors[i]->_value;        
+            input_sum += neighbors[i]->_output_value;        
         input_sum = qBound(static_cast<NeuroValue>(0), input_sum, static_cast<NeuroValue>(1));
         
-        NeuroValue next_value, prev_value;
+        NeuroValue sign = prev._output_weight < 0 ? -1 : 1;
+
+        NeuroValue prev_value = qBound(static_cast<NeuroValue>(0), qAbs(prev._output_value) - 1, static_cast<NeuroValue>(1));        
+        NeuroValue next_value = 
+            (input_sum > 0) 
+                ? static_cast<NeuroValue>(1) / (static_cast<NeuroValue>(1) + ::exp(static_cast<NeuroValue>(4) - static_cast<NeuroValue>(8) * input_sum / prev._input_threshold))
+                : 0;
+
+        next_value *= prev._output_weight * sign;
         
-        switch (prev._kind)
-        {
-        case NODE:
-        case EXCITORY_LINK:
-            prev_value = qBound(static_cast<NeuroValue>(0), prev._value - 1, static_cast<NeuroValue>(1));            
-            next_value = static_cast<NeuroValue>(1) 
-                         / (static_cast<NeuroValue>(1) 
-                            + ::exp(static_cast<NeuroValue>(4) - static_cast<NeuroValue>(8) * input_sum / prev._input_threshold));
-            
-            if (prev._kind == NODE)
-                next._value = qMax(prev_value, next_value);
-            else
-                next._value = next_value;
-            break;
-        case INHIBITORY_LINK:
-            next._value = prev._input_threshold ? -input_sum : static_cast<NeuroValue>(-1000);                    
-            break;
-        default:
-            return;
-        }
+        next._output_value = qMax(prev_value, next_value) * sign;
     }
     
     
@@ -67,7 +54,7 @@ namespace NeuroLib
     {
         ds.setVersion(QDataStream::Qt_4_5);
         ds << static_cast<qint32>(nc._kind);
-        ds << static_cast<double>(nc._value);
+        ds << static_cast<double>(nc._output_value);
         ds << static_cast<double>(nc._input_threshold);
         ds << static_cast<bool>(nc._frozen);
         return ds;
@@ -81,7 +68,7 @@ namespace NeuroLib
         
         ds.setVersion(QDataStream::Qt_4_5);
         ds >> k; nc._kind = static_cast<NeuroCell::Kind>(k);
-        ds >> n; nc._value = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
         ds >> n; nc._input_threshold = static_cast<NeuroCell::NeuroValue>(n);
         ds >> f; nc._frozen = static_cast<bool>(f);
         
