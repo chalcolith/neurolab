@@ -101,7 +101,10 @@ namespace NeuroLab
 
         NeuroItem *item = NeuroItem::create(typeName, this, editInfo.scenePos);
         if (item)
+        {
             addItem(item);
+            item->buildShape();
+        }
     }
 
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

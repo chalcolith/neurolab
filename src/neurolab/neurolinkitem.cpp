@@ -83,6 +83,8 @@ namespace NeuroLab
             addOutgoing(linkTarget);
         
         _frontLinkTarget = linkTarget;
+        
+        buildShape();
     }
     
     void NeuroLinkItem::setBackLinkTarget(NeuroItem *linkTarget)
@@ -94,6 +96,8 @@ namespace NeuroLab
             addIncoming(linkTarget);
         
         _backLinkTarget = linkTarget;
+        
+        buildShape();
     }
     
     void NeuroLinkItem::buildShape()
@@ -105,20 +109,24 @@ namespace NeuroLab
         QVector2D myBack(_line.p1());
         
         // convert to my frame
-        myFront = myPos - myFront;
-        myBack = myPos - myBack;
+        myFront = myFront - myPos;
+        myBack = myBack - myPos;
         
         // calculate control points
         QVector2D c1 = myBack + (myFront - myBack) * 0.33;
         QVector2D c2 = myBack + (myFront - myBack) * 0.66;
         
         if (_backLinkTarget)
-            c1 = QVector2D(myBack.x(), myBack.y() - NODE_WIDTH);
-        if (_frontLinkTarget)
-            c2 = QVector2D(myFront.x(), myFront.y() + NODE_WIDTH);
+            c1 = QVector2D(myBack.x(), myBack.y() - NODE_WIDTH*3/2);
+        if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
+            c2 = QVector2D(myFront.x(), myFront.y() + NODE_WIDTH*3/2);
         
-        _path->moveTo(myFront.toPointF());
-        _path->cubicTo(c1.toPointF(), c2.toPointF(), myBack.toPointF());
+        _path->moveTo(myBack.toPointF());
+        _path->cubicTo(c1.toPointF(), c2.toPointF(), myFront.toPointF());
+        
+//        _path->addEllipse(c1.toPointF(), 4, 4);
+//        _path->addEllipse(c2.toPointF(), 8, 8);
+//        _path->addEllipse(myFront.toPointF(), 12, 12);
     }
         
     void NeuroLinkItem::updatePos()

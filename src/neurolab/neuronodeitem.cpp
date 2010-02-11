@@ -34,13 +34,13 @@ namespace NeuroLab
     {
         NeuroItem::buildShape();
         _path->addEllipse(rect());
-        
+                
         NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
         if (cell)
         {
             int threshold = static_cast<int>(cell->input_threshold() + static_cast<NeuroCell::NeuroValue>(0.5));
             QString str("%1");
-            _path->addText(-3, 2, QApplication::font(), str.arg(threshold));
+            _textPath->addText(-3, 2, QApplication::font(), str.arg(threshold));
         }
     }
 

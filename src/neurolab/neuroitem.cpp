@@ -148,7 +148,7 @@ namespace NeuroLab
     }
     
     void NeuroItem::buildShape()
-    {
+    {        
         delete _path;
         _path = new QPainterPath();
         _path->setFillRule(Qt::WindingFill);
@@ -159,23 +159,17 @@ namespace NeuroLab
 
         if (!_label.isNull() && !_label.isEmpty())
             _textPath->addText(NeuroItem::NODE_WIDTH + 4, -1, QApplication::font(), _label);
-
+        
         const_cast<NeuroItem *>(this)->prepareGeometryChange();
     }
 
     QRectF NeuroItem::boundingRect() const
     {
-        if (!_path || !_textPath)
-            const_cast<NeuroItem *>(this)->buildShape();
-        
         return _path->united(*_textPath).controlPointRect();
     }
 
     QPainterPath NeuroItem::shape() const
     {
-        if (!_path || !_textPath)
-            const_cast<NeuroItem *>(this)->buildShape();
-
         return _path->united(*_textPath);
     }
 
@@ -239,9 +233,6 @@ namespace NeuroLab
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
-        if (!_path || !_textPath)
-            buildShape();
-        
         painter->setRenderHint(QPainter::Antialiasing);
 
         QPen pen(Qt::SolidLine);
@@ -256,7 +247,8 @@ namespace NeuroLab
         painter->drawPath(*_path);
         
         QPen textPen(Qt::SolidLine);
-        pen.setColor(NORMAL_LINE_COLOR);
+        textPen.setColor(NORMAL_LINE_COLOR);
+        textPen.setWidth(NORMAL_LINE_WIDTH);
         painter->setPen(textPen);
         painter->drawPath(*_textPath);
     }
