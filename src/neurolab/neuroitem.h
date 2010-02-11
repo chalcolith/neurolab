@@ -4,115 +4,153 @@
 #include "../neurolib/neurocell.h"
 
 #include <QGraphicsItem>
+#include <QPainterPath>
 #include <QColor>
 #include <QList>
+#include <QMap>
+#include <typeinfo>
 
 namespace NeuroLab
 {
-    
+
     class LabNetwork;
-    class NeuroLinkItem;
-    
-    class NeuroItem 
+    class LabScene;
+
+    class NeuroItem
         : public QGraphicsItem
-    {        
+    {
         static int NEXT_ID;
-        
+
     protected:
         LabNetwork *_network;
-        
+
         typedef qint64 IdType;
-        
+
         IdType _id;
-        bool _in_hover;
         QList<NeuroItem *> _incoming;
         QList<NeuroItem *> _outgoing;
-        
+
+        QPainterPath *_path, *_textPath;
         QString _label;
-        QRectF  _labelRect;
-        
+
         NeuroLib::NeuroCell::NeuroIndex _cellIndex;
-        
+
     public:
-        enum NODE_TYPE
-        {
-            NEURO_NULL = 0,
-            NEURO_NODE,
-            NEURO_EXCITORY_LINK,
-            NEURO_INHIBITORY_LINK
-        };
-        
         static const QColor NORMAL_LINE_COLOR;
         static const QColor UNLINKED_LINE_COLOR;
         static const QColor BACKGROUND_COLOR;
         static const QColor ACTIVE_COLOR;
-        
+
         static const int NORMAL_LINE_WIDTH;
         static const int HOVER_LINE_WIDTH;
-        
+
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
-        
-        NeuroItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex = -1);
+
+        NeuroItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex = -1);
         virtual ~NeuroItem();
-        
+
         const QString & label() const { return _label; }
-        void setLabel(const QString & s) { _label = s; _labelRect.setWidth(200); update(boundingRect()); }
-        
-        int id() { return _id; }        
-        bool inHover() const { return _in_hover; }
-        void setInHover(bool ih) { _in_hover = ih; update(boundingRect()); }
-        
+        void setLabel(const QString & s) { _label = s; buildShape(); update(); }
+
+        int id() { return _id; }
+
         const QList<NeuroItem *> incoming() const { return _incoming; }
         const QList<NeuroItem *> outgoing() const { return _outgoing; }
-        
+
+        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
+
         void bringToFront();
-        
+
         virtual void addIncoming(NeuroItem *linkItem);
         virtual void removeIncoming(NeuroItem *linkItem);
-        
+
         virtual void addOutgoing(NeuroItem *linkItem);
         virtual void removeOutgoing(NeuroItem *linkItem);
-        
+
+        struct EditInfo
+        {
+            bool linkFront;
+            QPointF scenePos;
+            NeuroItem *movingItem;
+
+            EditInfo() : linkFront(true), scenePos(0,0), movingItem(0) {}
+        };
+
+        virtual bool canLinkTo(EditInfo & info, NeuroItem *item) = 0;
+        virtual bool handlePickup(EditInfo & info) = 0;
+        virtual void handleMove(EditInfo & info) = 0;
         virtual void adjustLinks() = 0;
-        
+
         virtual void idsToPointers(QGraphicsScene *);
-        
+
         virtual QRectF boundingRect() const;
         virtual QPainterPath shape() const;
+        virtual void buildShape();
+
+        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
         virtual void reset();
         virtual void activate();
         virtual void deactivate();
         virtual void toggleFrozen();
-                
+
     protected:
         NeuroLib::NeuroCell *getCell();
-        
+
         virtual void setPenWidth(QPen & pen);
         virtual void setPenColor(QPen & pen);
-        virtual void drawLabel(QPainter *painter, QPen & pen, QBrush & brush);
-        
+
         virtual bool shouldHighlight() const;
-        
+
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-        
+
         virtual void writeBinary(QDataStream &) const = 0;
         virtual void readBinary(QDataStream &) = 0;
-        
+
         virtual void writePointerIds(QDataStream &) const;
         virtual void readPointerIds(QDataStream &);
-        
+
         virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
-        
+
+        //
+        typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
+        static QMap<QString, CreateFT> itemCreators;
+        friend class NeuroItemCreator;
+
+        //
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
         friend QDataStream & operator>> (QDataStream &, NeuroItem &);
     };
-    
+
+    //
+
+    class NeuroItemCreator
+    {
+        QString _name;
+
+    public:
+        NeuroItemCreator(const char *name, NeuroItem::CreateFT create_func)
+            : _name(name)
+        {
+            if (create_func)
+                NeuroItem::itemCreators[_name] = create_func;
+        }
+
+        virtual ~NeuroItemCreator()
+        {
+            NeuroItem::itemCreators.remove(_name);
+        }
+    };
+
+#define NEUROITEM_DEFINE_CREATOR(TypeName) static NeuroItemCreator TypeName ## _static_creator(typeid(TypeName).name(), &TypeName::create_new)
+
+    //
+
     extern QDataStream & operator<< (QDataStream &, const NeuroItem &);
     extern QDataStream & operator>> (QDataStream &, NeuroItem &);
-    
+
 } // namespace NeuroLab
 
 #endif // NEUROITEM_H

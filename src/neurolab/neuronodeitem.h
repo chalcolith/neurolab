@@ -15,22 +15,21 @@ namespace NeuroLab
         QRectF _rect;
         
     public:
-        NeuroNodeItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
+        NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroNodeItem();
+        
+        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
         
         const QRectF & rect() const { return _rect; }
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
         
-        virtual QRectF boundingRect() const;
+        virtual void buildShape();
         
-        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-        virtual QPainterPath shape() const;
-        
+        virtual bool canLinkTo(EditInfo & info, NeuroItem *item);
+        virtual bool handlePickup(EditInfo & info);
+        virtual void handleMove(EditInfo & info);
         virtual void adjustLinks();
         
-    private:
-        void adjustLinksAux(QList<NeuroItem *> & list);
-
     protected:
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);

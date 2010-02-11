@@ -22,12 +22,14 @@ namespace NeuroLab
         
         bool running;
         
-        bool dirty, first_change;
+        bool _dirty, first_change;
         QString _fname;
         
     public:
         LabNetwork(QWidget *_parent = 0);
         virtual ~LabNetwork();
+        
+        bool dirty() { return _dirty; }
         
         LabScene *scene() { return _tree ? _tree->scene() : 0; }
         LabView *view() { return _tree ? _tree->view() : 0; }
@@ -42,20 +44,18 @@ namespace NeuroLab
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
         
     public slots:
+        bool save(bool saveAs = false);
+        bool close();
+
+        void changed();
+        void changed(const QList<QRectF> &);
+
+        void newItem(const QString & typeName);
+
         void reset();
         void start();
         void stop();
         void step();
-        
-        bool save(bool saveAs = false);
-        bool close();
-
-        void newNode();
-        void newExcitoryLink();
-        void newInhibitoryLink();
-
-        void changed();
-        void changed(const QList<QRectF> &);
     };
     
 } // namespace NeuroLab

@@ -33,10 +33,13 @@ namespace NeuroLab
         ~MainWindow();
         
         static MainWindow *instance();
-        Ui::MainWindow *ui() { return _ui; }
+        Ui::MainWindow *ui() { return _ui; }        
         
     signals:
         void quitting();        
+
+    public slots:
+        void setTitle(const QString & title = QString("NeuroLab"));
         
     private:
         void loadStateSettings();

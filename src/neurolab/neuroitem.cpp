@@ -32,9 +32,10 @@ namespace NeuroLab
     //////////////////////////////////////////////    
     
     int NeuroItem::NEXT_ID = 1;
+    QMap<QString, NeuroItem::CreateFT> NeuroItem::itemCreators;
     
-    NeuroItem::NeuroItem(LabNetwork *network, NeuroCell::NeuroIndex cellIndex)
-        : QGraphicsItem(), _network(network), _id(NEXT_ID++), _in_hover(false), _labelRect(20, -10, 100, 20), _cellIndex(cellIndex)
+    NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
+        : QGraphicsItem(), _network(network), _id(NEXT_ID++), _path(0), _textPath(0), _cellIndex(cellIndex)
     {
         // we don't use qt selection because it seems to be broken
         //this->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -44,10 +45,22 @@ namespace NeuroLab
     
     NeuroItem::~NeuroItem()
     {
+        delete _path;
+        delete _textPath;
+        
         while (_incoming.size() > 0)
             removeIncoming(_incoming.front());
         while (_outgoing.size() > 0)
             removeOutgoing(_outgoing.front());
+    }
+    
+    NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
+    {
+        CreateFT cf = itemCreators[name];
+        
+        if (cf)
+            return cf(scene, pos);        
+        return 0;
     }
     
     void NeuroItem::bringToFront()
@@ -115,11 +128,10 @@ namespace NeuroLab
     
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
     {
-        MainWindow::instance()->statusBar()->showMessage(QString("Hover enter %1; underMouse %2").arg(reinterpret_cast<qint64>(this)).arg(this->isUnderMouse()));
-        _in_hover = true;
-        
         if (_network && _network->scene())
         {
+            _network->scene()->setItemUnderMouse(this);
+            
             if (_network->scene()->selectedItem() != this)
                 _network->scene()->setSelectedItem(0);
         }
@@ -129,73 +141,91 @@ namespace NeuroLab
     
     void NeuroItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
     {
-        MainWindow::instance()->statusBar()->showMessage(QString("Hover exit %1; underMouse %2").arg(reinterpret_cast<qint64>(this)).arg(this->isUnderMouse()));
-        _in_hover = false;
-
+        if (_network && _network->scene())
+            _network->scene()->setItemUnderMouse(0);
+        
         update(this->boundingRect());
     }
     
+    void NeuroItem::buildShape()
+    {
+        delete _path;
+        _path = new QPainterPath();
+        _path->setFillRule(Qt::WindingFill);
+        
+        delete _textPath;
+        _textPath = new QPainterPath();
+        _textPath->setFillRule(Qt::WindingFill);
+
+        if (!_label.isNull() && !_label.isEmpty())
+            _textPath->addText(NeuroItem::NODE_WIDTH + 4, -1, QApplication::font(), _label);
+
+        const_cast<NeuroItem *>(this)->prepareGeometryChange();
+    }
+
     QRectF NeuroItem::boundingRect() const
     {
-        return _labelRect;
+        if (!_path || !_textPath)
+            const_cast<NeuroItem *>(this)->buildShape();
+        
+        return _path->united(*_textPath).controlPointRect();
     }
-    
+
     QPainterPath NeuroItem::shape() const
     {
-        QPainterPath path;
-        path.setFillRule(Qt::WindingFill);
-        if (!_label.isNull() && !_label.isEmpty())
-            path.addRect(QRectF(_labelRect));
-        return path;
+        if (!_path || !_textPath)
+            const_cast<NeuroItem *>(this)->buildShape();
+
+        return _path->united(*_textPath);
     }
-    
+
     bool NeuroItem::shouldHighlight() const
     {
-        if (_in_hover || isSelected())
+        if (isSelected())
             return true;
-        
+
         const LabScene *sc = dynamic_cast<const LabScene *>(this->scene());
-        if (sc && sc->selectedItem() == this)
+        if (sc && (sc->selectedItem() == this || sc->itemUnderMouse() == this))
             return true;
-        
+
         return false;
     }
-    
+
     void NeuroItem::setPenWidth(QPen & pen)
     {
         if (shouldHighlight())
             pen.setWidth(HOVER_LINE_WIDTH);
-        else   
+        else
             pen.setWidth(NORMAL_LINE_WIDTH);
     }
-    
+
     static QColor lerp(const QColor & a, const QColor & b, const qreal & t)
     {
         qreal ar, ag, ab, aa;
         qreal br, bg, bb, ba;
-        
+
         a.getRgbF(&ar, &ag, &ab, &aa);
         b.getRgbF(&br, &bg, &bb, &ba);
-        
+
         qreal rr = ar + (br - ar)*t;
         qreal rg = ag + (bg - ag)*t;
         qreal rb = ab + (bb - ab)*t;
         qreal ra = aa + (ba - aa)*t;
-        
+
         QColor result;
         result.setRgbF(rr, rg, rb, ra);
         return result;
     }
-    
+
     void NeuroItem::setPenColor(QPen & pen)
     {
         NeuroCell *cell = getCell();
         if (cell)
         {
-            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->value())), static_cast<qreal>(1));            
-            
+            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->value())), static_cast<qreal>(1));
+
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
-            
+
             if (cell->frozen())
                 pen.setColor(lerp(result, Qt::gray, 0.5f));
             else
@@ -206,26 +236,40 @@ namespace NeuroLab
             pen.setColor(NORMAL_LINE_COLOR);
         }
     }
-    
-    void NeuroItem::drawLabel(QPainter *painter, QPen & pen, QBrush & brush)
-    {
-        if (!_label.isNull() && !_label.isEmpty())
-        {
-            painter->setBrush(brush);
-            painter->setPen(pen);
 
-            painter->drawText(_labelRect, Qt::AlignVCenter | Qt::AlignLeft, _label, &_labelRect);
-        }
+    void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+    {
+        if (!_path || !_textPath)
+            buildShape();
+        
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        QPen pen(Qt::SolidLine);
+        setPenWidth(pen);
+        setPenColor(pen);
+
+        QBrush brush(Qt::SolidPattern);
+        brush.setColor(BACKGROUND_COLOR);
+
+        painter->setPen(pen);
+        painter->setBrush(brush);
+        painter->drawPath(*_path);
+        
+        QPen textPen(Qt::SolidLine);
+        pen.setColor(NORMAL_LINE_COLOR);
+        painter->setPen(textPen);
+        painter->drawPath(*_textPath);
     }
-    
+
+
     // I/O
-    
+
     /// Writes ids of incoming and outgoing pointers.
     void NeuroItem::writePointerIds(QDataStream & ds) const
     {
         qint32 n = _incoming.size();
         ds << n;
-        
+
         for (qint32 i = 0; i < n; ++i)
         {
             if (_incoming[i])
@@ -233,10 +277,10 @@ namespace NeuroLab
             else
                 ds << static_cast<IdType>(0);
         }
-        
+
         n = _outgoing.size();
         ds << n;
-        
+
         for (qint32 i = 0; i < n; ++i)
         {
             if (_outgoing[i])
@@ -245,48 +289,48 @@ namespace NeuroLab
                 ds << static_cast<IdType>(0);
         }
     }
-    
+
     void NeuroItem::readPointerIds(QDataStream & ds)
     {
         qint32 n;
-        
+
         _incoming.clear();
         ds >> n;
         for (qint32 i = 0; i < n; ++i)
         {
             IdType id;
             ds >> id;
-            
+
             if (id)
             {
                 _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
             }
         }
-        
+
         _outgoing.clear();
         ds >> n;
         for (qint32 i = 0; i < n; ++i)
         {
             IdType id;
             ds >> id;
-            
+
             if (id)
             {
                 _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
             }
         }
     }
-    
+
     void NeuroItem::idsToPointers(QGraphicsScene *sc)
     {
         idsToPointersAux(_incoming, sc);
         idsToPointersAux(_outgoing, sc);
     }
-    
+
     void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc)
     {
         QList<QGraphicsItem *> items = sc->items();
-        
+
         for (QMutableListIterator<NeuroItem *> in(list); in.hasNext(); in.next())
         {
             bool found = false;
@@ -301,12 +345,12 @@ namespace NeuroLab
                     break;
                 }
             }
-            
+
             if (!found)
                 throw Automata::Exception(QObject::tr("Dangling node ID %1").arg(id));
-        }        
+        }
     }
-        
+
     QDataStream & operator<< (QDataStream & data, const NeuroItem & item)
     {
         data << item._label;
@@ -317,35 +361,34 @@ namespace NeuroLab
 
         return data;
     }
-    
+
     QDataStream & operator>> (QDataStream & data, NeuroItem & item)
     {
         qint64 n;
-        
+
         data >> item._label;
         data >> n; item._cellIndex = static_cast<NeuroCell::NeuroIndex>(n);
-        
+
         item.readBinary(data);
         item.readPointerIds(data);
-        item._in_hover = false;
 
         return data;
     }
-    
+
     // neuro stuff
-    
+
     NeuroCell *NeuroItem::getCell()
     {
         return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;
     }
-    
+
     void NeuroItem::reset()
     {
         NeuroCell *cell = getCell();
         if (cell && !cell->frozen())
             deactivate();
     }
-    
+
     void NeuroItem::activate()
     {
         NeuroCell *cell = getCell();
@@ -355,7 +398,7 @@ namespace NeuroLab
             update(boundingRect());
         }
     }
-    
+
     void NeuroItem::deactivate()
     {
         NeuroCell *cell = getCell();
@@ -365,7 +408,7 @@ namespace NeuroLab
             update(boundingRect());
         }
     }
-    
+
     void NeuroItem::toggleFrozen()
     {
         NeuroCell *cell = getCell();
@@ -375,5 +418,5 @@ namespace NeuroLab
             update(boundingRect());
         }
     }
-        
+
 } // namespace NeuroLab

@@ -5,6 +5,8 @@
 #include "mainwindow.h"
 #include "../automata/exception.h"
 
+#include <typeinfo>
+
 namespace NeuroLab
 {
     
@@ -59,32 +61,11 @@ namespace NeuroLab
         _scene->update();
     }
     
-    static int get_item_type(NeuroItem const * const item)
+    static QString get_item_type(NeuroItem const * const item)
     {
-        if (dynamic_cast<NeuroNodeItem const *>(item))
-            return NeuroItem::NEURO_NODE;
-        if (dynamic_cast<NeuroExcitoryLinkItem const *>(item))
-            return NeuroItem::NEURO_EXCITORY_LINK;
-        if (dynamic_cast<NeuroInhibitoryLinkItem const *>(item))
-            return NeuroItem::NEURO_INHIBITORY_LINK;
-        return NeuroItem::NEURO_NULL;
+        return QString(typeid(*item).name());
     }
-    
-    static NeuroItem * get_new_item(int type, LabNetwork *network)
-    {
-        switch (type)
-        {
-        case NeuroItem::NEURO_NODE:
-            return new NeuroNodeItem(network, -1);
-        case NeuroItem::NEURO_EXCITORY_LINK:
-            return new NeuroExcitoryLinkItem(network, -1);
-        case NeuroItem::NEURO_INHIBITORY_LINK:
-            return new NeuroInhibitoryLinkItem(network, -1);
-        }
         
-        return 0;
-    }
-    
     QDataStream & operator<< (QDataStream & data, const LabTreeNode & node)
     {
         data << node._id;
@@ -125,10 +106,10 @@ namespace NeuroLab
         
         for (int i = 0; i < num_items; ++i)
         {
-            int type;
+            QString type;
             data >> type;
             
-            NeuroItem *new_item = get_new_item(type, node._scene->network());
+            NeuroItem *new_item = NeuroItem::create(type, node._scene, QPointF(0,0));
             if (new_item)
             {
                 data >> *new_item;

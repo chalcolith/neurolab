@@ -9,7 +9,7 @@ namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *_parent)
-        : _tree(0), _neuronet(0), running(false), dirty(false), first_change(true)
+        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true)
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(_parent, this);
@@ -33,15 +33,17 @@ namespace NeuroLab
     {
         if (_tree && _tree->scene())
             _tree->scene()->deleteSelectedItem();
+        changed();
     }
     
     void LabNetwork::labelSelectedItem(const QString & s)
     {
         if (_tree && _tree->scene())
             _tree->scene()->labelSelectedItem(s);
+        changed();
     }    
     
-    static const QString LAB_SCENE_COOKIE("Neurolab 1 SCENE");
+    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 002");
     
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
@@ -107,38 +109,6 @@ namespace NeuroLab
         return ln;
     }
     
-    void LabNetwork::start()
-    {
-        running = true;
-        dirty = true;
-    }
-    
-    void LabNetwork::stop()
-    {
-        running = false;
-        dirty = true;
-        _tree->update();
-    }
-    
-    void LabNetwork::step()
-    {
-        dirty = true;
-        running = true;
-        
-        // three times to fully run through the asynchronous algorithm
-        _neuronet->step();
-        _neuronet->step();
-        _neuronet->step();
-        running = false;
-        
-        _tree->update();
-    }
-    
-    void LabNetwork::reset()
-    {
-        _tree->reset();
-    }
-    
     bool LabNetwork::save(bool saveAs)
     {
         bool prevRunning = this->running;
@@ -186,7 +156,7 @@ namespace NeuroLab
             }
         }
         
-        this->dirty = false;
+        this->_dirty = false;
         
         if (prevRunning)
             start();
@@ -196,29 +166,11 @@ namespace NeuroLab
     
     bool LabNetwork::close()
     {
-        if (dirty && !save())
+        if (_dirty && !save())
             return false;
         return true;
     }
 
-    void LabNetwork::newNode()
-    {
-        if (this->scene())
-            this->scene()->newItem(LabScene::NODE_ITEM);
-    }
-
-    void LabNetwork::newExcitoryLink()
-    {
-        if (this->scene())
-            this->scene()->newItem(LabScene::EXCITORY_LINK_ITEM);
-    }
-
-    void LabNetwork::newInhibitoryLink()
-    {
-        if (this->scene())
-            this->scene()->newItem(LabScene::INHIBITORY_LINK_ITEM);
-    }
-    
     void LabNetwork::changed(const QList<QRectF> &)
     {
         changed();
@@ -227,9 +179,49 @@ namespace NeuroLab
     void LabNetwork::changed()
     {
         if (!first_change)
-            this->dirty = true;
+            this->_dirty = true;
         else
             first_change = false;
+    }
+    
+    void LabNetwork::newItem(const QString & typeName)
+    {
+        if (this->scene())
+            this->scene()->newItem(typeName);
+        changed();
+    }
+    
+    void LabNetwork::start()
+    {
+        running = true;
+        changed();
+    }
+    
+    void LabNetwork::stop()
+    {
+        running = false;
+        _tree->update();
+        changed();
+    }
+    
+    void LabNetwork::step()
+    {
+        running = true;
+        
+        // three times to fully run through the asynchronous algorithm
+        _neuronet->step();
+        _neuronet->step();
+        _neuronet->step();
+        running = false;
+        
+        _tree->update();
+        changed();
+    }
+    
+    void LabNetwork::reset()
+    {
+        _tree->reset();
+        changed();
     }
     
 } // namespace NeuroLab

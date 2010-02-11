@@ -18,7 +18,7 @@ namespace NeuroLab
     
     //////////////////////////////////////////////////////////////////
 
-    NeuroLinkItem::NeuroLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+    NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0)
     {
     }
@@ -96,94 +96,129 @@ namespace NeuroLab
         _backLinkTarget = linkTarget;
     }
     
+    void NeuroLinkItem::buildShape()
+    {
+        NeuroItem::buildShape();
+
+        QVector2D myPos(pos());
+        QVector2D myFront(_line.p2());
+        QVector2D myBack(_line.p1());
+        
+        // convert to my frame
+        myFront = myPos - myFront;
+        myBack = myPos - myBack;
+        
+        // calculate control points
+        QVector2D c1 = myBack + (myFront - myBack) * 0.33;
+        QVector2D c2 = myBack + (myFront - myBack) * 0.66;
+        
+        if (_backLinkTarget)
+            c1 = QVector2D(myBack.x(), myBack.y() - NODE_WIDTH);
+        if (_frontLinkTarget)
+            c2 = QVector2D(myFront.x(), myFront.y() + NODE_WIDTH);
+        
+        _path->moveTo(myFront.toPointF());
+        _path->cubicTo(c1.toPointF(), c2.toPointF(), myBack.toPointF());
+    }
+        
     void NeuroLinkItem::updatePos()
     {
         setPos( (_line.x1() + _line.x2())/2, (_line.y1() + _line.y2())/2 );
+        buildShape();
         adjustLinks();
-    }
-    
-    QRectF NeuroLinkItem::boundingRect() const
-    {
-        qreal w = qAbs(_line.x2() - _line.x1());
-        qreal h = qAbs(_line.y2() - _line.y1());
-        
-        QRectF result(-(w/2.0+ELLIPSE_WIDTH), -(h/2.0+ELLIPSE_WIDTH), w+ELLIPSE_WIDTH*2, h+ELLIPSE_WIDTH*2);
-
-        return result.united(NeuroItem::boundingRect());
-    }
-    
-    void NeuroLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
-    {
-        painter->setRenderHint(QPainter::Antialiasing);
-        
-        int x1 = static_cast<int>(_line.x1() - pos().x());
-        int y1 = static_cast<int>(_line.y1() - pos().y());
-        int x2 = static_cast<int>(_line.x2() - pos().x());
-        int y2 = static_cast<int>(_line.y2() - pos().y());
-
-        QPen pen(Qt::SolidLine);
-        pen.setColor(NORMAL_LINE_COLOR);
-        
-        QBrush brush(Qt::SolidPattern);
-        brush.setColor(BACKGROUND_COLOR);
-        
-        drawLabel(painter, pen, brush);
-        
-        setPenWidth(pen);       
-        setPenColor(pen);
-        painter->setPen(pen);
-        painter->setBrush(brush);
-        painter->drawLine(x1, y1, x2, y2);
-    }
-    
-    QPainterPath NeuroLinkItem::shape() const
-    {
-        QPainterPath path = NeuroItem::shape();
-        
-        path.setFillRule(Qt::WindingFill);
-        path.moveTo(_line.p1() - pos());
-        path.lineTo(_line.p2() - pos());
-        
-        QPainterPathStroker stroker;        
-        stroker.setWidth(ELLIPSE_WIDTH);
-                
-        QPainterPath path2 = stroker.createStroke(path);
-        path2.setFillRule(Qt::WindingFill);
-        path2.addPath(path);
-        return path2;
     }
     
     void NeuroLinkItem::adjustLinks()
     {
         QVector2D myFront(_line.p2());
         QVector2D myBack(_line.p1());
-        QVector2D frontToBack(myBack - myFront);
-        qreal myLength = frontToBack.length();
-        frontToBack.normalize();
         
+        QVector2D center = (myBack + myFront) * 0.5;
+                
         for (QListIterator<NeuroItem *> i(_incoming); i.hasNext(); i.next())
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.peekNext());
             if (link)
-                link->setLine(link->line().p1(), (myFront + (frontToBack * (1 * myLength/2.0))).toPointF());
+                link->setLine(link->line().p1(), center.toPointF());
         }
     }
     
-    void NeuroLinkItem::paintBackLink(QPainter *painter)
-    {        
-        if (_backLinkTarget)
+    bool NeuroLinkItem::canLinkTo(EditInfo & info, NeuroItem *item)
+    {
+        // cannot link the back of a link to another link
+        if (dynamic_cast<NeuroLinkItem *>(item) && !info.linkFront)
+            return false;
+        
+        // cannot link an excitory link to another link
+        if (dynamic_cast<NeuroExcitoryLinkItem *>(this) && dynamic_cast<NeuroLinkItem *>(item))
+            return false;
+        
+        return true;        
+    }
+    
+    bool NeuroLinkItem::handlePickup(EditInfo & info)
+    {
+        qreal front_dist = (QVector2D(info.scenePos) - QVector2D(this->line().p2())).lengthSquared();
+        qreal back_dist = (QVector2D(info.scenePos) - QVector2D(this->line().p1())).lengthSquared();
+        
+        info.linkFront = front_dist < back_dist;
+        
+        return true;
+    }
+    
+    void NeuroLinkItem::handleMove(EditInfo & info)
+    {
+        // update line            
+        QPointF front = _line.p2();
+        QPointF back = _line.p1();            
+        QPointF & endToMove = info.linkFront ? front : back;
+        
+        endToMove = info.scenePos;
+        
+        setLine(back.x(), back.y(), front.x(), front.y());
+        adjustLinks();
+        
+        if (_frontLinkTarget)
+            _frontLinkTarget->adjustLinks();
+        else if (_backLinkTarget)
+            _backLinkTarget->adjustLinks();        
+        
+        // get topmost item that is not the link itself
+        NeuroItem *itemAtPos = 0;
+        for (QListIterator<QGraphicsItem *> i(_network->scene()->items(info.scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); i.next())
         {
-            int x1 = static_cast<int>(_line.x1() - pos().x());
-            int y1 = static_cast<int>(_line.y1() - pos().y());
-            
-            QPen pen(Qt::SolidLine);            
-            pen.setColor(NORMAL_LINE_COLOR);
-            painter->setPen(pen);
-            setPenWidth(pen);
-            painter->drawEllipse(x1 - ELLIPSE_WIDTH/4, y1 - ELLIPSE_WIDTH/4, ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
+            itemAtPos = dynamic_cast<NeuroItem *>(i.peekNext());
+            if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != this && canLinkTo(info, itemAtPos))
+                break;
+            else
+                itemAtPos = 0;
         }
+        
+        // break links
+        NeuroItem *linkedItem = info.linkFront ? _frontLinkTarget : _backLinkTarget;
+        if (linkedItem)
+        {
+            if (itemAtPos != linkedItem)
+            {
+                if (info.linkFront)
+                    setFrontLinkTarget(0);
+                else
+                    setBackLinkTarget(0);
+            }
+        }
+        
+        // form links
+        if (itemAtPos)
+        {
+            if (info.linkFront)
+                setFrontLinkTarget(itemAtPos);
+            else
+                setBackLinkTarget(itemAtPos);
+            
+            itemAtPos->adjustLinks();
+        }        
     }
-    
+        
     void NeuroLinkItem::writeBinary(QDataStream & data) const
     {
         data << _id;
@@ -256,7 +291,9 @@ namespace NeuroLab
     
     //////////////////////////////////////////////////////////////////
     
-    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem);
+    
+    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)
     {
     }
@@ -265,42 +302,20 @@ namespace NeuroLab
     {
     }
     
-    void NeuroExcitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-    {        
-        NeuroLinkItem::paint(painter, option, widget);
-
-        int x2 = static_cast<int>(_line.x2() - pos().x());
-        int y2 = static_cast<int>(_line.y2() - pos().y());
-        
-        QPen pen(Qt::SolidLine);
-        if (_frontLinkTarget)
-            pen.setColor(NORMAL_LINE_COLOR);
-        else
-            pen.setColor(UNLINKED_LINE_COLOR);
-        
-        setPenWidth(pen);
-        painter->setPen(pen);
-        painter->drawEllipse(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        
-        paintBackLink(painter);
-    }
-    
-    QPainterPath NeuroExcitoryLinkItem::shape() const
+    NeuroItem *NeuroExcitoryLinkItem::create_new(LabScene *scene, const QPointF & pos)
     {
-        QPainterPath path;
-        
-        path.setFillRule(Qt::WindingFill);
-        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        path.addPath(NeuroLinkItem::shape());
-        
-        return path;
+        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        NeuroLinkItem *item = new NeuroExcitoryLinkItem(scene->network(), index);
+        item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
+        return item;
     }
-    
+        
     
     //////////////////////////////////////////////////////////////////
+    
+    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem);
 
-    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex)
+    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)
     {
     }
@@ -309,49 +324,12 @@ namespace NeuroLab
     {
     }
     
-    void NeuroInhibitoryLinkItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-    {        
-        NeuroLinkItem::paint(painter, option, widget);
-        
-        QBrush brush(Qt::NoBrush);
-        
-        QPen pen(Qt::SolidLine);
-        if (_frontLinkTarget)
-            pen.setColor(NORMAL_LINE_COLOR);
-        else
-            pen.setColor(UNLINKED_LINE_COLOR);
-        
-        setPenWidth(pen);
-        
-        int x2 = static_cast<int>(_line.x2() - pos().x());
-        int y2 = static_cast<int>(_line.y2() - pos().y());
-        
-        QRectF r(x2 - ELLIPSE_WIDTH/2, y2 - ELLIPSE_WIDTH/2, ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-
-        qreal theta = ::atan2((double)-y2, (double)x2);
-        if (theta < 0)
-			theta = (2.0 * M_PI) + theta;
-        theta += M_PI / 2.0;
-        
-        int angle = static_cast<int>(theta * 180.0 / M_PI);
-        
-        painter->setBrush(brush);
-        painter->setPen(pen);
-        painter->drawArc(r, 16 * angle, 16 * 180);
-        
-        paintBackLink(painter);
-    }
-    
-    QPainterPath NeuroInhibitoryLinkItem::shape() const
+    NeuroItem *NeuroInhibitoryLinkItem::create_new(LabScene *scene, const QPointF & pos)
     {
-        QPainterPath path;
-        
-        path.setFillRule(Qt::WindingFill);
-        path.addEllipse(_line.p1() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        path.addEllipse(_line.p2() - pos(), ELLIPSE_WIDTH, ELLIPSE_WIDTH);
-        path.addPath(NeuroLinkItem::shape());
-        
-        return path;
+        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK));
+        NeuroLinkItem *item = new NeuroInhibitoryLinkItem(scene->network(), index);
+        item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
+        return item;
     }
     
 } // namespace NeuroLab

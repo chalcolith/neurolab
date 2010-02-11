@@ -13,12 +13,11 @@ namespace NeuroLab
         : public NeuroItem
     {
     protected:
-        QLineF _line;
-        
+        QLineF _line;        
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
         
     public:
-        NeuroLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
+        NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroLinkItem();
         
         QLineF line() const { return _line; }
@@ -36,11 +35,12 @@ namespace NeuroLab
         
         NeuroItem *backLinkTarget() { return _backLinkTarget; }
         void setBackLinkTarget(NeuroItem *linkTarget);
+
+        virtual void buildShape();        
         
-        virtual QRectF boundingRect() const;
-        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-        virtual QPainterPath shape() const;
-        
+        virtual bool canLinkTo(EditInfo & info, NeuroItem *item);
+        virtual bool handlePickup(EditInfo & info);
+        virtual void handleMove(EditInfo & info);
         virtual void adjustLinks();
         
     private:
@@ -62,11 +62,10 @@ namespace NeuroLab
         : public NeuroLinkItem
     {
     public:
-        NeuroExcitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
+        NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroExcitoryLinkItem();        
 
-        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-        virtual QPainterPath shape() const;
+        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
     };
     
     
@@ -74,11 +73,10 @@ namespace NeuroLab
         : public NeuroLinkItem
     {
     public:
-        NeuroInhibitoryLinkItem(LabNetwork *network, NeuroLib::NeuroCell::NeuroIndex cellIndex);
+        NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroInhibitoryLinkItem();
 
-        virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-        virtual QPainterPath shape() const;
+        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
     };
     
 } // namespace NeuroLab

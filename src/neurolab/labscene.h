@@ -1,8 +1,7 @@
 #ifndef LABSCENE_H
 #define LABSCENE_H
 
-#include "neuronodeitem.h"
-#include "neurolinkitem.h"
+#include "neuroitem.h"
 
 #include <QGraphicsScene>
 #include <QStack>
@@ -11,6 +10,8 @@ namespace NeuroLab
 {
     
     class LabNetwork;
+    class NeuroNodeItem;
+    class NeuroLinkItem;
 
     class LabScene 
         : public QGraphicsScene
@@ -19,36 +20,27 @@ namespace NeuroLab
         
         LabNetwork *_network;
 
-        NeuroNodeItem *movingNode;
-        NeuroLinkItem *movingLink;
-        bool linkFront;
-        
+        NeuroItem::EditInfo editInfo;        
+        NeuroItem *_itemUnderMouse;
         NeuroItem *_selectedItem;
-        QPointF _lastMousePos;
                 
     public:
         LabScene(LabNetwork *_network);
         virtual ~LabScene();
         
         LabNetwork *network() { return _network; }
+        
+        NeuroItem *itemUnderMouse() const { return _itemUnderMouse; }
+        void setItemUnderMouse(NeuroItem *item) { _itemUnderMouse = item; }
+        
         NeuroItem *selectedItem() const { return _selectedItem; }
-        void setSelectedItem(NeuroItem *item) { if (_selectedItem) _selectedItem->update(); _selectedItem = item; }
+        void setSelectedItem(NeuroItem *item);
         
         void deleteSelectedItem();
         void labelSelectedItem(const QString & s);
         
-        enum ItemType
-        {
-            NO_ITEM = 0,
-            NODE_ITEM,
-            EXCITORY_LINK_ITEM,
-            INHIBITORY_LINK_ITEM,
-
-            NUM_ITEM_TYPES
-        };
-
     public slots:
-        void newItem(const ItemType type);
+        void newItem(const QString & typeName);
 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
@@ -57,13 +49,6 @@ namespace NeuroLab
                 
     private:
         bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
-        
-        bool addNode(const QPointF & scenePos, NeuroNodeItem *nodeItem);
-        bool addLink(const QPointF & scenePos, NeuroLinkItem *linkItem);
-        
-        bool mouseMoveHandleNode(const QPointF & scenePos, NeuroNodeItem *node);
-        bool mouseMoveHandleLinks(const QPointF & scenePos, NeuroLinkItem *link);
-        bool canLink(NeuroItem *moving, NeuroItem *fixed);
     };
     
 } // namespace NeuroLab
