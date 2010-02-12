@@ -6,6 +6,8 @@
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>
 
+class QtTreePropertyBrowser;
+
 namespace Ui
 {
     class MainWindow;
@@ -26,6 +28,8 @@ namespace NeuroLab
         Ui::MainWindow *_ui;
         QVBoxLayout *layout;
         
+        QtTreePropertyBrowser *_properties;
+        
         LabNetwork *currentNetwork;
         
     public:
@@ -33,7 +37,8 @@ namespace NeuroLab
         ~MainWindow();
         
         static MainWindow *instance();
-        Ui::MainWindow *ui() { return _ui; }        
+        Ui::MainWindow *ui() { return _ui; }
+        QtTreePropertyBrowser *properties() { return _properties; }
         
     signals:
         void quitting();        

@@ -9,6 +9,7 @@
 #include "neuronodeitem.h"
 
 #include <QSettings>
+#include <QtTreePropertyBrowser>
 
 namespace NeuroLab
 {
@@ -22,7 +23,7 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent), 
           _ui(new Ui::MainWindow()),
-          layout(0),
+          layout(0), _properties(0),
           currentNetwork(0)
     {
         if (_instance)
@@ -32,6 +33,10 @@ namespace NeuroLab
         
         // set up ui and other connections
         _ui->setupUi(this);
+        
+        QVBoxLayout *sidebarLayout = new QVBoxLayout();
+        _ui->sidebar_page_1->setLayout(sidebarLayout);
+        sidebarLayout->addWidget(_properties = new QtTreePropertyBrowser());
         
         setupConnections();
         

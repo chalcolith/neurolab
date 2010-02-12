@@ -6,6 +6,8 @@ TEMPLATE = app
 TARGET = neurolab
 include(../neurolab_version.txt)
 
+INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
+
 SOURCES += main.cpp \
     mainwindow.cpp \
     labnetwork.cpp \
@@ -35,4 +37,4 @@ DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
-LIBS = -L$$DESTDIR -lneurolib -lautomata
+LIBS = -L$$DESTDIR -lneurolib -lautomata -lqtpropertybrowser

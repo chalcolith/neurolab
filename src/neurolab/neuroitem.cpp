@@ -369,6 +369,14 @@ namespace NeuroLab
     }
 
     // neuro stuff
+    
+    void NeuroItem::buildProperties(QtVariantPropertyManager *)
+    {
+    }
+    
+    void NeuroItem::changeProperty(QtProperty *)
+    {
+    }
 
     NeuroCell *NeuroItem::getCell()
     {

@@ -89,7 +89,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="sidebarDockWidget">
    <property name="windowTitle">
-    <string>Tools</string>
+    <string/>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -117,7 +117,7 @@
          </rect>
         </property>
         <attribute name="label">
-         <string>Tools</string>
+         <string>Properties</string>
         </attribute>
        </widget>
       </widget>

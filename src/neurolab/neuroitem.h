@@ -10,6 +10,9 @@
 #include <QMap>
 #include <typeinfo>
 
+class QtProperty;
+class QtVariantPropertyManager;
+
 namespace NeuroLab
 {
 
@@ -17,8 +20,11 @@ namespace NeuroLab
     class LabScene;
 
     class NeuroItem
-        : public QGraphicsItem
+        : public QObject, public QGraphicsItem
     {
+        Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
+        
         static int NEXT_ID;
 
     protected:
@@ -55,6 +61,8 @@ namespace NeuroLab
 
         int id() { return _id; }
 
+        virtual void buildProperties(QtVariantPropertyManager *propertyManager);
+        
         const QList<NeuroItem *> incoming() const { return _incoming; }
         const QList<NeuroItem *> outgoing() const { return _outgoing; }
 
@@ -94,10 +102,11 @@ namespace NeuroLab
         virtual void activate();
         virtual void deactivate();
         virtual void toggleFrozen();
+        
+    public slots:
+        virtual void changeProperty(QtProperty *property);
 
     protected:
-        NeuroLib::NeuroCell *getCell();
-
         virtual void setPenWidth(QPen & pen);
         virtual void setPenColor(QPen & pen);
 
@@ -115,9 +124,15 @@ namespace NeuroLab
         virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
 
         //
+        NeuroLib::NeuroCell *getCell();
+        QtProperty *_input_threshold;
+        QtProperty *_output_weight;
+        QtProperty *_output_value;
+
+        //
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
         static QMap<QString, CreateFT> itemCreators;
-        friend class NeuroItemCreator;
+        friend class NeuroItemRegistrator;
 
         //
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
@@ -126,25 +141,25 @@ namespace NeuroLab
 
     //
 
-    class NeuroItemCreator
+    class NeuroItemRegistrator
     {
         QString _name;
 
     public:
-        NeuroItemCreator(const char *name, NeuroItem::CreateFT create_func)
+        NeuroItemRegistrator(const char *name, NeuroItem::CreateFT create_func)
             : _name(name)
         {
             if (create_func)
                 NeuroItem::itemCreators[_name] = create_func;
         }
 
-        virtual ~NeuroItemCreator()
+        virtual ~NeuroItemRegistrator()
         {
             NeuroItem::itemCreators.remove(_name);
         }
     };
 
-#define NEUROITEM_DEFINE_CREATOR(TypeName) static NeuroItemCreator TypeName ## _static_creator(typeid(TypeName).name(), &TypeName::create_new)
+#define NEUROITEM_DEFINE_CREATOR(TypeName) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), &TypeName::create_new)
 
     //
 
