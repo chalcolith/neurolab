@@ -16,7 +16,7 @@ namespace NeuroLib
     class NEUROLIBSHARED_EXPORT NeuroCell
     {
     public:
-        enum Kind
+        enum KindOfCell
         {
             NODE = 0,
             EXCITORY_LINK,
@@ -28,9 +28,9 @@ namespace NeuroLib
         typedef double NeuroValue;
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
-        NeuroCell(const Kind & k = NODE, const NeuroValue & input_threshold = 1, const NeuroValue & output_weight = 1, const NeuroValue & output_value = 0);
+        NeuroCell(const KindOfCell & k = NeuroCell::NODE, const NeuroValue & input_threshold = 1, const NeuroValue & output_weight = 1, const NeuroValue & output_value = 0);
         
-        const Kind & kind() const { return _kind; }
+        inline const KindOfCell & kind() const { return _kind; }
         
         struct Update
         {
@@ -58,7 +58,7 @@ namespace NeuroLib
         void setFrozen(const bool & frozen) { _frozen = frozen; }
         
     private:
-        Kind _kind;
+        KindOfCell _kind;
                 
         NeuroValue _input_threshold;
         NeuroValue _output_weight;

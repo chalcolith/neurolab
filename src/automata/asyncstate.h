@@ -17,7 +17,7 @@ namespace Automata
         TState q0, q1;
         int r;
 
-        AsyncState() :r(0) {}
+        AsyncState() : r(0) {}
         AsyncState(const TState & s0, const TState & s1) : q0(s0), q1(s1), r(0) {}
         AsyncState(const AsyncState & state) : q0(state.q0), q1(state.q1), r(state.r) {}
 

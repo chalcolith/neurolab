@@ -1,4 +1,3 @@
-QT -= gui
 TEMPLATE = lib
 TARGET = qtpropertybrowser
 VERSION = 2.5.1

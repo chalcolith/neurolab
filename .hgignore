@@ -7,3 +7,4 @@ glob:*.suo
 glob:debug
 glob:release
 glob:src/neurolab/GeneratedFiles
+glob:*_resource.rc

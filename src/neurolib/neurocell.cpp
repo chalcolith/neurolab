@@ -6,7 +6,7 @@
 namespace NeuroLib
 {
     
-    NeuroCell::NeuroCell(const Kind & k, const NeuroValue & input_threshold, const NeuroValue & output_weight, const NeuroValue & output_value)
+    NeuroCell::NeuroCell(const KindOfCell & k, const NeuroValue & input_threshold, const NeuroValue & output_weight, const NeuroValue & output_value)
         : _kind(k), _input_threshold(input_threshold), _output_weight(output_weight), _output_value(output_value), _frozen(false)
     {
     }
@@ -67,7 +67,7 @@ namespace NeuroLib
         bool f;
         
         ds.setVersion(QDataStream::Qt_4_5);
-        ds >> k; nc._kind = static_cast<NeuroCell::Kind>(k);
+        ds >> k; nc._kind = static_cast<NeuroCell::KindOfCell>(k);
         ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
         ds >> n; nc._input_threshold = static_cast<NeuroCell::NeuroValue>(n);
         ds >> f; nc._frozen = static_cast<bool>(f);

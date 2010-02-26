@@ -37,4 +37,4 @@ DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
-LIBS = -L$$DESTDIR -lneurolib -lautomata -lqtpropertybrowser
+LIBS = -L$$DESTDIR -lneurolib1 -lautomata1 -lqtpropertybrowser2
