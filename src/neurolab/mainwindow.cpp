@@ -10,6 +10,8 @@
 
 #include <QSettings>
 #include <QtTreePropertyBrowser>
+#include <QtVariantEditorFactory>
+#include <QtVariantPropertyManager>
 
 namespace NeuroLab
 {
@@ -23,8 +25,8 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent), 
           _ui(new Ui::MainWindow()),
-          layout(0), _properties(0),
-          currentNetwork(0)
+          layout(0), currentNetwork(0),
+          _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager())
     {
         if (_instance)
             throw LabException("You cannot create more than one main window.");
@@ -36,7 +38,8 @@ namespace NeuroLab
         
         QVBoxLayout *sidebarLayout = new QVBoxLayout();
         _ui->sidebar_page_1->setLayout(sidebarLayout);
-        sidebarLayout->addWidget(_properties = new QtTreePropertyBrowser());
+        sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser());
+        _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
         
         setupConnections();
         
@@ -58,7 +61,12 @@ namespace NeuroLab
     
     MainWindow::~MainWindow()
     {
+        setPropertyObject(0);
         setNetwork(0);
+
+        delete _propertyManager;
+        delete _propertyFactory;
+        
         delete _ui;
         _instance = 0;
     }
@@ -194,7 +202,34 @@ namespace NeuroLab
         }
 
         setTitle();
+        setPropertyObject(currentNetwork);
         this->update();
+    }
+    
+    void MainWindow::setPropertyObject(PropertyObject *po)
+    {
+        // remove existing properties
+        QList<QtProperty *> currentProperties = _propertyEditor->properties();
+        for (QListIterator<QtProperty *> i(currentProperties); i.hasNext(); i.next())
+        {
+            QtProperty *property = i.peekNext();
+            _propertyEditor->removeProperty(property);
+            delete property;
+        }
+                
+        // get new properties
+        _currentPropertyObject = po;
+        
+        if (_currentPropertyObject)
+        {
+            // new top item
+            QtProperty *topItem = _propertyManager->addProperty(QtVariantPropertyManager::groupTypeId(), tr("Properties"));
+            
+            _currentPropertyObject->buildProperties(_propertyManager, topItem);
+            
+            _propertyEditor->addProperty(topItem);
+            _propertyEditor->setRootIsDecorated(false);
+        }
     }
 
     void MainWindow::enableItemMenu()

@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     neuronodeitem.cpp \
     neurolinkitem.cpp \
     neuroitem.cpp \
-    labeldialog.cpp
+    labeldialog.cpp \
+    propertyobj.cpp
 HEADERS += mainwindow.h \
     labnetwork.h \
     labscene.h \
@@ -26,7 +27,8 @@ HEADERS += mainwindow.h \
     neuronodeitem.h \
     neurolinkitem.h \
     neuroitem.h \
-    labeldialog.h
+    labeldialog.h \
+    propertyobj.h
 FORMS += mainwindow.ui \
     labeldialog.ui
 

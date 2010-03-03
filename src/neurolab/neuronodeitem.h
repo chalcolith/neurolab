@@ -23,6 +23,8 @@ namespace NeuroLab
         const QRectF & rect() const { return _rect; }
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
         
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        
         virtual void buildShape();
         
         virtual bool canLinkTo(EditInfo & info, NeuroItem *item);

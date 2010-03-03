@@ -11,5 +11,5 @@ namespace NeuroLab
     LabView::~LabView()
     {
     }
-    
+        
 } // namespace NeuroLab

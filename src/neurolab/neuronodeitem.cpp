@@ -5,6 +5,8 @@
 #include <QVector2D>
 #include <QApplication>
 
+#include <QtProperty>
+
 using namespace NeuroLib;
 
 namespace NeuroLab
@@ -29,6 +31,12 @@ namespace NeuroLab
         item->setPos(pos.x(), pos.y());
         return item;
     }
+    
+    void NeuroNodeItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    {
+        NeuroItem::buildProperties(manager, parentItem);
+        parentItem->setPropertyName(tr("Node"));
+    }
 
     void NeuroNodeItem::buildShape()
     {
@@ -39,8 +47,7 @@ namespace NeuroLab
         if (cell)
         {
             int threshold = static_cast<int>(cell->inputThreshold() + static_cast<NeuroCell::NeuroValue>(0.5));
-            QString str("%1");
-            _textPath->addText(-3, 2, QApplication::font(), str.arg(threshold));
+            _texts.append(TextPathRec(QPointF(-3, 2), QString::number(threshold)));
         }
     }
 

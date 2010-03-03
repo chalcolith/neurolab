@@ -2,11 +2,14 @@
 #define MAINWINDOW_H
 
 #include "labnetwork.h"
+#include "propertyobj.h"
 
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>
 
 class QtTreePropertyBrowser;
+class QtVariantEditorFactory;
+class QtVariantPropertyManager;
 
 namespace Ui
 {
@@ -28,9 +31,14 @@ namespace NeuroLab
         Ui::MainWindow *_ui;
         QVBoxLayout *layout;
         
-        QtTreePropertyBrowser *_properties;
-        
         LabNetwork *currentNetwork;
+        
+        QtTreePropertyBrowser *_propertyEditor;
+        
+        QtVariantEditorFactory *_propertyFactory;
+        QtVariantPropertyManager *_propertyManager;
+        
+        PropertyObject *_currentPropertyObject;
         
     public:
         MainWindow(QWidget *parent = 0, const QString & initialFname = QString());
@@ -38,14 +46,15 @@ namespace NeuroLab
         
         static MainWindow *instance();
         Ui::MainWindow *ui() { return _ui; }
-        QtTreePropertyBrowser *properties() { return _properties; }
+        QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
         
     signals:
         void quitting();        
 
     public slots:
         void setTitle(const QString & title = QString("NeuroLab"));
-        
+        void setPropertyObject(PropertyObject *);
+
     private:
         void loadStateSettings();
         void saveStateSettings();
@@ -57,7 +66,7 @@ namespace NeuroLab
         bool closeNetwork();
         
         void setNetwork(LabNetwork *network);
-                
+        
     private slots:
         void on_actionReset_triggered();
         void on_actionStep_triggered();

@@ -8,6 +8,8 @@
 #include <QPolygonF>
 #include <QVector2D>
 
+#include <QtProperty>
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -327,6 +329,12 @@ namespace NeuroLab
         return item;
     }
     
+    void NeuroExcitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    {
+        NeuroItem::buildProperties(manager, parentItem);
+        parentItem->setPropertyName(tr("Excitory Link"));
+    }
+    
     void NeuroExcitoryLinkItem::buildShape()
     {
         NeuroLinkItem::buildShape();
@@ -373,6 +381,12 @@ namespace NeuroLab
         NeuroLinkItem *item = new NeuroInhibitoryLinkItem(scene->network(), index);
         item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
         return item;
+    }
+    
+    void NeuroInhibitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    {
+        NeuroItem::buildProperties(manager, parentItem);
+        parentItem->setPropertyName(tr("Inhibitory Link"));
     }
     
     void NeuroInhibitoryLinkItem::buildShape()

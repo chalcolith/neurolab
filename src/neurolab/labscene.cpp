@@ -32,6 +32,8 @@ namespace NeuroLab
             oldSelected->update();
         if (_selectedItem)
             _selectedItem->update();
+        
+        MainWindow::instance()->setPropertyObject(_selectedItem);
     }
         
     void LabScene::deleteSelectedItem()
@@ -59,14 +61,20 @@ namespace NeuroLab
         
         if (event->buttons() & Qt::LeftButton)
         {
-            // pick up node if we're on one
-            if (mousePressPickupNode(event))
+            if (editInfo.movingItem)
+            {
+                editInfo.movingItem = 0;
+                return;
+            }
+            else if (mousePressPickupNode(event))
             {
                 setSelectedItem(editInfo.movingItem);
                 return;
             }
             else
-                setSelectedItem(0);
+            {
+                MainWindow::instance()->setPropertyObject(_network);
+            }
         }
         else if (event->buttons() & Qt::RightButton)
         {
@@ -109,6 +117,8 @@ namespace NeuroLab
             item->handleMove(editInfo);
             editInfo.movingItem = item;
             editInfo.linkFront = true;
+            
+            setSelectedItem(item);
         }
     }
 

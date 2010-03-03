@@ -1,10 +1,11 @@
 #ifndef LABNETWORK_H
 #define LABNETWORK_H
 
-#include <QFile>
-
 #include "labtree.h"
 #include "../neurolib/neuronet.h"
+#include "propertyobj.h"
+
+#include <QFile>
 
 namespace NeuroLab
 {
@@ -13,7 +14,7 @@ namespace NeuroLab
     
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
     class LabNetwork
-        : public QObject
+        : public QObject, public PropertyObject
     {
         Q_OBJECT
         
@@ -24,6 +25,8 @@ namespace NeuroLab
         
         bool _dirty, first_change;
         QString _fname;
+
+        QtVariantProperty *filename_property;
         
     public:
         LabNetwork(QWidget *_parent = 0);
@@ -37,11 +40,13 @@ namespace NeuroLab
         
         NeuroLib::NeuroNet *neuronet() { return _neuronet; }
         
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        
         NeuroItem *getSelectedItem();
         void deleteSelectedItem();
         void labelSelectedItem(const QString & s);
         
-        static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
+        static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());        
         
     public slots:
         bool save(bool saveAs = false);

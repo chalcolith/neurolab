@@ -13,6 +13,8 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
 
+#include <QtVariantProperty>
+
 using namespace NeuroLib;
 
 namespace NeuroLab
@@ -35,7 +37,8 @@ namespace NeuroLab
     QMap<QString, NeuroItem::CreateFT> NeuroItem::itemCreators;
     
     NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
-        : QGraphicsItem(), _network(network), _id(NEXT_ID++), _path(0), _textPath(0), _cellIndex(cellIndex)
+        : QGraphicsItem(), label_property(0), input_property(0), output_property(0),
+        _network(network), _id(NEXT_ID++), _path(0), _textPath(0), _cellIndex(cellIndex)
     {
         // we don't use qt selection because it seems to be broken
         //this->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -52,6 +55,77 @@ namespace NeuroLab
             removeIncoming(_incoming.front());
         while (_outgoing.size() > 0)
             removeOutgoing(_outgoing.front());
+    }
+    
+    void NeuroItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *topItem)
+    {
+        if (_properties.count() == 0)
+        {
+            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
+            
+            label_property = manager->addProperty(QVariant::String, tr("Label"));            
+            input_property = manager->addProperty(QVariant::Double, tr("Input Threshold"));            
+            output_property = manager->addProperty(QVariant::Double, tr("Output Weight"));
+
+            _properties.append(label_property);
+            _properties.append(input_property);
+            _properties.append(output_property);
+            
+            updateProperties();
+        }
+
+        PropertyObject::buildProperties(manager, topItem);
+    }
+    
+    void NeuroItem::updateProperties()
+    {
+        if (label_property)
+            label_property->setValue(QVariant(_label));
+        
+        NeuroCell *cell = getCell();
+        if (cell)
+        {
+            if (input_property)
+                input_property->setValue(QVariant(cell->inputThreshold()));
+            if (output_property)
+                output_property->setValue(QVariant(cell->outputWeight()));
+        }
+    }
+    
+    void NeuroItem::propertyValueChanged(QtProperty *property, const QVariant & value)
+    {
+        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
+        
+        if (vprop)
+        {
+            bool changed = false;
+            
+            if (vprop == label_property)
+            {
+                _label = value.toString();
+                changed = true;
+            }
+            else if (vprop == input_property)
+            {
+                NeuroCell *cell = getCell();
+                if (cell)
+                    cell->setInputThreshold(value.toDouble());
+                changed = true;
+            }
+            else if (vprop == output_property)
+            {
+                NeuroCell *cell = getCell();
+                if (cell)
+                    cell->setOutputWeight(value.toDouble());
+                changed = true;
+            }
+            
+            if (changed)
+            {
+                buildShape();
+                update();
+            }
+        }
     }
     
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
@@ -148,28 +222,47 @@ namespace NeuroLab
     }
     
     void NeuroItem::buildShape()
-    {        
+    {
+        updateProperties();
+        
         delete _path;
         _path = new QPainterPath();
         _path->setFillRule(Qt::WindingFill);
         
         delete _textPath;
-        _textPath = new QPainterPath();
-        _textPath->setFillRule(Qt::WindingFill);
-
-        if (!_label.isNull() && !_label.isEmpty())
-            _textPath->addText(NeuroItem::NODE_WIDTH + 4, -1, QApplication::font(), _label);
+        _textPath = 0;
+        _texts.clear();
+        
+        if (!_label.isNull() && !_label.isEmpty())            
+            _texts.append(TextPathRec(QPointF(NeuroItem::NODE_WIDTH + 4, -1), _label));
         
         const_cast<NeuroItem *>(this)->prepareGeometryChange();
+    }
+   
+    void NeuroItem::buildTextPath() const
+    {
+        if (!_textPath)
+        {
+            _textPath = new QPainterPath();
+            _textPath->setFillRule(Qt::WindingFill);
+
+            for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
+            {
+                const TextPathRec & rec = i.peekNext();                
+                _textPath->addText(rec.pos, QApplication::font(), rec.text);
+            }
+        }
     }
 
     QRectF NeuroItem::boundingRect() const
     {
+        buildTextPath();
         return _path->united(*_textPath).controlPointRect();
     }
 
     QPainterPath NeuroItem::shape() const
     {
+        buildTextPath();
         return _path->united(*_textPath);
     }
 
@@ -250,8 +343,12 @@ namespace NeuroLab
         textPen.setColor(NORMAL_LINE_COLOR);
         textPen.setWidth(NORMAL_LINE_WIDTH);
         painter->setPen(textPen);
-                
-        painter->drawPath(*_textPath);
+        
+        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
+        {
+            const TextPathRec & rec = i.peekNext();
+            painter->drawText(rec.pos, rec.text);
+        }
     }
 
 
@@ -370,14 +467,6 @@ namespace NeuroLab
 
     // neuro stuff
     
-    void NeuroItem::buildProperties(QtVariantPropertyManager *)
-    {
-    }
-    
-    void NeuroItem::changeProperty(QtProperty *)
-    {
-    }
-
     NeuroCell *NeuroItem::getCell()
     {
         return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;

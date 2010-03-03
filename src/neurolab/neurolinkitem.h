@@ -70,6 +70,7 @@ namespace NeuroLab
 
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
         
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
         virtual void buildShape();
     };
     
@@ -83,6 +84,7 @@ namespace NeuroLab
 
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
         
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
         virtual void buildShape();
     };
     

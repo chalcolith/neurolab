@@ -2,6 +2,7 @@
 #define NEUROITEM_H
 
 #include "../neurolib/neurocell.h"
+#include "propertyobj.h"
 
 #include <QGraphicsItem>
 #include <QPainterPath>
@@ -11,6 +12,7 @@
 #include <typeinfo>
 
 class QtProperty;
+class QtVariantProperty;
 class QtVariantPropertyManager;
 
 namespace NeuroLab
@@ -20,13 +22,17 @@ namespace NeuroLab
     class LabScene;
 
     class NeuroItem
-        : public QObject, public QGraphicsItem
+        : public QObject, public QGraphicsItem, public PropertyObject
     {
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
         
         static int NEXT_ID;
 
+        QtVariantProperty *label_property;
+        QtVariantProperty *input_property;
+        QtVariantProperty *output_property;
+        
     protected:
         LabNetwork *_network;
 
@@ -36,7 +42,16 @@ namespace NeuroLab
         QList<NeuroItem *> _incoming;
         QList<NeuroItem *> _outgoing;
 
-        QPainterPath *_path, *_textPath;
+        mutable QPainterPath *_path, *_textPath;
+        
+        struct TextPathRec 
+        { 
+            QPointF pos; QString text; 
+            
+            TextPathRec(const QPointF & pos, const QString & text) : pos(pos), text(text) {}
+        };
+        
+        QList<TextPathRec> _texts;
         QString _label;
 
         NeuroLib::NeuroCell::NeuroIndex _cellIndex;
@@ -61,11 +76,11 @@ namespace NeuroLab
 
         int id() { return _id; }
 
-        virtual void buildProperties(QtVariantPropertyManager *propertyManager);
-        
         const QList<NeuroItem *> incoming() const { return _incoming; }
         const QList<NeuroItem *> outgoing() const { return _outgoing; }
 
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        
         static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
 
         void bringToFront();
@@ -104,9 +119,12 @@ namespace NeuroLab
         virtual void toggleFrozen();
         
     public slots:
-        virtual void changeProperty(QtProperty *property);
-
+        void propertyValueChanged(QtProperty *property, const QVariant & value);
+        
     protected:
+        void updateProperties();
+        void buildTextPath() const;
+        
         virtual void setPenWidth(QPen & pen);
         virtual void setPenColor(QPen & pen);
 

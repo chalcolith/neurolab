@@ -1,15 +1,18 @@
-#include <QFileDialog>
-#include <QMessageBox>
-
 #include "mainwindow.h"
 #include "labnetwork.h"
 #include "../automata/exception.h"
+
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include <QtVariantPropertyManager>
+#include <QtVariantProperty>
 
 namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *_parent)
-        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true)
+        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true), filename_property(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(_parent, this);
@@ -22,6 +25,28 @@ namespace NeuroLab
     {
         delete _tree; _tree = 0;
         delete _neuronet; _neuronet = 0;
+    }
+    
+    void LabNetwork::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    {
+        if (_properties.count() == 0)
+        {
+            filename_property = manager->addProperty(QVariant::String, tr("Filename"));
+            filename_property->setEnabled(false);
+
+            QString fname = _fname;
+            int index = fname.lastIndexOf('/');
+            if (index == -1)
+                index = fname.lastIndexOf('\\');
+            if (index != -1)
+                fname = fname.mid(index+1);
+            
+            filename_property->setValue(QVariant(fname));
+            _properties.append(filename_property);
+        }
+        
+        parentItem->setPropertyName(tr("Network"));
+        PropertyObject::buildProperties(manager, parentItem);
     }
     
     NeuroItem *LabNetwork::getSelectedItem()
