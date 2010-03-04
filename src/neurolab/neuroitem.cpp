@@ -37,7 +37,8 @@ namespace NeuroLab
     QMap<QString, NeuroItem::CreateFT> NeuroItem::itemCreators;
     
     NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
-        : QGraphicsItem(), label_property(0), input_property(0), output_property(0),
+        : QGraphicsItem(), 
+        label_property(0), frozen_property(0), input_property(0), output_property(0), value_property(0),
         _network(network), _id(NEXT_ID++), _path(0), _textPath(0), _cellIndex(cellIndex)
     {
         // we don't use qt selection because it seems to be broken
@@ -64,12 +65,17 @@ namespace NeuroLab
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
             
             label_property = manager->addProperty(QVariant::String, tr("Label"));            
-            input_property = manager->addProperty(QVariant::Double, tr("Input Threshold"));            
-            output_property = manager->addProperty(QVariant::Double, tr("Output Weight"));
+            frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
+            input_property = manager->addProperty(QVariant::Double, tr("Threshold"));            
+            output_property = manager->addProperty(QVariant::Double, tr("Weight"));
+            value_property = manager->addProperty(QVariant::Double, tr("Value"));
+            value_property->setEnabled(false);
 
             _properties.append(label_property);
+            _properties.append(frozen_property);
             _properties.append(input_property);
             _properties.append(output_property);
+            _properties.append(value_property);
             
             updateProperties();
         }
@@ -85,10 +91,14 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
+            if (frozen_property)
+                frozen_property->setValue(QVariant(cell->frozen()));
             if (input_property)
                 input_property->setValue(QVariant(cell->inputThreshold()));
             if (output_property)
                 output_property->setValue(QVariant(cell->outputWeight()));
+            if (value_property)
+                value_property->setValue(QVariant(cell->outputValue()));
         }
     }
     
@@ -105,18 +115,25 @@ namespace NeuroLab
                 _label = value.toString();
                 changed = true;
             }
+            else if (vprop == frozen_property)
+            {
+                NeuroCell *cell = getCell();
+                if (cell)
+                    cell->setFrozen(value.toBool());
+                changed = true;
+            }
             else if (vprop == input_property)
             {
                 NeuroCell *cell = getCell();
                 if (cell)
-                    cell->setInputThreshold(value.toDouble());
+                    cell->setInputThreshold(value.toFloat());
                 changed = true;
             }
             else if (vprop == output_property)
             {
                 NeuroCell *cell = getCell();
                 if (cell)
-                    cell->setOutputWeight(value.toDouble());
+                    cell->setOutputWeight(value.toFloat());
                 changed = true;
             }
             
@@ -205,9 +222,6 @@ namespace NeuroLab
         if (_network && _network->scene())
         {
             _network->scene()->setItemUnderMouse(this);
-            
-            if (_network->scene()->selectedItem() != this)
-                _network->scene()->setSelectedItem(0);
         }
         
         update(this->boundingRect());

@@ -25,7 +25,7 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent), 
           _ui(new Ui::MainWindow()),
-          layout(0), currentNetwork(0),
+          _layout(0), _currentNetwork(0),
           _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager())
     {
         if (_instance)
@@ -44,8 +44,8 @@ namespace NeuroLab
         setupConnections();
         
         // central widget layout
-        layout = new QVBoxLayout();
-        _ui->centralWidget->setLayout(layout);
+        _layout = new QVBoxLayout();
+        _ui->centralWidget->setLayout(_layout);
         
         this->setWindowTitle(tr("NeuroLab"));
         
@@ -74,6 +74,13 @@ namespace NeuroLab
     MainWindow *MainWindow::instance()
     {
         return _instance;
+    }
+    
+    void MainWindow::update()
+    {
+        if (_currentNetwork && _currentNetwork->scene() && _currentNetwork->scene()->selectedItem())
+            _currentNetwork->scene()->selectedItem()->updateProperties();
+        QMainWindow::update();
     }
 
     static int NEUROLAB_APP_VERSION()
@@ -115,7 +122,7 @@ namespace NeuroLab
     
     bool MainWindow::newNetwork()
     {
-        if (currentNetwork && !closeNetwork())
+        if (_currentNetwork && !closeNetwork())
             return false;
                 
         setNetwork(new LabNetwork());
@@ -139,7 +146,7 @@ namespace NeuroLab
     
     bool MainWindow::saveNetwork()
     {
-        if (currentNetwork && currentNetwork->save(false))
+        if (_currentNetwork && _currentNetwork->save(false))
         {
             setTitle();
             return true;
@@ -152,9 +159,9 @@ namespace NeuroLab
     /// \return True if we closed the network successfully; false otherwise.
     bool MainWindow::closeNetwork()
     {
-        if (currentNetwork)
+        if (_currentNetwork)
         {
-            if (!currentNetwork->close())
+            if (!_currentNetwork->close())
                 return false;
             
             setNetwork(0);
@@ -166,44 +173,44 @@ namespace NeuroLab
     
     void MainWindow::setTitle(const QString & title)
     {
-        if (currentNetwork && !currentNetwork->fname().isEmpty())
+        if (_currentNetwork && !_currentNetwork->fname().isEmpty())
         {
-            QString fname = currentNetwork->fname();
+            QString fname = _currentNetwork->fname();
             int index = fname.lastIndexOf('/');
             if (index == -1)
                 index = fname.lastIndexOf('\\');
             if (index != -1)
                 fname = fname.mid(index+1);
             
-            this->setWindowTitle(QString("%1%2%3").arg(title).arg(fname).arg(currentNetwork->dirty() ? "*" : ""));            
+            this->setWindowTitle(QString("%1: %2%3").arg(title).arg(fname).arg(_currentNetwork->dirty() ? "*" : ""));            
         }
         else
         {
-            this->setWindowTitle(QString("%1%2").arg(title).arg(currentNetwork && currentNetwork->dirty() ? "*" : ""));
+            this->setWindowTitle(QString("%1%2").arg(title).arg(_currentNetwork && _currentNetwork->dirty() ? "*" : ""));
         }
     }
     
     void MainWindow::setNetwork(LabNetwork *network)
     {
-        if (currentNetwork)
-            layout->removeWidget(currentNetwork->view());
-        delete currentNetwork;
+        if (_currentNetwork)
+            _layout->removeWidget(_currentNetwork->view());
+        delete _currentNetwork;
         
         if (network)
         {
-            currentNetwork = network;
-            layout->addWidget(currentNetwork->view());
-            currentNetwork->view()->show();
+            _currentNetwork = network;
+            _layout->addWidget(_currentNetwork->view());
+            _currentNetwork->view()->show();
         }
         else
         {
-            currentNetwork = 0;
+            _currentNetwork = 0;
             _ui->centralWidget = 0;
         }
 
         setTitle();
-        setPropertyObject(currentNetwork);
-        this->update();
+        setPropertyObject(_currentNetwork);
+        update();
     }
     
     void MainWindow::setPropertyObject(PropertyObject *po)
@@ -234,7 +241,7 @@ namespace NeuroLab
 
     void MainWindow::enableItemMenu()
     {
-        NeuroItem *item = (currentNetwork && currentNetwork->scene()) ? currentNetwork->scene()->selectedItem() : 0;
+        NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->selectedItem() : 0;
         
         bool onItem = item != 0;
         bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
@@ -291,113 +298,114 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
 
 void NeuroLab::MainWindow::on_actionNew_Node_triggered()
 {
-    if (currentNetwork)
-        currentNetwork->newItem(typeid(NeuroLab::NeuroNodeItem).name());
-    setTitle();
+    if (_currentNetwork)
+    {
+        _currentNetwork->newItem(typeid(NeuroLab::NeuroNodeItem).name());
+        update();
+    }
 }
 
 void NeuroLab::MainWindow::on_actionNew_Excitory_Link_triggered()
 {
-    if (currentNetwork)
-        currentNetwork->newItem(typeid(NeuroLab::NeuroExcitoryLinkItem).name());
-    setTitle();
+    if (_currentNetwork)
+    {
+        _currentNetwork->newItem(typeid(NeuroLab::NeuroExcitoryLinkItem).name());
+        update();
+    }
 }
 
 void NeuroLab::MainWindow::on_actionNew_Inhibitory_Link_triggered()
 {
-    if (currentNetwork)
-        currentNetwork->newItem(typeid(NeuroLab::NeuroInhibitoryLinkItem).name());
-    setTitle();
+    if (_currentNetwork)
+    {
+        _currentNetwork->newItem(typeid(NeuroLab::NeuroInhibitoryLinkItem).name());
+        update();
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Delete_triggered()
 {
-    if (currentNetwork)
-        currentNetwork->deleteSelectedItem();    
-    setTitle();
+    if (_currentNetwork)
+    {
+        _currentNetwork->deleteSelectedItem();    
+        update();
+    }
 }
 
 void NeuroLab::MainWindow::on_actionLabel_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
         LabelDialog ld(this);
 
-        NeuroItem *item = currentNetwork->getSelectedItem();
+        NeuroItem *item = _currentNetwork->getSelectedItem();
         if (item)
             ld.setLabel(item->label());
         
         if (ld.exec() == QDialog::Accepted && !ld.label().isNull() && !ld.label().isEmpty())
         {
-            currentNetwork->labelSelectedItem(ld.label());
+            _currentNetwork->labelSelectedItem(ld.label());
         }
+        
+        update();
     }
-    
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionActivate_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
-        NeuroItem *item = currentNetwork->getSelectedItem();
+        NeuroItem *item = _currentNetwork->getSelectedItem();
         if (item)
-            item->activate();
+            item->activate();        
+        update();
     }
-    
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionDeactivate_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
-        NeuroItem *item = currentNetwork->getSelectedItem();
+        NeuroItem *item = _currentNetwork->getSelectedItem();
         if (item)
-            item->deactivate();
+            item->deactivate();        
+        update();
     }
-    
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionToggleFrozen_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
-        NeuroItem *item = currentNetwork->getSelectedItem();
+        NeuroItem *item = _currentNetwork->getSelectedItem();
         if (item)
-            item->toggleFrozen();
+            item->toggleFrozen();        
+        update();
     }
-    
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionStart_triggered()
 {
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionStop_triggered()
 {
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionStep_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
-        currentNetwork->step();
+        _currentNetwork->step();        
+        update();
     }
-    
-    setTitle();
 }
 
 void NeuroLab::MainWindow::on_actionReset_triggered()
 {
-    if (currentNetwork)
+    if (_currentNetwork)
     {
-        currentNetwork->reset();
+        _currentNetwork->reset();
+        update();
     }
-    
-    setTitle();
 }

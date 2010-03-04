@@ -52,10 +52,10 @@ namespace NeuroLib
     
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
     {
-        ds.setVersion(QDataStream::Qt_4_5);
         ds << static_cast<qint32>(nc._kind);
-        ds << static_cast<double>(nc._output_value);
-        ds << static_cast<double>(nc._input_threshold);
+        ds << static_cast<float>(nc._input_threshold);
+        ds << static_cast<float>(nc._output_weight);
+        ds << static_cast<float>(nc._output_value);
         ds << static_cast<bool>(nc._frozen);
         return ds;
     }
@@ -63,13 +63,13 @@ namespace NeuroLib
     QDataStream & operator>> (QDataStream & ds, NeuroCell & nc)
     {
         qint32 k;
-        double n;
+        float n;
         bool f;
         
-        ds.setVersion(QDataStream::Qt_4_5);
         ds >> k; nc._kind = static_cast<NeuroCell::KindOfCell>(k);
-        ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
         ds >> n; nc._input_threshold = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._output_weight = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
         ds >> f; nc._frozen = static_cast<bool>(f);
         
         return ds;

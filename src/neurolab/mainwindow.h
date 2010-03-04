@@ -29,9 +29,9 @@ namespace NeuroLab
         static MainWindow *_instance;
         
         Ui::MainWindow *_ui;
-        QVBoxLayout *layout;
+        QVBoxLayout *_layout;
         
-        LabNetwork *currentNetwork;
+        LabNetwork *_currentNetwork;
         
         QtTreePropertyBrowser *_propertyEditor;
         
@@ -46,7 +46,10 @@ namespace NeuroLab
         
         static MainWindow *instance();
         Ui::MainWindow *ui() { return _ui; }
+        
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
+        
+        void update();
         
     signals:
         void quitting();        

@@ -25,7 +25,7 @@ namespace NeuroLib
         };
         
         typedef int NeuroIndex;
-        typedef double NeuroValue;
+        typedef float NeuroValue;
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
         NeuroCell(const KindOfCell & k = NeuroCell::NODE, const NeuroValue & input_threshold = 1, const NeuroValue & output_weight = 1, const NeuroValue & output_value = 0);

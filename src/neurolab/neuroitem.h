@@ -30,8 +30,10 @@ namespace NeuroLab
         static int NEXT_ID;
 
         QtVariantProperty *label_property;
+        QtVariantProperty *frozen_property;
         QtVariantProperty *input_property;
         QtVariantProperty *output_property;
+        QtVariantProperty *value_property;
         
     protected:
         LabNetwork *_network;
@@ -80,6 +82,7 @@ namespace NeuroLab
         const QList<NeuroItem *> outgoing() const { return _outgoing; }
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        void updateProperties();
         
         static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
 
@@ -122,7 +125,6 @@ namespace NeuroLab
         void propertyValueChanged(QtProperty *property, const QVariant & value);
         
     protected:
-        void updateProperties();
         void buildTextPath() const;
         
         virtual void setPenWidth(QPen & pen);

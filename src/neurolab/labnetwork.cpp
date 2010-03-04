@@ -76,7 +76,7 @@ namespace NeuroLab
         
         if (nln_fname.isEmpty() || nln_fname.isNull())
         {
-            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*.*)"));
+            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return 0;
@@ -101,13 +101,13 @@ namespace NeuroLab
 
             try
             {
-                QDataStream ds(&file);
-                ds >> *ln->_neuronet;
+                QDataStream data(&file);
+                data >> *ln->_neuronet;
             }
             catch (...)
             {
                 delete ln;
-                    throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
             }
         }
         
@@ -117,16 +117,18 @@ namespace NeuroLab
             file.open(QIODevice::ReadOnly);
             
             {
-                QDataStream ds(&file);
+                QDataStream data(&file);
+                data.setVersion(QDataStream::Qt_4_5);
                 QString cookie;
-                ds >> cookie;
+                data >> cookie;
+
                 if (cookie != LAB_SCENE_COOKIE)
                 {
                     delete ln;
-                    throw LabException(tr("Scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw LabException(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
                 
-                ds >> *ln->_tree;
+                data >> *ln->_tree;
             }
         }
         
@@ -146,10 +148,13 @@ namespace NeuroLab
         {
             this->_fname.clear();
             
-            QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*.*)"));
+            QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*)"));
             
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return false;
+            
+            if (!nln_fname.endsWith(".nln", Qt::CaseInsensitive))
+                nln_fname = nln_fname + ".nln";
             
             this->_fname = nln_fname;
         }
@@ -176,6 +181,7 @@ namespace NeuroLab
             if (_tree)
             {
                 QDataStream data(&file);
+                data.setVersion(QDataStream::Qt_4_5);
                 data << LAB_SCENE_COOKIE;
                 data << *_tree;
             }

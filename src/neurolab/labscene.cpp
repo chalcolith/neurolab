@@ -23,17 +23,19 @@ namespace NeuroLab
     LabScene::~LabScene()
     {
     }
-    
+        
     void LabScene::setSelectedItem(NeuroItem *item)
     {
         NeuroItem *oldSelected = _selectedItem;
         _selectedItem = item;
+        
         if (oldSelected)
             oldSelected->update();
-        if (_selectedItem)
-            _selectedItem->update();
         
         MainWindow::instance()->setPropertyObject(_selectedItem);
+        
+        if (_selectedItem)
+            _selectedItem->update();
     }
         
     void LabScene::deleteSelectedItem()
@@ -51,13 +53,13 @@ namespace NeuroLab
         if (_selectedItem)
         {
             _selectedItem->setLabel(s);
+            _selectedItem->update();
         }
     }
 
     void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
         editInfo.scenePos = event->scenePos();
-        editInfo.movingItem = 0;
         
         if (event->buttons() & Qt::LeftButton)
         {
@@ -73,11 +75,13 @@ namespace NeuroLab
             }
             else
             {
+                setSelectedItem(0);
                 MainWindow::instance()->setPropertyObject(_network);
             }
         }
         else if (event->buttons() & Qt::RightButton)
         {
+            editInfo.movingItem = 0;
             setSelectedItem(_itemUnderMouse);
             MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
 
