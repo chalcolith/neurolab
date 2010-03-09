@@ -38,8 +38,11 @@ namespace NeuroLab
     
     NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
         : QGraphicsItem(), 
-        label_property(0), frozen_property(0), input_property(0), output_property(0), value_property(0),
-        _network(network), _id(NEXT_ID++), _path(0), _textPath(0), _cellIndex(cellIndex)
+        label_property(0), frozen_property(0), 
+        slope_property(0), weight_property(0), 
+        value_property(0),
+        _network(network), _id(NEXT_ID++), 
+        _path(0), _textPath(0), _cellIndex(cellIndex)
     {
         // we don't use qt selection because it seems to be broken
         //this->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -66,21 +69,26 @@ namespace NeuroLab
             
             label_property = manager->addProperty(QVariant::String, tr("Label"));            
             frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
-            input_property = manager->addProperty(QVariant::Double, tr("Threshold"));            
-            output_property = manager->addProperty(QVariant::Double, tr("Weight"));
+            slope_property = manager->addProperty(QVariant::Double, tr("Slope"));
+            weight_property = manager->addProperty(QVariant::Double, tr("Weight"));
             value_property = manager->addProperty(QVariant::Double, tr("Value"));
-            value_property->setEnabled(false);
 
             _properties.append(label_property);
             _properties.append(frozen_property);
-            _properties.append(input_property);
-            _properties.append(output_property);
+            _properties.append(slope_property);
+            _properties.append(weight_property);
             _properties.append(value_property);
             
             updateProperties();
         }
 
-        PropertyObject::buildProperties(manager, topItem);
+        topItem->addSubProperty(label_property);
+        topItem->addSubProperty(frozen_property);
+
+        if (dynamic_cast<NeuroLinkItem *>(this))        
+            topItem->addSubProperty(weight_property);
+        else
+            topItem->addSubProperty(slope_property);
     }
     
     void NeuroItem::updateProperties()
@@ -93,12 +101,20 @@ namespace NeuroLab
         {
             if (frozen_property)
                 frozen_property->setValue(QVariant(cell->frozen()));
-            if (input_property)
-                input_property->setValue(QVariant(cell->inputThreshold()));
-            if (output_property)
-                output_property->setValue(QVariant(cell->outputWeight()));
+            
+            if (dynamic_cast<NeuroLinkItem *>(this))
+            {
+                if (weight_property)
+                    weight_property->setValue(QVariant(cell->weight()));
+            }
+            else
+            {
+                if (slope_property)
+                    slope_property->setValue(QVariant(cell->slope()));
+            }
+            
             if (value_property)
-                value_property->setValue(QVariant(cell->outputValue()));
+                value_property->setValue(QVariant(cell->currentValue()));
         }
     }
     
@@ -122,18 +138,25 @@ namespace NeuroLab
                     cell->setFrozen(value.toBool());
                 changed = true;
             }
-            else if (vprop == input_property)
+            else if (vprop == slope_property)
             {
                 NeuroCell *cell = getCell();
                 if (cell)
-                    cell->setInputThreshold(value.toFloat());
+                    cell->setSlope(value.toFloat());
                 changed = true;
             }
-            else if (vprop == output_property)
+            else if (vprop == weight_property)
             {
                 NeuroCell *cell = getCell();
                 if (cell)
-                    cell->setOutputWeight(value.toFloat());
+                    cell->setWeight(value.toFloat());
+                changed = true;
+            }
+            else if (vprop == value_property)
+            {
+                NeuroCell *cell = getCell();
+                if (cell)
+                    cell->setCurrentValue(value.toFloat());
                 changed = true;
             }
             
@@ -323,7 +346,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->outputValue())), static_cast<qreal>(1));
+            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->currentValue())), static_cast<qreal>(1));
 
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
@@ -498,7 +521,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            cell->setOutputValue(1);
+            cell->setCurrentValue(1);
             update(boundingRect());
         }
     }
@@ -508,7 +531,7 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            cell->setOutputValue(0);
+            cell->setCurrentValue(0);
             update(boundingRect());
         }
     }

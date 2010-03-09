@@ -46,8 +46,8 @@ namespace NeuroLab
         NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
         if (cell)
         {
-            int threshold = static_cast<int>(cell->inputThreshold() + static_cast<NeuroCell::NeuroValue>(0.5));
-            _texts.append(TextPathRec(QPointF(-3, 2), QString::number(threshold)));
+            int slope = static_cast<int>(cell->slope() + static_cast<NeuroCell::NeuroValue>(0.5));
+            _texts.append(TextPathRec(QPointF(-3, 2), QString::number(slope)));
         }
     }
 

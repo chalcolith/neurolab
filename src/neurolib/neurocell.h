@@ -28,43 +28,43 @@ namespace NeuroLib
         typedef float NeuroValue;
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
-        NeuroCell(const KindOfCell & k = NeuroCell::NODE, const NeuroValue & input_threshold = 1, const NeuroValue & output_weight = 1, const NeuroValue & output_value = 0);
+        NeuroCell(const KindOfCell & k = NeuroCell::NODE, 
+                  const NeuroValue & slope_or_weight = 1,
+                  const NeuroValue & current_value = 0);
         
         inline const KindOfCell & kind() const { return _kind; }
+                
+        inline const bool & frozen() const { return _frozen; }
+        inline void setFrozen(const bool & frozen) { _frozen = frozen; }
+        
+        const NeuroValue & slope() const { return _slope; }
+        void setSlope(const NeuroValue & slope) { _slope = slope; }
+        
+        const NeuroValue & weight() const { return _weight; }
+        void setWeight(const NeuroValue & weight) { _weight = weight; }
+
+        const NeuroValue & currentValue() const { return _current_value; }
+        void setCurrentValue(const NeuroValue & v) { _current_value = v; }
+        
+        void addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
+        void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);        
         
         struct Update
         {
             void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const;
         };
         
-        void addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
-        void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
-        
-        /// Input threshold (roughly the number of fully active inputs it takes to fully activate the node)
-        const NeuroValue & inputThreshold() const { return _input_threshold; }
-        void setInputThreshold(const NeuroValue & input_threshold) { _input_threshold = input_threshold; }
-
-        /// Output weight (proportion of full output the cell will output)
-        const NeuroValue & outputWeight() const { return _output_weight; }
-        void setOutputWeight(const NeuroValue & output_weight) { _output_weight = output_weight; }
-        
-        /// Output value of the cell.
-        const NeuroValue & outputValue() const { return _output_value; }
-        void setOutputValue(const NeuroValue & v) { _output_value = v; }
-        
-        ///
-        
-        const bool & frozen() const { return _frozen; }
-        void setFrozen(const bool & frozen) { _frozen = frozen; }
-        
     private:
         KindOfCell _kind;
-                
-        NeuroValue _input_threshold;
-        NeuroValue _output_weight;
-        NeuroValue _output_value;
-        
         bool _frozen;
+        
+        union
+        {
+            NeuroValue _slope;
+            NeuroValue _weight;
+        };
+        
+        NeuroValue _current_value;
         
         friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
         friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
