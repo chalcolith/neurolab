@@ -57,10 +57,7 @@ namespace NeuroLib
             next_value = qBound(ZERO, input_sum * prev._weight, ONE);
             break;
         case INHIBITORY_LINK:
-            if (input_sum > 0)
-                next_value = static_cast<NeuroValue>(-100000000);
-            else
-                next_value = 0;
+            next_value = qBound(ZERO, input_sum, ONE) * prev._weight;
             break;
         default:
             break;

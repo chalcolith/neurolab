@@ -89,6 +89,8 @@ namespace NeuroLab
             topItem->addSubProperty(weight_property);
         else
             topItem->addSubProperty(slope_property);
+        
+        topItem->addSubProperty(value_property);
     }
     
     void NeuroItem::updateProperties()

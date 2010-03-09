@@ -35,7 +35,10 @@ namespace NeuroLab
         MainWindow::instance()->setPropertyObject(_selectedItem);
         
         if (_selectedItem)
+        {
+            _selectedItem->updateProperties();
             _selectedItem->update();
+        }
     }
         
     void LabScene::deleteSelectedItem()
