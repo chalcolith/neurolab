@@ -3,24 +3,23 @@
 # -------------------------------------------------
 TARGET = asyncLife
 TEMPLATE = app
-
 SOURCES += main.cpp \
     mainwindow.cpp \
     lifecell.cpp \
     lifeboard.cpp \
     lifewidget.cpp
-HEADERS += \
-    mainwindow.h \
+HEADERS += mainwindow.h \
     lifecell.h \
     lifeboard.h \
     lifewidget.h
 FORMS += mainwindow.ui
-
-debug:BUILDDIR=debug
-else:BUILDDIR=release
-
+debug:BUILDDIR = debug
+else:BUILDDIR = release
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
-LIBS = -L$$DESTDIR -lautomata
+win32:LIBS = -L$$DESTDIR \
+    -lautomata1
+else:LIBS = -L$$DESTDIR \
+    -lautomata

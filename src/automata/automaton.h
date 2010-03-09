@@ -9,6 +9,7 @@
 #include <QWriteLocker>
 
 #include "automata_global.h"
+#include "pool.h"
 #include "graph.h"
 #include "asyncstate.h"
 
@@ -23,7 +24,7 @@ namespace Automata
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
         const TFUpdate fUpdate;
-        QVector<const TState *> temp_neighbors;
+        Pool<QVector<const TState *> > temp_neighbor_pool;
         QVector<QReadWriteLock *> locks;
         
         struct MapFunctor
@@ -107,7 +108,7 @@ namespace Automata
             TIndex lock_index = index/NUM_PER_LOCK;            
             while (locks.size() <= lock_index)
                 locks.append(new QReadWriteLock());
-            QWriteLocker write(locks[lock_index]);
+            QWriteLocker write_lock(locks[lock_index]);
             
             // update
             if (state.r == 0)
@@ -115,12 +116,16 @@ namespace Automata
                 if (isReady(index, 0))
                 {
                     // temporary neighbor array
+                    typename Pool<QVector<const TState *> >::Item tni(temp_neighbor_pool);
+                    QVector<const TState *> *temp_neighbors = tni.data;
+                    
                     const QVector<TIndex> & neighbors = this->_edges[index];
-                    if (neighbors.size() > temp_neighbors.size())
-                        temp_neighbors.resize(neighbors.size());
+                    if (neighbors.size() > temp_neighbors->size())
+                        temp_neighbors->resize(neighbors.size());
                     
                     // get appropriate states of neighbors
-                    const TState ** const temp_ptr = temp_neighbors.data();
+                    const TState ** const temp_ptr = temp_neighbors->data();
+                    
                     for (int i = 0; i < neighbors.size(); ++i)
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
@@ -134,7 +139,7 @@ namespace Automata
                     // update
                     state.q1 = state.q0;
                     fUpdate(this, index, state.q1, state.q0, neighbors.size(), temp_ptr);
-                    state.r = 1;                    
+                    state.r = 1;
                 }
             }
             else if (isReady(index, state.r))
