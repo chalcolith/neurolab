@@ -39,7 +39,7 @@ namespace NeuroLab
     NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
         : QGraphicsItem(), 
         label_property(0), frozen_property(0), 
-        slope_property(0), weight_property(0), 
+        inputs_property(0), weight_property(0), 
         value_property(0),
         _network(network), _id(NEXT_ID++), 
         _path(0), _textPath(0), _cellIndex(cellIndex)
@@ -69,13 +69,13 @@ namespace NeuroLab
             
             label_property = manager->addProperty(QVariant::String, tr("Label"));            
             frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
-            slope_property = manager->addProperty(QVariant::Double, tr("Slope"));
+            inputs_property = manager->addProperty(QVariant::Double, tr("Inputs"));
             weight_property = manager->addProperty(QVariant::Double, tr("Weight"));
             value_property = manager->addProperty(QVariant::Double, tr("Value"));
 
             _properties.append(label_property);
             _properties.append(frozen_property);
-            _properties.append(slope_property);
+            _properties.append(inputs_property);
             _properties.append(weight_property);
             _properties.append(value_property);
             
@@ -88,7 +88,7 @@ namespace NeuroLab
         if (dynamic_cast<NeuroLinkItem *>(this))        
             topItem->addSubProperty(weight_property);
         else
-            topItem->addSubProperty(slope_property);
+            topItem->addSubProperty(inputs_property);
         
         topItem->addSubProperty(value_property);
     }
@@ -111,8 +111,8 @@ namespace NeuroLab
             }
             else
             {
-                if (slope_property)
-                    slope_property->setValue(QVariant(cell->slope()));
+                if (inputs_property)
+                    inputs_property->setValue(QVariant(cell->weight()));
             }
             
             if (value_property)
@@ -140,11 +140,11 @@ namespace NeuroLab
                     cell->setFrozen(value.toBool());
                 changed = true;
             }
-            else if (vprop == slope_property)
+            else if (vprop == inputs_property)
             {
                 NeuroCell *cell = getCell();
                 if (cell)
-                    cell->setSlope(value.toFloat());
+                    cell->setWeight(value.toFloat());
                 changed = true;
             }
             else if (vprop == weight_property)

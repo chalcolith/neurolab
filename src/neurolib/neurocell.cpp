@@ -7,10 +7,10 @@ namespace NeuroLib
 {
     
     NeuroCell::NeuroCell(const KindOfCell & k, 
-                         const NeuroValue & slope_or_weight, 
+                         const NeuroValue & weight, 
                          const NeuroValue & current_value)
         : _kind(k), _frozen(false), 
-        _slope(slope_or_weight), 
+        _weight(weight), 
         _current_value(current_value)
     {
     }
@@ -27,7 +27,9 @@ namespace NeuroLib
 
     static const NeuroCell::NeuroValue ZERO = static_cast<NeuroCell::NeuroValue>(0);
     static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1);
-    
+    static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99);
+    static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0);
+        
     void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *, const NeuroIndex &, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
     {
         next._frozen = prev._frozen;
@@ -49,9 +51,14 @@ namespace NeuroLib
         {
         case NODE:
             if (input_sum > 0)
-                next_value = ONE / (ONE + ::exp(-1 * prev._slope * input_sum));
+            {
+                NeuroValue slope = (SLOPE_OFFSET - ::log2(ONE/SLOPE_Y - ONE)) / prev._weight;
+                next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * input_sum));
+            }
             else
+            {
                 next_value = 0;
+            }
             break;
         case EXCITORY_LINK:
             next_value = qBound(ZERO, input_sum * prev._weight, ONE);
@@ -65,14 +72,13 @@ namespace NeuroLib
 
         next._current_value = next_value;
     }
-    
-    
+        
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
     {
         ds << static_cast<quint8>(nc._kind);
         ds << static_cast<bool>(nc._frozen);
 
-        ds << static_cast<float>(nc._slope);
+        ds << static_cast<float>(nc._weight);
 
         ds << static_cast<float>(nc._current_value);
 
@@ -88,7 +94,7 @@ namespace NeuroLib
         ds >> k; nc._kind = static_cast<NeuroCell::KindOfCell>(k);
         ds >> f; nc._frozen = static_cast<bool>(f);
 
-        ds >> n; nc._slope = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._weight = static_cast<NeuroCell::NeuroValue>(n);
 
         ds >> n; nc._current_value = static_cast<NeuroCell::NeuroValue>(n);
         

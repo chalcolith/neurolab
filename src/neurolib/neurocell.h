@@ -29,17 +29,14 @@ namespace NeuroLib
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
         NeuroCell(const KindOfCell & k = NeuroCell::NODE, 
-                  const NeuroValue & slope_or_weight = 1,
+                  const NeuroValue & weight = 1,
                   const NeuroValue & current_value = 0);
         
         inline const KindOfCell & kind() const { return _kind; }
                 
         inline const bool & frozen() const { return _frozen; }
         inline void setFrozen(const bool & frozen) { _frozen = frozen; }
-        
-        const NeuroValue & slope() const { return _slope; }
-        void setSlope(const NeuroValue & slope) { _slope = slope; }
-        
+                
         const NeuroValue & weight() const { return _weight; }
         void setWeight(const NeuroValue & weight) { _weight = weight; }
 
@@ -57,15 +54,10 @@ namespace NeuroLib
     private:
         KindOfCell _kind;
         bool _frozen;
-        
-        union
-        {
-            NeuroValue _slope;
-            NeuroValue _weight;
-        };
-        
+
+        NeuroValue _weight; // used in links for their weight; in nodes for their input thresholds        
         NeuroValue _current_value;
-        
+                
         friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
         friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
     }; // class NeuroCell
