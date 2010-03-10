@@ -8,9 +8,10 @@ namespace NeuroLib
     
     NeuroCell::NeuroCell(const KindOfCell & k, 
                          const NeuroValue & weight, 
+                         const NeuroValue & run,
                          const NeuroValue & current_value)
         : _kind(k), _frozen(false), 
-        _weight(weight), 
+        _weight(weight), _run(run),
         _current_value(current_value)
     {
     }
@@ -26,9 +27,9 @@ namespace NeuroLib
     }
 
     static const NeuroCell::NeuroValue ZERO = static_cast<NeuroCell::NeuroValue>(0);
-    static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1);
-    static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99);
-    static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0);
+    static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1.0f);
+    static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99f);
+    static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0f);
         
     void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *, const NeuroIndex &, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
     {
@@ -42,8 +43,7 @@ namespace NeuroLib
         
         NeuroValue input_sum = 0;
         for (int i = 0; i < numNeighbors; ++i)
-            input_sum += neighbors[i]->_current_value;        
-        input_sum = qBound(static_cast<NeuroValue>(0), input_sum, static_cast<NeuroValue>(1));
+            input_sum += neighbors[i]->_current_value;
 
         NeuroValue next_value;
         
@@ -52,8 +52,8 @@ namespace NeuroLib
         case NODE:
             if (input_sum > 0)
             {
-                NeuroValue slope = (SLOPE_OFFSET - ::log2(ONE/SLOPE_Y - ONE)) / prev._weight;
-                next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * input_sum));
+                NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
+                next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
             }
             else
             {
@@ -72,7 +72,7 @@ namespace NeuroLib
 
         next._current_value = next_value;
     }
-        
+    
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
     {
         ds << static_cast<quint8>(nc._kind);
@@ -80,6 +80,11 @@ namespace NeuroLib
 
         ds << static_cast<float>(nc._weight);
 
+        if (nc._kind == NeuroCell::NODE)
+        {
+            ds << static_cast<float>(nc._run);
+        }
+        
         ds << static_cast<float>(nc._current_value);
 
         return ds;
@@ -95,6 +100,11 @@ namespace NeuroLib
         ds >> f; nc._frozen = static_cast<bool>(f);
 
         ds >> n; nc._weight = static_cast<NeuroCell::NeuroValue>(n);
+        
+        if (nc._kind == NeuroCell::NODE)
+        {
+            ds >> n; nc._run = static_cast<NeuroCell::NeuroValue>(n);
+        }
 
         ds >> n; nc._current_value = static_cast<NeuroCell::NeuroValue>(n);
         

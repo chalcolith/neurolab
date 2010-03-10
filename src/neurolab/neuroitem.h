@@ -33,6 +33,7 @@ namespace NeuroLab
         QtVariantProperty *frozen_property;
         QtVariantProperty *inputs_property;
         QtVariantProperty *weight_property;
+        QtVariantProperty *run_property;
         QtVariantProperty *value_property;
         
     protected:
