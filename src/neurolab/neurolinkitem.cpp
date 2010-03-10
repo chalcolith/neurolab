@@ -139,7 +139,13 @@ namespace NeuroLab
 //        _path->addEllipse(c2.toPointF(), 8, 8);
 //        _path->addEllipse(myFront.toPointF(), 12, 12);
     }
-        
+    
+    void NeuroLinkItem::setBrushProperties(QBrush & brush)
+    {
+        NeuroItem::setBrushProperties(brush);
+        brush.setStyle(Qt::NoBrush);
+    }
+    
     void NeuroLinkItem::updatePos()
     {
         setPos( (_line.x1() + _line.x2())/2, (_line.y1() + _line.y2())/2 );

@@ -5,9 +5,7 @@ QT += svg
 TEMPLATE = app
 TARGET = neurolab
 include(../neurolab_version.txt)
-
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
-
 SOURCES += main.cpp \
     mainwindow.cpp \
     labnetwork.cpp \
@@ -18,7 +16,8 @@ SOURCES += main.cpp \
     neurolinkitem.cpp \
     neuroitem.cpp \
     labeldialog.cpp \
-    propertyobj.cpp
+    propertyobj.cpp \
+    filedirtydialog.cpp
 HEADERS += mainwindow.h \
     labnetwork.h \
     labscene.h \
@@ -28,17 +27,22 @@ HEADERS += mainwindow.h \
     neurolinkitem.h \
     neuroitem.h \
     labeldialog.h \
-    propertyobj.h
+    propertyobj.h \
+    filedirtydialog.h
 FORMS += mainwindow.ui \
-    labeldialog.ui
-
-debug:BUILDDIR=debug
-else:BUILDDIR=release
-
+    labeldialog.ui \
+    filedirtydialog.ui
+debug:BUILDDIR = debug
+else:BUILDDIR = release
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
-
-win32:LIBS = -L$$DESTDIR -lneurolib1 -lautomata1 -lqtpropertybrowser2
-else:LIBS = -L$$DESTDIR -lneurolib -lautomata -lqtpropertybrowser
+win32:LIBS = -L$$DESTDIR \
+    -lneurolib1 \
+    -lautomata1 \
+    -lqtpropertybrowser2
+else:LIBS = -L$$DESTDIR \
+    -lneurolib \
+    -lautomata \
+    -lqtpropertybrowser

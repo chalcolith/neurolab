@@ -7,20 +7,25 @@ namespace Ui {
     class LabelDialog;
 }
 
-class LabelDialog : public QDialog {
-    Q_OBJECT
-public:
-    LabelDialog(QWidget *parent = 0);
-    ~LabelDialog();
-
-    const QString label() const;
-    void setLabel(const QString & s);
+namespace NeuroLab
+{
     
-protected:
-    void changeEvent(QEvent *e);
-
-private:
-    Ui::LabelDialog *ui;
-};
+    class LabelDialog : public QDialog {
+        Q_OBJECT
+    public:
+        LabelDialog(QWidget *parent = 0);
+        ~LabelDialog();
+        
+        const QString label() const;
+        void setLabel(const QString & s);
+        
+    protected:
+        void changeEvent(QEvent *e);
+        
+    private:
+        Ui::LabelDialog *ui;
+    };
+    
+}
 
 #endif // LABELDIALOG_H

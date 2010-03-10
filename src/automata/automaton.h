@@ -58,8 +58,15 @@ namespace Automata
         virtual void step()
         {
             MapFunctor functor(*this);
-            QFuture<void> future = QtConcurrent::map(this->_nodes, functor);
-            future.waitForFinished();
+            
+            // the asynchronous algo take three updates to fully run one step
+            QFuture<void> future1 = QtConcurrent::map(this->_nodes, functor);
+            QFuture<void> future2 = QtConcurrent::map(this->_nodes, functor);
+            QFuture<void> future3 = QtConcurrent::map(this->_nodes, functor);
+            
+            future1.waitForFinished();
+            future2.waitForFinished();
+            future3.waitForFinished();
         }
 
         TIndex addNode(const TState & node)

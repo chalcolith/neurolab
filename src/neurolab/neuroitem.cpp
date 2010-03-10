@@ -328,14 +328,6 @@ namespace NeuroLab
         return false;
     }
 
-    void NeuroItem::setPenWidth(QPen & pen)
-    {
-        if (shouldHighlight())
-            pen.setWidth(HOVER_LINE_WIDTH);
-        else
-            pen.setWidth(NORMAL_LINE_WIDTH);
-    }
-
     static QColor lerp(const QColor & a, const QColor & b, const qreal & t)
     {
         qreal ar, ag, ab, aa;
@@ -353,9 +345,15 @@ namespace NeuroLab
         result.setRgbF(rr, rg, rb, ra);
         return result;
     }
-
-    void NeuroItem::setPenColor(QPen & pen)
+    
+    void NeuroItem::setPenProperties(QPen & pen)
     {
+        if (shouldHighlight())
+            pen.setWidth(HOVER_LINE_WIDTH);
+        else
+            pen.setWidth(NORMAL_LINE_WIDTH);
+        
+        //
         NeuroCell *cell = getCell();
         if (cell)
         {
@@ -373,17 +371,21 @@ namespace NeuroLab
             pen.setColor(NORMAL_LINE_COLOR);
         }
     }
+    
+    void NeuroItem::setBrushProperties(QBrush & brush)
+    {
+        brush.setColor(BACKGROUND_COLOR);
+    }
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
         painter->setRenderHint(QPainter::Antialiasing);
 
         QPen pen(Qt::SolidLine);
-        setPenWidth(pen);
-        setPenColor(pen);
+        setPenProperties(pen);
 
         QBrush brush(Qt::SolidPattern);
-        brush.setColor(BACKGROUND_COLOR);
+        setBrushProperties(brush);
 
         painter->setPen(pen);
         painter->setBrush(brush);

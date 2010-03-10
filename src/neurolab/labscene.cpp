@@ -122,7 +122,10 @@ namespace NeuroLab
             
             editInfo.linkFront = false;
             item->handleMove(editInfo);
-            editInfo.movingItem = item;
+            
+            if (!dynamic_cast<NeuroNodeItem *>(item))
+                editInfo.movingItem = item;
+            
             editInfo.linkFront = true;
             
             setSelectedItem(item);

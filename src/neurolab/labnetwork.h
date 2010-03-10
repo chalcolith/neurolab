@@ -32,7 +32,8 @@ namespace NeuroLab
         LabNetwork(QWidget *_parent = 0);
         virtual ~LabNetwork();
         
-        bool dirty() { return _dirty; }
+        bool dirty() const { return _dirty; }
+        void setDirty(bool dirty) { _dirty = dirty; }
         
         LabScene *scene() { return _tree ? _tree->scene() : 0; }
         LabView *view() { return _tree ? _tree->view() : 0; }

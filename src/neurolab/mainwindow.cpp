@@ -5,6 +5,7 @@
 #include "labeldialog.h"
 #include "../automata/exception.h"
 
+#include "filedirtydialog.h"
 #include "neurolinkitem.h"
 #include "neuronodeitem.h"
 
@@ -131,16 +132,17 @@ namespace NeuroLab
     
     bool MainWindow::openNetwork()
     {
+        if (_currentNetwork && !closeNetwork())
+            return false;
+        
         LabNetwork *newNetwork = LabNetwork::open(this, QString());
         
         if (newNetwork)
         {
-            closeNetwork();
             setNetwork(newNetwork);
             return true;
         }
 
-        setTitle();        
         return false;
     }
     
@@ -152,7 +154,6 @@ namespace NeuroLab
             return true;
         }
         
-        setTitle();
         return false;
     }
     
@@ -161,9 +162,28 @@ namespace NeuroLab
     {
         if (_currentNetwork)
         {
-            if (!_currentNetwork->close())
-                return false;
-            
+            bool discard = false;
+            if (_currentNetwork->dirty())
+            {
+                FileDirtyDialog fdd(this);
+                fdd.exec();
+                
+                switch (fdd.response())
+                {
+                case FileDirtyDialog::SAVE:
+                    if (!_currentNetwork->save(false))
+                        return false;
+                    break;
+                case FileDirtyDialog::DISCARD:
+                    discard = true;
+                    delete _currentNetwork;
+                    _currentNetwork = 0;
+                    break;
+                case FileDirtyDialog::CANCEL:
+                    return false;
+                }
+            }
+                        
             setNetwork(0);
             return true;
         }
@@ -287,8 +307,10 @@ void NeuroLab::MainWindow::on_action_Save_triggered()
 void NeuroLab::MainWindow::on_action_Quit_triggered()
 {
     if (closeNetwork())
+    {
         quitting();
-    saveStateSettings();
+        saveStateSettings();
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Sidebar_triggered()

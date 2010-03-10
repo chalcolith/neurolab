@@ -57,7 +57,7 @@ namespace NeuroLab
     public slots:
         void setTitle(const QString & title = QString("NeuroLab"));
         void setPropertyObject(PropertyObject *);
-
+        
     private:
         void loadStateSettings();
         void saveStateSettings();

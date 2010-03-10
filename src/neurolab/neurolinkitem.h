@@ -50,7 +50,7 @@ namespace NeuroLab
         void updatePos();
         
     protected:
-        void paintBackLink(QPainter *painter);
+        virtual void setBrushProperties(QBrush &brush);
         
         void writeBinary(QDataStream &) const;
         void readBinary(QDataStream &);

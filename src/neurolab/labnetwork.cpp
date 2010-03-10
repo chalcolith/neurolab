@@ -239,9 +239,6 @@ namespace NeuroLab
     {
         running = true;
         
-        // three times to fully run through the asynchronous algorithm
-        _neuronet->step();
-        _neuronet->step();
         _neuronet->step();
         running = false;
         

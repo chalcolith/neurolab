@@ -128,8 +128,8 @@ namespace NeuroLab
     protected:
         void buildTextPath() const;
         
-        virtual void setPenWidth(QPen & pen);
-        virtual void setPenColor(QPen & pen);
+        virtual void setPenProperties(QPen & pen);
+        virtual void setBrushProperties(QBrush & brush);
 
         virtual bool shouldHighlight() const;
 
