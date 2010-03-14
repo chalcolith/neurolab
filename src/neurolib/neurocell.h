@@ -24,7 +24,7 @@ namespace NeuroLib
             NUM_KINDS
         };
         
-        typedef int NeuroIndex;
+        typedef qint32 NeuroIndex;
         typedef float NeuroValue;
 
         /// The input threshold MUST be > 0, except for inhibitory links.        
@@ -45,14 +45,18 @@ namespace NeuroLib
         void setRun(const NeuroValue & run) { _run = run; }
 
         const NeuroValue & currentValue() const { return _current_value; }
-        void setCurrentValue(const NeuroValue & v) { _current_value = v; }
+        void setCurrentValue(const NeuroValue & v) { _current_value = _running_average = v; }
+        
+        const NeuroValue & runningAverage() const { return _running_average; }
         
         void addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
         void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);        
         
         struct Update
         {
-            void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const;
+            void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, 
+                             const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, 
+                             const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const;
         };
         
     private:
@@ -63,6 +67,7 @@ namespace NeuroLib
         NeuroValue _run; // the width of the slope in the sigmoid curve (for nodes)
         
         NeuroValue _current_value;
+        NeuroValue _running_average;
                 
         friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
         friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);

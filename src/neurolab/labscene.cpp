@@ -142,10 +142,11 @@ namespace NeuroLab
 
     void LabScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     {
-        editInfo.scenePos = event->scenePos();
-
         if (editInfo.movingItem)
         {
+            //qDebug("mouse move event %f, %f\n", event->scenePos().x(), event->scenePos().y());
+            
+            editInfo.scenePos = event->scenePos();
             editInfo.movingItem->handleMove(editInfo);
 
             if (_network)

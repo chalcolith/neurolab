@@ -12,7 +12,8 @@ namespace NeuroLib
                          const NeuroValue & current_value)
         : _kind(k), _frozen(false), 
         _weight(weight), _run(run),
-        _current_value(current_value)
+        _current_value(current_value),
+        _running_average(current_value)
     {
     }
         
@@ -31,8 +32,12 @@ namespace NeuroLib
     static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99f);
     static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0f);
         
-    void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *, const NeuroIndex &, const NeuroCell & prev, NeuroCell & next, const int & numNeighbors, const NeuroCell * const * const neighbors) const
+    void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *_network, 
+                                        const NeuroIndex &, const NeuroCell & prev, NeuroCell & next, 
+                                        const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const
     {
+        NeuroNet *network = dynamic_cast<NeuroNet *>(_network);
+        
         next._frozen = prev._frozen;
         
         if (prev._frozen)
@@ -42,7 +47,7 @@ namespace NeuroLib
         }
         
         NeuroValue input_sum = 0;
-        for (int i = 0; i < numNeighbors; ++i)
+        for (int i = 0; i < neighbor_indices.size(); ++i)
             input_sum += neighbors[i]->_current_value;
 
         NeuroValue next_value;
@@ -50,6 +55,7 @@ namespace NeuroLib
         switch (prev._kind)
         {
         case NODE:
+            // node output
             if (input_sum > 0)
             {
                 NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
@@ -59,6 +65,21 @@ namespace NeuroLib
             {
                 next_value = 0;
             }
+            
+            next_value = qMax(next_value, prev._current_value * (ONE - network->_decay));
+            
+            // hebbian learning
+            for (int i = 0; i < neighbor_indices.size(); ++i)
+            {
+                NeuroCell & incoming = (*network)[neighbor_indices[i]];
+                
+                if (incoming._kind == EXCITORY_LINK)
+                {
+                    NeuroValue delta_weight = network->learn() * (incoming._current_value - incoming._running_average) * (next_value - prev._running_average);
+                    incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
+                }
+            }
+            
             break;
         case EXCITORY_LINK:
             next_value = qBound(ZERO, input_sum * prev._weight, ONE);
@@ -71,6 +92,7 @@ namespace NeuroLib
         }
 
         next._current_value = next_value;
+        next._running_average = (next._current_value + (network->learnTime() - ONE)*prev._running_average) / network->learnTime();
     }
     
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
@@ -86,6 +108,7 @@ namespace NeuroLib
         }
         
         ds << static_cast<float>(nc._current_value);
+        ds << static_cast<float>(nc._running_average);
 
         return ds;
     }
@@ -107,6 +130,7 @@ namespace NeuroLib
         }
 
         ds >> n; nc._current_value = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._running_average = static_cast<NeuroCell::NeuroValue>(n);
         
         return ds;
     }

@@ -19,7 +19,7 @@ namespace Automata
     /// An automaton over graphs, with asynchronous update capability.
     /// \param TState A state in the automaton.
     /// \param TFUpdate A functor by which to update states.  Must implement \c ()(const TState & prev, TState & next, const int & numNeighbors, const TState * const * const neighbors).
-    template <typename TState, typename TFUpdate, typename TIndex = qint32, int NUM_PER_LOCK = 1024>
+    template <typename TState, typename TFUpdate, typename TIndex = quint32, int NUM_PER_LOCK = 1024>
     class Automaton 
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
@@ -145,7 +145,7 @@ namespace Automata
                     
                     // update
                     state.q1 = state.q0;
-                    fUpdate(this, index, state.q1, state.q0, neighbors.size(), temp_ptr);
+                    fUpdate(this, index, state.q1, state.q0, neighbors, temp_ptr);
                     state.r = 1;
                 }
             }

@@ -50,7 +50,8 @@ namespace NeuroLab
         void updatePos();
         
     protected:
-        virtual void setBrushProperties(QBrush &brush);
+        virtual void setPenProperties(QPen & pen);
+        virtual void setBrushProperties(QBrush & brush);
         
         void writeBinary(QDataStream &) const;
         void readBinary(QDataStream &);

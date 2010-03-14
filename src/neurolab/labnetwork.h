@@ -27,6 +27,9 @@ namespace NeuroLab
         QString _fname;
 
         QtVariantProperty *filename_property;
+        QtVariantProperty *decay_property;
+        QtVariantProperty *learn_property;
+        QtVariantProperty *learn_time_property;
         
     public:
         LabNetwork(QWidget *_parent = 0);
@@ -42,6 +45,7 @@ namespace NeuroLab
         NeuroLib::NeuroNet *neuronet() { return _neuronet; }
         
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        void assignProperties();
         
         NeuroItem *getSelectedItem();
         void deleteSelectedItem();
@@ -62,6 +66,8 @@ namespace NeuroLab
         void start();
         void stop();
         void step();
+        
+        void propertyValueChanged(QtProperty *property, const QVariant & value);
     };
     
 } // namespace NeuroLab

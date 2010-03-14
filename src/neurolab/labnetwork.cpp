@@ -12,9 +12,10 @@ namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *_parent)
-        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true), filename_property(0)
+        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true), 
+        filename_property(0), decay_property(0), learn_property(0), learn_time_property(0)
     {
-        _neuronet = new NeuroLib::NeuroNet();
+        _neuronet = new NeuroLib::NeuroNet();        
         _tree = new LabTree(_parent, this);
 
         if (_tree->scene())
@@ -31,6 +32,8 @@ namespace NeuroLab
     {
         if (_properties.count() == 0)
         {
+            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
+
             filename_property = manager->addProperty(QVariant::String, tr("Filename"));
             filename_property->setEnabled(false);
 
@@ -43,10 +46,66 @@ namespace NeuroLab
             
             filename_property->setValue(QVariant(fname));
             _properties.append(filename_property);
+            
+            decay_property = manager->addProperty(QVariant::Double, tr("Decay Rate"));
+            _properties.append(decay_property);
+            
+            learn_property = manager->addProperty(QVariant::Double, tr("Learn Rate"));
+            _properties.append(learn_property);
+            
+            learn_time_property = manager->addProperty(QVariant::Double, tr("Learn Time"));
+            _properties.append(learn_time_property);
         }
         
         parentItem->setPropertyName(tr("Network"));
         PropertyObject::buildProperties(manager, parentItem);
+        
+        //
+        decay_property->setValue(QVariant(_neuronet->decay()));
+        learn_property->setValue(QVariant(_neuronet->learn()));
+        learn_time_property->setValue(QVariant(static_cast<int>(_neuronet->learnTime())));
+    }
+    
+    void LabNetwork::assignProperties()
+    {   
+        if (!_neuronet)
+            return;
+        
+        if (decay_property)               
+            decay_property->setValue(QVariant(_neuronet->decay()));
+        if (learn_property)
+            learn_property->setValue(QVariant(_neuronet->learn()));
+        if (learn_time_property)
+            learn_time_property->setValue(QVariant(_neuronet->learn()));        
+    }
+    
+    void LabNetwork::propertyValueChanged(QtProperty *property, const QVariant & value)
+    {
+        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
+        float prev;
+        bool changed = false;
+        
+        if (vprop == decay_property)
+        {
+            prev = _neuronet->decay();
+            _neuronet->setDecay(value.toFloat());
+            changed = prev != _neuronet->decay();
+        }
+        else if (vprop == learn_property)
+        {
+            prev = _neuronet->learn();
+            _neuronet->setLearn(value.toFloat());
+            changed = prev != _neuronet->learn();
+        }
+        else if (vprop == learn_time_property)
+        {
+            prev = _neuronet->learnTime();
+            _neuronet->setLearnTime(value.toFloat());
+            changed = prev != _neuronet->learnTime();
+        }
+        
+        if (changed)
+            setDirty(true);
     }
     
     NeuroItem *LabNetwork::getSelectedItem()
@@ -103,6 +162,8 @@ namespace NeuroLab
             {
                 QDataStream data(&file);
                 data >> *ln->_neuronet;
+
+                ln->assignProperties();
             }
             catch (...)
             {

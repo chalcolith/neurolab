@@ -29,10 +29,12 @@ public:
         
     struct Update
     {
-        void operator() (Automata::Automaton<LifeCell, LifeCell::Update, LifeCell::LifeIndex> *, const LifeIndex &, const LifeCell & prev, LifeCell & next, const int & numNeighbors, const LifeCell * const * const neighbors) const
+        void operator() (Automata::Automaton<LifeCell, LifeCell::Update, LifeCell::LifeIndex> *, 
+                         const LifeIndex &, const LifeCell & prev, LifeCell & next, 
+                         const QVector<int> & neighbor_indices, const LifeCell * const * const neighbors) const
         {
             int num_alive_neighbors = 0;
-            for (int i = 0; i < numNeighbors; ++i)
+            for (int i = 0; i < neighbor_indices.size(); ++i)
                 if (neighbors[i]->alive)
                     ++num_alive_neighbors;
             

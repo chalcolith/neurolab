@@ -40,6 +40,8 @@ namespace NeuroLab
         
         PropertyObject *_currentPropertyObject;
         
+        bool _lastWindowClosed;
+        
     public:
         MainWindow(QWidget *parent = 0, const QString & initialFname = QString());
         ~MainWindow();
@@ -57,6 +59,8 @@ namespace NeuroLab
     public slots:
         void setTitle(const QString & title = QString("NeuroLab"));
         void setPropertyObject(PropertyObject *);
+        
+        void lastWindowClosed();
         
     private:
         void loadStateSettings();

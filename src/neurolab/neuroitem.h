@@ -143,6 +143,8 @@ namespace NeuroLab
         virtual void readPointerIds(QDataStream &);
 
         virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
+        
+        static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
         //
         NeuroLib::NeuroCell *getCell();

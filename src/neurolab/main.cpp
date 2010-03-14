@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QApplication application(argc, argv);
     NeuroLab::MainWindow window;
 
-    QObject::connect(&application, SIGNAL(lastWindowClosed()), &window, SLOT(on_action_Quit_triggered()));
+    QObject::connect(&application, SIGNAL(lastWindowClosed()), &window, SLOT(lastWindowClosed()));
     QObject::connect(&window, SIGNAL(quitting()), &application, SLOT(quit()));
     
     window.show();

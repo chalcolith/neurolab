@@ -328,7 +328,7 @@ namespace NeuroLab
         return false;
     }
 
-    static QColor lerp(const QColor & a, const QColor & b, const qreal & t)
+    QColor NeuroItem::lerp(const QColor & a, const QColor & b, const qreal & t)
     {
         qreal ar, ag, ab, aa;
         qreal br, bg, bb, ba;

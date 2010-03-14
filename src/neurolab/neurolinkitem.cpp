@@ -140,6 +140,16 @@ namespace NeuroLab
 //        _path->addEllipse(myFront.toPointF(), 12, 12);
     }
     
+    void NeuroLinkItem::setPenProperties(QPen & pen)
+    {
+        NeuroItem::setPenProperties(pen);
+        NeuroCell *cell = getCell();
+        if (cell)
+        {
+            
+        }
+    }
+    
     void NeuroLinkItem::setBrushProperties(QBrush & brush)
     {
         NeuroItem::setBrushProperties(brush);

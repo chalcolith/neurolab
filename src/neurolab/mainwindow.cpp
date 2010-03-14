@@ -27,7 +27,8 @@ namespace NeuroLab
         : QMainWindow(parent), 
           _ui(new Ui::MainWindow()),
           _layout(0), _currentNetwork(0),
-          _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager())
+          _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager()),
+          _lastWindowClosed(false)
     {
         if (_instance)
             throw LabException("You cannot create more than one main window.");
@@ -132,13 +133,16 @@ namespace NeuroLab
     
     bool MainWindow::openNetwork()
     {
-        if (_currentNetwork && !closeNetwork())
-            return false;
-        
         LabNetwork *newNetwork = LabNetwork::open(this, QString());
         
         if (newNetwork)
         {
+            if (_currentNetwork && !closeNetwork())
+            {
+                setNetwork(0);
+                return false;
+            }
+            
             setNetwork(newNetwork);
             return true;
         }
@@ -304,12 +308,25 @@ void NeuroLab::MainWindow::on_action_Save_triggered()
     saveNetwork();
 }
 
+void NeuroLab::MainWindow::lastWindowClosed()
+{
+    if (!_lastWindowClosed)
+    {
+        _lastWindowClosed = true;
+        on_action_Quit_triggered();
+    }
+}
+
 void NeuroLab::MainWindow::on_action_Quit_triggered()
 {
     if (closeNetwork())
     {
         quitting();
         saveStateSettings();
+    }
+    else
+    {
+        this->show();
     }
 }
 

@@ -134,10 +134,10 @@ namespace NeuroLab
                 }
                 else
                 {
-                    if (toPos.x() < toPos.y())
-                        toPos.setX(toPos.x() * 2);
-                    else
-                        toPos.setY(toPos.y() * 2);
+                    //if (toPos.x() < toPos.y())
+                    //    toPos.setX(toPos.x() * 2);
+                    //else
+                    //    toPos.setY(toPos.y() * 2);
                     toPos.normalize();
                 }
                 
