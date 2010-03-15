@@ -50,9 +50,7 @@ namespace NeuroLab
         Ui::MainWindow *ui() { return _ui; }
         
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
-        
-        void update();
-        
+                
     signals:
         void quitting();        
 
@@ -75,14 +73,12 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
         
     private slots:
-        void on_actionReset_triggered();
-        void on_actionStep_triggered();
-        void on_actionStop_triggered();
-        void on_actionStart_triggered();
-        void on_actionDeactivate_triggered();
-        void on_actionActivate_triggered();
-        void on_actionToggleFrozen_triggered();
-        void on_actionLabel_triggered();
+        void on_action_Reset_triggered();
+        void on_action_Step_triggered();
+        void on_action_Stop_triggered();
+        void on_action_Start_triggered();
+        void on_action_Activate_triggered();
+        void on_action_ToggleFrozen_triggered();
         void on_action_Sidebar_triggered();
         void on_action_New_triggered();
         void on_action_Open_triggered();
@@ -90,10 +86,9 @@ namespace NeuroLab
         void on_action_Save_triggered();
         void on_action_Quit_triggered();
         void on_action_Delete_triggered();
-
-        void on_actionNew_Node_triggered();
-        void on_actionNew_Excitory_Link_triggered();
-        void on_actionNew_Inhibitory_Link_triggered();
+        void on_action_New_Node_triggered();
+        void on_action_New_Excitory_Link_triggered();
+        void on_action_New_Inhibitory_Link_triggered();
 
         void enableItemMenu();
     };

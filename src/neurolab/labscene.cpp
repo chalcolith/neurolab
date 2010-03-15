@@ -16,7 +16,7 @@ namespace NeuroLab
 {
     
     LabScene::LabScene(LabNetwork *_network)
-        : QGraphicsScene(0), _network(_network), _itemUnderMouse(0), _selectedItem(0)
+        : QGraphicsScene(0), _network(_network), _itemUnderMouse(0)
     {
     }
     
@@ -24,138 +24,24 @@ namespace NeuroLab
     {
     }
         
-    void LabScene::setSelectedItem(NeuroItem *item)
+    void LabScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     {
-        NeuroItem *oldSelected = _selectedItem;
-        _selectedItem = item;
-        
-        if (oldSelected)
-            oldSelected->update();
-        
-        MainWindow::instance()->setPropertyObject(_selectedItem);
-        
-        if (_selectedItem)
+        QGraphicsScene::contextMenuEvent(event);
+        if (!event->isAccepted())
         {
-            _selectedItem->updateProperties();
-            _selectedItem->update();
-        }
-    }
-        
-    void LabScene::deleteSelectedItem()
-    {
-        if (_selectedItem)
-        {
-            this->removeItem(_selectedItem);
-            delete _selectedItem;
-            _selectedItem = 0;
-        }
-    }
-    
-    void LabScene::labelSelectedItem(const QString & s)
-    {
-        if (_selectedItem)
-        {
-            _selectedItem->setLabel(s);
-            _selectedItem->update();
-        }
-    }
-
-    void LabScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
-    {
-        editInfo.scenePos = event->scenePos();
-        
-        if (event->buttons() & Qt::LeftButton)
-        {
-            if (editInfo.movingItem)
-            {
-                editInfo.movingItem = 0;
-                return;
-            }
-            else if (mousePressPickupNode(event))
-            {
-                setSelectedItem(editInfo.movingItem);
-                return;
-            }
-            else
-            {
-                setSelectedItem(0);
-                MainWindow::instance()->setPropertyObject(_network);
-            }
-        }
-        else if (event->buttons() & Qt::RightButton)
-        {
-            editInfo.movingItem = 0;
-            setSelectedItem(_itemUnderMouse);
             MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
-
-            return;
         }
-
-        QGraphicsScene::mousePressEvent(event);
     }
-
-    bool LabScene::mousePressPickupNode(QGraphicsSceneMouseEvent *)
+        
+    void LabScene::newItem(const QString & typeName, const QPointF & scenePos)
     {
-        NeuroItem *item = _itemUnderMouse;
-
-        if (item && item->handlePickup(editInfo))
-        {
-            item->bringToFront();
-            editInfo.movingItem = item;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    void LabScene::newItem(const QString & typeName)
-    {
-        setSelectedItem(0);
-        editInfo.movingItem = 0;
-
-        NeuroItem *item = NeuroItem::create(typeName, this, editInfo.scenePos);
+        NeuroItem *item = NeuroItem::create(typeName, this, scenePos);
         if (item)
         {
             addItem(item);
-            item->buildShape();
-            
-            editInfo.linkFront = false;
-            item->handleMove(editInfo);
-            
-            if (!dynamic_cast<NeuroNodeItem *>(item))
-                editInfo.movingItem = item;
-            
-            editInfo.linkFront = true;
-            
-            setSelectedItem(item);
+            item->buildShape();            
+            item->setSelected(true);
         }
     }
-
-    void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-    {
-        editInfo.scenePos = event->scenePos();
-        editInfo.movingItem = 0;
-
-        QGraphicsScene::mouseReleaseEvent(event);
-    }
-
-    void LabScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-    {
-        if (editInfo.movingItem)
-        {
-            //qDebug("mouse move event %f, %f\n", event->scenePos().x(), event->scenePos().y());
-            
-            editInfo.scenePos = event->scenePos();
-            editInfo.movingItem->handleMove(editInfo);
-
-            if (_network)
-                _network->changed();
-
-            return;
-        }
-
-        QGraphicsScene::mouseMoveEvent(event);
-    }
-
+    
 } // namespace NeuroLab

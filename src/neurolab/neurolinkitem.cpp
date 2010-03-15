@@ -21,7 +21,7 @@ namespace NeuroLab
     //////////////////////////////////////////////////////////////////
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0)
+        : NeuroItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0), dragFront(true), settingLine(false)
     {
     }
     
@@ -33,23 +33,21 @@ namespace NeuroLab
     
     void NeuroLinkItem::setLine(const QLineF & l)
     { 
+        settingLine = true;
         prepareGeometryChange();
         _line = l;
         updatePos(); 
+        settingLine = false;
     }
     
     void NeuroLinkItem::setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2)
-    { 
-        prepareGeometryChange();
-        _line = QLineF(x1, y1, x2, y2);
-        updatePos(); 
+    {
+        setLine(QLineF(x1, y1, x2, y2));
     }
     
-    void NeuroLinkItem::setLine(const QPointF &p1, const QPointF &p2)
+    void NeuroLinkItem::setLine(const QPointF & p1, const QPointF & p2)
     {
-        prepareGeometryChange();
-        _line = QLineF(p1, p2);
-        updatePos();
+        setLine(QLineF(p1, p2));
     }
     
     void NeuroLinkItem::addIncoming(NeuroItem *linkItem)
@@ -132,21 +130,29 @@ namespace NeuroLab
             c2 = (center + toFront * 3) - myPos;
         }
         
-        _path->moveTo(myBack.toPointF());
-        _path->cubicTo(c1.toPointF(), c2.toPointF(), myFront.toPointF());
+        QPointF front = myFront.toPointF();
+        QPointF back = myBack.toPointF();
         
-//        _path->addEllipse(c1.toPointF(), 4, 4);
-//        _path->addEllipse(c2.toPointF(), 8, 8);
-//        _path->addEllipse(myFront.toPointF(), 12, 12);
+        QPointF a = QPointF(back.x() - 2, back.y() - 2);
+        QPointF b = QPointF(front.x() - 2, front.y() - 2);
+        QPointF c = QPointF(front.x() + 2, front.y() + 2);
+        QPointF d = QPointF(back.x() + 2, back.y() + 2);
+        
+        _path->moveTo(a);
+        _path->cubicTo(c1.toPointF(), c2.toPointF(), b);
+        _path->lineTo(c);
+        _path->cubicTo(c2.toPointF(), c1.toPointF(), d);
+        _path->lineTo(a);
     }
     
     void NeuroLinkItem::setPenProperties(QPen & pen)
     {
         NeuroItem::setPenProperties(pen);
+        
         NeuroCell *cell = getCell();
         if (cell)
         {
-            
+            pen.setWidthF(cell->weight() + 1);
         }
     }
     
@@ -178,7 +184,7 @@ namespace NeuroLab
         }
     }
     
-    bool NeuroLinkItem::canLinkTo(EditInfo & info, NeuroItem *item)
+    bool NeuroLinkItem::canLinkTo(NeuroItem *item)
     {
         // cannot link the back of a link to another link
         if (dynamic_cast<NeuroLinkItem *>(item) && !info.linkFront)
@@ -191,6 +197,7 @@ namespace NeuroLab
         return true;        
     }
     
+#if 0
     bool NeuroLinkItem::handlePickup(EditInfo & info)
     {
         qreal front_dist = (QVector2D(info.scenePos) - QVector2D(this->line().p2())).lengthSquared();
@@ -253,6 +260,7 @@ namespace NeuroLab
             itemAtPos->adjustLinks();
         }        
     }
+#endif
         
     void NeuroLinkItem::writeBinary(QDataStream & data) const
     {

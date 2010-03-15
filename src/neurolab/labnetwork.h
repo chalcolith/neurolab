@@ -47,10 +47,6 @@ namespace NeuroLab
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
         void updateProperties();
         
-        NeuroItem *getSelectedItem();
-        void deleteSelectedItem();
-        void labelSelectedItem(const QString & s);
-        
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());        
         
     public slots:

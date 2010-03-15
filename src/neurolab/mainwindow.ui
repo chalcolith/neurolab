@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -44,25 +44,23 @@
     <property name="title">
      <string>&amp;Node</string>
     </property>
-    <addaction name="actionNew_Node"/>
-    <addaction name="actionNew_Excitory_Link"/>
-    <addaction name="actionNew_Inhibitory_Link"/>
+    <addaction name="action_New_Node"/>
+    <addaction name="action_New_Excitory_Link"/>
+    <addaction name="action_New_Inhibitory_Link"/>
     <addaction name="separator"/>
-    <addaction name="actionLabel"/>
     <addaction name="action_Delete"/>
     <addaction name="separator"/>
-    <addaction name="actionActivate"/>
-    <addaction name="actionDeactivate"/>
-    <addaction name="actionToggleFrozen"/>
+    <addaction name="action_Activate"/>
+    <addaction name="action_ToggleFrozen"/>
    </widget>
    <widget class="QMenu" name="menuSimulation">
     <property name="title">
      <string>Simulation</string>
     </property>
-    <addaction name="actionStart"/>
-    <addaction name="actionStop"/>
-    <addaction name="actionStep"/>
-    <addaction name="actionReset"/>
+    <addaction name="action_Start"/>
+    <addaction name="action_Stop"/>
+    <addaction name="action_Step"/>
+    <addaction name="action_Reset"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
@@ -81,10 +79,8 @@
    <addaction name="action_Save"/>
    <addaction name="action_Close"/>
    <addaction name="separator"/>
-   <addaction name="actionStart"/>
-   <addaction name="actionStop"/>
-   <addaction name="actionStep"/>
-   <addaction name="actionReset"/>
+   <addaction name="action_Step"/>
+   <addaction name="action_Reset"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="sidebarDockWidget">
@@ -112,8 +108,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>79</width>
-          <height>250</height>
+          <width>69</width>
+          <height>269</height>
          </rect>
         </property>
         <attribute name="label">
@@ -184,57 +180,47 @@
     <string>Del</string>
    </property>
   </action>
-  <action name="actionNew_Excitory_Link">
+  <action name="action_New_Excitory_Link">
    <property name="text">
     <string>New &amp;Excitory Link</string>
    </property>
   </action>
-  <action name="actionNew_Inhibitory_Link">
+  <action name="action_New_Inhibitory_Link">
    <property name="text">
     <string>New &amp;Inhibitory Link</string>
    </property>
   </action>
-  <action name="actionNew_Node">
+  <action name="action_New_Node">
    <property name="text">
     <string>New No&amp;de</string>
    </property>
   </action>
-  <action name="actionLabel">
+  <action name="action_Activate">
    <property name="text">
-    <string>Label</string>
+    <string>Toggle Activated</string>
    </property>
   </action>
-  <action name="actionActivate">
-   <property name="text">
-    <string>Activate</string>
-   </property>
-  </action>
-  <action name="actionDeactivate">
-   <property name="text">
-    <string>Deactivate</string>
-   </property>
-  </action>
-  <action name="actionStart">
+  <action name="action_Start">
    <property name="text">
     <string>Start</string>
    </property>
   </action>
-  <action name="actionStop">
+  <action name="action_Stop">
    <property name="text">
     <string>Stop</string>
    </property>
   </action>
-  <action name="actionStep">
+  <action name="action_Step">
    <property name="text">
     <string>Step</string>
    </property>
   </action>
-  <action name="actionToggleFrozen">
+  <action name="action_ToggleFrozen">
    <property name="text">
     <string>Toggle Frozen</string>
    </property>
   </action>
-  <action name="actionReset">
+  <action name="action_Reset">
    <property name="text">
     <string>Reset</string>
    </property>

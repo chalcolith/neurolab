@@ -115,26 +115,7 @@ namespace NeuroLab
         if (changed)
             setDirty(true);
     }
-    
-    NeuroItem *LabNetwork::getSelectedItem()
-    {
-        return (_tree && _tree->scene()) ? _tree->scene()->selectedItem() : 0;
-    }
-    
-    void LabNetwork::deleteSelectedItem()
-    {
-        if (_tree && _tree->scene())
-            _tree->scene()->deleteSelectedItem();
-        changed();
-    }
-    
-    void LabNetwork::labelSelectedItem(const QString & s)
-    {
-        if (_tree && _tree->scene())
-            _tree->scene()->labelSelectedItem(s);
-        changed();
-    }    
-    
+        
     static const QString LAB_SCENE_COOKIE("Neurolab SCENE 002");
     
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
@@ -279,16 +260,25 @@ namespace NeuroLab
     void LabNetwork::changed()
     {
         if (!first_change)
+        {
             this->_dirty = true;
+            MainWindow::instance()->setTitle();
+        }
         else
+        {
             first_change = false;
+        }
     }
     
     void LabNetwork::newItem(const QString & typeName)
     {
-        if (this->scene())
-            this->scene()->newItem(typeName);
-        changed();
+        if (scene() && view())
+        {
+            QPoint viewPos = view()->mapFromGlobal(QCursor::pos());
+            QPointF scenePos = view()->mapToScene(viewPos.x(), viewPos.y());
+            
+            scene()->newItem(typeName, scenePos);
+        }        
     }
     
     void LabNetwork::start()

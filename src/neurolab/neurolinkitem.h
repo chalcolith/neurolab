@@ -18,6 +18,7 @@ namespace NeuroLab
         QVector2D c1, c2;
         
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
+        bool dragFront, settingLine;
         
     public:
         NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
@@ -41,9 +42,7 @@ namespace NeuroLab
 
         virtual void buildShape();        
         
-        virtual bool canLinkTo(EditInfo & info, NeuroItem *item);
-        virtual bool handlePickup(EditInfo & info);
-        virtual void handleMove(EditInfo & info);
+        virtual bool canLinkTo(NeuroItem *item);
         virtual void adjustLinks();
         
     private:

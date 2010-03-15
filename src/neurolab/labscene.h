@@ -19,10 +19,9 @@ namespace NeuroLab
         Q_OBJECT
         
         LabNetwork *_network;
-
-        NeuroItem::EditInfo editInfo;        
         NeuroItem *_itemUnderMouse;
-        NeuroItem *_selectedItem;
+        
+        QPointF menuPos;
                 
     public:
         LabScene(LabNetwork *_network);
@@ -32,23 +31,12 @@ namespace NeuroLab
         
         NeuroItem *itemUnderMouse() const { return _itemUnderMouse; }
         void setItemUnderMouse(NeuroItem *item) { _itemUnderMouse = item; }
-        
-        NeuroItem *selectedItem() const { return _selectedItem; }
-        void setSelectedItem(NeuroItem *item);
-        
-        void deleteSelectedItem();
-        void labelSelectedItem(const QString & s);
-        
-    public slots:
-        void newItem(const QString & typeName);
-
-    protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *);
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *);
                 
-    private:
-        bool mousePressPickupNode(QGraphicsSceneMouseEvent *event);
+    public slots:
+        void newItem(const QString & typeName, const QPointF & scenePos);
+        
+    protected:
+        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
     };
     
 } // namespace NeuroLab

@@ -78,13 +78,6 @@ namespace NeuroLab
         return _instance;
     }
     
-    void MainWindow::update()
-    {
-        if (_currentNetwork && _currentNetwork->scene() && _currentNetwork->scene()->selectedItem())
-            _currentNetwork->scene()->selectedItem()->updateProperties();
-        QMainWindow::update();
-    }
-
     static int NEUROLAB_APP_VERSION()
     {
         QStringList nums = VERSION.split(".");
@@ -265,22 +258,20 @@ namespace NeuroLab
 
     void MainWindow::enableItemMenu()
     {
-        NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->selectedItem() : 0;
+        NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->itemUnderMouse() : 0;
         
         bool onItem = item != 0;
         bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
         bool onLink = dynamic_cast<NeuroLinkItem *>(item) != 0;
 
-        _ui->actionNew_Node->setEnabled(!onNode);
-        _ui->actionNew_Excitory_Link->setEnabled(!onLink);
-        _ui->actionNew_Inhibitory_Link->setEnabled(!onLink);
+        _ui->action_New_Node->setEnabled(!onNode);
+        _ui->action_New_Excitory_Link->setEnabled(!onLink);
+        _ui->action_New_Inhibitory_Link->setEnabled(!onLink);
         
         _ui->action_Delete->setEnabled(onItem);
-        _ui->actionLabel->setEnabled(onItem);
         
-        _ui->actionActivate->setEnabled(onNode);
-        _ui->actionDeactivate->setEnabled(onNode);
-        _ui->actionToggleFrozen->setEnabled(onNode);
+        _ui->action_Activate->setEnabled(onNode);
+        _ui->action_ToggleFrozen->setEnabled(onNode);
     }
     
 } // namespace NeuroLab
@@ -335,7 +326,7 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
     _ui->sidebarDockWidget->toggleViewAction()->trigger();
 }
 
-void NeuroLab::MainWindow::on_actionNew_Node_triggered()
+void NeuroLab::MainWindow::on_action_New_Node_triggered()
 {
     if (_currentNetwork)
     {
@@ -344,7 +335,7 @@ void NeuroLab::MainWindow::on_actionNew_Node_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_actionNew_Excitory_Link_triggered()
+void NeuroLab::MainWindow::on_action_New_Excitory_Link_triggered()
 {
     if (_currentNetwork)
     {
@@ -353,7 +344,7 @@ void NeuroLab::MainWindow::on_actionNew_Excitory_Link_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_actionNew_Inhibitory_Link_triggered()
+void NeuroLab::MainWindow::on_action_New_Inhibitory_Link_triggered()
 {
     if (_currentNetwork)
     {
@@ -364,74 +355,56 @@ void NeuroLab::MainWindow::on_actionNew_Inhibitory_Link_triggered()
 
 void NeuroLab::MainWindow::on_action_Delete_triggered()
 {
-    if (_currentNetwork)
+    if (_currentNetwork && _currentNetwork->scene())
     {
-        _currentNetwork->deleteSelectedItem();    
-        update();
-    }
-}
-
-void NeuroLab::MainWindow::on_actionLabel_triggered()
-{
-    if (_currentNetwork)
-    {
-        LabelDialog ld(this);
-
-        NeuroItem *item = _currentNetwork->getSelectedItem();
-        if (item)
-            ld.setLabel(item->label());
-        
-        if (ld.exec() == QDialog::Accepted && !ld.label().isNull() && !ld.label().isEmpty())
+        for (QListIterator<QGraphicsItem *> i(_currentNetwork->scene()->selectedItems()); i.hasNext(); i.next())
         {
-            _currentNetwork->labelSelectedItem(ld.label());
+            QGraphicsItem *item = i.peekNext();
+            _currentNetwork->scene()->removeItem(item);
+            delete item;
         }
-        
-        update();
     }
 }
 
-void NeuroLab::MainWindow::on_actionActivate_triggered()
+void NeuroLab::MainWindow::on_action_Activate_triggered()
 {
-    if (_currentNetwork)
+    if (_currentNetwork && _currentNetwork->scene())
     {
-        NeuroItem *item = _currentNetwork->getSelectedItem();
-        if (item)
-            item->activate();        
+        for (QListIterator<QGraphicsItem *> i(_currentNetwork->scene()->selectedItems()); i.hasNext(); i.next())
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+            if (item)
+                item->toggleActivated();
+        }
+
         update();
     }
 }
 
-void NeuroLab::MainWindow::on_actionDeactivate_triggered()
+void NeuroLab::MainWindow::on_action_ToggleFrozen_triggered()
 {
-    if (_currentNetwork)
+    if (_currentNetwork && _currentNetwork->scene())
     {
-        NeuroItem *item = _currentNetwork->getSelectedItem();
-        if (item)
-            item->deactivate();        
+        for (QListIterator<QGraphicsItem *> i(_currentNetwork->scene()->selectedItems()); i.hasNext(); i.next())
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+            if (item)
+                item->toggleFrozen();
+        }
+
         update();
     }
 }
 
-void NeuroLab::MainWindow::on_actionToggleFrozen_triggered()
-{
-    if (_currentNetwork)
-    {
-        NeuroItem *item = _currentNetwork->getSelectedItem();
-        if (item)
-            item->toggleFrozen();        
-        update();
-    }
-}
-
-void NeuroLab::MainWindow::on_actionStart_triggered()
+void NeuroLab::MainWindow::on_action_Start_triggered()
 {
 }
 
-void NeuroLab::MainWindow::on_actionStop_triggered()
+void NeuroLab::MainWindow::on_action_Stop_triggered()
 {
 }
 
-void NeuroLab::MainWindow::on_actionStep_triggered()
+void NeuroLab::MainWindow::on_action_Step_triggered()
 {
     if (_currentNetwork)
     {
@@ -440,7 +413,7 @@ void NeuroLab::MainWindow::on_actionStep_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_actionReset_triggered()
+void NeuroLab::MainWindow::on_action_Reset_triggered()
 {
     if (_currentNetwork)
     {

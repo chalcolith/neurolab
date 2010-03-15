@@ -95,19 +95,8 @@ namespace NeuroLab
         virtual void addOutgoing(NeuroItem *linkItem);
         virtual void removeOutgoing(NeuroItem *linkItem);
 
-        struct EditInfo
-        {
-            bool linkFront;
-            QPointF scenePos;
-            NeuroItem *movingItem;
-
-            EditInfo() : linkFront(true), scenePos(0,0), movingItem(0) {}
-        };
-
-        virtual bool canLinkTo(EditInfo & info, NeuroItem *item) = 0;
-        virtual bool handlePickup(EditInfo & info) = 0;
-        virtual void handleMove(EditInfo & info) = 0;
-        virtual void adjustLinks() = 0;
+        virtual bool canLinkTo(NeuroItem *) { return false; }
+        virtual void adjustLinks() { }
 
         virtual void idsToPointers(QGraphicsScene *);
 
@@ -118,8 +107,7 @@ namespace NeuroLab
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
         virtual void reset();
-        virtual void activate();
-        virtual void deactivate();
+        virtual void toggleActivated();
         virtual void toggleFrozen();
         
     public slots:

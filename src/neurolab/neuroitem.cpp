@@ -26,7 +26,7 @@ namespace NeuroLab
     const QColor NeuroItem::ACTIVE_COLOR = Qt::red;
     
     const int NeuroItem::NORMAL_LINE_WIDTH = 1;
-    const int NeuroItem::HOVER_LINE_WIDTH = 3;
+    const int NeuroItem::HOVER_LINE_WIDTH = 5;
 
     const int NeuroItem::NODE_WIDTH = 30;
     const int NeuroItem::ELLIPSE_WIDTH = 10;
@@ -44,8 +44,7 @@ namespace NeuroLab
         _network(network), _id(NEXT_ID++), 
         _path(0), _textPath(0), _cellIndex(cellIndex)
     {
-        // we don't use qt selection because it seems to be broken
-        //this->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        this->setFlag(QGraphicsItem::ItemIsSelectable, true);
         this->setFlag(QGraphicsItem::ItemIsMovable, true);
         this->setAcceptHoverEvents(true);
     }
@@ -329,7 +328,7 @@ namespace NeuroLab
             return true;
 
         const LabScene *sc = dynamic_cast<const LabScene *>(this->scene());
-        if (sc && (sc->selectedItem() == this || sc->itemUnderMouse() == this))
+        if (sc && (sc->itemUnderMouse() == this || sc->selectedItems().contains(const_cast<NeuroItem *>(this))))
             return true;
 
         return false;
@@ -535,26 +534,18 @@ namespace NeuroLab
     {
         NeuroCell *cell = getCell();
         if (cell && !cell->frozen())
-            deactivate();
-    }
-
-    void NeuroItem::activate()
-    {
-        NeuroCell *cell = getCell();
-        if (cell)
-        {
-            cell->setCurrentValue(1);
-            update(boundingRect());
-        }
-    }
-
-    void NeuroItem::deactivate()
-    {
-        NeuroCell *cell = getCell();
-        if (cell)
-        {
             cell->setCurrentValue(0);
-            update(boundingRect());
+    }
+    
+    void NeuroItem::toggleActivated()
+    {
+        NeuroCell *cell = getCell();
+        if (cell)
+        {
+            if (cell->currentValue() > 0.1f)
+                cell->setCurrentValue(0);
+            else
+                cell->setCurrentValue(1);
         }
     }
 
