@@ -37,7 +37,7 @@ namespace NeuroLab
     QMap<QString, NeuroItem::CreateFT> NeuroItem::itemCreators;
     
     NeuroItem::NeuroItem(LabNetwork *network, const NeuroCell::NeuroIndex & cellIndex)
-        : QGraphicsItem(), 
+        : QObject(network), QGraphicsItem(), PropertyObject(),
         label_property(0), frozen_property(0), 
         inputs_property(0), weight_property(0), 
         run_property(0), value_property(0),
@@ -102,6 +102,8 @@ namespace NeuroLab
     
     void NeuroItem::updateProperties()
     {
+        _updating = true;
+        
         if (label_property)
             label_property->setValue(QVariant(_label));
         
@@ -127,10 +129,15 @@ namespace NeuroLab
             if (value_property)
                 value_property->setValue(QVariant(cell->currentValue()));
         }
+        
+        _updating = false;
     }
     
     void NeuroItem::propertyValueChanged(QtProperty *property, const QVariant & value)
     {
+        if (_updating)
+            return;
+        
         QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
         
         if (vprop)

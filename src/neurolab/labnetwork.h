@@ -45,7 +45,7 @@ namespace NeuroLab
         NeuroLib::NeuroNet *neuronet() { return _neuronet; }
         
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        void assignProperties();
+        void updateProperties();
         
         NeuroItem *getSelectedItem();
         void deleteSelectedItem();

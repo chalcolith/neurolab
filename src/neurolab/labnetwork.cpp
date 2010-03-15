@@ -12,7 +12,8 @@ namespace NeuroLab
 {
     
     LabNetwork::LabNetwork(QWidget *_parent)
-        : _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true), 
+        : QObject(_parent), PropertyObject(),
+        _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true), 
         filename_property(0), decay_property(0), learn_property(0), learn_time_property(0)
     {
         _neuronet = new NeuroLib::NeuroNet();        
@@ -66,8 +67,10 @@ namespace NeuroLab
         learn_time_property->setValue(QVariant(static_cast<int>(_neuronet->learnTime())));
     }
     
-    void LabNetwork::assignProperties()
+    void LabNetwork::updateProperties()
     {   
+        _updating = true;
+        
         if (!_neuronet)
             return;
         
@@ -76,11 +79,16 @@ namespace NeuroLab
         if (learn_property)
             learn_property->setValue(QVariant(_neuronet->learn()));
         if (learn_time_property)
-            learn_time_property->setValue(QVariant(_neuronet->learn()));        
+            learn_time_property->setValue(QVariant(_neuronet->learn()));      
+        
+        _updating = false;
     }
     
     void LabNetwork::propertyValueChanged(QtProperty *property, const QVariant & value)
     {
+        if (_updating)
+            return;
+        
         QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
         float prev;
         bool changed = false;
@@ -163,7 +171,7 @@ namespace NeuroLab
                 QDataStream data(&file);
                 data >> *ln->_neuronet;
 
-                ln->assignProperties();
+                ln->updateProperties();
             }
             catch (...)
             {

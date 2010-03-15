@@ -4,6 +4,11 @@
 
 namespace NeuroLab
 {
+    
+    PropertyObject::PropertyObject()
+        : _updating(false)
+    {
+    }
 
     PropertyObject::~PropertyObject()
     {
@@ -15,4 +20,5 @@ namespace NeuroLab
         for (QListIterator<QtProperty *> i(_properties); i.hasNext(); )
             parentItem->addSubProperty(i.next());
     }
+    
 }

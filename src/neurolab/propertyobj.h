@@ -13,8 +13,10 @@ namespace NeuroLab
     {
     protected:
         QList<QtProperty *> _properties;
+        bool _updating;
         
     public:
+        PropertyObject();
         virtual ~PropertyObject();        
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
     };
