@@ -36,7 +36,7 @@ namespace NeuroLab
         virtual ~LabNetwork();
         
         bool dirty() const { return _dirty; }
-        void setDirty(bool dirty) { _dirty = dirty; }
+        void setDirty(bool dirty = true);
         
         LabScene *scene() { return _tree ? _tree->scene() : 0; }
         LabView *view() { return _tree ? _tree->view() : 0; }
@@ -53,16 +53,17 @@ namespace NeuroLab
         bool save(bool saveAs = false);
         bool close();
 
-        void changed();
-        void changed(const QList<QRectF> &);
-
         void newItem(const QString & typeName);
+        void deleteSelected();
+        void toggleActivated();
+        void toggleFrozen();
 
         void reset();
         void start();
         void stop();
         void step();
         
+        void selectionChanged();
         void propertyValueChanged(QtProperty *property, const QVariant & value);
     };
     

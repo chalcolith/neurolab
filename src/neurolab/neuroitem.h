@@ -97,6 +97,7 @@ namespace NeuroLab
 
         virtual bool canLinkTo(NeuroItem *) { return false; }
         virtual void adjustLinks() { }
+        virtual void handleMove() { }
 
         virtual void idsToPointers(QGraphicsScene *);
 
@@ -152,6 +153,11 @@ namespace NeuroLab
 
     //
 
+    extern QDataStream & operator<< (QDataStream &, const NeuroItem &);
+    extern QDataStream & operator>> (QDataStream &, NeuroItem &);
+
+    //
+
     class NeuroItemRegistrator
     {
         QString _name;
@@ -171,11 +177,6 @@ namespace NeuroLab
     };
 
 #define NEUROITEM_DEFINE_CREATOR(TypeName) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), &TypeName::create_new)
-
-    //
-
-    extern QDataStream & operator<< (QDataStream &, const NeuroItem &);
-    extern QDataStream & operator>> (QDataStream &, NeuroItem &);
 
 } // namespace NeuroLab
 

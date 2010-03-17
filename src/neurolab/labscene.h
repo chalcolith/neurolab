@@ -21,13 +21,14 @@ namespace NeuroLab
         LabNetwork *_network;
         NeuroItem *_itemUnderMouse;
         
-        QPointF menuPos;
+        QPointF _lastMousePos;
                 
     public:
         LabScene(LabNetwork *_network);
         virtual ~LabScene();
         
         LabNetwork *network() { return _network; }
+        const QPointF & lastMousePos() const { return _lastMousePos; }
         
         NeuroItem *itemUnderMouse() const { return _itemUnderMouse; }
         void setItemUnderMouse(NeuroItem *item) { _itemUnderMouse = item; }
@@ -37,6 +38,9 @@ namespace NeuroLab
         
     protected:
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     };
     
 } // namespace NeuroLab

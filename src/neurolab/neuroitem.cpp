@@ -26,7 +26,7 @@ namespace NeuroLab
     const QColor NeuroItem::ACTIVE_COLOR = Qt::red;
     
     const int NeuroItem::NORMAL_LINE_WIDTH = 1;
-    const int NeuroItem::HOVER_LINE_WIDTH = 5;
+    const int NeuroItem::HOVER_LINE_WIDTH = 3;
 
     const int NeuroItem::NODE_WIDTH = 30;
     const int NeuroItem::ELLIPSE_WIDTH = 10;
@@ -44,9 +44,11 @@ namespace NeuroLab
         _network(network), _id(NEXT_ID++), 
         _path(0), _textPath(0), _cellIndex(cellIndex)
     {
-        this->setFlag(QGraphicsItem::ItemIsSelectable, true);
-        this->setFlag(QGraphicsItem::ItemIsMovable, true);
-        this->setAcceptHoverEvents(true);
+        setFlag(QGraphicsItem::ItemIsSelectable, true);
+        setFlag(QGraphicsItem::ItemIsMovable, true);
+        setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+        
+        setAcceptHoverEvents(true);
     }
     
     NeuroItem::~NeuroItem()
@@ -278,9 +280,7 @@ namespace NeuroLab
     }
     
     void NeuroItem::buildShape()
-    {
-        updateProperties();
-        
+    {        
         delete _path;
         _path = new QPainterPath();
         _path->setFillRule(Qt::WindingFill);
@@ -385,6 +385,9 @@ namespace NeuroLab
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
+        if (MainWindow::instance()->propertyObject() == this)
+            updateProperties();
+        
         painter->setRenderHint(QPainter::Antialiasing);
 
         QPen pen(Qt::SolidLine);
@@ -534,7 +537,10 @@ namespace NeuroLab
     {
         NeuroCell *cell = getCell();
         if (cell && !cell->frozen())
-            cell->setCurrentValue(0);
+        {
+            cell->setCurrentValue(0);            
+            update();
+        }
     }
     
     void NeuroItem::toggleActivated()
@@ -546,6 +552,8 @@ namespace NeuroLab
                 cell->setCurrentValue(0);
             else
                 cell->setCurrentValue(1);
+            
+            update();
         }
     }
 
@@ -554,8 +562,8 @@ namespace NeuroLab
         NeuroCell *cell = getCell();
         if (cell)
         {
-            cell->setFrozen(!cell->frozen());
-            update(boundingRect());
+            cell->setFrozen(!cell->frozen());            
+            update();
         }
     }
 

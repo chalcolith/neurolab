@@ -29,6 +29,15 @@ namespace NeuroLab
         delete _neuronet; _neuronet = 0;
     }
     
+    void LabNetwork::setDirty(bool dirty)
+    {
+        bool old = _dirty;
+        _dirty = dirty;
+        
+        if (old != _dirty)
+            MainWindow::instance()->setTitle();
+    }
+    
     void LabNetwork::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
         if (_properties.count() == 0)
@@ -115,8 +124,19 @@ namespace NeuroLab
         if (changed)
             setDirty(true);
     }
+    
+    void LabNetwork::selectionChanged()
+    {
+        if (!scene())
+            return;
         
-    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 002");
+        QList<QGraphicsItem *> items = scene()->selectedItems();
+        PropertyObject *po = items.size() == 1 ? dynamic_cast<PropertyObject *>(items[0]) : 0;
+        
+        MainWindow::instance()->setPropertyObject(po ? po : this);
+    }
+        
+    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 003");
     
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
@@ -237,7 +257,7 @@ namespace NeuroLab
             }
         }
         
-        this->_dirty = false;
+        setDirty(false);
         
         if (prevRunning)
             start();
@@ -251,64 +271,97 @@ namespace NeuroLab
             return false;
         return true;
     }
-
-    void LabNetwork::changed(const QList<QRectF> &)
-    {
-        changed();
-    }
-
-    void LabNetwork::changed()
-    {
-        if (!first_change)
-        {
-            this->_dirty = true;
-            MainWindow::instance()->setTitle();
-        }
-        else
-        {
-            first_change = false;
-        }
-    }
     
     void LabNetwork::newItem(const QString & typeName)
     {
         if (scene() && view())
         {
-            QPoint viewPos = view()->mapFromGlobal(QCursor::pos());
-            QPointF scenePos = view()->mapToScene(viewPos.x(), viewPos.y());
-            
-            scene()->newItem(typeName, scenePos);
+            scene()->newItem(typeName, scene()->lastMousePos());
+            setDirty();
         }        
+    }
+    
+    void LabNetwork::deleteSelected()
+    {
+        LabScene *sc = scene();
+        
+        if (sc)
+        {
+            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
+            {
+                QGraphicsItem *item = i.peekNext();
+                setDirty();
+                
+                if (sc->itemUnderMouse() == dynamic_cast<NeuroItem *>(item))
+                    sc->setItemUnderMouse(0);
+                
+                sc->removeItem(item);
+                delete item;
+            }
+        }        
+    }
+    
+    void LabNetwork::toggleActivated()
+    {
+        LabScene *sc = scene();
+        
+        if (sc)
+        {
+            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
+            {
+                NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+                if (item)
+                {
+                    setDirty();
+                    item->toggleActivated();
+                }
+            }
+        }
+    }
+    
+    void LabNetwork::toggleFrozen()
+    {
+        LabScene *sc = scene();
+        
+        if (sc)
+        {
+            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
+            {
+                NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+                if (item)
+                {
+                    setDirty();
+                    item->toggleFrozen();                
+                }
+            }
+        }
     }
     
     void LabNetwork::start()
     {
         running = true;
-        changed();
     }
     
     void LabNetwork::stop()
     {
         running = false;
         _tree->update();
-        changed();
     }
     
     void LabNetwork::step()
     {
         running = true;
-        
         _neuronet->step();
         running = false;
         
+        setDirty();
         _tree->update();
-        changed();
     }
     
     void LabNetwork::reset()
     {
+        setDirty();
         _tree->reset();
-        changed();
     }
     
 } // namespace NeuroLab

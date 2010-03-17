@@ -38,10 +38,8 @@ namespace NeuroLab
         QtVariantEditorFactory *_propertyFactory;
         QtVariantPropertyManager *_propertyManager;
         
-        PropertyObject *_currentPropertyObject;
-        
-        bool _lastWindowClosed;
-        
+        PropertyObject *_propertyObject;
+                
     public:
         MainWindow(QWidget *parent = 0, const QString & initialFname = QString());
         ~MainWindow();
@@ -50,15 +48,14 @@ namespace NeuroLab
         Ui::MainWindow *ui() { return _ui; }
         
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
-                
-    signals:
-        void quitting();        
+        PropertyObject *propertyObject() { return _propertyObject; }
+        
+    protected:
+        virtual void closeEvent(QCloseEvent *);
 
     public slots:
         void setTitle(const QString & title = QString("NeuroLab"));
         void setPropertyObject(PropertyObject *);
-        
-        void lastWindowClosed();
         
     private:
         void loadStateSettings();

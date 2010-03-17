@@ -44,6 +44,7 @@ namespace NeuroLab
         
         virtual bool canLinkTo(NeuroItem *item);
         virtual void adjustLinks();
+        virtual void handleMove();
         
     private:
         void updatePos();
@@ -51,9 +52,11 @@ namespace NeuroLab
     protected:
         virtual void setPenProperties(QPen & pen);
         virtual void setBrushProperties(QBrush & brush);
+
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
         
-        void writeBinary(QDataStream &) const;
-        void readBinary(QDataStream &);
+        virtual void writeBinary(QDataStream &) const;
+        virtual void readBinary(QDataStream &);
         
         virtual void writePointerIds(QDataStream &) const;
         virtual void readPointerIds(QDataStream &);

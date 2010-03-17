@@ -26,15 +26,16 @@ namespace NeuroLab
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
         virtual void buildShape();
         
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
-        
         virtual bool canLinkTo(NeuroItem *item);
         virtual void adjustLinks();
+        virtual void handleMove();
         
     private:
         void adjustLinksAux(QList<NeuroItem *> &);
         
     protected:
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+        
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);
     };
