@@ -1,45 +1,42 @@
 #ifndef NEURONODEITEM_H
 #define NEURONODEITEM_H
 
-#include "neuroitem.h"
+#include "neuronarrowitem.h"
 
 #include <QPainter>
 #include <QPainterPath>
 
 namespace NeuroLab
 {
-    
+
     class NeuroNodeItem
-        : public NeuroItem
+        : public NeuroNarrowItem
     {
         QRectF _rect;
-        
+
     public:
         NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroNodeItem();
-        
+
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
-        
+
         const QRectF & rect() const { return _rect; }
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
-        
+
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
         virtual void buildShape();
-        
-        virtual bool canLinkTo(NeuroItem *item);
+
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void adjustLinks();
-        virtual void handleMove();
-        
+
     private:
         void adjustLinksAux(QList<NeuroItem *> &);
-        
+
     protected:
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
-        
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);
     };
-    
+
 } // namespace NeuroLab
 
 #endif // NEURONODEITEM_H

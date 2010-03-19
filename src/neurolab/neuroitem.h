@@ -1,7 +1,6 @@
 #ifndef NEUROITEM_H
 #define NEUROITEM_H
 
-#include "../neurolib/neurocell.h"
 #include "propertyobj.h"
 
 #include <QGraphicsItem>
@@ -26,16 +25,11 @@ namespace NeuroLab
     {
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
-        
+
         static int NEXT_ID;
 
         QtVariantProperty *label_property;
-        QtVariantProperty *frozen_property;
-        QtVariantProperty *inputs_property;
-        QtVariantProperty *weight_property;
-        QtVariantProperty *run_property;
-        QtVariantProperty *value_property;
-        
+
     protected:
         LabNetwork *_network;
 
@@ -46,18 +40,16 @@ namespace NeuroLab
         QList<NeuroItem *> _outgoing;
 
         mutable QPainterPath *_path, *_textPath;
-        
-        struct TextPathRec 
-        { 
-            QPointF pos; QString text; 
-            
+
+        struct TextPathRec
+        {
+            QPointF pos; QString text;
+
             TextPathRec(const QPointF & pos, const QString & text) : pos(pos), text(text) {}
         };
-        
+
         QList<TextPathRec> _texts;
         QString _label;
-
-        NeuroLib::NeuroCell::NeuroIndex _cellIndex;
 
     public:
         static const QColor NORMAL_LINE_COLOR;
@@ -71,7 +63,7 @@ namespace NeuroLab
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
 
-        NeuroItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex = -1);
+        NeuroItem(LabNetwork *network);
         virtual ~NeuroItem();
 
         const QString & label() const { return _label; }
@@ -82,22 +74,25 @@ namespace NeuroLab
         const QList<NeuroItem *> incoming() const { return _incoming; }
         const QList<NeuroItem *> outgoing() const { return _outgoing; }
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        void updateProperties();
-        
         static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
 
-        void bringToFront();
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        virtual void updateProperties();
 
-        virtual void addIncoming(NeuroItem *linkItem);
-        virtual void removeIncoming(NeuroItem *linkItem);
+        virtual bool addIncoming(NeuroItem *linkItem);
+        virtual bool removeIncoming(NeuroItem *linkItem);
 
-        virtual void addOutgoing(NeuroItem *linkItem);
-        virtual void removeOutgoing(NeuroItem *linkItem);
+        virtual bool addOutgoing(NeuroItem *linkItem);
+        virtual bool removeOutgoing(NeuroItem *linkItem);
 
-        virtual bool canLinkTo(NeuroItem *) { return false; }
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) { return true; }
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) { return true; }
+
+        virtual void attachTo(NeuroItem *) { }
+        virtual void onAttachedBy(NeuroItem *) { }
+
         virtual void adjustLinks() { }
-        virtual void handleMove() { }
+        virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
         virtual void idsToPointers(QGraphicsScene *);
 
@@ -107,16 +102,14 @@ namespace NeuroLab
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-        virtual void reset();
-        virtual void toggleActivated();
-        virtual void toggleFrozen();
-        
+        void bringToFront();
+
     public slots:
-        void propertyValueChanged(QtProperty *property, const QVariant & value);
-        
+        virtual void propertyValueChanged(QtProperty *, const QVariant &);
+
     protected:
         void buildTextPath() const;
-        
+
         virtual void setPenProperties(QPen & pen);
         virtual void setBrushProperties(QBrush & brush);
 
@@ -125,21 +118,17 @@ namespace NeuroLab
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 
-        virtual void writeBinary(QDataStream &) const = 0;
-        virtual void readBinary(QDataStream &) = 0;
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+
+        virtual void writeBinary(QDataStream &) const;
+        virtual void readBinary(QDataStream &);
 
         virtual void writePointerIds(QDataStream &) const;
         virtual void readPointerIds(QDataStream &);
 
         virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
-        
-        static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
-        //
-        NeuroLib::NeuroCell *getCell();
-        QtProperty *_input_threshold;
-        QtProperty *_output_weight;
-        QtProperty *_output_value;
+        static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
         //
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);

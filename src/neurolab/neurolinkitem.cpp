@@ -22,7 +22,7 @@ namespace NeuroLab
     //////////////////////////////////////////////////////////////////
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
+        : NeuroNarrowItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
     {
     }
 
@@ -51,34 +51,34 @@ namespace NeuroLab
         setLine(QLineF(p1, p2));
     }
 
-    void NeuroLinkItem::addIncoming(NeuroItem *linkItem)
+    bool NeuroLinkItem::addIncoming(NeuroItem *linkItem)
     {
-        NeuroItem::addIncoming(linkItem);
+        return NeuroNarrowItem::addIncoming(linkItem);
     }
 
-    void NeuroLinkItem::removeIncoming(NeuroItem *linkItem)
+    bool NeuroLinkItem::removeIncoming(NeuroItem *linkItem)
     {
         if (linkItem && linkItem == _backLinkTarget)
             setBackLinkTarget(0);
-        NeuroItem::removeIncoming(linkItem);
+        return NeuroNarrowItem::removeIncoming(linkItem);
     }
 
-    void NeuroLinkItem::addOutgoing(NeuroItem *linkItem)
+    bool NeuroLinkItem::addOutgoing(NeuroItem *linkItem)
     {
-        NeuroItem::addOutgoing(linkItem);
+        return NeuroNarrowItem::addOutgoing(linkItem);
     }
 
-    void NeuroLinkItem::removeOutgoing(NeuroItem *linkItem)
+    bool NeuroLinkItem::removeOutgoing(NeuroItem *linkItem)
     {
         if (linkItem && linkItem == _frontLinkTarget)
             setFrontLinkTarget(0);
-        NeuroItem::removeOutgoing(linkItem);
+        return NeuroNarrowItem::removeOutgoing(linkItem);
     }
 
     void NeuroLinkItem::setFrontLinkTarget(NeuroItem *linkTarget)
     {
         if (_frontLinkTarget)
-            NeuroItem::removeOutgoing(_frontLinkTarget);
+            NeuroNarrowItem::removeOutgoing(_frontLinkTarget);
 
         if (linkTarget)
             addOutgoing(linkTarget);
@@ -91,7 +91,7 @@ namespace NeuroLab
     void NeuroLinkItem::setBackLinkTarget(NeuroItem *linkTarget)
     {
         if (_backLinkTarget)
-            NeuroItem::removeIncoming(_backLinkTarget);
+            NeuroNarrowItem::removeIncoming(_backLinkTarget);
 
         if (linkTarget)
             addIncoming(linkTarget);
@@ -103,7 +103,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::buildShape()
     {
-        NeuroItem::buildShape();
+        NeuroNarrowItem::buildShape();
 
         QVector2D myPos(pos());
         QVector2D myFront(_line.p2());
@@ -140,7 +140,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::setPenProperties(QPen & pen)
     {
-        NeuroItem::setPenProperties(pen);
+        NeuroNarrowItem::setPenProperties(pen);
 
         NeuroCell *cell = getCell();
         if (cell)
@@ -152,7 +152,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::setBrushProperties(QBrush & brush)
     {
-        NeuroItem::setBrushProperties(brush);
+        NeuroNarrowItem::setBrushProperties(brush);
         brush.setStyle(Qt::NoBrush);
     }
 
@@ -179,68 +179,42 @@ namespace NeuroLab
         }
     }
 
-    bool NeuroLinkItem::canLinkTo(NeuroItem *item)
+    bool NeuroLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
     {
         // cannot link the back of a link to another link
         if (dynamic_cast<NeuroLinkItem *>(item) && !dragFront)
             return false;
-
-        // cannot link an excitory link to another link
-        if (dynamic_cast<NeuroExcitoryLinkItem *>(this) && dynamic_cast<NeuroLinkItem *>(item))
-            return false;
-
-        return true;
+        return NeuroNarrowItem::canAttachTo(pos, item);
     }
 
-    void NeuroLinkItem::handleMove()
+    bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        LabScene *labScene = dynamic_cast<LabScene *>(scene());
-        if (!labScene)
-            return;
+        // can only be attached to by an inhibitory link
+        return dynamic_cast<NeuroInhibitoryLinkItem *>(item);
+    }
 
-        // get topmost item that is not the link itself
-        NeuroItem *itemAtPos = 0;
+    void NeuroLinkItem::attachTo(NeuroItem *item)
+    {
+        if (dragFront)
+            setFrontLinkTarget(item);
+        else
+            setBackLinkTarget(item);
+    }
 
-        QPointF mousePos = labScene->lastMousePos();
-        QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);
-
-        for (QListIterator<QGraphicsItem *> i(_network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); i.next())
-        {
-            itemAtPos = dynamic_cast<NeuroItem *>(i.peekNext());
-
-            if (itemAtPos && dynamic_cast<NeuroLinkItem *>(itemAtPos) != this && canLinkTo(itemAtPos))
-                break;
-            else
-                itemAtPos = 0;
-        }
-
+    bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
+    {
         // break links
         NeuroItem *linkedItem = dragFront ? _frontLinkTarget : _backLinkTarget;
-        if (linkedItem)
-        {
-            if (itemAtPos == linkedItem)
-            {
-                itemAtPos = 0;
-            }
-            else
-            {
-                if (dragFront)
-                    setFrontLinkTarget(0);
-                else
-                    setBackLinkTarget(0);
-            }
-        }
-
-        // form links
-        if (itemAtPos)
+        if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
         {
             if (dragFront)
-                setFrontLinkTarget(itemAtPos);
+                setFrontLinkTarget(0);
             else
-                setBackLinkTarget(itemAtPos);
-
-            itemAtPos->adjustLinks();
+                setBackLinkTarget(0);
         }
+
+        // attach
+        return NeuroNarrowItem::handleMove(mousePos, movePos);
     }
 
     QVariant NeuroLinkItem::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -282,11 +256,16 @@ namespace NeuroLab
                 if (adjustedCenter != center)
                     newCenter = adjustedCenter;
 
-                //
-                handleMove();
-                buildShape();
-                adjustLinks();
-                return QVariant(newCenter.toPointF());
+                // handle move
+                QPointF movePos(newCenter.toPointF());
+
+                if (handleMove(mousePos.toPointF(), movePos))
+                {
+                    adjustLinks();
+                    buildShape();
+
+                    return QVariant(movePos);
+                }
             }
             break;
 
@@ -294,18 +273,18 @@ namespace NeuroLab
             break;
         }
 
-        return NeuroItem::itemChange(change, value);
+        return NeuroNarrowItem::itemChange(change, value);
     }
 
     void NeuroLinkItem::writeBinary(QDataStream & data) const
     {
-        data << _id;
+        NeuroNarrowItem::writeBinary(data);
         data << _line;
     }
 
     void NeuroLinkItem::readBinary(QDataStream & data)
     {
-        data >> _id;
+        NeuroNarrowItem::readBinary(data);
 
         QLineF l;
         data >> l;
@@ -314,7 +293,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::writePointerIds(QDataStream & data) const
     {
-        NeuroItem::writePointerIds(data);
+        NeuroNarrowItem::writePointerIds(data);
 
         IdType id = _frontLinkTarget ? _frontLinkTarget->id() : 0;
         data << id;
@@ -325,7 +304,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::readPointerIds(QDataStream & data)
     {
-        NeuroItem::readPointerIds(data);
+        NeuroNarrowItem::readPointerIds(data);
 
         setFrontLinkTarget(0);
         setBackLinkTarget(0);
@@ -343,7 +322,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::idsToPointers(QGraphicsScene *sc)
     {
-        NeuroItem::idsToPointers(sc);
+        NeuroNarrowItem::idsToPointers(sc);
 
         IdType frontId = reinterpret_cast<IdType>(_frontLinkTarget);
         IdType backId = reinterpret_cast<IdType>(_backLinkTarget);
@@ -379,13 +358,13 @@ namespace NeuroLab
     {
         NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
         NeuroLinkItem *item = new NeuroExcitoryLinkItem(scene->network(), index);
-        item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
+        item->setLine(pos.x(), pos.y(), pos.x()+NeuroNarrowItem::NODE_WIDTH*2, pos.y()-NeuroNarrowItem::NODE_WIDTH*2);
         return item;
     }
 
     void NeuroExcitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
-        NeuroItem::buildProperties(manager, parentItem);
+        NeuroNarrowItem::buildProperties(manager, parentItem);
         parentItem->setPropertyName(tr("Excitory Link"));
     }
 
@@ -415,6 +394,12 @@ namespace NeuroLab
         _path->lineTo((end - center).toPointF());
     }
 
+    bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
+    {
+        // can not attach to a link at all
+        return NeuroLinkItem::canAttachTo(pos, item) && !dynamic_cast<NeuroLinkItem *>(item);
+    }
+
 
     //////////////////////////////////////////////////////////////////
 
@@ -433,13 +418,13 @@ namespace NeuroLab
     {
         NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
         NeuroLinkItem *item = new NeuroInhibitoryLinkItem(scene->network(), index);
-        item->setLine(pos.x(), pos.y(), pos.x()+NeuroItem::NODE_WIDTH*2, pos.y()-NeuroItem::NODE_WIDTH*2);
+        item->setLine(pos.x(), pos.y(), pos.x()+NeuroNarrowItem::NODE_WIDTH*2, pos.y()-NeuroNarrowItem::NODE_WIDTH*2);
         return item;
     }
 
     void NeuroInhibitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
-        NeuroItem::buildProperties(manager, parentItem);
+        NeuroNarrowItem::buildProperties(manager, parentItem);
         parentItem->setPropertyName(tr("Inhibitory Link"));
     }
 

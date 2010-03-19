@@ -1,9 +1,8 @@
 #include "labscene.h"
+#include "labnetwork.h"
+#include "neuroitem.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "labnetwork.h"
-#include "neuronodeitem.h"
-#include "neurolinkitem.h"
 
 #include "../neurolib/neuronet.h"
 
@@ -32,7 +31,9 @@ namespace NeuroLab
         {
             addItem(item);
             item->buildShape();
-            item->handleMove();
+
+            QPointF movePos(scenePos);
+            item->handleMove(scenePos, movePos);
 
             clearSelection();
             //item->setSelected(true);

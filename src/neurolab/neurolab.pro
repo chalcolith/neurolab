@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     neuroitem.cpp \
     labeldialog.cpp \
     propertyobj.cpp \
-    filedirtydialog.cpp
+    filedirtydialog.cpp \
+    neuronarrowitem.cpp
 HEADERS += mainwindow.h \
     labnetwork.h \
     labscene.h \
@@ -28,7 +29,8 @@ HEADERS += mainwindow.h \
     neuroitem.h \
     labeldialog.h \
     propertyobj.h \
-    filedirtydialog.h
+    filedirtydialog.h \
+    neuronarrowitem.h
 FORMS += mainwindow.ui \
     labeldialog.ui \
     filedirtydialog.ui

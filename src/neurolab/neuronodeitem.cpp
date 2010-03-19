@@ -4,7 +4,6 @@
 
 #include <QVector2D>
 #include <QApplication>
-
 #include <QtProperty>
 
 #include <cmath>
@@ -13,19 +12,19 @@ using namespace NeuroLib;
 
 namespace NeuroLab
 {
-    
+
     NEUROITEM_DEFINE_CREATOR(NeuroNodeItem);
 
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroItem(network, cellIndex)
+        : NeuroNarrowItem(network, cellIndex)
     {
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
-        
+
     NeuroNodeItem::~NeuroNodeItem()
     {
     }
-    
+
     NeuroItem *NeuroNodeItem::create_new(LabScene *scene, const QPointF & pos)
     {
         NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
@@ -33,28 +32,29 @@ namespace NeuroLab
         item->setPos(pos.x(), pos.y());
         return item;
     }
-    
+
     void NeuroNodeItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
-        NeuroItem::buildProperties(manager, parentItem);
+        NeuroNarrowItem::buildProperties(manager, parentItem);
         parentItem->setPropertyName(tr("Node"));
     }
 
     void NeuroNodeItem::buildShape()
     {
-        NeuroItem::buildShape();
+        NeuroNarrowItem::buildShape();
         _path->addEllipse(rect());
-                
+
         NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
         if (cell)
         {
-            _texts.append(TextPathRec(QPointF(-8, 4), QString::number(cell->weight())));
+            _texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->weight())));
         }
     }
-    
-    bool NeuroNodeItem::canLinkTo(NeuroItem *)
+
+    bool NeuroNodeItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        return true;
+        // can only be connected to by links
+        return dynamic_cast<NeuroLinkItem *>(item);
     }
 
     void NeuroNodeItem::adjustLinks()
@@ -62,11 +62,11 @@ namespace NeuroLab
         adjustLinksAux(_incoming);
         adjustLinksAux(_outgoing);
     }
-    
+
     void NeuroNodeItem::adjustLinksAux(QList<NeuroItem *> & list)
     {
         QVector2D center(pos());
-        
+
         for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); ln.next())
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.peekNext());
@@ -74,15 +74,15 @@ namespace NeuroLab
             {
                 bool frontLink = link->frontLinkTarget() == this;
                 bool backLink = link->backLinkTarget() == this;
-                
+
                 QPointF front = link->line().p2();
                 QPointF back = link->line().p1();
-                
+
                 QVector2D toPos = QVector2D(link->pos()) - center;
-                
+
                 if (frontLink && backLink)
                 {
-                    toPos.normalize();                
+                    toPos.normalize();
                     double angle = ::atan2(toPos.y(), toPos.x());
                     angle += (frontLink ? 30.0 : -30.0) * M_PI / 180.0;
                     toPos.setX(::cos(angle));
@@ -96,80 +96,28 @@ namespace NeuroLab
                     //    toPos.setY(toPos.y() * 2);
                     toPos.normalize();
                 }
-                
-                toPos *= NeuroItem::NODE_WIDTH/2 + 2;
-                
+
+                toPos *= NeuroNarrowItem::NODE_WIDTH/2 + 2;
+
                 QPointF *point = frontLink ? &front : &back;
                 *point = (center + toPos).toPointF();
-                
+
                 link->setLine(back, front);
             }
-        }        
-    }
-    
-    void NeuroNodeItem::handleMove()
-    {
-        QVector2D sp(scenePos());
-
-        // find a link to attach to
-        NeuroLinkItem *itemAtPos = 0;
-        bool front = false;
-        for (QListIterator<QGraphicsItem *> i(this->collidingItems(Qt::IntersectsItemShape)); i.hasNext(); i.next())
-        {
-            itemAtPos = dynamic_cast<NeuroLinkItem *>(i.peekNext());
-            if (itemAtPos && !(itemAtPos->frontLinkTarget() == this || itemAtPos->backLinkTarget() == this))
-            {
-                // figure out which end to link
-                qreal frontDist = (sp - QVector2D(itemAtPos->line().p2())).lengthSquared();
-                qreal backDist = (sp - QVector2D(itemAtPos->line().p1())).lengthSquared();
-                front = frontDist < backDist;
-                
-                // only attach to a link that's not already attached to something
-                if (!(front ? itemAtPos->frontLinkTarget() : itemAtPos->backLinkTarget()) && itemAtPos->canLinkTo(this))
-                    break;
-            }
-            
-            itemAtPos = 0;
         }
-        
-        // connect to link
-        if (itemAtPos)
-        {
-            if (front)
-                itemAtPos->setFrontLinkTarget(this);
-            else
-                itemAtPos->setBackLinkTarget(this);
-        }
-        
-        //
-        adjustLinks();
-    }
-
-    QVariant NeuroNodeItem::itemChange(GraphicsItemChange change, const QVariant & value)
-    {
-        switch (change)
-        {
-        case QGraphicsItem::ItemPositionHasChanged:
-            if (scene() && scene()->selectedItems().size() <= 1)
-                handleMove();
-            break;
-        default:
-            break;
-        }
-        
-        return NeuroItem::itemChange(change, value);
     }
 
     void NeuroNodeItem::writeBinary(QDataStream & data) const
     {
-        data << _id;
+        NeuroNarrowItem::writeBinary(data);
+
         data << pos();
         data << _rect;
     }
 
     void NeuroNodeItem::readBinary(QDataStream & data)
     {
-        data >> _id;
+        NeuroNarrowItem::readBinary(data);
 
         QPointF p;
         data >> p;
