@@ -46,9 +46,8 @@ namespace NeuroLab
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void attachTo(NeuroItem *);
-
-        virtual void adjustLinks();
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
+        virtual void adjustLinks();
 
     private:
         void updatePos();

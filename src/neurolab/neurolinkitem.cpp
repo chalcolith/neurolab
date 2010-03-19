@@ -224,48 +224,53 @@ namespace NeuroLab
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if (!settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && labScene->selectedItems().size() <= 1)
+            if ((labScene = dynamic_cast<LabScene *>(scene())) && labScene->selectedItems().size() <= 1)
             {
-                // adjust position
-                QVector2D center(pos());
-                QVector2D front(_line.p2());
-                QVector2D back(_line.p1());
-                QVector2D mousePos(labScene->lastMousePos());
-
-                qreal distFront = (mousePos - front).lengthSquared();
-                qreal distBack = (mousePos - back).lengthSquared();
-
-                dragFront = distFront < distBack;
-                if (dragFront)
-                    front = mousePos;
-                else
-                    back = mousePos;
-
-                _line.setP1(back.toPointF());
-                _line.setP2(front.toPointF());
-
-                QVector2D newCenter = (front + back) * 0.5;
-
-                // adjust if we're linked
-                if (_frontLinkTarget)
-                    _frontLinkTarget->adjustLinks();
-                if (_backLinkTarget)
-                    _backLinkTarget->adjustLinks();
-
-                QVector2D adjustedCenter(pos());
-                if (adjustedCenter != center)
-                    newCenter = adjustedCenter;
-
-                // handle move
-                QPointF movePos(newCenter.toPointF());
-
-                if (handleMove(mousePos.toPointF(), movePos))
+                if (!settingLine)
                 {
-                    adjustLinks();
-                    buildShape();
+                    // adjust position
+                    QVector2D center(pos());
+                    QVector2D front(_line.p2());
+                    QVector2D back(_line.p1());
+                    QVector2D mousePos(labScene->lastMousePos());
 
-                    return QVariant(movePos);
+                    qreal distFront = (mousePos - front).lengthSquared();
+                    qreal distBack = (mousePos - back).lengthSquared();
+
+                    dragFront = distFront < distBack;
+                    if (dragFront)
+                        front = mousePos;
+                    else
+                        back = mousePos;
+
+                    _line.setP1(back.toPointF());
+                    _line.setP2(front.toPointF());
+
+                    QVector2D newCenter = (front + back) * 0.5;
+
+                    // adjust if we're linked
+                    if (_frontLinkTarget)
+                        _frontLinkTarget->adjustLinks();
+                    if (_backLinkTarget)
+                        _backLinkTarget->adjustLinks();
+
+                    QVector2D adjustedCenter(pos());
+                    if (adjustedCenter != center)
+                        newCenter = adjustedCenter;
+
+                    // handle move
+                    QPointF movePos(newCenter.toPointF());
+
+                    if (handleMove(mousePos.toPointF(), movePos))
+                    {
+                        adjustLinks();
+                        buildShape();
+
+                        return QVariant(movePos);
+                    }
                 }
+
+                return value;
             }
             break;
 

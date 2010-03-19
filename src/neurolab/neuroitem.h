@@ -85,8 +85,8 @@ namespace NeuroLab
         virtual bool addOutgoing(NeuroItem *linkItem);
         virtual bool removeOutgoing(NeuroItem *linkItem);
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *) { return true; }
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) { return true; }
+        virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void attachTo(NeuroItem *) { }
         virtual void onAttachedBy(NeuroItem *) { }

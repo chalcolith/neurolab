@@ -303,6 +303,16 @@ namespace NeuroLab
         }
     }
 
+    bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *item)
+    {
+        return !_incoming.contains(item) && !_outgoing.contains(item);
+    }
+
+    bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    {
+        return !_incoming.contains(item) && !_outgoing.contains(item);
+    }
+
     QVariant NeuroItem::itemChange(GraphicsItemChange change, const QVariant & value)
     {
         LabScene *labScene;
@@ -316,7 +326,6 @@ namespace NeuroLab
 
                 if (handleMove(labScene->lastMousePos(), movePos))
                 {
-                    adjustLinks();
                     buildShape();
                     return QVariant(movePos);
                 }
@@ -329,7 +338,7 @@ namespace NeuroLab
         return value;
     }
 
-    bool NeuroItem::handleMove(const QPointF & mousePos, QPointF &)
+    bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         // get topmost item at mouse position that is not the item itself
         QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);
@@ -344,24 +353,20 @@ namespace NeuroLab
                     itemAtPos = 0;
                     continue;
                 }
-                else
-                {
-                    int i = 0;
-                    i = 1;
-                }
             }
         }
 
         // attach, if possible
         if (itemAtPos && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
         {
-            if (!_incoming.contains(itemAtPos) && !_outgoing.contains(itemAtPos))
-            {
-                attachTo(itemAtPos);
-                itemAtPos->onAttachedBy(this);
-            }
+            attachTo(itemAtPos);
+            itemAtPos->onAttachedBy(this);
+
+            itemAtPos->adjustLinks(); // this may change the position
+            movePos = scenePos();
         }
 
+        adjustLinks();
         return true;
     }
 
