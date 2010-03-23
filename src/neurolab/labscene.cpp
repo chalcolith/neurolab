@@ -30,7 +30,7 @@ namespace NeuroLab
         if (item)
         {
             addItem(item);
-            item->buildShape();
+            item->updateShape();
 
             QPointF movePos(scenePos);
             item->handleMove(scenePos, movePos);

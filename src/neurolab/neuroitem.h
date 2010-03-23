@@ -39,16 +39,15 @@ namespace NeuroLab
         QList<NeuroItem *> _incoming;
         QList<NeuroItem *> _outgoing;
 
-        mutable QPainterPath *_path, *_textPath;
+        mutable QPainterPath _drawPath, _shapePath;
 
         struct TextPathRec
         {
             QPointF pos; QString text;
-
             TextPathRec(const QPointF & pos, const QString & text) : pos(pos), text(text) {}
         };
 
-        QList<TextPathRec> _texts;
+        mutable QList<TextPathRec> _texts;
         QString _label;
 
     public:
@@ -67,7 +66,7 @@ namespace NeuroLab
         virtual ~NeuroItem();
 
         const QString & label() const { return _label; }
-        void setLabel(const QString & s) { _label = s; buildShape(); update(); }
+        void setLabel(const QString & s) { _label = s; updateShape(); update(); }
 
         int id() { return _id; }
 
@@ -96,9 +95,9 @@ namespace NeuroLab
 
         virtual void idsToPointers(QGraphicsScene *);
 
+        void updateShape() const;
         virtual QRectF boundingRect() const;
         virtual QPainterPath shape() const;
-        virtual void buildShape();
 
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -108,10 +107,10 @@ namespace NeuroLab
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
-        void buildTextPath() const;
+        virtual void addToShape() const;
 
-        virtual void setPenProperties(QPen & pen);
-        virtual void setBrushProperties(QBrush & brush);
+        virtual void setPenProperties(QPen & pen) const;
+        virtual void setBrushProperties(QBrush & brush) const;
 
         virtual bool shouldHighlight() const;
 

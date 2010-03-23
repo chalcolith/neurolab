@@ -38,8 +38,7 @@ namespace NeuroLab
     NeuroItem::NeuroItem(LabNetwork *network)
         : QObject(network), QGraphicsItem(),
         PropertyObject(), label_property(0),
-        _network(network), _id(NEXT_ID++),
-        _path(0), _textPath(0)
+        _network(network), _id(NEXT_ID++)
     {
         setFlag(QGraphicsItem::ItemIsSelectable, true);
         setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -50,9 +49,6 @@ namespace NeuroLab
 
     NeuroItem::~NeuroItem()
     {
-        delete _path;
-        delete _textPath;
-
         while (_incoming.size() > 0)
             removeIncoming(_incoming.front());
         while (_outgoing.size() > 0)
@@ -105,7 +101,7 @@ namespace NeuroLab
             {
                 _label = value.toString();
 
-                buildShape();
+                updateShape();
                 update();
             }
         }
@@ -186,47 +182,56 @@ namespace NeuroLab
         update(this->boundingRect());
     }
 
-    void NeuroItem::buildShape()
+    void NeuroItem::updateShape() const
     {
-        delete _path;
-        _path = new QPainterPath();
-        _path->setFillRule(Qt::WindingFill);
+        const_cast<NeuroItem *>(this)->prepareGeometryChange();
 
-        delete _textPath;
-        _textPath = 0;
+        // re-initialize path
+        _drawPath = QPainterPath();
+        _drawPath.setFillRule(Qt::WindingFill);
+
+        // call virtual function
         _texts.clear();
+        addToShape();
 
+        // stroke shape path
+        QPen pen;
+        setPenProperties(pen);
+
+        QPainterPathStroker stroker;
+        stroker.setCapStyle(Qt::SquareCap);
+        stroker.setDashPattern(Qt::SolidLine);
+        stroker.setJoinStyle(Qt::MiterJoin);
+        stroker.setWidth(pen.width() * 4);
+
+        _shapePath = stroker.createStroke(_drawPath);
+        _shapePath.setFillRule(Qt::WindingFill);
+
+        // add texts
         if (!_label.isNull() && !_label.isEmpty())
             _texts.append(TextPathRec(QPointF(NeuroItem::NODE_WIDTH + 4, -1), _label));
 
-        const_cast<NeuroItem *>(this)->prepareGeometryChange();
+        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
+        {
+            const TextPathRec & rec = i.peekNext();
+            _shapePath.addText(rec.pos, QApplication::font(), rec.text);
+        }
+
+        _shapePath = _drawPath.united(_shapePath);
     }
 
-    void NeuroItem::buildTextPath() const
+    void NeuroItem::addToShape() const
     {
-        if (!_textPath)
-        {
-            _textPath = new QPainterPath();
-            _textPath->setFillRule(Qt::WindingFill);
-
-            for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
-            {
-                const TextPathRec & rec = i.peekNext();
-                _textPath->addText(rec.pos, QApplication::font(), rec.text);
-            }
-        }
     }
 
     QRectF NeuroItem::boundingRect() const
     {
-        buildTextPath();
-        return _path->united(*_textPath).controlPointRect();
+        return _shapePath.controlPointRect();
     }
 
     QPainterPath NeuroItem::shape() const
     {
-        buildTextPath();
-        return _path->united(*_textPath);
+        return _shapePath;
     }
 
     bool NeuroItem::shouldHighlight() const
@@ -259,7 +264,7 @@ namespace NeuroLab
         return result;
     }
 
-    void NeuroItem::setPenProperties(QPen & pen)
+    void NeuroItem::setPenProperties(QPen & pen) const
     {
         if (shouldHighlight())
             pen.setWidth(HOVER_LINE_WIDTH);
@@ -269,7 +274,7 @@ namespace NeuroLab
         pen.setColor(NORMAL_LINE_COLOR);
     }
 
-    void NeuroItem::setBrushProperties(QBrush & brush)
+    void NeuroItem::setBrushProperties(QBrush & brush) const
     {
         brush.setColor(BACKGROUND_COLOR);
     }
@@ -289,7 +294,7 @@ namespace NeuroLab
 
         painter->setPen(pen);
         painter->setBrush(brush);
-        painter->drawPath(*_path);
+        painter->drawPath(_drawPath);
 
         QPen textPen(Qt::SolidLine);
         textPen.setColor(NORMAL_LINE_COLOR);
@@ -326,7 +331,7 @@ namespace NeuroLab
 
                 if (handleMove(labScene->lastMousePos(), movePos))
                 {
-                    buildShape();
+                    updateShape();
                     return QVariant(movePos);
                 }
             }

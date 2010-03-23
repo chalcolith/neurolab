@@ -10,7 +10,10 @@
 namespace Automata
 {
 
-    /// State for an asynchronous automaton.
+    /// Internal state for an asynchronous automaton, which requires two copies of a cell's state,
+    /// one for the previous state, and one for the next state.
+    /// \param TState A cell's state.
+    /// \param TIndex The index type used by the automaton.
     template <typename TState, typename TIndex>
     struct AsyncState
     {
@@ -29,27 +32,31 @@ namespace Automata
             return *this;
         }
     };
-    
+
+    /// Writes the asynchronous cell to a QDataStream.  Writes both the previous and current state objects,
+    /// so the automaton may be saved or loaded in the middle of an asynchronous update.
     template <typename TState, typename TIndex>
     QDataStream & operator<< (QDataStream & ds, const AsyncState<TState, TIndex> & as)
     {
         ds << as.q0;
         ds << as.q1;
         ds << as.r;
-        
+
         return ds;
     }
-    
+
+    /// Reads the asynchronous cell from a QDataStream.  Reads both the previous and current state objects,
+    /// so the automaton may be saved or loaded in the middle of an asynchronous update.
     template <typename TState, typename TIndex>
     QDataStream & operator>> (QDataStream & ds, AsyncState<TState, TIndex> & as)
     {
         ds >> as.q0;
         ds >> as.q1;
         ds >> as.r;
-        
+
         return ds;
     }
-    
+
 } // namespace Automata
 
 

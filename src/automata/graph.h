@@ -10,19 +10,23 @@
 namespace Automata
 {
 
-    //////////////////////////////////////////////////////////////////
     /// Base class for graphs.
-    /// \param TNode Type of node in the graph.  Must implement \c void \c setIndex(const TIndex &).
+    /// \param TNode Type of node in the graph.
+    /// \param TIndex Type to use as indices into the graph.
     template <typename TNode, typename TIndex = unsigned int>
     class Graph
     {
     protected:
         bool directed;
-        
+
         QVector<TNode> _nodes;
         QVector< QVector<TIndex> > _edges;
 
     public:
+        /// Constructor.
+        /// \param initialCapacity The number of nodes for which the graph object will initially reserve memory.
+        /// \param directed Whether or not the graph is directed.  If it is NOT directed, Graph::addEdge() will
+        /// add both incoming and outgoing edges.
         Graph(const int initialCapacity = 0, bool directed = false)
             : directed(directed)
         {
@@ -34,22 +38,28 @@ namespace Automata
         {
         }
 
+        /// Adds a node to the graph.
+        /// \return The index of the newly-created node.
         TIndex addNode(const TNode & node)
         {
             TIndex index = _nodes.size();
 
             _nodes.append(node);
             _edges.append(QVector<TIndex>());
-            
+
             return index;
         }
-        
+
+        /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
+        /// \param from The index of the source node.
+        /// \param to The index of the destination node.
+        /// \see Graph::removeEdge()
         void addEdge(const TIndex & from, const TIndex & to)
         {
             if (from < _edges.size())
             {
                 QVector<TIndex> & outgoing = _edges[from];
-                
+
                 if (!outgoing.contains(to))
                     outgoing.append(to);
             }
@@ -57,13 +67,13 @@ namespace Automata
             {
                 throw IndexOverflow();
             }
-            
+
             if (!directed)
             {
                 if (to < _edges.size())
                 {
                     QVector<TIndex> & incoming = _edges[to];
-                    
+
                     if (!incoming.contains(from))
                         incoming.append(from);
                 }
@@ -73,7 +83,11 @@ namespace Automata
                 }
             }
         }
-        
+
+        /// Removes an edge from the graph.  If the graph is NOT directed, will also remove the reciprocal edge.
+        /// \param from The index of the source node.
+        /// \param to The index of the destination node.
+        /// \see Graph::addEdge()
         void removeEdge(const TIndex & from, const TIndex & to)
         {
             if (from < _edges.size())
@@ -90,7 +104,7 @@ namespace Automata
             {
                 throw IndexOverflow();
             }
-            
+
             if (!directed)
             {
                 if (to < _edges.size())
@@ -110,6 +124,8 @@ namespace Automata
             }
         }
 
+        /// \returns A const reference to a node in the graph.
+        /// \param index The index of the node.
         const TNode & operator[] (const TIndex & index) const
         {
             if (index < _nodes.size())
@@ -118,6 +134,8 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// \returns A reference to a node in the graph.
+        /// \param index The index of the node.
         TNode & operator[] (const TIndex & index)
         {
             if (index < _nodes.size())
@@ -126,6 +144,10 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// Returns a pointer to an array containing the indices of all the nodes to which there is an edge from
+        /// the given node.
+        /// \param index The index of the node.
+        /// \param num Is set to the size of the array.
         TIndex * neighbors(const TIndex & index, int & num) const
         {
             if (index < _nodes.size())
@@ -141,58 +163,60 @@ namespace Automata
         }
 
 
-        // io functions
+        /// Implemented by derived classes to write to a data stream.
         virtual QDataStream & writeBinary(QDataStream & ds) const
         {
             ds.setVersion(QDataStream::Qt_4_5);
 
-            int version = 1;            
+            int version = 1;
             ds << version;
-            
+
             // data
             ds << this->directed;
             ds << this->_nodes;
             ds << this->_edges;
-            
+
             return ds;
         }
-        
+
+        /// Implemented by derived classes to read from a data stream.
         virtual QDataStream & readBinary(QDataStream & ds)
         {
             ds.setVersion(QDataStream::Qt_4_5);
 
-            int version;            
+            int version;
             ds >> version;
-            
+
             // data
             ds >> this->directed;
             ds >> this->_nodes;
             ds >> this->_edges;
-            
+
             return ds;
         }
-        
+
         template <typename TN, typename TI>
         friend QDataStream & operator<< (QDataStream &, const Graph<TN, TI> &);
-        
+
         template <typename TN, typename TI>
         friend QDataStream & operator>> (QDataStream &, Graph<TN, TI> &);
     };
 
 
-    // IO functions
+    /// Writes to a data stream.  Derived classes should not re-implement this, but implement Graph::writeBinary() instead.
     template <typename TNode, typename TIndex>
     QDataStream & operator<< (QDataStream & s, const Graph<TNode, TIndex> & g)
     {
         return g.writeBinary(s);
     }
-    
+
+    /// Reads from a data stream.  Derived classes should not re-implement this, but implement Graph::readBinary() instead.
     template <typename TNode, typename TIndex>
     QDataStream & operator>> (QDataStream & s, Graph<TNode, TIndex> & g)
     {
         return g.readBinary(s);
-    }    
-    
+    }
+
 } // namespace Automata
 
 #endif // GRAPH_H

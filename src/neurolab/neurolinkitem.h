@@ -15,7 +15,7 @@ namespace NeuroLab
     {
     protected:
         QLineF _line;
-        QVector2D c1, c2;
+        mutable QVector2D c1, c2;
 
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
         bool dragFront, settingLine;
@@ -40,7 +40,7 @@ namespace NeuroLab
         NeuroItem *backLinkTarget() { return _backLinkTarget; }
         void setBackLinkTarget(NeuroItem *linkTarget);
 
-        virtual void buildShape();
+        virtual void addToShape() const;
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
@@ -53,8 +53,8 @@ namespace NeuroLab
         void updatePos();
 
     protected:
-        virtual void setPenProperties(QPen & pen);
-        virtual void setBrushProperties(QBrush & brush);
+        virtual void setPenProperties(QPen & pen) const;
+        virtual void setBrushProperties(QBrush & brush) const;
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
@@ -79,7 +79,7 @@ namespace NeuroLab
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void buildShape();
+        virtual void addToShape() const;
     };
 
 
@@ -93,7 +93,7 @@ namespace NeuroLab
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void buildShape();
+        virtual void addToShape() const;
     };
 
 } // namespace NeuroLab

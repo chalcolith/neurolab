@@ -24,7 +24,7 @@ namespace NeuroLab
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void buildShape();
+        virtual void addToShape() const;
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void adjustLinks();

@@ -17,25 +17,27 @@ namespace Automata
 {
 
     /// An automaton over graphs, with asynchronous update capability.
-    /// \param TState A state in the automaton.
-    /// \param TFUpdate A functor by which to update states.  Must implement \c ()(const TState & prev, TState & next, const int & numNeighbors, const TState * const * const neighbors).
+    /// \param TState A cell's state in the automaton.
+    /// \param TFUpdate A functor by which to update states.  Must implement <tt>void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const</tt>.
+    /// \param TIndex The type used to index cells in the automaton.
+    /// \param NUM_PER_LOCK The number of cells per write lock.
     template <typename TState, typename TFUpdate, typename TIndex = quint32, int NUM_PER_LOCK = 1024>
-    class Automaton 
+    class Automaton
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
         const TFUpdate fUpdate;
         Pool<QVector<const TState *> > temp_neighbor_pool;
         QVector<QReadWriteLock *> locks;
-        
+
         struct MapFunctor
         {
             Automaton<TState, TFUpdate, TIndex> & automaton;
-            
+
         public:
             typedef AsyncState<TState, TIndex> & result_type;
-            
+
             MapFunctor(Automaton<TState, TFUpdate, TIndex> & automaton) : automaton(automaton) {}
-            
+
             inline result_type operator() (result_type item)
             {
                 return automaton.update(item);
@@ -43,6 +45,9 @@ namespace Automata
         };
 
     public:
+        /// Constructor.
+        /// \param initialCapacity The number of cells for which the automaton will initially reserve memory.
+        /// \param directed Whether or not the automaton's graph is directed.
         Automaton(const int initialCapacity = 0, bool directed = true)
             : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate())
         {
@@ -54,27 +59,33 @@ namespace Automata
             for (int i = 0; i < n; ++i)
                 delete locks[i];
         }
-        
+
+        /// Causes the automaton to be advanced by one timestep.  The default implementation calls \c QtConcurrent::map() three times,
+        /// as this is required for the asynchronous algorithm to fully implement one time step.
         virtual void step()
         {
             MapFunctor functor(*this);
-            
+
             // the asynchronous algo take three updates to fully run one step
             QFuture<void> future1 = QtConcurrent::map(this->_nodes, functor);
             QFuture<void> future2 = QtConcurrent::map(this->_nodes, functor);
             QFuture<void> future3 = QtConcurrent::map(this->_nodes, functor);
-            
+
             future1.waitForFinished();
             future2.waitForFinished();
             future3.waitForFinished();
         }
 
+        /// Adds a cell to the automaton.
+        /// \return The index of the newly-created cell.
         TIndex addNode(const TState & node)
         {
-            TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));            
+            TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));
             return result;
         }
 
+        /// Returns the most-recently updated state of a cell in the automaton.
+        /// \param index The index of the cell.
         const TState & operator[](const TIndex & index) const
         {
             if (index < this->_nodes.size())
@@ -83,6 +94,8 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// Returns the most-recently updated state of a cell in the automaton.
+        /// \param index The index of the cell.
         TState & operator[](const TIndex & index)
         {
             if (index < this->_nodes.size())
@@ -91,6 +104,7 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// \return The asynchronous ready state of a cell in the automaton.
         const int & readyState(const TIndex & index) const
         {
             if (index < this->_nodes.size())
@@ -106,17 +120,18 @@ namespace Automata
         {
             return update(this->_nodes[index]);
         }
-        
+
+        /// Implements the asynchronous update operation on a cell in the automaton.
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
         {
             TIndex index = &state - this->_nodes.data();
-            
+
             // write lock
-            TIndex lock_index = index/NUM_PER_LOCK;            
+            TIndex lock_index = index/NUM_PER_LOCK;
             while (locks.size() <= lock_index)
                 locks.append(new QReadWriteLock());
             QWriteLocker write_lock(locks[lock_index]);
-            
+
             // update
             if (state.r == 0)
             {
@@ -125,24 +140,24 @@ namespace Automata
                     // temporary neighbor array
                     typename Pool<QVector<const TState *> >::Item tni(temp_neighbor_pool);
                     QVector<const TState *> *temp_neighbors = tni.data;
-                    
+
                     const QVector<TIndex> & neighbors = this->_edges[index];
                     if (neighbors.size() > temp_neighbors->size())
                         temp_neighbors->resize(neighbors.size());
-                    
+
                     // get appropriate states of neighbors
                     const TState ** const temp_ptr = temp_neighbors->data();
-                    
+
                     for (int i = 0; i < neighbors.size(); ++i)
                     {
                         const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
-                        
+
                         if (neighbor.r == 0)
                             temp_ptr[i] = &neighbor.q0;
                         else if (neighbor.r == 1)
                             temp_ptr[i] = &neighbor.q1;
                     }
-                    
+
                     // update
                     state.q1 = state.q0;
                     fUpdate(this, index, state.q1, state.q0, neighbors, temp_ptr);
@@ -153,7 +168,7 @@ namespace Automata
             {
                 state.r = (state.r+1) % 3;
             }
-            
+
             return state;
         }
 
@@ -162,13 +177,13 @@ namespace Automata
             if (index < this->_nodes.size())
             {
                 const QVector<TIndex> & neighbors = this->_edges[index];
-                
+
                 for (int i = 0; i < neighbors.size(); ++i)
                 {
                     if (this->_nodes[neighbors[i]].r == ((r+2) % 3))
                         return false;
                 }
-                
+
                 return true;
             }
             else
@@ -176,9 +191,9 @@ namespace Automata
                 throw IndexOverflow();
             }
         }
-                
+
     }; // class Automaton
-    
+
 } // namespace Automata
 
 #endif // AUTOMATON_H

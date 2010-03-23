@@ -7,17 +7,18 @@
 
 namespace NeuroLab
 {
-    
+
+    /// Derived to display neural network items.
     class LabView
         : public QGraphicsView
     {
         Q_OBJECT
-        
+
     public:
         LabView(LabScene *scene, QWidget *parent);
         virtual ~LabView();
     };
-    
+
 } // namespace NeuroLab
 
 #endif // LABVIEW_H

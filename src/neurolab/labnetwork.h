@@ -34,16 +34,25 @@ namespace NeuroLab
         QtVariantProperty *learn_time_property;
 
     public:
-        LabNetwork(QWidget *_parent = 0);
+        LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
 
+        /// \return Whether or not the network has changed since the last save.
         bool dirty() const { return _dirty; }
+
+        /// Sets the dirty state of the network.
         void setDirty(bool dirty = true);
 
+        /// \return The currently active graphics scene.
         LabScene *scene() { return _tree ? _tree->scene() : 0; }
+
+        /// \return The currently active graphics view.
         LabView *view() { return _tree ? _tree->view() : 0; }
+
+        /// \return The name of the file from which the network was loaded.
         const QString & fname() const { return _fname; }
 
+        /// \return A pointer to the neural network.
         NeuroLib::NeuroNet *neuronet() { return _neuronet; }
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);

@@ -12,13 +12,15 @@
 namespace NeuroLab
 {
 
-    LabNetwork::LabNetwork(QWidget *_parent)
-        : QObject(_parent), PropertyObject(),
+    /// Constructor.
+    /// \param parent The QObject that should own this network object.
+    LabNetwork::LabNetwork(QWidget *parent)
+        : QObject(parent), PropertyObject(),
         _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true),
         filename_property(0), decay_property(0), learn_property(0), learn_time_property(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
-        _tree = new LabTree(_parent, this);
+        _tree = new LabTree(parent, this);
 
         if (_tree->scene())
             connect(_tree->scene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)));
@@ -39,6 +41,9 @@ namespace NeuroLab
             MainWindow::instance()->setTitle();
     }
 
+    /// Adds the network's properties to the parent property.
+    /// \param manager The property manager with which to create properties if necessary.
+    /// \param parentItem The parent property to which to add new properties.
     void LabNetwork::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
         if (_properties.count() == 0)
@@ -77,6 +82,7 @@ namespace NeuroLab
         learn_time_property->setValue(QVariant(static_cast<int>(_neuronet->learnTime())));
     }
 
+    /// Updates the properties from the values in memory.
     void LabNetwork::updateProperties()
     {
         _updating = true;
@@ -94,6 +100,7 @@ namespace NeuroLab
         _updating = false;
     }
 
+    /// Changes the values in memory if the properties in the property grid change.
     void LabNetwork::propertyValueChanged(QtProperty *property, const QVariant & value)
     {
         if (_updating)
@@ -126,6 +133,7 @@ namespace NeuroLab
             setDirty(true);
     }
 
+    /// Handles setting the main window's properties when the selected item changes.
     void LabNetwork::selectionChanged()
     {
         if (!scene())
@@ -139,6 +147,10 @@ namespace NeuroLab
 
     static const QString LAB_SCENE_COOKIE("Neurolab SCENE 006");
 
+    /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
+    /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
+    /// \param parent The parent widget to use if the file dialog is needed.
+    /// \param fname The name of the file from which to load the network.  If this is empty, then the standard file dialog is used to request the name of a file.
     LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
     {
         QString nln_fname = fname;
@@ -207,6 +219,8 @@ namespace NeuroLab
         return ln;
     }
 
+    /// Saves the network and its NeuroNet.
+    /// \param saveAs Forces the file dialog to be used to choose a filename.
     bool LabNetwork::save(bool saveAs)
     {
         bool prevRunning = this->running;
@@ -266,6 +280,8 @@ namespace NeuroLab
         return true;
     }
 
+    /// Saves the network if it has changed since the last change.
+    /// \return True if the network was closed successfully.
     bool LabNetwork::close()
     {
         if (_dirty && !save())
@@ -273,6 +289,7 @@ namespace NeuroLab
         return true;
     }
 
+    /// Creates a new item with the given type name.
     void LabNetwork::newItem(const QString & typeName)
     {
         if (scene() && view())
@@ -282,6 +299,7 @@ namespace NeuroLab
         }
     }
 
+    /// Deletes the selected items.
     void LabNetwork::deleteSelected()
     {
         LabScene *sc = scene();
@@ -302,6 +320,7 @@ namespace NeuroLab
         }
     }
 
+    /// Toggles the activation of the selected items.
     void LabNetwork::toggleActivated()
     {
         LabScene *sc = scene();
@@ -320,6 +339,7 @@ namespace NeuroLab
         }
     }
 
+    /// Toggles the frozen state of the selected items.
     void LabNetwork::toggleFrozen()
     {
         LabScene *sc = scene();
@@ -338,17 +358,20 @@ namespace NeuroLab
         }
     }
 
+    /// Starts the network running (currently not implemented).
     void LabNetwork::start()
     {
         running = true;
     }
 
+    /// Stops the network running (currently not implemented).
     void LabNetwork::stop()
     {
         running = false;
         _tree->update();
     }
 
+    /// Advances the network by one timestep.
     void LabNetwork::step()
     {
         running = true;
@@ -359,6 +382,7 @@ namespace NeuroLab
         _tree->update();
     }
 
+    /// Resets the network: all nodes and links that are not frozen have their output values set to 0.
     void LabNetwork::reset()
     {
         setDirty();

@@ -39,10 +39,10 @@ namespace NeuroLab
         parentItem->setPropertyName(tr("Node"));
     }
 
-    void NeuroNodeItem::buildShape()
+    void NeuroNodeItem::addToShape() const
     {
-        NeuroNarrowItem::buildShape();
-        _path->addEllipse(rect());
+        NeuroNarrowItem::addToShape();
+        _drawPath.addEllipse(rect());
 
         NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
         if (cell)

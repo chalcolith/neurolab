@@ -131,7 +131,7 @@ namespace NeuroLab
         {
             NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
             if (item)
-                item->buildShape();
+                item->updateShape();
         }
 
         // children
