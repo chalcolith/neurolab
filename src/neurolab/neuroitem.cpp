@@ -358,6 +358,10 @@ namespace NeuroLab
                     itemAtPos = 0;
                     continue;
                 }
+                else
+                {
+                    break;
+                }
             }
         }
 

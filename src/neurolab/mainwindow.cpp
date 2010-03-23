@@ -286,20 +286,33 @@ namespace NeuroLab
 
     void MainWindow::enableItemMenu()
     {
-        NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->itemUnderMouse() : 0;
+        if (_currentNetwork && _currentNetwork->scene())
+        {
+            NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->itemUnderMouse() : 0;
 
-        bool onItem = item != 0;
-        bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
-        bool onLink = dynamic_cast<NeuroLinkItem *>(item) != 0;
+            bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
+            bool onLink = dynamic_cast<NeuroLinkItem *>(item) != 0;
 
-        _ui->action_New_Node->setEnabled(!onNode);
-        _ui->action_New_Excitory_Link->setEnabled(!onLink);
-        _ui->action_New_Inhibitory_Link->setEnabled(!onLink);
+            _ui->action_New_Node->setEnabled(!onNode);
+            _ui->action_New_Excitory_Link->setEnabled(!onLink);
+            _ui->action_New_Inhibitory_Link->setEnabled(!onLink);
 
-        _ui->action_Delete->setEnabled(onItem);
+            bool itemsSelected = _currentNetwork->scene()->selectedItems().size() > 0;
 
-        _ui->action_Activate->setEnabled(onNode);
-        _ui->action_ToggleFrozen->setEnabled(onNode);
+            _ui->action_Delete->setEnabled(itemsSelected);
+
+            _ui->action_Activate->setEnabled(itemsSelected);
+            _ui->action_ToggleFrozen->setEnabled(itemsSelected);
+        }
+        else
+        {
+            _ui->action_New_Node->setEnabled(false);
+            _ui->action_New_Excitory_Link->setEnabled(false);
+            _ui->action_New_Inhibitory_Link->setEnabled(false);
+            _ui->action_Delete->setEnabled(false);
+            _ui->action_Activate->setEnabled(false);
+            _ui->action_ToggleFrozen->setEnabled(false);
+        }
     }
 
 } // namespace NeuroLab
