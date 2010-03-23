@@ -2,7 +2,7 @@
 #define NEURONARROWITEM_H
 
 #include "neuroitem.h"
-#include "../neurolib/neurocell.h"
+#include "../neurolib/neuronet.h"
 
 namespace NeuroLab
 {
@@ -33,16 +33,18 @@ namespace NeuroLab
 
         virtual void setPenProperties(QPen & pen) const;
 
+    public slots:
         virtual void reset();
         virtual void toggleActivated();
         virtual void toggleFrozen();
 
-    public slots:
         virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
 
     protected:
-        const NeuroLib::NeuroCell *getCell() const;
-        NeuroLib::NeuroCell *getCell();
+        void buildActionMenuAux(LabScene *scene, const QPointF &pos, QMenu &menu);
+
+        const NeuroLib::NeuroNet::ASYNC_STATE *getCell() const;
+        NeuroLib::NeuroNet::ASYNC_STATE *getCell();
 
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);

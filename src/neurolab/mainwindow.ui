@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>797</width>
     <height>400</height>
    </rect>
   </property>
@@ -19,8 +19,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
-     <height>21</height>
+     <width>797</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -40,20 +40,7 @@
     </property>
     <addaction name="action_Sidebar"/>
    </widget>
-   <widget class="QMenu" name="menuItem">
-    <property name="title">
-     <string>&amp;Node</string>
-    </property>
-    <addaction name="action_New_Node"/>
-    <addaction name="action_New_Excitory_Link"/>
-    <addaction name="action_New_Inhibitory_Link"/>
-    <addaction name="separator"/>
-    <addaction name="action_Delete"/>
-    <addaction name="separator"/>
-    <addaction name="action_Activate"/>
-    <addaction name="action_ToggleFrozen"/>
-   </widget>
-   <widget class="QMenu" name="menuSimulation">
+   <widget class="QMenu" name="menu_Simulation">
     <property name="title">
      <string>Simulation</string>
     </property>
@@ -64,8 +51,7 @@
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
-   <addaction name="menuItem"/>
-   <addaction name="menuSimulation"/>
+   <addaction name="menu_Simulation"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -78,6 +64,8 @@
    <addaction name="action_Open"/>
    <addaction name="action_Save"/>
    <addaction name="action_Close"/>
+   <addaction name="separator"/>
+   <addaction name="action_Delete"/>
    <addaction name="separator"/>
    <addaction name="action_Step"/>
    <addaction name="action_Reset"/>
@@ -108,8 +96,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>69</width>
-          <height>269</height>
+          <width>79</width>
+          <height>250</height>
          </rect>
         </property>
         <attribute name="label">
@@ -180,26 +168,6 @@
     <string>Del</string>
    </property>
   </action>
-  <action name="action_New_Excitory_Link">
-   <property name="text">
-    <string>New &amp;Excitory Link</string>
-   </property>
-  </action>
-  <action name="action_New_Inhibitory_Link">
-   <property name="text">
-    <string>New &amp;Inhibitory Link</string>
-   </property>
-  </action>
-  <action name="action_New_Node">
-   <property name="text">
-    <string>New No&amp;de</string>
-   </property>
-  </action>
-  <action name="action_Activate">
-   <property name="text">
-    <string>Toggle Activated</string>
-   </property>
-  </action>
   <action name="action_Start">
    <property name="text">
     <string>Start</string>
@@ -213,11 +181,6 @@
   <action name="action_Step">
    <property name="text">
     <string>Step</string>
-   </property>
-  </action>
-  <action name="action_ToggleFrozen">
-   <property name="text">
-    <string>Toggle Frozen</string>
    </property>
   </action>
   <action name="action_Reset">

@@ -12,7 +12,7 @@ namespace NeuroLib
                          const NeuroValue & current_value)
         : _kind(k), _frozen(false),
         _weight(weight), _run(run),
-        _current_value(current_value),
+        _output_value(current_value),
         _running_average(current_value)
     {
     }
@@ -43,13 +43,13 @@ namespace NeuroLib
 
         if (prev._frozen)
         {
-            next._current_value = prev._current_value;
+            next._output_value = prev._output_value;
             return;
         }
 
         NeuroValue input_sum = 0;
         for (int i = 0; i < neighbor_indices.size(); ++i)
-            input_sum += neighbors[i]->_current_value;
+            input_sum += neighbors[i]->_output_value;
 
         NeuroValue next_value;
 
@@ -67,16 +67,16 @@ namespace NeuroLib
                 next_value = 0;
             }
 
-            next_value = qMax(next_value, prev._current_value * (ONE - network->_decay));
+            next_value = qMax(next_value, prev._output_value * (ONE - network->_decay));
 
             // hebbian learning
             for (int i = 0; i < neighbor_indices.size(); ++i)
             {
-                NeuroCell & incoming = (*network)[neighbor_indices[i]];
+                NeuroCell & incoming = (*network)[neighbor_indices[i]].current();
 
                 if (incoming._kind == EXCITORY_LINK)
                 {
-                    NeuroValue delta_weight = network->learn() * (incoming._current_value - incoming._running_average) * (next_value - prev._running_average);
+                    NeuroValue delta_weight = network->learn() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
                     incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
                 }
             }
@@ -93,8 +93,8 @@ namespace NeuroLib
             break;
         }
 
-        next._current_value = next_value;
-        next._running_average = (next._current_value + (network->learnTime() - ONE)*prev._running_average) / network->learnTime();
+        next._output_value = next_value;
+        next._running_average = (next._output_value + (network->learnTime() - ONE)*prev._running_average) / network->learnTime();
     }
 
     QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
@@ -109,7 +109,7 @@ namespace NeuroLib
             ds << static_cast<float>(nc._run);
         }
 
-        ds << static_cast<float>(nc._current_value);
+        ds << static_cast<float>(nc._output_value);
         ds << static_cast<float>(nc._running_average);
 
         return ds;
@@ -131,7 +131,7 @@ namespace NeuroLib
             ds >> n; nc._run = static_cast<NeuroCell::NeuroValue>(n);
         }
 
-        ds >> n; nc._current_value = static_cast<NeuroCell::NeuroValue>(n);
+        ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
         ds >> n; nc._running_average = static_cast<NeuroCell::NeuroValue>(n);
 
         return ds;

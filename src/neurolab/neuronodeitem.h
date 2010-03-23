@@ -33,6 +33,8 @@ namespace NeuroLab
         void adjustLinksAux(QList<NeuroItem *> &);
 
     protected:
+        virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
+
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);
     };

@@ -142,10 +142,10 @@ namespace NeuroLab
     {
         NeuroNarrowItem::setPenProperties(pen);
 
-        const NeuroCell *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            qreal weight = qBound(0.1f, qAbs(cell->weight()), 1.0f);
+            qreal weight = qBound(0.1f, qAbs(cell->current().weight()), 1.0f);
             pen.setColor(lerp(Qt::lightGray, pen.color(), weight));
         }
     }
@@ -348,7 +348,7 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem);
+    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Excitory Link"));
 
     NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)
@@ -408,7 +408,7 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem);
+    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Inhibitory Link"));
 
     NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)

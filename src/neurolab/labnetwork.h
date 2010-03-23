@@ -66,8 +66,6 @@ namespace NeuroLab
 
         void newItem(const QString & typeName);
         void deleteSelected();
-        void toggleActivated();
-        void toggleFrozen();
 
         void reset();
         void start();

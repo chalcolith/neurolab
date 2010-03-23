@@ -76,12 +76,12 @@ namespace NeuroLib
         /// \return The current output value of the cell.
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::setCurrentValue()
-        const NeuroValue & currentValue() const { return _current_value; }
+        const NeuroValue & outputValue() const { return _output_value; }
 
         /// Set the current output value of the cell.
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::currentValue()
-        void setCurrentValue(const NeuroValue & v) { _current_value = _running_average = v; }
+        void setOutputValue(const NeuroValue & v) { _output_value = _running_average = v; }
 
         /// \return The running average of the cell's output values.
         /// \see NeuroNet::learnTime()
@@ -108,7 +108,7 @@ namespace NeuroLib
         NeuroValue _weight; // used in links for their weight; in nodes for their input thresholds
         NeuroValue _run; // the width of the slope in the sigmoid curve (for nodes)
 
-        NeuroValue _current_value;
+        NeuroValue _output_value;
         NeuroValue _running_average;
 
         friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);

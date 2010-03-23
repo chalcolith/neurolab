@@ -31,6 +31,12 @@ namespace Automata
             r = state.r;
             return *this;
         }
+
+        const TState & current() const { return r == 0 ? q0 : q1; }
+        TState & current() { return r == 0 ? q0 : q1; }
+
+        const TState & former() const { return r == 0 ? q0 : q1; }
+        TState & former() { return r == 0 ? q0 : q1; }
     };
 
     /// Writes the asynchronous cell to a QDataStream.  Writes both the previous and current state objects,

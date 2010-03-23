@@ -33,7 +33,7 @@ namespace NeuroLab
     //////////////////////////////////////////////
 
     int NeuroItem::NEXT_ID = 1;
-    QMap<QString, NeuroItem::CreateFT> NeuroItem::itemCreators;
+    QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::itemCreators;
 
     NeuroItem::NeuroItem(LabNetwork *network)
         : QObject(network), QGraphicsItem(),
@@ -57,11 +57,33 @@ namespace NeuroLab
 
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
     {
-        CreateFT cf = itemCreators[name];
+        CreateFT cf = itemCreators[name].second;
 
         if (cf)
             return cf(scene, pos);
         return 0;
+    }
+
+    void NeuroItem::buildNewMenu(LabScene *, NeuroItem *item, const QPointF & pos, QMenu & menu)
+    {
+        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(itemCreators); i.hasNext(); i.next())
+        {
+            const QString & typeName = i.peekNext().key();
+            const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();
+
+            QAction *action = menu.addAction(QString("New %1").arg(p.first));
+            action->setData(QVariant(typeName));
+            action->setEnabled(!item || item->canCreateNewOnMe(typeName, pos));
+        }
+    }
+
+    void NeuroItem::buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu)
+    {
+        if (item)
+            item->buildActionMenuAux(scene, pos, menu);
+
+        QAction *del = menu.addAction(QObject::tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
+        del->setEnabled(scene->selectedItems().size() > 0);
     }
 
     void NeuroItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)

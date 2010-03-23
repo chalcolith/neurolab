@@ -8,6 +8,7 @@
 #include <QColor>
 #include <QList>
 #include <QMap>
+#include <QPair>
 #include <typeinfo>
 
 class QtProperty;
@@ -103,6 +104,9 @@ namespace NeuroLab
 
         void bringToFront();
 
+        static void buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+        static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+
     public slots:
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
@@ -131,8 +135,12 @@ namespace NeuroLab
 
         //
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
-        static QMap<QString, CreateFT> itemCreators;
+
+        static QMap<QString, QPair<QString, CreateFT> > itemCreators;
         friend class NeuroItemRegistrator;
+
+        virtual void buildActionMenuAux(LabScene *, const QPointF &, QMenu &) { }
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
 
         //
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
@@ -151,11 +159,11 @@ namespace NeuroLab
         QString _name;
 
     public:
-        NeuroItemRegistrator(const char *name, NeuroItem::CreateFT create_func)
+        NeuroItemRegistrator(const QString & name, const QString & description, NeuroItem::CreateFT create_func)
             : _name(name)
         {
             if (create_func)
-                NeuroItem::itemCreators[_name] = create_func;
+                NeuroItem::itemCreators[_name] = QPair<QString, NeuroItem::CreateFT>(description, create_func);
         }
 
         virtual ~NeuroItemRegistrator()
@@ -164,7 +172,7 @@ namespace NeuroLab
         }
     };
 
-#define NEUROITEM_DEFINE_CREATOR(TypeName) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), &TypeName::create_new)
+#define NEUROITEM_DEFINE_CREATOR(TypeName, Description) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), Description, &TypeName::create_new)
 
 } // namespace NeuroLab
 

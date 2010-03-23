@@ -33,12 +33,12 @@ void LifeWidget::paintEvent(QPaintEvent *)
             default:
                 cellColor = Qt::white;
             }
-            
+
             //cellColor = Qt::white;
 
             painter.fillRect(x*x_step, y*y_step, x_step, y_step, cellColor);
 
-            if (this->board[index].alive)
+            if (this->board[index].current().alive)
                 painter.fillRect(x*x_step + 1, y*y_step + 1, x_step - 2, y_step - 2, Qt::black);
         }
     }

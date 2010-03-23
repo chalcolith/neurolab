@@ -43,9 +43,27 @@ namespace NeuroLab
     void LabScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     {
         QGraphicsScene::contextMenuEvent(event);
+
         if (!event->isAccepted())
         {
-            MainWindow::instance()->ui()->menuItem->exec(event->screenPos());
+            QMenu menu;
+
+            NeuroItem::buildNewMenu(this, itemUnderMouse(), event->scenePos(), menu);
+            menu.addSeparator();
+            NeuroItem::buildActionMenu(this, itemUnderMouse(), event->scenePos(), menu);
+
+            QAction *action = menu.exec(event->screenPos());
+
+            // check for the need to create a new item
+            if (action)
+            {
+                QString typeName = action->data().toString();
+
+                if (!typeName.isNull() && !typeName.isEmpty())
+                {
+                    newItem(typeName, event->scenePos());
+                }
+            }
         }
     }
 

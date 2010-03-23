@@ -13,7 +13,7 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem);
+    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Node"));
 
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroNarrowItem(network, cellIndex)
@@ -33,6 +33,11 @@ namespace NeuroLab
         return item;
     }
 
+    bool NeuroNodeItem::canCreateNewOnMe(const QString &typeName, const QPointF &) const
+    {
+        return typeName.indexOf("LinkItem") >= 0;
+    }
+
     void NeuroNodeItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
         NeuroNarrowItem::buildProperties(manager, parentItem);
@@ -44,10 +49,10 @@ namespace NeuroLab
         NeuroNarrowItem::addToShape();
         _drawPath.addEllipse(rect());
 
-        NeuroCell *cell = const_cast<NeuroNodeItem *>(this)->getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            _texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->weight())));
+            _texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
         }
     }
 

@@ -113,7 +113,6 @@ namespace NeuroLab
     void MainWindow::setupConnections()
     {
         connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)));
-        connect(_ui->menuItem, SIGNAL(aboutToShow()), this, SLOT(enableItemMenu()));
     }
 
     void MainWindow::closeEvent(QCloseEvent *event)
@@ -284,40 +283,9 @@ namespace NeuroLab
         }
     }
 
-    void MainWindow::enableItemMenu()
-    {
-        if (_currentNetwork && _currentNetwork->scene())
-        {
-            NeuroItem *item = (_currentNetwork && _currentNetwork->scene()) ? _currentNetwork->scene()->itemUnderMouse() : 0;
-
-            bool onNode = dynamic_cast<NeuroNodeItem *>(item) != 0;
-            bool onLink = dynamic_cast<NeuroLinkItem *>(item) != 0;
-
-            _ui->action_New_Node->setEnabled(!onNode);
-            _ui->action_New_Excitory_Link->setEnabled(!onLink);
-            _ui->action_New_Inhibitory_Link->setEnabled(!onLink);
-
-            bool itemsSelected = _currentNetwork->scene()->selectedItems().size() > 0;
-
-            _ui->action_Delete->setEnabled(itemsSelected);
-
-            _ui->action_Activate->setEnabled(itemsSelected);
-            _ui->action_ToggleFrozen->setEnabled(itemsSelected);
-        }
-        else
-        {
-            _ui->action_New_Node->setEnabled(false);
-            _ui->action_New_Excitory_Link->setEnabled(false);
-            _ui->action_New_Inhibitory_Link->setEnabled(false);
-            _ui->action_Delete->setEnabled(false);
-            _ui->action_Activate->setEnabled(false);
-            _ui->action_ToggleFrozen->setEnabled(false);
-        }
-    }
-
 } // namespace NeuroLab
 
-//////////////////////////////////////////////////////////////////////
+
 // action slots
 
 void NeuroLab::MainWindow::on_action_New_triggered()
@@ -350,42 +318,6 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
     _ui->sidebarDockWidget->toggleViewAction()->trigger();
 }
 
-void NeuroLab::MainWindow::on_action_New_Node_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->newItem(typeid(NeuroLab::NeuroNodeItem).name());
-}
-
-void NeuroLab::MainWindow::on_action_New_Excitory_Link_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->newItem(typeid(NeuroLab::NeuroExcitoryLinkItem).name());
-}
-
-void NeuroLab::MainWindow::on_action_New_Inhibitory_Link_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->newItem(typeid(NeuroLab::NeuroInhibitoryLinkItem).name());
-}
-
-void NeuroLab::MainWindow::on_action_Delete_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->deleteSelected();
-}
-
-void NeuroLab::MainWindow::on_action_Activate_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->toggleActivated();
-}
-
-void NeuroLab::MainWindow::on_action_ToggleFrozen_triggered()
-{
-    if (_currentNetwork)
-        _currentNetwork->toggleFrozen();
-}
-
 void NeuroLab::MainWindow::on_action_Start_triggered()
 {
 }
@@ -404,4 +336,10 @@ void NeuroLab::MainWindow::on_action_Reset_triggered()
 {
     if (_currentNetwork)
         _currentNetwork->reset();
+}
+
+void NeuroLab::MainWindow::on_action_Delete_triggered()
+{
+    if (_currentNetwork)
+        _currentNetwork->deleteSelected();
 }

@@ -320,44 +320,6 @@ namespace NeuroLab
         }
     }
 
-    /// Toggles the activation of the selected items.
-    void LabNetwork::toggleActivated()
-    {
-        LabScene *sc = scene();
-
-        if (sc)
-        {
-            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
-            {
-                NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.peekNext());
-                if (item)
-                {
-                    setDirty();
-                    item->toggleActivated();
-                }
-            }
-        }
-    }
-
-    /// Toggles the frozen state of the selected items.
-    void LabNetwork::toggleFrozen()
-    {
-        LabScene *sc = scene();
-
-        if (sc)
-        {
-            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
-            {
-                NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.peekNext());
-                if (item)
-                {
-                    setDirty();
-                    item->toggleFrozen();
-                }
-            }
-        }
-    }
-
     /// Starts the network running (currently not implemented).
     void LabNetwork::start()
     {
@@ -375,6 +337,8 @@ namespace NeuroLab
     void LabNetwork::step()
     {
         running = true;
+        _neuronet->step();
+        _neuronet->step();
         _neuronet->step();
         running = false;
 

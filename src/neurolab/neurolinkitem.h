@@ -53,6 +53,8 @@ namespace NeuroLab
         void updatePos();
 
     protected:
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
+
         virtual void setPenProperties(QPen & pen) const;
         virtual void setBrushProperties(QBrush & brush) const;
 

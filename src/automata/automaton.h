@@ -45,6 +45,8 @@ namespace Automata
         };
 
     public:
+        typedef AsyncState<TState, TIndex> ASYNC_STATE;
+
         /// Constructor.
         /// \param initialCapacity The number of cells for which the automaton will initially reserve memory.
         /// \param directed Whether or not the automaton's graph is directed.
@@ -60,20 +62,14 @@ namespace Automata
                 delete locks[i];
         }
 
-        /// Causes the automaton to be advanced by one timestep.  The default implementation calls \c QtConcurrent::map() three times,
-        /// as this is required for the asynchronous algorithm to fully implement one time step.
+        /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
         virtual void step()
         {
             MapFunctor functor(*this);
 
             // the asynchronous algo take three updates to fully run one step
             QFuture<void> future1 = QtConcurrent::map(this->_nodes, functor);
-            QFuture<void> future2 = QtConcurrent::map(this->_nodes, functor);
-            QFuture<void> future3 = QtConcurrent::map(this->_nodes, functor);
-
             future1.waitForFinished();
-            future2.waitForFinished();
-            future3.waitForFinished();
         }
 
         /// Adds a cell to the automaton.
@@ -84,25 +80,25 @@ namespace Automata
             return result;
         }
 
-        /// Returns the most-recently updated state of a cell in the automaton.
-        /// \param index The index of the cell.
-        const TState & operator[](const TIndex & index) const
-        {
-            if (index < this->_nodes.size())
-                return this->_nodes[index].q0;
-            else
-                throw IndexOverflow();
-        }
-
-        /// Returns the most-recently updated state of a cell in the automaton.
-        /// \param index The index of the cell.
-        TState & operator[](const TIndex & index)
-        {
-            if (index < this->_nodes.size())
-                return this->_nodes[index].q0;
-            else
-                throw IndexOverflow();
-        }
+//        /// Returns the most-recently updated state of a cell in the automaton.
+//        /// \param index The index of the cell.
+//        const TState & operator[](const TIndex & index) const
+//        {
+//            if (index < this->_nodes.size())
+//                return this->_nodes[index].q0;
+//            else
+//                throw IndexOverflow();
+//        }
+//
+//        /// Returns the most-recently updated state of a cell in the automaton.
+//        /// \param index The index of the cell.
+//        TState & operator[](const TIndex & index)
+//        {
+//            if (index < this->_nodes.size())
+//                return this->_nodes[index].q0;
+//            else
+//                throw IndexOverflow();
+//        }
 
         /// \return The asynchronous ready state of a cell in the automaton.
         const int & readyState(const TIndex & index) const
