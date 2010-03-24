@@ -10,6 +10,7 @@
 namespace NeuroLab
 {
 
+    /// A link item that represents a one-directional link in Narrow notation.
     class NeuroLinkItem
         : public NeuroNarrowItem
     {
@@ -21,25 +22,49 @@ namespace NeuroLab
         bool dragFront, settingLine;
 
     public:
+        /// Constructor.
+        /// \param network The network this item is a part of.
+        /// \param cellIndex The index of the neural network cell that underlies this item.
         NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
         virtual ~NeuroLinkItem();
 
+        /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
         QLineF line() const { return _line; }
+
+        /// Sets the link's back (\c p0) and front (\c p1) positions.
         void setLine(const QLineF & l);
+        /// Sets the link's back (\c p0) and front (\c p1) positions.
         void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
+        /// Sets the link's back (\c p0) and front (\c p1) positions.
         void setLine(const QPointF & p1, const QPointF & p2);
 
+        /// Adds an incoming item.  Overrides the default to create an edge in the neural network.
         virtual bool addIncoming(NeuroItem *linkItem);
+        /// Removes an incoming item.  Overrides the default to remove an edge in the neural network.
         virtual bool removeIncoming(NeuroItem *linkItem);
+
         virtual bool addOutgoing(NeuroItem *linkItem);
         virtual bool removeOutgoing(NeuroItem *linkItem);
 
+        /// The item that the front of the link is currently attached to.
+        /// \see line()
+        /// \see setFrontLinkTarget()
         NeuroItem *frontLinkTarget() { return _frontLinkTarget; }
+        /// Sets the item that the front of the link is currently attached to.
+        /// \see line()
+        /// \see frontLinkTarget()
         void setFrontLinkTarget(NeuroItem *linkTarget);
 
+        /// The item that the back of the link is currently attached to.
+        /// \see line()
+        /// \see setBackLinkTarget()
         NeuroItem *backLinkTarget() { return _backLinkTarget; }
+        /// Sets the item that the back of the link is currently attached to.
+        /// \see line()
+        /// \see backLinkTarget()
         void setBackLinkTarget(NeuroItem *linkTarget);
 
+        /// Adds the link's shape to the drawing painter path.
         virtual void addToShape() const;
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
@@ -50,6 +75,7 @@ namespace NeuroLab
         virtual void adjustLinks();
 
     private:
+        /// Updates the link's position to be halfway between its front and back points.
         void updatePos();
 
     protected:
@@ -69,6 +95,7 @@ namespace NeuroLab
     };
 
 
+    /// An excitory link in narrow notation.
     class NeuroExcitoryLinkItem
         : public NeuroLinkItem
     {
@@ -85,6 +112,7 @@ namespace NeuroLab
     };
 
 
+    /// An inhibitory link in narrow notation.
     class NeuroInhibitoryLinkItem
         : public NeuroLinkItem
     {

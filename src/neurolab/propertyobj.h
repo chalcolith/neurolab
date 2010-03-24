@@ -10,6 +10,7 @@ class QtVariantPropertyManager;
 namespace NeuroLab
 {
 
+    /// Base class for objects that can be edited via the property widget.
     class PropertyObject
     {
     protected:
@@ -20,8 +21,13 @@ namespace NeuroLab
         PropertyObject();
         virtual ~PropertyObject();
 
+        /// Add properties to the parent item.
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+
+        /// Handle changes to the property values.
         virtual void propertyValueChanged(QtProperty *, const QVariant &) {}
+
+        /// Update the properties from the object's state.
         virtual void updateProperties() {}
     };
 

@@ -29,6 +29,7 @@ namespace NeuroLab
         QList<LabTreeNode *> _children;
 
     public:
+        /// Constructor.
         LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
         LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
         virtual ~LabTreeNode();
@@ -37,7 +38,10 @@ namespace NeuroLab
         LabView *view() { return _view; }
         QList<LabTreeNode *> & children() { return _children; }
 
+        /// Resets all the items in the scene.
         void reset();
+
+        /// Updates all the items in the scene.
         void update();
 
         friend class LabTree;
@@ -63,19 +67,30 @@ namespace NeuroLab
         friend class LabTreeNode;
 
     public:
+        /// Constructor.
         LabTree(QWidget *_parent, LabNetwork *_network);
         virtual ~LabTree();
 
+        /// \return The tree's network object.
         LabNetwork *network() { return _network; }
 
+        /// \return The root node of the scene tree.
         LabTreeNode *root() { return _root; }
+
+        /// \return The current node whose scene is being displayed.
         LabTreeNode *current() { return _current; }
         void setCurrent(LabTreeNode *node) { _current = node; }
 
+        /// \return The current node's scene.
         LabScene *scene() { return _current ? _current->scene() : 0; }
+
+        /// \return The current node's scene's view.
         LabView *view() { return _current ? _current->view() : 0; }
 
+        /// Resets all the items in the network.
         void reset(LabTreeNode *n = 0);
+
+        /// Updates all the items in the network.
         void update(LabTreeNode *n = 0);
 
         static const int SCENE_WIDTH;

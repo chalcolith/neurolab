@@ -80,26 +80,6 @@ namespace Automata
             return result;
         }
 
-//        /// Returns the most-recently updated state of a cell in the automaton.
-//        /// \param index The index of the cell.
-//        const TState & operator[](const TIndex & index) const
-//        {
-//            if (index < this->_nodes.size())
-//                return this->_nodes[index].q0;
-//            else
-//                throw IndexOverflow();
-//        }
-//
-//        /// Returns the most-recently updated state of a cell in the automaton.
-//        /// \param index The index of the cell.
-//        TState & operator[](const TIndex & index)
-//        {
-//            if (index < this->_nodes.size())
-//                return this->_nodes[index].q0;
-//            else
-//                throw IndexOverflow();
-//        }
-
         /// \return The asynchronous ready state of a cell in the automaton.
         const int & readyState(const TIndex & index) const
         {

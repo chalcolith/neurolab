@@ -9,6 +9,7 @@ namespace Ui
     class MainWindow;
 }
 
+/// This project is used to test the asynchronous automaton.  If the game of life functions properly then the asynchronous algorithm is working correctly.
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
