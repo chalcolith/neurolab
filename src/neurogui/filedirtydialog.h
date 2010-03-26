@@ -1,6 +1,7 @@
 #ifndef FILEDIRTYDIALOG_H
 #define FILEDIRTYDIALOG_H
 
+#include "neurogui_global.h"
 #include <QDialog>
 
 namespace Ui {
@@ -11,7 +12,9 @@ namespace NeuroLab
 {
 
     /// A dialog to ask the user whether or not to save a dirty file.
-    class FileDirtyDialog : public QDialog {
+    class NEUROGUISHARED_EXPORT FileDirtyDialog
+        : public QDialog
+    {
         Q_OBJECT
     public:
         FileDirtyDialog(QWidget *parent = 0);

@@ -1,7 +1,11 @@
 #include "mainwindow.h"
 #include "labnetwork.h"
-#include "neuronarrowitem.h"
-#include "../automata/exception.h"
+#include "labtree.h"
+#include "labview.h"
+#include "labscene.h"
+#include "neuroitem.h"
+#include "propertyobj.h"
+#include "../neurolib/neuronet.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -39,6 +43,16 @@ namespace NeuroLab
 
         if (old != _dirty)
             MainWindow::instance()->setTitle();
+    }
+
+    LabScene *LabNetwork::scene()
+    {
+        return _tree ? _tree->scene() : 0;
+    }
+
+    LabView *LabNetwork::view()
+    {
+        return _tree ? _tree->view() : 0;
     }
 
     /// Adds the network's properties to the parent property.

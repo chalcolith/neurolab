@@ -1,21 +1,28 @@
 #ifndef LABNETWORK_H
 #define LABNETWORK_H
 
-#include "labtree.h"
-#include "../neurolib/neuronet.h"
+#include "neurogui_global.h"
 #include "propertyobj.h"
 
-#include <QFile>
+#include <QObject>
 
 class QtVariantProperty;
+
+namespace NeuroLib
+{
+    class NeuroNet;
+}
 
 namespace NeuroLab
 {
 
+    class LabScene;
+    class LabView;
+    class LabTree;
     class NeuroItem;
 
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
-    class LabNetwork
+    class NEUROGUISHARED_EXPORT LabNetwork
         : public QObject, public PropertyObject
     {
         Q_OBJECT
@@ -44,10 +51,10 @@ namespace NeuroLab
         void setDirty(bool dirty = true);
 
         /// \return The currently active graphics scene.
-        LabScene *scene() { return _tree ? _tree->scene() : 0; }
+        LabScene *scene();
 
         /// \return The currently active graphics view.
-        LabView *view() { return _tree ? _tree->view() : 0; }
+        LabView *view();
 
         /// \return The name of the file from which the network was loaded.
         const QString & fname() const { return _fname; }

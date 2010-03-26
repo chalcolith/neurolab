@@ -1,16 +1,14 @@
 #ifndef NEURONODEITEM_H
 #define NEURONODEITEM_H
 
+#include "neurogui_global.h"
 #include "neuronarrowitem.h"
-
-#include <QPainter>
-#include <QPainterPath>
 
 namespace NeuroLab
 {
 
     /// An item that represents a node in Narrow notation.
-    class NeuroNodeItem
+    class NEUROGUISHARED_EXPORT NeuroNodeItem
         : public NeuroNarrowItem
     {
         QRectF _rect;

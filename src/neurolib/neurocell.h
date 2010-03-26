@@ -116,10 +116,10 @@ namespace NeuroLib
     }; // class NeuroCell
 
     /// Write a cell to a data stream.
-    NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
+    extern NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
 
     /// Read a cell from a data stream.
-    NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
+    extern NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
 
 } // namespace NeuroLib
 

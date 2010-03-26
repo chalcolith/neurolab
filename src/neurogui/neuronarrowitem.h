@@ -1,6 +1,7 @@
 #ifndef NEURONARROWITEM_H
 #define NEURONARROWITEM_H
 
+#include "neurogui_global.h"
 #include "neuroitem.h"
 #include "../neurolib/neuronet.h"
 
@@ -8,7 +9,8 @@ namespace NeuroLab
 {
 
     /// Base class for items in Narrow notation.  These include nodes and one-directional links.
-    class NeuroNarrowItem : public NeuroItem
+    class NEUROGUISHARED_EXPORT NeuroNarrowItem
+        : public NeuroItem
     {
         Q_OBJECT
 

@@ -1,6 +1,8 @@
 #ifndef PROPERTYOBJ_H
 #define PROPERTYOBJ_H
 
+#include "neurogui_global.h"
+
 #include <QList>
 
 class QVariant;
@@ -11,7 +13,7 @@ namespace NeuroLab
 {
 
     /// Base class for objects that can be edited via the property widget.
-    class PropertyObject
+    class NEUROGUISHARED_EXPORT PropertyObject
     {
     protected:
         QList<QtProperty *> _properties;

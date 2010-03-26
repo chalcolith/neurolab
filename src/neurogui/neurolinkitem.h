@@ -1,17 +1,16 @@
 #ifndef NEUROLINKITEM_H
 #define NEUROLINKITEM_H
 
+#include "neurogui_global.h"
 #include "neuronarrowitem.h"
 
 #include <QVector2D>
-#include <QPainterPath>
-#include <QList>
 
 namespace NeuroLab
 {
 
     /// A link item that represents a one-directional link in Narrow notation.
-    class NeuroLinkItem
+    class NEUROGUISHARED_EXPORT NeuroLinkItem
         : public NeuroNarrowItem
     {
     protected:
@@ -96,7 +95,7 @@ namespace NeuroLab
 
 
     /// An excitory link in narrow notation.
-    class NeuroExcitoryLinkItem
+    class NEUROGUISHARED_EXPORT NeuroExcitoryLinkItem
         : public NeuroLinkItem
     {
     public:
@@ -113,7 +112,7 @@ namespace NeuroLab
 
 
     /// An inhibitory link in narrow notation.
-    class NeuroInhibitoryLinkItem
+    class NEUROGUISHARED_EXPORT NeuroInhibitoryLinkItem
         : public NeuroLinkItem
     {
     public:

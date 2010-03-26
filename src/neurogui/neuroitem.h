@@ -1,6 +1,7 @@
 #ifndef NEUROITEM_H
 #define NEUROITEM_H
 
+#include "neurogui_global.h"
 #include "propertyobj.h"
 
 #include <QGraphicsItem>
@@ -22,7 +23,7 @@ namespace NeuroLab
     class LabScene;
 
     /// Base class for items that can be displayed in a NeuroLab scene.
-    class NeuroItem
+    class NEUROGUISHARED_EXPORT NeuroItem
         : public QObject, public QGraphicsItem, public PropertyObject
     {
         Q_OBJECT
@@ -203,6 +204,8 @@ namespace NeuroLab
         /// Function type for static item creators.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
 
+        //////////////////////////////////////////////////////////////
+
         /// Registers item creator functions.
         static QMap<QString, QPair<QString, CreateFT> > itemCreators;
         friend class NeuroItemRegistrator;
@@ -214,22 +217,23 @@ namespace NeuroLab
         /// created on top of an already selected item.
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
 
-        //
+        //////////////////////////////////////////////////////////////
+
         friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
         friend QDataStream & operator>> (QDataStream &, NeuroItem &);
     };
 
     //
 
-    extern QDataStream & operator<< (QDataStream &, const NeuroItem &);
-    extern QDataStream & operator>> (QDataStream &, NeuroItem &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const NeuroItem &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, NeuroItem &);
 
     //
 
     /// A helper class for registering item types.
     /// Use the macro \ref NEUROITEM_DEFINE_CREATOR to define an item creator, and then implement
     /// a static method called \c create_new() in your class.
-    class NeuroItemRegistrator
+    class NEUROGUISHARED_EXPORT NeuroItemRegistrator
     {
         QString _name;
 

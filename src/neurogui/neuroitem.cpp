@@ -12,6 +12,8 @@
 #include <QStatusBar>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
+#include <QPainter>
+
 #include <QtVariantProperty>
 
 using namespace NeuroLib;
@@ -66,14 +68,45 @@ namespace NeuroLab
 
     void NeuroItem::buildNewMenu(LabScene *, NeuroItem *item, const QPointF & pos, QMenu & menu)
     {
+        QAction *newAction = menu.addAction(tr("New"));
+        newAction->setEnabled(false);
+
         for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(itemCreators); i.hasNext(); i.next())
         {
             const QString & typeName = i.peekNext().key();
             const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();
+            const QStringList menuPath = p.first.split('|');
 
-            QAction *action = menu.addAction(QString("New %1").arg(p.first));
-            action->setData(QVariant(typeName));
-            action->setEnabled(!item || item->canCreateNewOnMe(typeName, pos));
+            QMenu *subMenu = &menu;
+            for (int j = 0; j < menuPath.size(); ++j)
+            {
+                if (j == menuPath.size()-1)
+                {
+                    // create the leaf action
+                    QAction *action = subMenu->addAction(menuPath[j]);
+                    action->setData(QVariant(typeName));
+                    action->setEnabled(!item || item->canCreateNewOnMe(typeName, pos));
+                }
+                else
+                {
+                    // find the submenu
+                    bool found = false;
+                    for (QListIterator<QAction *> k(subMenu->actions()); k.hasNext(); k.next())
+                    {
+                        QAction *action = k.peekNext();
+                        if (action->text() == menuPath[j] && action->menu())
+                        {
+                            subMenu = action->menu();
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // create the submenu
+                    if (!found)
+                        subMenu = subMenu->addMenu(menuPath[j]);
+                }
+            }
         }
     }
 
@@ -88,7 +121,7 @@ namespace NeuroLab
 
     void NeuroItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
-        if (_properties.count() <= 1)
+        if (!label_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
             label_property = manager->addProperty(QVariant::String, tr("Label"));

@@ -1,21 +1,23 @@
 #ifndef LABTREE_H
 #define LABTREE_H
 
-#include "labscene.h"
-#include "labview.h"
+#include "neurogui_global.h"
 
 #include <QList>
-#include <QSharedPointer>
-#include <QDataStream>
+
+class QDataStream;
+class QWidget;
 
 namespace NeuroLab
 {
 
+    class LabScene;
+    class LabView;
     class LabTree;
     class LabNetwork;
 
     /// A node in the hierarchy of scenes.
-    class LabTreeNode
+    class NEUROGUISHARED_EXPORT LabTreeNode
     {
         int _id;
         static int NEXT_ID;
@@ -51,12 +53,12 @@ namespace NeuroLab
         friend QDataStream & operator>> (QDataStream &, LabTree &);
     };
 
-    extern QDataStream & operator<< (QDataStream &, const LabTreeNode &);
-    extern QDataStream & operator>> (QDataStream &, LabTreeNode &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const LabTreeNode &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, LabTreeNode &);
 
     /// Encapsulates the hierarchy of scenes.  A NeuroItem may contain a subnetwork within it, whose scene can be opened
     /// by double-clicking.  The lab tree encapsulates this.
-    class LabTree
+    class NEUROGUISHARED_EXPORT LabTree
     {
         QWidget *_parent;
 
@@ -100,8 +102,8 @@ namespace NeuroLab
         friend QDataStream & operator>> (QDataStream &, LabTree &);
     };
 
-    extern QDataStream & operator<< (QDataStream &, const LabTree &);
-    extern QDataStream & operator>> (QDataStream &, LabTree &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const LabTree &);
+    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, LabTree &);
 
 } // namespace NeuroLab
 

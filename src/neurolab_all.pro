@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
-SUBDIRS = neurolab neurolib asyncLife automata thirdparty
-asyncLife.depends = automata
+SUBDIRS = neurolab neurogui neurolib automata thirdparty # asyncLife
+#asyncLife.depends = automata
 neurolib.depends = automata
-neurolab.depends = neurolib thirdparty
+neurogui.depends = neurolib thirdparty
+neurolab.depends = neurogui 

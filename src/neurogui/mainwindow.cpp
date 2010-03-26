@@ -6,9 +6,14 @@
 #include "../automata/exception.h"
 
 #include "filedirtydialog.h"
+#include "labview.h"
+#include "labscene.h"
+#include "labnetwork.h"
 #include "neurolinkitem.h"
 #include "neuronodeitem.h"
 
+#include <QDir>
+#include <QLibrary>
 #include <QSettings>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -35,6 +40,9 @@ namespace NeuroLab
             throw LabException("You cannot create more than one main window.");
 
         _instance = this;
+
+        // load plugins
+        loadPlugins();
 
         // set up ui and other connections
         _ui->setupUi(this);
@@ -77,6 +85,30 @@ namespace NeuroLab
     MainWindow *MainWindow::instance()
     {
         return _instance;
+    }
+
+    void MainWindow::loadPlugins()
+    {
+        QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins";
+        loadPlugins(pluginPath);
+    }
+
+    void MainWindow::loadPlugins(const QString & dirPath)
+    {
+        QDir dir(dirPath);
+        if (dir.exists())
+        {
+            QStringList extensions;
+            extensions << "*.dll";
+            dir.setNameFilters(extensions);
+
+            QStringList entries = dir.entryList(QDir::Files);
+            for (QStringListIterator i(entries); i.hasNext(); i.next())
+            {
+                QLibrary lib(i.peekNext());
+                lib.load(); // the libraries will remain loaded even though the lib object goes out of scope
+            }
+        }
     }
 
     static int NEUROLAB_APP_VERSION()
@@ -343,3 +375,5 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
     if (_currentNetwork)
         _currentNetwork->deleteSelected();
 }
+
+

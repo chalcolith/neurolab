@@ -1,6 +1,8 @@
 #ifndef LABSCENE_H
 #define LABSCENE_H
 
+#include "neurogui_global.h"
+
 #include <QGraphicsScene>
 #include <QStack>
 
@@ -11,7 +13,7 @@ namespace NeuroLab
     class NeuroItem;
 
     /// A derived class from QGraphicsScene that handles displaying the neural network items.
-    class LabScene
+    class NEUROGUISHARED_EXPORT LabScene
         : public QGraphicsScene
     {
         Q_OBJECT

@@ -1,5 +1,6 @@
 #include "neurolinkitem.h"
 #include "labnetwork.h"
+#include "labscene.h"
 #include "mainwindow.h"
 #include "../neurolib/neuronet.h"
 
@@ -348,7 +349,7 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Excitory Link"));
+    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Narrow|Excitory Link"));
 
     NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)
@@ -408,7 +409,7 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Inhibitory Link"));
+    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Narrow|Inhibitory Link"));
 
     NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroLinkItem(network, cellIndex)

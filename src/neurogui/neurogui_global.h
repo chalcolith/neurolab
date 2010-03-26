@@ -1,0 +1,12 @@
+#ifndef NEUROGUI_GLOBAL_H
+#define NEUROGUI_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(NEUROGUI_LIBRARY)
+#  define NEUROGUISHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define NEUROGUISHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // NEUROGUI_GLOBAL_H

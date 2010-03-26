@@ -1,6 +1,7 @@
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
 #include "labnetwork.h"
+#include "labscene.h"
 
 #include <QVector2D>
 #include <QApplication>
@@ -13,7 +14,7 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Node"));
+    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow|Node"));
 
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
         : NeuroNarrowItem(network, cellIndex)

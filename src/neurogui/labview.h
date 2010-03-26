@@ -1,15 +1,17 @@
 #ifndef LABVIEW_H
 #define LABVIEW_H
 
-#include <QGraphicsView>
+#include "neurogui_global.h"
 
-#include "labscene.h"
+#include <QGraphicsView>
 
 namespace NeuroLab
 {
 
+    class LabScene;
+
     /// Derived to display neural network items.
-    class LabView
+    class NEUROGUISHARED_EXPORT LabView
         : public QGraphicsView
     {
         Q_OBJECT

@@ -26,6 +26,9 @@ namespace NeuroLab
 
     void LabScene::newItem(const QString & typeName, const QPointF & scenePos)
     {
+        if (!_network)
+            return;
+
         NeuroItem *item = NeuroItem::create(typeName, this, scenePos);
         if (item)
         {
@@ -37,6 +40,8 @@ namespace NeuroLab
 
             clearSelection();
             //item->setSelected(true);
+
+            _network->setDirty(true);
         }
     }
 

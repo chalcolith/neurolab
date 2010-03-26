@@ -1,7 +1,7 @@
 #include <QtGui/QApplication>
 #include <QMessageBox>
 
-#include "mainwindow.h"
+#include "../neurogui/mainwindow.h"
 #include "../automata/exception.h"
 
 int main(int argc, char *argv[])
@@ -10,14 +10,14 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("balafon.net");
     QCoreApplication::setApplicationName("NeuroLab");
     QCoreApplication::setApplicationVersion(NeuroLab::VERSION);
-    
+
     QApplication application(argc, argv);
     NeuroLab::MainWindow window;
-    
+
     window.show();
-    
+
     try
-    {        
+    {
         return application.exec();
     }
     catch (Automata::Exception & ne)
@@ -28,6 +28,6 @@ int main(int argc, char *argv[])
     {
         QMessageBox::critical(0, "Critical Error", se.what());
     }
-    
+
     return -1;
 }

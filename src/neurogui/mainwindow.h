@@ -1,8 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "labnetwork.h"
+#include "neurogui_global.h"
 #include "propertyobj.h"
+#include "../automata/exception.h"
 
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>
@@ -19,10 +20,12 @@ namespace Ui
 namespace NeuroLab
 {
 
+    class LabNetwork;
+
     extern const QString VERSION;
 
     /// The main window class for the NeuroLab application.
-    class MainWindow
+    class NEUROGUISHARED_EXPORT MainWindow
         : public QMainWindow
     {
         Q_OBJECT
@@ -71,6 +74,8 @@ namespace NeuroLab
         void setPropertyObject(PropertyObject *);
 
     private:
+        void loadPlugins();
+        void loadPlugins(const QString & dirPath);
         void loadStateSettings();
         void saveStateSettings();
         void setupConnections();

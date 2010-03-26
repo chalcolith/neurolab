@@ -1,4 +1,6 @@
 #include "labtree.h"
+#include "labview.h"
+#include "labscene.h"
 #include "neuronarrowitem.h"
 #include "mainwindow.h"
 #include "../automata/exception.h"

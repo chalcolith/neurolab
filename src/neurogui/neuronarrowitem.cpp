@@ -4,6 +4,9 @@
 #include "labnetwork.h"
 
 #include <QMenu>
+#include <QPen>
+#include <QGraphicsScene>
+
 #include <QtVariantProperty>
 
 using namespace NeuroLib;
@@ -31,7 +34,7 @@ namespace NeuroLab
     {
         NeuroItem::buildProperties(manager, topItem);
 
-        if (_properties.count() <= 1)
+        if (!frozen_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
 
