@@ -59,7 +59,10 @@ namespace NeuroLab
         /// \return The name of the file from which the network was loaded.
         const QString & fname() const { return _fname; }
 
-        /// \return A pointer to the neural network.
+        /// \return A pointer to the neural network automaton.
+        const NeuroLib::NeuroNet *neuronet() const { return _neuronet; }
+
+        /// \return A pointer to the neural network automaton.
         NeuroLib::NeuroNet *neuronet() { return _neuronet; }
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);

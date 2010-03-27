@@ -1,6 +1,3 @@
-# -------------------------------------------------
-# Project created by QtCreator 2009-10-10T12:15:38
-# -------------------------------------------------
 QT -= gui
 QT += testlib
 TEMPLATE = lib
@@ -23,5 +20,5 @@ OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-win32:LIBS = -L$$DESTDIR -lautomata1
+win32:LIBS = -L$$DESTDIR -lautomata0
 else:LIBS = -L$$DESTDIR -lautomata

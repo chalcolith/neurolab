@@ -170,27 +170,35 @@ namespace NeuroLab
 
     bool NeuroNarrowItem::addIncoming(NeuroItem *item)
     {
+        if (!network() || !network()->neuronet())
+            return false;
+
         NeuroNarrowItem *linkItem;
 
         if (NeuroItem::addIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
             if (_cellIndex != -1 && linkItem->_cellIndex != -1)
-                _network->neuronet()->addEdge(_cellIndex, linkItem->_cellIndex);
+                network()->neuronet()->addEdge(_cellIndex, linkItem->_cellIndex);
             return true;
         }
+
         return false;
     }
 
     bool NeuroNarrowItem::removeIncoming(NeuroItem *item)
     {
+        if (!network() || !network()->neuronet())
+            return false;
+
         NeuroNarrowItem *linkItem;
 
         if (NeuroItem::removeIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
             if (_cellIndex != -1 && linkItem->_cellIndex != -1)
-                _network->neuronet()->removeEdge(_cellIndex, linkItem->_cellIndex);
+                network()->neuronet()->removeEdge(_cellIndex, linkItem->_cellIndex);
             return true;
         }
+
         return false;
     }
 
@@ -214,12 +222,18 @@ namespace NeuroLab
 
     const NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell() const
     {
-        return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;
+        if (!network() || !network()->neuronet())
+            return 0;
+
+        return _cellIndex != -1 ? &((*network()->neuronet())[_cellIndex]) : 0;
     }
 
     NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell()
     {
-        return _cellIndex != -1 ? &((*_network->neuronet())[_cellIndex]) : 0;
+        if (!network() || !network()->neuronet())
+            return 0;
+
+        return _cellIndex != -1 ? &((*network()->neuronet())[_cellIndex]) : 0;
     }
 
     void NeuroNarrowItem::reset()

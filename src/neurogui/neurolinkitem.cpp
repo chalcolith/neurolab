@@ -102,9 +102,9 @@ namespace NeuroLab
         updateShape();
     }
 
-    void NeuroLinkItem::addToShape() const
+    void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroNarrowItem::addToShape();
+        NeuroNarrowItem::addToShape(drawPath, texts);
 
         QVector2D myPos(pos());
         QVector2D myFront(_line.p2());
@@ -135,8 +135,8 @@ namespace NeuroLab
         QPointF front = myFront.toPointF();
         QPointF back = myBack.toPointF();
 
-        _drawPath.moveTo(back);
-        _drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
+        drawPath.moveTo(back);
+        drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
     }
 
     void NeuroLinkItem::setPenProperties(QPen & pen) const
@@ -172,7 +172,7 @@ namespace NeuroLab
 
         QVector2D center = (back + front) * 0.5;
 
-        for (QListIterator<NeuroItem *> i(_incoming); i.hasNext(); i.next())
+        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); i.next())
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.peekNext());
             if (link)
@@ -374,9 +374,9 @@ namespace NeuroLab
         parentItem->setPropertyName(tr("Excitory Link"));
     }
 
-    void NeuroExcitoryLinkItem::addToShape() const
+    void NeuroExcitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroLinkItem::addToShape();
+        NeuroLinkItem::addToShape(drawPath, texts);
 
         QVector2D center(pos());
         QVector2D front(_line.p2());
@@ -388,16 +388,16 @@ namespace NeuroLab
 
         QVector2D end = front + left * ELLIPSE_WIDTH;
 
-        _drawPath.moveTo((front - center).toPointF());
-        _drawPath.lineTo((end - center).toPointF());
+        drawPath.moveTo((front - center).toPointF());
+        drawPath.lineTo((end - center).toPointF());
 
         double rangle = angle - (20.0 * M_PI / 180.0);
         QVector2D right(::cos(rangle), ::sin(rangle));
 
         end = front + right * ELLIPSE_WIDTH;
 
-        _drawPath.moveTo((front - center).toPointF());
-        _drawPath.lineTo((end - center).toPointF());
+        drawPath.moveTo((front - center).toPointF());
+        drawPath.lineTo((end - center).toPointF());
     }
 
     bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
@@ -434,14 +434,14 @@ namespace NeuroLab
         parentItem->setPropertyName(tr("Inhibitory Link"));
     }
 
-    void NeuroInhibitoryLinkItem::addToShape() const
+    void NeuroInhibitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroLinkItem::addToShape();
+        NeuroLinkItem::addToShape(drawPath, texts);
 
         QVector2D center(pos());
         QVector2D front(_line.p2());
 
-        _drawPath.addEllipse((front-center).toPointF(), ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
+        drawPath.addEllipse((front-center).toPointF(), ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
     }
 
 } // namespace NeuroLab

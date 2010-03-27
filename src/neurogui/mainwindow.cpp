@@ -98,15 +98,15 @@ namespace NeuroLab
         QDir dir(dirPath);
         if (dir.exists())
         {
-            QStringList extensions;
-            extensions << "*.dll";
-            dir.setNameFilters(extensions);
-
             QStringList entries = dir.entryList(QDir::Files);
             for (QStringListIterator i(entries); i.hasNext(); i.next())
             {
-                QLibrary lib(i.peekNext());
-                lib.load(); // the libraries will remain loaded even though the lib object goes out of scope
+                QString fname = i.peekNext();
+                if (QLibrary::isLibrary(dirPath + "/" + fname))
+                {
+                    QLibrary lib(fname);
+                    lib.load(); // the libraries will remain loaded even though the lib object goes out of scope
+                }
             }
         }
     }

@@ -28,6 +28,9 @@ namespace NeuroLab
 
     NeuroItem *NeuroNodeItem::create_new(LabScene *scene, const QPointF & pos)
     {
+        if (!(scene && scene->network() && scene->network()->neuronet()))
+            return 0;
+
         NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
         NeuroNodeItem *item = new NeuroNodeItem(scene->network(), index);
         item->setPos(pos.x(), pos.y());
@@ -45,15 +48,15 @@ namespace NeuroLab
         parentItem->setPropertyName(tr("Node"));
     }
 
-    void NeuroNodeItem::addToShape() const
+    void NeuroNodeItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroNarrowItem::addToShape();
-        _drawPath.addEllipse(rect());
+        NeuroNarrowItem::addToShape(drawPath, texts);
+        drawPath.addEllipse(rect());
 
         const NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            _texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
+            texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
         }
     }
 
@@ -65,11 +68,11 @@ namespace NeuroLab
 
     void NeuroNodeItem::adjustLinks()
     {
-        adjustLinksAux(_incoming);
-        adjustLinksAux(_outgoing);
+        adjustLinksAux(incoming());
+        adjustLinksAux(outgoing());
     }
 
-    void NeuroNodeItem::adjustLinksAux(QList<NeuroItem *> & list)
+    void NeuroNodeItem::adjustLinksAux(const QList<NeuroItem *> & list)
     {
         QVector2D center(pos());
 

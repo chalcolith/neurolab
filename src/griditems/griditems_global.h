@@ -1,0 +1,12 @@
+#ifndef GRIDITEMS_GLOBAL_H
+#define GRIDITEMS_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(GRIDITEMS_LIBRARY)
+#  define GRIDITEMSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define GRIDITEMSSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // GRIDITEMS_GLOBAL_H

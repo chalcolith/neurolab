@@ -29,21 +29,8 @@ namespace NeuroLab
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
 
-        static int NEXT_ID;
-
-        QtVariantProperty *label_property;
-
     protected:
-        LabNetwork *_network; ///< The network this item is a part of.
-
         typedef qint64 IdType;
-
-        IdType _id; ///< Used to remember links when saving and loading.
-        QList<NeuroItem *> _incoming; ///< Incoming links.
-        QList<NeuroItem *> _outgoing; ///< Outgoing links.
-
-        mutable QPainterPath _drawPath; ///< Painter path used to draw the item.
-        mutable QPainterPath _shapePath; ///< Painter path used for collision detection.
 
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
@@ -52,8 +39,22 @@ namespace NeuroLab
             TextPathRec(const QPointF & pos, const QString & text) : pos(pos), text(text) {}
         };
 
+    private:
+        QtVariantProperty *label_property;
+
+        LabNetwork *_network; ///< The network this item is a part of.
+
+        IdType _id; ///< Used to remember links when saving and loading.
+        QList<NeuroItem *> _incoming; ///< Incoming links.
+        QList<NeuroItem *> _outgoing; ///< Outgoing links.
+
+        mutable QPainterPath _drawPath; ///< Painter path used to draw the item.
+        mutable QPainterPath _shapePath; ///< Painter path used for collision detection.
+
         mutable QList<TextPathRec> _texts; ///< Holds the strings to be drawn by the item.
         QString _label; ///< The item's label.
+
+        static IdType NEXT_ID;
 
     public:
         static const QColor NORMAL_LINE_COLOR;
@@ -70,6 +71,9 @@ namespace NeuroLab
         /// Constructor.
         NeuroItem(LabNetwork *network);
         virtual ~NeuroItem();
+
+        const LabNetwork *network() const { return _network; }
+        LabNetwork *network() { return _network; }
 
         /// The label is drawn to the right of the item's scene position.
         /// \return The item's label.
@@ -155,6 +159,12 @@ namespace NeuroLab
         /// \see buildActionMenuAux()
         static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
 
+        /// Function type for static item creators.
+        typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
+
+        static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
+        static void removeItemCreator(const QString & typeName);
+
     public slots:
         /// Can be overridden to handle changes made in the properties in the property widget.
         /// The base class version should be called in order to properly modify the item's label.
@@ -162,7 +172,7 @@ namespace NeuroLab
 
     protected:
         /// Should be overridden to add to the drawing painter path.
-        virtual void addToShape() const;
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
         /// Should be overridden if the item needs special properties for drawing.
         virtual void setPenProperties(QPen & pen) const;
@@ -201,14 +211,10 @@ namespace NeuroLab
         /// \return A color that is \c t of the way between \c a and \c b.
         static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
-        /// Function type for static item creators.
-        typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
-
         //////////////////////////////////////////////////////////////
 
         /// Registers item creator functions.
-        static QMap<QString, QPair<QString, CreateFT> > itemCreators;
-        friend class NeuroItemRegistrator;
+        static QMap<QString, QPair<QString, CreateFT> > _itemCreators;
 
         /// Can be overridden to add actions to the context menu.
         virtual void buildActionMenuAux(LabScene *, const QPointF &, QMenu &) { }
@@ -241,16 +247,16 @@ namespace NeuroLab
         NeuroItemRegistrator(const QString & name, const QString & description, NeuroItem::CreateFT create_func)
             : _name(name)
         {
-            if (create_func)
-                NeuroItem::itemCreators[_name] = QPair<QString, NeuroItem::CreateFT>(description, create_func);
+            NeuroItem::registerItemCreator(name, description, create_func);
         }
 
         virtual ~NeuroItemRegistrator()
         {
-            NeuroItem::itemCreators.remove(_name);
+            NeuroItem::removeItemCreator(_name);
         }
     };
 
+    /// Use this macro in the source file for a class derived from \ref NeuroItem in order to have it show up in the context menu.
 #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), Description, &TypeName::create_new)
 
 } // namespace NeuroLab

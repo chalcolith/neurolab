@@ -34,8 +34,9 @@ namespace NeuroLab
 
     //////////////////////////////////////////////
 
-    int NeuroItem::NEXT_ID = 1;
-    QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::itemCreators;
+    NeuroItem::IdType NeuroItem::NEXT_ID = 1;
+    QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::_itemCreators;
+
 
     NeuroItem::NeuroItem(LabNetwork *network)
         : QObject(network), QGraphicsItem(),
@@ -57,9 +58,22 @@ namespace NeuroLab
             removeOutgoing(_outgoing.front());
     }
 
+    void NeuroItem::registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc)
+    {
+        if (!typeName.isNull() && !typeName.isEmpty() && createFunc)
+        {
+            _itemCreators[typeName] = QPair<QString, CreateFT>(description, createFunc);
+        }
+    }
+
+    void NeuroItem::removeItemCreator(const QString & typeName)
+    {
+        _itemCreators.remove(typeName);
+    }
+
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
     {
-        CreateFT cf = itemCreators[name].second;
+        CreateFT cf = _itemCreators[name].second;
 
         if (cf)
             return cf(scene, pos);
@@ -71,7 +85,7 @@ namespace NeuroLab
         QAction *newAction = menu.addAction(tr("New"));
         newAction->setEnabled(false);
 
-        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(itemCreators); i.hasNext(); i.next())
+        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(_itemCreators); i.hasNext(); i.next())
         {
             const QString & typeName = i.peekNext().key();
             const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();
@@ -247,7 +261,7 @@ namespace NeuroLab
 
         // call virtual function
         _texts.clear();
-        addToShape();
+        addToShape(_drawPath, _texts);
 
         // stroke shape path
         QPen pen;
@@ -275,7 +289,7 @@ namespace NeuroLab
         _shapePath = _drawPath.united(_shapePath);
     }
 
-    void NeuroItem::addToShape() const
+    void NeuroItem::addToShape(QPainterPath &, QList<TextPathRec> &) const
     {
     }
 

@@ -29,19 +29,19 @@ namespace NeuroLab
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void addToShape() const;
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void adjustLinks();
 
-    private:
-        void adjustLinksAux(QList<NeuroItem *> &);
-
     protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
 
         virtual void writeBinary(QDataStream &) const;
         virtual void readBinary(QDataStream &);
+
+    private:
+        void adjustLinksAux(const QList<NeuroItem *> &);
     };
 
 } // namespace NeuroLab

@@ -48,8 +48,8 @@ MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
 win32:LIBS = -L$$DESTDIR \
-    -lneurolib1 \
-    -lautomata1 \
+    -lneurolib0 \
+    -lautomata0 \
     -lqtpropertybrowser2
 else:LIBS = -L$$DESTDIR \
     -lneurolib \

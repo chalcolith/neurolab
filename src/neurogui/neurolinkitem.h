@@ -63,9 +63,6 @@ namespace NeuroLab
         /// \see backLinkTarget()
         void setBackLinkTarget(NeuroItem *linkTarget);
 
-        /// Adds the link's shape to the drawing painter path.
-        virtual void addToShape() const;
-
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
@@ -78,6 +75,9 @@ namespace NeuroLab
         void updatePos();
 
     protected:
+        /// Adds the link's shape to the drawing painter path.
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
 
         virtual void setPenProperties(QPen & pen) const;
@@ -107,7 +107,9 @@ namespace NeuroLab
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void addToShape() const;
+
+    protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
 
@@ -122,7 +124,9 @@ namespace NeuroLab
         static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void addToShape() const;
+
+    protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
 } // namespace NeuroLab
