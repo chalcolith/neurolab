@@ -80,7 +80,8 @@ namespace NeuroLab
             if (!item)
                 continue;
 
-            data << get_item_type(item);
+            QString type = get_item_type(item);
+            data << type;
             data << *item;
         }
 

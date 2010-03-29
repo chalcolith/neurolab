@@ -20,7 +20,7 @@ namespace NeuroLab
         : NeuroNarrowItem(network, scenePos)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
-        
+
         NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
         setCellIndex(index);
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
@@ -112,18 +112,12 @@ namespace NeuroLab
     void NeuroNodeItem::writeBinary(QDataStream & data) const
     {
         NeuroNarrowItem::writeBinary(data);
-
-        data << pos();
         data << _rect;
     }
 
     void NeuroNodeItem::readBinary(QDataStream & data)
     {
         NeuroNarrowItem::readBinary(data);
-
-        QPointF p;
-        data >> p;
-        setPos(p);
 
         QRectF r;
         data >> r;

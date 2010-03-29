@@ -159,7 +159,7 @@ namespace NeuroLab
         MainWindow::instance()->setPropertyObject(po ? po : this);
     }
 
-    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 006");
+    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 007");
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.

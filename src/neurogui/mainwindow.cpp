@@ -24,7 +24,7 @@
 namespace NeuroLab
 {
 
-    extern const QString
+    const QString
 #include "../neurolab_version.txt"
     ;
 
@@ -96,17 +96,17 @@ namespace NeuroLab
     void MainWindow::loadPlugins(const QString & dirPath)
     {
         QDir dir(dirPath);
-        if (dir.exists())
+        if (!dir.exists())
+            return;
+
+        QStringList entries = dir.entryList(QDir::Files);
+        for (QStringListIterator i(entries); i.hasNext(); i.next())
         {
-            QStringList entries = dir.entryList(QDir::Files);
-            for (QStringListIterator i(entries); i.hasNext(); i.next())
+            QString fname = dirPath + "/" + i.peekNext();
+            if (QLibrary::isLibrary(fname))
             {
-                QString fname = i.peekNext();
-                if (QLibrary::isLibrary(dirPath + "/" + fname))
-                {
-                    QLibrary lib(fname);
-                    lib.load(); // the libraries will remain loaded even though the lib object goes out of scope
-                }
+                QLibrary lib(fname);
+                lib.load(); // the libraries should remain loaded even though the lib object goes out of scope
             }
         }
     }
