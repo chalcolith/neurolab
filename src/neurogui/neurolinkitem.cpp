@@ -22,9 +22,10 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroNarrowItem(network, cellIndex), _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
+    NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroNarrowItem(network, scenePos), _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
     {
+        Q_ASSERT(network != 0);
     }
 
     NeuroLinkItem::~NeuroLinkItem()
@@ -351,21 +352,18 @@ namespace NeuroLab
 
     NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Narrow|Excitory Link"));
 
-    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroLinkItem(network, cellIndex)
+    NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroLinkItem(network, scenePos)
     {
+        Q_ASSERT(network != 0 && network->neuronet() != 0);
+        
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        setCellIndex(index);        
+        setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 
     NeuroExcitoryLinkItem::~NeuroExcitoryLinkItem()
     {
-    }
-
-    NeuroItem *NeuroExcitoryLinkItem::create_new(LabScene *scene, const QPointF & pos)
-    {
-        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-        NeuroLinkItem *item = new NeuroExcitoryLinkItem(scene->network(), index);
-        item->setLine(pos.x(), pos.y(), pos.x()+NeuroNarrowItem::NODE_WIDTH*2, pos.y()-NeuroNarrowItem::NODE_WIDTH*2);
-        return item;
     }
 
     void NeuroExcitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
@@ -411,21 +409,18 @@ namespace NeuroLab
 
     NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Narrow|Inhibitory Link"));
 
-    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroLinkItem(network, cellIndex)
+    NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroLinkItem(network, scenePos)
     {
+        Q_ASSERT(network != 0 && network->neuronet() != 0);
+        
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
+        setCellIndex(index);        
+        setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 
     NeuroInhibitoryLinkItem::~NeuroInhibitoryLinkItem()
     {
-    }
-
-    NeuroItem *NeuroInhibitoryLinkItem::create_new(LabScene *scene, const QPointF & pos)
-    {
-        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
-        NeuroLinkItem *item = new NeuroInhibitoryLinkItem(scene->network(), index);
-        item->setLine(pos.x(), pos.y(), pos.x()+NeuroNarrowItem::NODE_WIDTH*2, pos.y()-NeuroNarrowItem::NODE_WIDTH*2);
-        return item;
     }
 
     void NeuroInhibitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)

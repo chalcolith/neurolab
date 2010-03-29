@@ -1,8 +1,8 @@
 #include <QtGui/QApplication>
 #include <QMessageBox>
 
-#include "../neurogui/mainwindow.h"
 #include "../automata/exception.h"
+#include "../neurogui/mainwindow.h"
 
 int main(int argc, char *argv[])
 {

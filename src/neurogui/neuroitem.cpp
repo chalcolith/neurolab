@@ -38,11 +38,13 @@ namespace NeuroLab
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::_itemCreators;
 
 
-    NeuroItem::NeuroItem(LabNetwork *network)
+    NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
         : QObject(network), QGraphicsItem(),
         PropertyObject(), label_property(0),
         _network(network), _id(NEXT_ID++)
     {
+        setPos(scenePos);
+        
         setFlag(QGraphicsItem::ItemIsSelectable, true);
         setFlag(QGraphicsItem::ItemIsMovable, true);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);

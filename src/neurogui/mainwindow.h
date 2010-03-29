@@ -22,7 +22,7 @@ namespace NeuroLab
 
     class LabNetwork;
 
-    extern const QString VERSION;
+    extern NEUROGUISHARED_EXPORT const QString VERSION;
 
     /// The main window class for the NeuroLab application.
     class NEUROGUISHARED_EXPORT MainWindow

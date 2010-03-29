@@ -11,20 +11,20 @@ namespace NeuroLab
     class NEUROGUISHARED_EXPORT NeuroNodeItem
         : public NeuroNarrowItem
     {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+        
         QRectF _rect;
 
     public:
-        NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
+        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNodeItem();
 
-        /// Creator function for nodes.
-        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
-
-        /// The node will be drawn as an ellipse within this rectangle (in scene coordinates).
+        /// The node will be drawn as an ellipse within this rectangle (in item coordinates).
         /// \see setRect()
         const QRectF & rect() const { return _rect; }
 
-        /// The node will be drawn as an ellipse within this rectangle (in scene coordinates).
+        /// The node will be drawn as an ellipse within this rectangle (in item coordinates).
         /// \see rect()
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 

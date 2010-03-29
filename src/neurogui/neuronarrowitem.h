@@ -23,7 +23,7 @@ namespace NeuroLab
         QtVariantProperty *value_property;  ///< Property for controlling the item's output value.
 
     public:
-        NeuroNarrowItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex = -1);
+        NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNarrowItem();
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
@@ -47,6 +47,9 @@ namespace NeuroLab
         virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
 
     protected:
+        const NeuroLib::NeuroCell::NeuroIndex cellIndex() const { return _cellIndex; }
+        void setCellIndex(const NeuroLib::NeuroCell::NeuroIndex & index) { _cellIndex = index; }
+        
         void buildActionMenuAux(LabScene *scene, const QPointF &pos, QMenu &menu);
 
         /// \return A pointer to the neural network cell's previous and current state.

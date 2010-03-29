@@ -16,25 +16,18 @@ namespace NeuroLab
 
     NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow|Node"));
 
-    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroNarrowItem(network, cellIndex)
+    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroNarrowItem(network, scenePos)
     {
+        Q_ASSERT(network != 0 && network->neuronet() != 0);
+        
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+        setCellIndex(index);
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
 
     NeuroNodeItem::~NeuroNodeItem()
     {
-    }
-
-    NeuroItem *NeuroNodeItem::create_new(LabScene *scene, const QPointF & pos)
-    {
-        if (!(scene && scene->network() && scene->network()->neuronet()))
-            return 0;
-
-        NeuroCell::NeuroIndex index = scene->network()->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
-        NeuroNodeItem *item = new NeuroNodeItem(scene->network(), index);
-        item->setPos(pos.x(), pos.y());
-        return item;
     }
 
     bool NeuroNodeItem::canCreateNewOnMe(const QString &typeName, const QPointF &) const

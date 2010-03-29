@@ -14,8 +14,8 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroItem(network), _cellIndex(cellIndex),
+    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroItem(network, scenePos), _cellIndex(-1),
         frozen_property(0), inputs_property(0), weight_property(0), run_property(0), value_property(0)
     {
     }
