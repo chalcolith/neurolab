@@ -16,7 +16,6 @@ namespace NeuroLab
     class NEUROGUISHARED_EXPORT PropertyObject
     {
     protected:
-        QList<QtProperty *> _properties;
         bool _updating;
 
     public:
@@ -27,10 +26,10 @@ namespace NeuroLab
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
 
         /// Handle changes to the property values.
-        virtual void propertyValueChanged(QtProperty *, const QVariant &) {}
+        virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
         /// Update the properties from the object's state.
-        virtual void updateProperties() {}
+        virtual void updateProperties();
     };
 
 }

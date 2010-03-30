@@ -141,9 +141,8 @@ namespace NeuroLab
         if (!label_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-            label_property = manager->addProperty(QVariant::String, tr("Label"));
-            _properties.append(label_property);
 
+            label_property = manager->addProperty(QVariant::String, tr("Label"));
             updateProperties();
         }
 

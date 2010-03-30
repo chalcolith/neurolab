@@ -21,7 +21,7 @@ namespace NeuroLab
     LabNetwork::LabNetwork(QWidget *parent)
         : QObject(parent), PropertyObject(),
         _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true),
-        filename_property(0), decay_property(0), learn_property(0), learn_time_property(0)
+        _filename_property(0), _decay_property(0), _learn_property(0), _learn_time_property(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(parent, this);
@@ -60,40 +60,24 @@ namespace NeuroLab
     /// \param parentItem The parent property to which to add new properties.
     void LabNetwork::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
     {
-        if (_properties.count() == 0)
+        if (!_filename_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
 
-            filename_property = manager->addProperty(QVariant::String, tr("Filename"));
-            filename_property->setEnabled(false);
+            _filename_property = manager->addProperty(QVariant::String, tr("Filename"));
+            _filename_property->setEnabled(false);
 
-            QString fname = _fname;
-            int index = fname.lastIndexOf('/');
-            if (index == -1)
-                index = fname.lastIndexOf('\\');
-            if (index != -1)
-                fname = fname.mid(index+1);
+            _decay_property = manager->addProperty(QVariant::Double, tr("Decay Rate"));
+            _learn_property = manager->addProperty(QVariant::Double, tr("Learn Rate"));
+            _learn_time_property = manager->addProperty(QVariant::Double, tr("Learn Time"));
 
-            filename_property->setValue(QVariant(fname));
-            _properties.append(filename_property);
-
-            decay_property = manager->addProperty(QVariant::Double, tr("Decay Rate"));
-            _properties.append(decay_property);
-
-            learn_property = manager->addProperty(QVariant::Double, tr("Learn Rate"));
-            _properties.append(learn_property);
-
-            learn_time_property = manager->addProperty(QVariant::Double, tr("Learn Time"));
-            _properties.append(learn_time_property);
+            updateProperties();
         }
 
         parentItem->setPropertyName(tr("Network"));
-        PropertyObject::buildProperties(manager, parentItem);
-
-        //
-        decay_property->setValue(QVariant(_neuronet->decay()));
-        learn_property->setValue(QVariant(_neuronet->learn()));
-        learn_time_property->setValue(QVariant(static_cast<int>(_neuronet->learnTime())));
+        parentItem->addSubProperty(_filename_property);
+        parentItem->addSubProperty(_decay_property);
+        parentItem->addSubProperty(_learn_time_property);
     }
 
     /// Updates the properties from the values in memory.
@@ -104,12 +88,24 @@ namespace NeuroLab
         if (!_neuronet)
             return;
 
-        if (decay_property)
-            decay_property->setValue(QVariant(_neuronet->decay()));
-        if (learn_property)
-            learn_property->setValue(QVariant(_neuronet->learn()));
-        if (learn_time_property)
-            learn_time_property->setValue(QVariant(_neuronet->learn()));
+        if (_filename_property)
+        {
+            QString fname = _fname;
+            int index = fname.lastIndexOf('/');
+            if (index == -1)
+                index = fname.lastIndexOf('\\');
+            if (index != -1)
+                fname = fname.mid(index+1);
+
+            _filename_property->setValue(QVariant(fname));
+        }
+
+        if (_decay_property)
+            _decay_property->setValue(QVariant(_neuronet->decay()));
+        if (_learn_property)
+            _learn_property->setValue(QVariant(_neuronet->learn()));
+        if (_learn_time_property)
+            _learn_time_property->setValue(QVariant(_neuronet->learnTime()));
 
         _updating = false;
     }
@@ -124,19 +120,19 @@ namespace NeuroLab
         float prev;
         bool changed = false;
 
-        if (vprop == decay_property)
+        if (vprop == _decay_property)
         {
             prev = _neuronet->decay();
             _neuronet->setDecay(value.toFloat());
             changed = prev != _neuronet->decay();
         }
-        else if (vprop == learn_property)
+        else if (vprop == _learn_property)
         {
             prev = _neuronet->learn();
             _neuronet->setLearn(value.toFloat());
             changed = prev != _neuronet->learn();
         }
-        else if (vprop == learn_time_property)
+        else if (vprop == _learn_time_property)
         {
             prev = _neuronet->learnTime();
             _neuronet->setLearnTime(value.toFloat());

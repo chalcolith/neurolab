@@ -4,7 +4,7 @@
 
 namespace NeuroLab
 {
-    
+
     PropertyObject::PropertyObject()
         : _updating(false)
     {
@@ -14,11 +14,9 @@ namespace NeuroLab
     {
         // properties will be deleted when the manager is deleted
     }
-    
-    void PropertyObject::buildProperties(QtVariantPropertyManager *, QtProperty *parentItem)
-    {        
-        for (QListIterator<QtProperty *> i(_properties); i.hasNext(); )
-            parentItem->addSubProperty(i.next());
+
+    void PropertyObject::buildProperties(QtVariantPropertyManager *, QtProperty *)
+    {
     }
-    
+
 }

@@ -13,7 +13,7 @@ namespace NeuroLab
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
-        
+
         QRectF _rect;
 
     public:
@@ -42,6 +42,33 @@ namespace NeuroLab
 
     private:
         void adjustLinksAux(const QList<NeuroItem *> &);
+    };
+
+    /// An item that represents an oscillator.
+    class NEUROGUISHARED_EXPORT NeuroOscillatorItem
+        : public NeuroNodeItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+        QtVariantProperty *_phase_property;
+        QtVariantProperty *_peak_property;
+        QtVariantProperty *_gap_property;
+        QtVariantProperty *_value_property;
+
+    public:
+        NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos);
+        virtual ~NeuroOscillatorItem();
+
+        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        virtual void updateProperties();
+        virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
+
+    public slots:
+        virtual void reset();
+
+    protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
 } // namespace NeuroLab
