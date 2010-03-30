@@ -12,10 +12,6 @@
 #include <QPair>
 #include <typeinfo>
 
-class QtProperty;
-class QtVariantProperty;
-class QtVariantPropertyManager;
-
 namespace NeuroLab
 {
 
@@ -40,7 +36,7 @@ namespace NeuroLab
         };
 
     private:
-        QtVariantProperty *label_property;
+        Property<NeuroItem, QString, QString> _label_property;
 
         LabNetwork *_network; ///< The network this item is a part of.
 
@@ -72,6 +68,9 @@ namespace NeuroLab
         NeuroItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroItem();
 
+        /// Creates an item of the correct type, given an RTTI type name that has been registered.
+        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
+
         const LabNetwork *network() const { return _network; }
         LabNetwork *network() { return _network; }
 
@@ -91,17 +90,8 @@ namespace NeuroLab
         /// \return Outgoing links.
         const QList<NeuroItem *> & outgoing() const { return _outgoing; }
 
-        /// Creates an item of the correct type, given an RTTI type name that has been registered.
-        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
-
-        /// Derived classes should override this to add properties to the parent item.
-        /// It is recommended to call the base class version first to add the label property.
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-
-        /// Derived classes should override this to update their properties from their data.
-        /// It is recommended to call the base class version from the overridden one in order to update the label property.
         virtual void updateProperties();
-
+        
         /// Add an incoming link.  Derived classes may override this to provide custom behavior.
         /// \see NeuroNarrowItem::addIncoming()
         virtual bool addIncoming(NeuroItem *linkItem);
@@ -164,11 +154,6 @@ namespace NeuroLab
 
         static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
         static void removeItemCreator(const QString & typeName);
-
-    public slots:
-        /// Can be overridden to handle changes made in the properties in the property widget.
-        /// The base class version should be called in order to properly modify the item's label.
-        virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
         /// Should be overridden to add to the drawing painter path.

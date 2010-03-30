@@ -15,6 +15,8 @@ namespace NeuroLab
     {
         Q_OBJECT
         
+        Property<NeuroLinkItem, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+        
     protected:
         QLineF _line;
         mutable QVector2D c1, c2;
@@ -28,6 +30,9 @@ namespace NeuroLab
         NeuroLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroLinkItem();
 
+        const NeuroLib::NeuroCell::NeuroValue & weight() const;
+        void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
+        
         /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
         QLineF line() const { return _line; }
 

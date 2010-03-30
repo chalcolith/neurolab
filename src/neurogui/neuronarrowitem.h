@@ -16,19 +16,21 @@ namespace NeuroLab
 
         NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
 
-        QtVariantProperty *_frozen_property; ///< Property for controlling whether or not the item is frozen.
-        QtVariantProperty *_inputs_property; ///< Property for controlling the item's input weight.
-        QtVariantProperty *_weight_property; ///< Property for controlling the item's output weight.
-        QtVariantProperty *_run_property;    ///< Property for controlling the item's sigmoid curve's slope.
-        QtVariantProperty *_value_property;  ///< Property for controlling the item's output value.
+        Property<NeuroNarrowItem, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
+        
+//        QtVariantProperty *_frozen_property; ///< Property for controlling whether or not the item is frozen.
+//        QtVariantProperty *_inputs_property; ///< Property for controlling the item's input weight.
+//        QtVariantProperty *_weight_property; ///< Property for controlling the item's output weight.
+//        QtVariantProperty *_run_property;    ///< Property for controlling the item's sigmoid curve's slope.
+//        QtVariantProperty *_value_property;  ///< Property for controlling the item's output value.
 
     public:
         NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNarrowItem();
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void updateProperties();
-
+        const NeuroLib::NeuroCell::NeuroValue & outputValue() const;
+        void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
+        
         virtual bool addIncoming(NeuroItem *linkItem);
         virtual bool removeIncoming(NeuroItem *linkItem);
 
@@ -43,8 +45,6 @@ namespace NeuroLab
 
         /// Toggles whether or not the item is frozen (i.e. whether or not its output value will change during a time step).
         virtual void toggleFrozen();
-
-        virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
 
     protected:
         NeuroLib::NeuroCell::NeuroIndex cellIndex() const { return _cellIndex; }

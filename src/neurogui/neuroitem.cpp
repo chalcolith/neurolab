@@ -39,8 +39,8 @@ namespace NeuroLab
 
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
-        : QObject(network), QGraphicsItem(),
-        PropertyObject(), label_property(0),
+        : QObject(network), QGraphicsItem(), PropertyObject(), 
+        _label_property(this, &label, &getLabel),
         _network(network), _id(NEXT_ID++)
     {
         setPos(scenePos);
@@ -136,46 +136,11 @@ namespace NeuroLab
         del->setEnabled(scene->selectedItems().size() > 0);
     }
 
-    void NeuroItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
-    {
-        if (!label_property)
-        {
-            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-
-            label_property = manager->addProperty(QVariant::String, tr("Label"));
-            updateProperties();
-        }
-
-        parentItem->addSubProperty(label_property);
-    }
-
     void NeuroItem::updateProperties()
     {
-        _updating = true;
-
-        if (label_property)
-            label_property->setValue(QVariant(_label));
-
-        _updating = false;
-    }
-
-    void NeuroItem::propertyValueChanged(QtProperty *property, const QVariant & value)
-    {
-        if (_updating)
-            return;
-
-        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
-
-        if (vprop)
-        {
-            if (vprop == label_property)
-            {
-                _label = value.toString();
-
-                updateShape();
-                update();
-            }
-        }
+        PropertyObject::updateProperties();
+        updateShape();
+        update();
     }
 
     void NeuroItem::bringToFront()

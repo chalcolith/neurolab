@@ -23,7 +23,9 @@ namespace NeuroLab
     //////////////////////////////////////////////////////////////////
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNarrowItem(network, scenePos), _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
+        : NeuroNarrowItem(network, scenePos), 
+        _weight_property(this, &weight, &setWeight),
+        _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
     {
         Q_ASSERT(network != 0);
     }
@@ -32,6 +34,22 @@ namespace NeuroLab
     {
         _frontLinkTarget = 0;
         _backLinkTarget = 0;
+    }
+    
+    const NeuroCell::NeuroValue & NeuroLinkItem::weight() const
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current()->weight() : 0.0f;
+    }
+    
+    void NeuroLinkItem::setWeight(const NeuroCell::NeuroValue & value)
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            cell->current().setWeight(value);
+            cell->former().setWeight(value);
+        }
     }
 
     void NeuroLinkItem::setLine(const QLineF & l)

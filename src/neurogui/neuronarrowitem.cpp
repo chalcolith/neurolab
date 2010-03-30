@@ -15,151 +15,36 @@ namespace NeuroLab
 {
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroItem(network, scenePos), _cellIndex(-1),
-        _frozen_property(0), _inputs_property(0), _weight_property(0), _run_property(0), _value_property(0)
+        : NeuroItem(network, scenePos), 
+        _cellIndex(-1),
+        _value_property(this, &outputValue, &setOutputValue)
     {
     }
 
     NeuroNarrowItem::~NeuroNarrowItem()
     {
     }
+    
+    const NeuroCell::NeuroValue & NeuroNarrowItem::outputValue() const
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().outputValue() : 0.0f;
+    }
+    
+    void NeuroNarrowItem::setOutputValue(const NeuroCell::NeuroValue & value)
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            cell->current()->setOutputValue(value);
+            cell->former()->setOutputValue(value);
+        }
+    }
 
     void NeuroNarrowItem::buildActionMenuAux(LabScene *, const QPointF &, QMenu & menu)
     {
         menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
         menu.addAction(tr("Freeze/Unfreeze"), this, SLOT(toggleFrozen()));
-    }
-
-    void NeuroNarrowItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *topItem)
-    {
-        NeuroItem::buildProperties(manager, topItem);
-
-        if (!_frozen_property)
-        {
-            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-
-            _frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
-            _inputs_property = manager->addProperty(QVariant::Double, tr("Inputs"));
-            _weight_property = manager->addProperty(QVariant::Double, tr("Weight"));
-            _run_property = manager->addProperty(QVariant::Double, tr("Slope Width"));
-            _value_property = manager->addProperty(QVariant::Double, tr("Value"));
-
-            updateProperties();
-        }
-
-        topItem->addSubProperty(_frozen_property);
-
-        if (dynamic_cast<NeuroLinkItem *>(this))
-        {
-            topItem->addSubProperty(_weight_property);
-        }
-        else
-        {
-            topItem->addSubProperty(_inputs_property);
-            topItem->addSubProperty(_run_property);
-        }
-
-        topItem->addSubProperty(_value_property);
-    }
-
-    void NeuroNarrowItem::updateProperties()
-    {
-        NeuroItem::updateProperties();
-
-        _updating = true;
-
-        NeuroNet::ASYNC_STATE *cell = getCell();
-        if (cell)
-        {
-            if (_frozen_property)
-                _frozen_property->setValue(QVariant(cell->current().frozen()));
-
-            if (dynamic_cast<NeuroLinkItem *>(this))
-            {
-                if (_weight_property)
-                    _weight_property->setValue(QVariant(cell->current().weight()));
-            }
-            else
-            {
-                if (_inputs_property)
-                    _inputs_property->setValue(QVariant(cell->current().weight()));
-                if (_run_property)
-                    _run_property->setValue(QVariant(cell->current().run()));
-            }
-
-            if (_value_property)
-                _value_property->setValue(QVariant(cell->current().outputValue()));
-        }
-
-        _updating = false;
-    }
-
-    void NeuroNarrowItem::propertyValueChanged(QtProperty *property, const QVariant & value)
-    {
-        if (_updating)
-            return;
-
-        NeuroItem::propertyValueChanged(property, value);
-
-        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
-
-        if (vprop)
-        {
-            bool changed = false;
-            NeuroNet::ASYNC_STATE *cell = getCell();
-
-            if (vprop == _frozen_property)
-            {
-                if (cell)
-                {
-                    cell->current().setFrozen(value.toBool());
-                    cell->former().setFrozen(value.toBool());
-                }
-                changed = true;
-            }
-            else if (vprop == _inputs_property)
-            {
-                if (cell)
-                {
-                    cell->current().setWeight(value.toFloat());
-                    cell->former().setWeight(value.toFloat());
-                }
-                changed = true;
-            }
-            else if (vprop == _weight_property)
-            {
-                if (cell)
-                {
-                    cell->current().setWeight(value.toFloat());
-                    cell->former().setWeight(value.toFloat());
-                }
-                changed = true;
-            }
-            else if (vprop == _value_property)
-            {
-                if (cell)
-                {
-                    cell->current().setOutputValue(value.toFloat());
-                    cell->former().setOutputValue(value.toFloat());
-                }
-                changed = true;
-            }
-            else if (vprop == _run_property)
-            {
-                if (cell)
-                {
-                    cell->current().setRun(value.toFloat());
-                    cell->former().setRun(value.toFloat());
-                }
-                changed = true;
-            }
-
-            if (changed)
-            {
-                updateShape();
-                update();
-            }
-        }
     }
 
     bool NeuroNarrowItem::addIncoming(NeuroItem *item)
