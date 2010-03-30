@@ -23,6 +23,7 @@ namespace NeuroLib
             NODE = 0,
             EXCITORY_LINK,
             INHIBITORY_LINK,
+            OSCILLATOR,
             NUM_KINDS
         };
 
@@ -31,6 +32,8 @@ namespace NeuroLib
 
         /// The type used for real number values in the neural network.
         typedef float NeuroValue;
+
+        typedef quint16 NeuroStep;
 
         /// Constructor.
         /// \param k The kind of cell.
@@ -73,6 +76,18 @@ namespace NeuroLib
         /// \see NeuroCell::run()
         void setRun(const NeuroValue & run) { _run = run; }
 
+        const NeuroStep & gap() const { return _gap_peak[0]; }
+        void setGap(const NeuroStep & gap) { _gap_peak[0] = gap; }
+
+        const NeuroStep & peak() const { return _gap_peak[1]; }
+        void setPeak(const NeuroStep & peak) { _gap_peak[1] = peak; }
+
+        const NeuroStep & phase() const { return _phase_step[0]; }
+        void setPhase(const NeuroStep & phase) { _phase_step[0] = phase; }
+
+        const NeuroStep & step() const { return _phase_step[1]; }
+        void setStep(const NeuroStep & step) { _phase_step[1] = step; };
+
         /// \return The current output value of the cell.
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::setCurrentValue()
@@ -105,8 +120,17 @@ namespace NeuroLib
         KindOfCell _kind;
         bool _frozen;
 
-        NeuroValue _weight; // used in links for their weight; in nodes for their input thresholds
-        NeuroValue _run; // the width of the slope in the sigmoid curve (for nodes)
+        union
+        {
+            NeuroValue _weight; ///< Used in links for their weight; in nodes for their input thresholds.
+            NeuroStep  _gap_peak[2]; ///< Used by oscillators for their gap and peak values.
+        };
+
+        union
+        {
+            NeuroValue _run; ///< The width of the slope in the sigmoid curve (for nodes).
+            NeuroStep  _phase_step[2]; ///< For oscillators, the phase of the oscillator (the delay before it starts), and the current timestep.
+        };
 
         NeuroValue _output_value;
         NeuroValue _running_average;

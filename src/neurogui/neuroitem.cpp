@@ -38,11 +38,13 @@ namespace NeuroLab
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::_itemCreators;
 
 
-    NeuroItem::NeuroItem(LabNetwork *network)
+    NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
         : QObject(network), QGraphicsItem(),
         PropertyObject(), label_property(0),
         _network(network), _id(NEXT_ID++)
     {
+        setPos(scenePos);
+
         setFlag(QGraphicsItem::ItemIsSelectable, true);
         setFlag(QGraphicsItem::ItemIsMovable, true);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
@@ -77,6 +79,7 @@ namespace NeuroLab
 
         if (cf)
             return cf(scene, pos);
+
         return 0;
     }
 
@@ -138,9 +141,8 @@ namespace NeuroLab
         if (!label_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-            label_property = manager->addProperty(QVariant::String, tr("Label"));
-            _properties.append(label_property);
 
+            label_property = manager->addProperty(QVariant::String, tr("Label"));
             updateProperties();
         }
 
@@ -414,6 +416,9 @@ namespace NeuroLab
 
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
+        Q_ASSERT(_network != 0 && _network->scene() != 0);
+        _network->setDirty();
+
         // get topmost item at mouse position that is not the item itself
         QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);
         NeuroItem *itemAtPos = 0;
@@ -453,12 +458,17 @@ namespace NeuroLab
 
     void NeuroItem::writeBinary(QDataStream & data) const
     {
+        data << pos();
         data << _label;
         data << _id;
     }
 
     void NeuroItem::readBinary(QDataStream & data)
     {
+        QPointF p;
+        data >> p;
+        setPos(p);
+
         data >> _label;
         data >> _id;
     }

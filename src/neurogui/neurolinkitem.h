@@ -13,6 +13,8 @@ namespace NeuroLab
     class NEUROGUISHARED_EXPORT NeuroLinkItem
         : public NeuroNarrowItem
     {
+        Q_OBJECT
+        
     protected:
         QLineF _line;
         mutable QVector2D c1, c2;
@@ -23,8 +25,7 @@ namespace NeuroLab
     public:
         /// Constructor.
         /// \param network The network this item is a part of.
-        /// \param cellIndex The index of the neural network cell that underlies this item.
-        NeuroLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
+        NeuroLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroLinkItem();
 
         /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
@@ -98,17 +99,18 @@ namespace NeuroLab
     class NEUROGUISHARED_EXPORT NeuroExcitoryLinkItem
         : public NeuroLinkItem
     {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+        
     public:
-        NeuroExcitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
+        NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroExcitoryLinkItem();
-
-        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
 
-    protected:
+    protected:        
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
@@ -117,11 +119,12 @@ namespace NeuroLab
     class NEUROGUISHARED_EXPORT NeuroInhibitoryLinkItem
         : public NeuroLinkItem
     {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+        
     public:
-        NeuroInhibitoryLinkItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex);
+        NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroInhibitoryLinkItem();
-
-        static NeuroItem *create_new(LabScene *scene, const QPointF & pos);
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
 

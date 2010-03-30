@@ -69,7 +69,7 @@ namespace NeuroLab
         static const int ELLIPSE_WIDTH;
 
         /// Constructor.
-        NeuroItem(LabNetwork *network);
+        NeuroItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroItem();
 
         const LabNetwork *network() const { return _network; }
@@ -256,9 +256,21 @@ namespace NeuroLab
         }
     };
 
+    #define NEUROITEM_DECLARE_CREATOR \
+    static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos); \
+    static NeuroLab::NeuroItemRegistrator _static_registrator;
+    
     /// Use this macro in the source file for a class derived from \ref NeuroItem in order to have it show up in the context menu.
-#define NEUROITEM_DEFINE_CREATOR(TypeName, Description) static NeuroItemRegistrator TypeName ## _static_registrator(typeid(TypeName).name(), Description, &TypeName::create_new)
-
+    #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
+    NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(typeid(TypeName).name(), Description, &TypeName::_create_); \
+    NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos) \
+    { \
+        if (!(scene && scene->network() && scene->network()->neuronet())) \
+            return 0; \
+        NeuroItem *item = new TypeName(scene->network(), scenePos); \
+        return item; \
+    }
+    
 } // namespace NeuroLab
 
 #endif // NEUROITEM_H

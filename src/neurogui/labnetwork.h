@@ -35,10 +35,10 @@ namespace NeuroLab
         bool _dirty, first_change;
         QString _fname;
 
-        QtVariantProperty *filename_property;
-        QtVariantProperty *decay_property;
-        QtVariantProperty *learn_property;
-        QtVariantProperty *learn_time_property;
+        QtVariantProperty *_filename_property;
+        QtVariantProperty *_decay_property;
+        QtVariantProperty *_learn_property;
+        QtVariantProperty *_learn_time_property;
 
     public:
         LabNetwork(QWidget *parent = 0);

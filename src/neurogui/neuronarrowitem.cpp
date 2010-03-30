@@ -14,9 +14,9 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex)
-        : NeuroItem(network), _cellIndex(cellIndex),
-        frozen_property(0), inputs_property(0), weight_property(0), run_property(0), value_property(0)
+    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroItem(network, scenePos), _cellIndex(-1),
+        _frozen_property(0), _inputs_property(0), _weight_property(0), _run_property(0), _value_property(0)
     {
     }
 
@@ -34,38 +34,32 @@ namespace NeuroLab
     {
         NeuroItem::buildProperties(manager, topItem);
 
-        if (!frozen_property)
+        if (!_frozen_property)
         {
             manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
 
-            frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
-            inputs_property = manager->addProperty(QVariant::Double, tr("Inputs"));
-            weight_property = manager->addProperty(QVariant::Double, tr("Weight"));
-            run_property = manager->addProperty(QVariant::Double, tr("Slope Width"));
-            value_property = manager->addProperty(QVariant::Double, tr("Value"));
-
-            _properties.append(frozen_property);
-            _properties.append(inputs_property);
-            _properties.append(weight_property);
-            _properties.append(run_property);
-            _properties.append(value_property);
+            _frozen_property = manager->addProperty(QVariant::Bool, tr("Frozen"));
+            _inputs_property = manager->addProperty(QVariant::Double, tr("Inputs"));
+            _weight_property = manager->addProperty(QVariant::Double, tr("Weight"));
+            _run_property = manager->addProperty(QVariant::Double, tr("Slope Width"));
+            _value_property = manager->addProperty(QVariant::Double, tr("Value"));
 
             updateProperties();
         }
 
-        topItem->addSubProperty(frozen_property);
+        topItem->addSubProperty(_frozen_property);
 
         if (dynamic_cast<NeuroLinkItem *>(this))
         {
-            topItem->addSubProperty(weight_property);
+            topItem->addSubProperty(_weight_property);
         }
         else
         {
-            topItem->addSubProperty(inputs_property);
-            topItem->addSubProperty(run_property);
+            topItem->addSubProperty(_inputs_property);
+            topItem->addSubProperty(_run_property);
         }
 
-        topItem->addSubProperty(value_property);
+        topItem->addSubProperty(_value_property);
     }
 
     void NeuroNarrowItem::updateProperties()
@@ -77,24 +71,24 @@ namespace NeuroLab
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            if (frozen_property)
-                frozen_property->setValue(QVariant(cell->current().frozen()));
+            if (_frozen_property)
+                _frozen_property->setValue(QVariant(cell->current().frozen()));
 
             if (dynamic_cast<NeuroLinkItem *>(this))
             {
-                if (weight_property)
-                    weight_property->setValue(QVariant(cell->current().weight()));
+                if (_weight_property)
+                    _weight_property->setValue(QVariant(cell->current().weight()));
             }
             else
             {
-                if (inputs_property)
-                    inputs_property->setValue(QVariant(cell->current().weight()));
-                if (run_property)
-                    run_property->setValue(QVariant(cell->current().run()));
+                if (_inputs_property)
+                    _inputs_property->setValue(QVariant(cell->current().weight()));
+                if (_run_property)
+                    _run_property->setValue(QVariant(cell->current().run()));
             }
 
-            if (value_property)
-                value_property->setValue(QVariant(cell->current().outputValue()));
+            if (_value_property)
+                _value_property->setValue(QVariant(cell->current().outputValue()));
         }
 
         _updating = false;
@@ -114,7 +108,7 @@ namespace NeuroLab
             bool changed = false;
             NeuroNet::ASYNC_STATE *cell = getCell();
 
-            if (vprop == frozen_property)
+            if (vprop == _frozen_property)
             {
                 if (cell)
                 {
@@ -123,7 +117,7 @@ namespace NeuroLab
                 }
                 changed = true;
             }
-            else if (vprop == inputs_property)
+            else if (vprop == _inputs_property)
             {
                 if (cell)
                 {
@@ -132,7 +126,7 @@ namespace NeuroLab
                 }
                 changed = true;
             }
-            else if (vprop == weight_property)
+            else if (vprop == _weight_property)
             {
                 if (cell)
                 {
@@ -141,7 +135,7 @@ namespace NeuroLab
                 }
                 changed = true;
             }
-            else if (vprop == value_property)
+            else if (vprop == _value_property)
             {
                 if (cell)
                 {
@@ -150,7 +144,7 @@ namespace NeuroLab
                 }
                 changed = true;
             }
-            else if (vprop == run_property)
+            else if (vprop == _run_property)
             {
                 if (cell)
                 {

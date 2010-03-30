@@ -82,6 +82,33 @@ namespace NeuroLib
             }
 
             break;
+        case OSCILLATOR:
+            {
+                NeuroStep step = prev._phase_step[0];
+                NeuroStep phase = prev._phase_step[1];
+
+                if (step >= phase)
+                {
+                    NeuroStep gap = prev._gap_peak[0];
+                    NeuroStep peak = prev._gap_peak[1];
+
+                    if ((step % (gap + peak)) < peak)
+                        next_value = 1;
+                    else
+                        next_value = 0;
+
+                    NeuroStep max = static_cast<NeuroStep>(-1);
+                    while ((max - (step+1)) < phase)
+                        step += gap + peak; // make step overflow, and inc it beyond phase, so it doesn't pause
+                    step += 1;
+                }
+                else
+                {
+                    next_value = 0;
+                }
+            }
+
+            break;
         case EXCITORY_LINK:
             next_value = qBound(ZERO, input_sum * prev._weight, ONE);
             break;

@@ -16,14 +16,14 @@ namespace NeuroLab
 
         NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
 
-        QtVariantProperty *frozen_property; ///< Property for controlling whether or not the item is frozen.
-        QtVariantProperty *inputs_property; ///< Property for controlling the item's input weight.
-        QtVariantProperty *weight_property; ///< Property for controlling the item's output weight.
-        QtVariantProperty *run_property;    ///< Property for controlling the item's sigmoid curve's slope.
-        QtVariantProperty *value_property;  ///< Property for controlling the item's output value.
+        QtVariantProperty *_frozen_property; ///< Property for controlling whether or not the item is frozen.
+        QtVariantProperty *_inputs_property; ///< Property for controlling the item's input weight.
+        QtVariantProperty *_weight_property; ///< Property for controlling the item's output weight.
+        QtVariantProperty *_run_property;    ///< Property for controlling the item's sigmoid curve's slope.
+        QtVariantProperty *_value_property;  ///< Property for controlling the item's output value.
 
     public:
-        NeuroNarrowItem(LabNetwork *network, const NeuroLib::NeuroCell::NeuroIndex & cellIndex = -1);
+        NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNarrowItem();
 
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
@@ -47,6 +47,9 @@ namespace NeuroLab
         virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
 
     protected:
+        NeuroLib::NeuroCell::NeuroIndex cellIndex() const { return _cellIndex; }
+        void setCellIndex(const NeuroLib::NeuroCell::NeuroIndex & index) { _cellIndex = index; }
+
         void buildActionMenuAux(LabScene *scene, const QPointF &pos, QMenu &menu);
 
         /// \return A pointer to the neural network cell's previous and current state.

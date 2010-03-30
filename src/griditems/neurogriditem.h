@@ -11,11 +11,14 @@ namespace GridItems
         : public NeuroLab::NeuroItem
     {
         Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
     public:
-        NeuroGridItem(NeuroLab::LabNetwork *network);
+        NeuroGridItem(NeuroLab::LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroGridItem();
 
-        static NeuroLab::NeuroItem *create_new(NeuroLab::LabScene *scene, const QPointF & pos);
+        virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
