@@ -5,8 +5,8 @@
 namespace NeuroLab
 {
 
-    PropertyObject::PropertyObject()
-        : _updating(false)
+    PropertyObject::PropertyObject(QObject *parent)
+        : QObject(parent), _updating(false)
     {
     }
 
@@ -17,38 +17,47 @@ namespace NeuroLab
 
     void PropertyObject::buildProperties(QtVariantPropertyManager *manager, QtProperty *topProperty)
     {
-        for (QListIterator<Property *> i(_properties); i.hasNext(); i.next())
+        Q_ASSERT(topProperty != 0);
+        topProperty->setPropertyName(uiName());
+
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
         {
-            Property *p = i.peekNext();
+            PropertyBase *p = i.peekNext();
             if (!p->_property)
                 p->create(manager);
             topProperty->addSubProperty(p->_property);
         }
+
+        updateProperties();
     }
-    
+
     void PropertyObject::updateProperties()
     {
-        for (QListIterator<Property *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
         {
-            Property *p = i.peekNext();
+            PropertyBase *p = i.peekNext();
             if (p->_property)
                 p->update();
         }
     }
-    
+
     void PropertyObject::propertyValueChanged(QtProperty *property, const QVariant & value)
     {
-        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty>(property);
+        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
         if (!vprop)
             return;
-        
-        for (QListIterator<Property *> i(_properties); i.hasNext(); i.next())
+
+        bool changed;
+
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
         {
-            Property *p = i.peekNext();
-            
+            PropertyBase *p = i.peekNext();
             if (p->_property == vprop)
+            {
+                changed = true;
                 p->valueChanged(value);
+            }
         }
     }
 
-}
+} // namespace NeuroLab

@@ -20,7 +20,7 @@ namespace NeuroLab
 
     /// Base class for items that can be displayed in a NeuroLab scene.
     class NEUROGUISHARED_EXPORT NeuroItem
-        : public QObject, public QGraphicsItem, public PropertyObject
+        : public PropertyObject, public QGraphicsItem
     {
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
@@ -36,7 +36,7 @@ namespace NeuroLab
         };
 
     private:
-        Property<NeuroItem, QString, QString> _label_property;
+        Property<NeuroItem, QVariant::String, QString, QString> _label_property;
 
         LabNetwork *_network; ///< The network this item is a part of.
 
@@ -76,7 +76,7 @@ namespace NeuroLab
 
         /// The label is drawn to the right of the item's scene position.
         /// \return The item's label.
-        const QString & label() const { return _label; }
+        QString label() const { return _label; }
 
         /// Set the item's label.
         void setLabel(const QString & s) { _label = s; updateShape(); update(); }
@@ -90,8 +90,9 @@ namespace NeuroLab
         /// \return Outgoing links.
         const QList<NeuroItem *> & outgoing() const { return _outgoing; }
 
+        virtual void setChanged(bool changed = true);
         virtual void updateProperties();
-        
+
         /// Add an incoming link.  Derived classes may override this to provide custom behavior.
         /// \see NeuroNarrowItem::addIncoming()
         virtual bool addIncoming(NeuroItem *linkItem);
@@ -146,7 +147,6 @@ namespace NeuroLab
         static void buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
 
         /// Adds actions to the context menu depending on the current item.
-        /// \see buildActionMenuAux()
         static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
 
         /// Function type for static item creators.
@@ -202,7 +202,7 @@ namespace NeuroLab
         static QMap<QString, QPair<QString, CreateFT> > _itemCreators;
 
         /// Can be overridden to add actions to the context menu.
-        virtual void buildActionMenuAux(LabScene *, const QPointF &, QMenu &) { }
+        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &) { }
 
         /// Can be overridden to control whether or not a new item with a given type name can be
         /// created on top of an already selected item.
@@ -244,7 +244,7 @@ namespace NeuroLab
     #define NEUROITEM_DECLARE_CREATOR \
     static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos); \
     static NeuroLab::NeuroItemRegistrator _static_registrator;
-    
+
     /// Use this macro in the source file for a class derived from \ref NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
     NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(typeid(TypeName).name(), Description, &TypeName::_create_); \
@@ -255,7 +255,7 @@ namespace NeuroLab
         NeuroItem *item = new TypeName(scene->network(), scenePos); \
         return item; \
     }
-    
+
 } // namespace NeuroLab
 
 #endif // NEUROITEM_H

@@ -72,11 +72,12 @@ namespace NeuroLib
             // hebbian learning
             for (int i = 0; i < neighbor_indices.size(); ++i)
             {
+                QWriteLocker write_lock(_network->getLock(neighbor_indices[i]));
                 NeuroCell & incoming = (*network)[neighbor_indices[i]].current();
 
                 if (incoming._kind == EXCITORY_LINK)
                 {
-                    NeuroValue delta_weight = network->learn() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                    NeuroValue delta_weight = network->learnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
                     incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
                 }
             }
@@ -84,28 +85,33 @@ namespace NeuroLib
             break;
         case OSCILLATOR:
             {
-                NeuroStep step = prev._phase_step[0];
-                NeuroStep phase = prev._phase_step[1];
+                NeuroStep phase = prev._phase_step[0];
+                NeuroStep step = prev._phase_step[1];
+
+                NeuroStep gap = prev._gap_peak[0];
+                NeuroStep peak = prev._gap_peak[1];
+
+                // increment step
+                NeuroStep max = static_cast<NeuroStep>(-1);
+                while ((max - (step+1)) < phase)
+                    step += gap + peak; // make step overflow, and inc it beyond phase, so it doesn't pause
+                step += 1;
 
                 if (step >= phase)
                 {
-                    NeuroStep gap = prev._gap_peak[0];
-                    NeuroStep peak = prev._gap_peak[1];
-
-                    if ((step % (gap + peak)) < peak)
+                    // calculate next output
+                    if ((gap+peak > 0) && ((phase+step) % (gap+peak)) < peak)
                         next_value = 1;
                     else
                         next_value = 0;
-
-                    NeuroStep max = static_cast<NeuroStep>(-1);
-                    while ((max - (step+1)) < phase)
-                        step += gap + peak; // make step overflow, and inc it beyond phase, so it doesn't pause
-                    step += 1;
                 }
                 else
                 {
                     next_value = 0;
                 }
+
+                // save new step value
+                next._phase_step[1] = step;
             }
 
             break;
@@ -129,11 +135,22 @@ namespace NeuroLib
         ds << static_cast<quint8>(nc._kind);
         ds << static_cast<bool>(nc._frozen);
 
-        ds << static_cast<float>(nc._weight);
-
-        if (nc._kind == NeuroCell::NODE)
+        switch (nc._kind)
         {
+        case NeuroCell::NODE:
+        case NeuroCell::EXCITORY_LINK:
+        case NeuroCell::INHIBITORY_LINK:
+            ds << static_cast<float>(nc._weight);
             ds << static_cast<float>(nc._run);
+            break;
+        case NeuroCell::OSCILLATOR:
+            ds << static_cast<quint16>(nc._gap_peak[0]);
+            ds << static_cast<quint16>(nc._gap_peak[1]);
+            ds << static_cast<quint16>(nc._phase_step[0]);
+            ds << static_cast<quint16>(nc._phase_step[1]);
+            break;
+        default:
+            break;
         }
 
         ds << static_cast<float>(nc._output_value);
@@ -145,17 +162,29 @@ namespace NeuroLib
     QDataStream & operator>> (QDataStream & ds, NeuroCell & nc)
     {
         quint8 k;
+        quint16 s;
         float n;
         bool f;
 
         ds >> k; nc._kind = static_cast<NeuroCell::KindOfCell>(k);
         ds >> f; nc._frozen = static_cast<bool>(f);
 
-        ds >> n; nc._weight = static_cast<NeuroCell::NeuroValue>(n);
-
-        if (nc._kind == NeuroCell::NODE)
+        switch (nc._kind)
         {
+        case NeuroCell::NODE:
+        case NeuroCell::EXCITORY_LINK:
+        case NeuroCell::INHIBITORY_LINK:
+            ds >> n; nc._weight = static_cast<NeuroCell::NeuroValue>(n);
             ds >> n; nc._run = static_cast<NeuroCell::NeuroValue>(n);
+            break;
+        case NeuroCell::OSCILLATOR:
+            ds >> s; nc._gap_peak[0] = static_cast<NeuroCell::NeuroStep>(s);
+            ds >> s; nc._gap_peak[1] = static_cast<NeuroCell::NeuroStep>(s);
+            ds >> s; nc._phase_step[0] = static_cast<NeuroCell::NeuroStep>(s);
+            ds >> s; nc._phase_step[1] = static_cast<NeuroCell::NeuroStep>(s);
+            break;
+        default:
+            break;
         }
 
         ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);

@@ -3,7 +3,6 @@
 #include "neurolinkitem.h"
 #include "labnetwork.h"
 
-#include <QMenu>
 #include <QPen>
 #include <QGraphicsScene>
 
@@ -15,36 +14,30 @@ namespace NeuroLab
 {
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroItem(network, scenePos), 
-        _cellIndex(-1),
-        _value_property(this, &outputValue, &setOutputValue)
+        : NeuroItem(network, scenePos),
+        _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue, tr("Output Value")),
+        _cellIndex(-1)
     {
     }
 
     NeuroNarrowItem::~NeuroNarrowItem()
     {
     }
-    
-    const NeuroCell::NeuroValue & NeuroNarrowItem::outputValue() const
+
+    NeuroCell::NeuroValue NeuroNarrowItem::outputValue() const
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell();
         return cell ? cell->current().outputValue() : 0.0f;
     }
-    
+
     void NeuroNarrowItem::setOutputValue(const NeuroCell::NeuroValue & value)
     {
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            cell->current()->setOutputValue(value);
-            cell->former()->setOutputValue(value);
+            cell->current().setOutputValue(value);
+            cell->former().setOutputValue(value);
         }
-    }
-
-    void NeuroNarrowItem::buildActionMenuAux(LabScene *, const QPointF &, QMenu & menu)
-    {
-        menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
-        menu.addAction(tr("Freeze/Unfreeze"), this, SLOT(toggleFrozen()));
     }
 
     bool NeuroNarrowItem::addIncoming(NeuroItem *item)
@@ -117,68 +110,8 @@ namespace NeuroLab
 
     void NeuroNarrowItem::reset()
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
-        if (cell && !cell->current().frozen())
-        {
-            cell->current().setOutputValue(0);
-            cell->former().setOutputValue(0);
-            update();
-        }
-    }
-
-    void NeuroNarrowItem::toggleActivated()
-    {
-        if (!scene())
-            return;
-
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
-        {
-            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.peekNext());
-            if (item)
-            {
-                NeuroNet::ASYNC_STATE *cell = item->getCell();
-
-                if (cell)
-                {
-                    NeuroCell::NeuroValue val = 0;
-
-                    if (qAbs(cell->current().outputValue()) < 0.1f)
-                        val = 1;
-
-                    if (cell->current().weight() < 0)
-                        val *= -1;
-
-                    cell->current().setOutputValue(val);
-                    cell->former().setOutputValue(val);
-
-                    item->update();
-                }
-            }
-        }
-    }
-
-    void NeuroNarrowItem::toggleFrozen()
-    {
-        if (!scene())
-            return;
-
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
-        {
-            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.peekNext());
-            if (item)
-            {
-                NeuroNet::ASYNC_STATE *cell = item->getCell();
-                if (cell)
-                {
-                    bool val = !cell->current().frozen();
-
-                    cell->current().setFrozen(val);
-                    cell->former().setFrozen(val);
-
-                    item->update();
-                }
-            }
-        }
+        setOutputValue(0);
+        updateProperties();
     }
 
     void NeuroNarrowItem::writeBinary(QDataStream & data) const

@@ -39,8 +39,8 @@ namespace NeuroLab
 
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
-        : QObject(network), QGraphicsItem(), PropertyObject(), 
-        _label_property(this, &label, &getLabel),
+        : PropertyObject(network), QGraphicsItem(),
+        _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
         _network(network), _id(NEXT_ID++)
     {
         setPos(scenePos);
@@ -130,10 +130,16 @@ namespace NeuroLab
     void NeuroItem::buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu)
     {
         if (item)
-            item->buildActionMenuAux(scene, pos, menu);
+            item->buildActionMenu(scene, pos, menu);
 
         QAction *del = menu.addAction(QObject::tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
         del->setEnabled(scene->selectedItems().size() > 0);
+    }
+
+    void NeuroItem::setChanged(bool changed)
+    {
+        Q_ASSERT(_network != 0);
+        _network->setChanged(changed);
     }
 
     void NeuroItem::updateProperties()
@@ -382,7 +388,7 @@ namespace NeuroLab
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         Q_ASSERT(_network != 0 && _network->scene() != 0);
-        _network->setDirty();
+        _network->setChanged();
 
         // get topmost item at mouse position that is not the item itself
         QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);

@@ -17,6 +17,8 @@ namespace GridItems
         NeuroGridItem(NeuroLab::LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroGridItem();
 
+        virtual QString uiName() const { return tr("Test Grid"); }
+
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 

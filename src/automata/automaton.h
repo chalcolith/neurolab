@@ -5,8 +5,6 @@
 #include <QtConcurrentMap>
 #include <QVarLengthArray>
 #include <QReadWriteLock>
-#include <QReadLocker>
-#include <QWriteLocker>
 
 #include "automata_global.h"
 #include "pool.h"
@@ -89,6 +87,14 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        QReadWriteLock *getLock(const TIndex & index)
+        {
+            TIndex lock_index = index/NUM_PER_LOCK;
+            while (locks.size() <= lock_index)
+                locks.append(new QReadWriteLock(QReadWriteLock::Recursive));
+            return locks[lock_index];
+        }
+
     protected:
         typedef Automaton<TState, TFUpdate, TIndex> BASE;
 
@@ -103,47 +109,69 @@ namespace Automata
             TIndex index = &state - this->_nodes.data();
 
             // write lock
-            TIndex lock_index = index/NUM_PER_LOCK;
-            while (locks.size() <= lock_index)
-                locks.append(new QReadWriteLock());
-            QWriteLocker write_lock(locks[lock_index]);
+            getLock(index)->lockForWrite();
 
-            // update
-            if (state.r == 0)
+            try
             {
-                if (isReady(index, 0))
+                // update
+                if (state.r == 0)
                 {
-                    // temporary neighbor array
-                    typename Pool<QVector<const TState *> >::Item tni(temp_neighbor_pool);
-                    QVector<const TState *> *temp_neighbors = tni.data;
-
-                    const QVector<TIndex> & neighbors = this->_edges[index];
-                    if (neighbors.size() > temp_neighbors->size())
-                        temp_neighbors->resize(neighbors.size());
-
-                    // get appropriate states of neighbors
-                    const TState ** const temp_ptr = temp_neighbors->data();
-
-                    for (int i = 0; i < neighbors.size(); ++i)
+                    if (isReady(index, 0))
                     {
-                        const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
+                        // temporary neighbor array
+                        typename Pool<QVector<const TState *> >::Item tni(temp_neighbor_pool);
+                        QVector<const TState *> *temp_neighbors = tni.data;
 
-                        if (neighbor.r == 0)
-                            temp_ptr[i] = &neighbor.q0;
-                        else if (neighbor.r == 1)
-                            temp_ptr[i] = &neighbor.q1;
+                        const QVector<TIndex> & neighbors = this->_edges[index];
+                        if (neighbors.size() > temp_neighbors->size())
+                            temp_neighbors->resize(neighbors.size());
+
+                        // get appropriate states of neighbors
+                        const TState ** const temp_ptr = temp_neighbors->data();
+                        for (int i = 0; i < neighbors.size(); ++i)
+                        {
+                            getLock(neighbors[i])->lockForWrite();
+                            const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
+
+                            if (neighbor.r == 0)
+                                temp_ptr[i] = &neighbor.q0;
+                            else if (neighbor.r == 1)
+                                temp_ptr[i] = &neighbor.q1;
+                        }
+
+                        // update
+                        state.q1 = state.q0;
+                        try
+                        {
+                            fUpdate(this, index, state.q1, state.q0, neighbors, temp_ptr);
+                        }
+                        catch (...)
+                        {
+                            for (int i = 0; i < neighbors.size(); ++i)
+                                getLock(neighbors[i])->unlock();
+                            throw;
+                        }
+
+                        state.r = 1;
+
+                        // unlock
+                        for (int i = 0; i < neighbors.size(); ++i)
+                            getLock(neighbors[i])->unlock();
                     }
-
-                    // update
-                    state.q1 = state.q0;
-                    fUpdate(this, index, state.q1, state.q0, neighbors, temp_ptr);
-                    state.r = 1;
+                }
+                else if (isReady(index, state.r))
+                {
+                    state.r = (state.r+1) % 3;
                 }
             }
-            else if (isReady(index, state.r))
+            catch (...)
             {
-                state.r = (state.r+1) % 3;
+                getLock(index)->unlock();
+                throw;
             }
+
+            // unlock and return
+            getLock(index)->unlock();
 
             return state;
         }

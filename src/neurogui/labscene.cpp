@@ -41,7 +41,7 @@ namespace NeuroLab
             clearSelection();
             //item->setSelected(true);
 
-            _network->setDirty(true);
+            _network->setChanged(true);
         }
     }
 

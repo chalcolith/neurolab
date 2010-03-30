@@ -13,15 +13,21 @@
 #include <QtVariantPropertyManager>
 #include <QtVariantProperty>
 
+using namespace NeuroLib;
+
 namespace NeuroLab
 {
 
     /// Constructor.
     /// \param parent The QObject that should own this network object.
     LabNetwork::LabNetwork(QWidget *parent)
-        : QObject(parent), PropertyObject(),
-        _tree(0), _neuronet(0), running(false), _dirty(false), first_change(true),
-        _filename_property(0), _decay_property(0), _learn_property(0), _learn_time_property(0)
+        : PropertyObject(parent),
+        _tree(0), _neuronet(0), running(false), _changed(false), first_change(true),
+
+        _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), false),
+        _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate")),
+        _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Learn Rate")),
+        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"))
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(parent, this);
@@ -36,12 +42,12 @@ namespace NeuroLab
         delete _neuronet; _neuronet = 0;
     }
 
-    void LabNetwork::setDirty(bool dirty)
+    void LabNetwork::setChanged(bool changed)
     {
-        bool old = _dirty;
-        _dirty = dirty;
+        bool old = _changed;
+        _changed = changed;
 
-        if (old != _dirty)
+        if (old != _changed)
             MainWindow::instance()->setTitle();
     }
 
@@ -55,92 +61,49 @@ namespace NeuroLab
         return _tree ? _tree->view() : 0;
     }
 
-    /// Adds the network's properties to the parent property.
-    /// \param manager The property manager with which to create properties if necessary.
-    /// \param parentItem The parent property to which to add new properties.
-    void LabNetwork::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    QString LabNetwork::fname() const
     {
-        if (!_filename_property)
-        {
-            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-
-            _filename_property = manager->addProperty(QVariant::String, tr("Filename"));
-            _filename_property->setEnabled(false);
-
-            _decay_property = manager->addProperty(QVariant::Double, tr("Decay Rate"));
-            _learn_property = manager->addProperty(QVariant::Double, tr("Learn Rate"));
-            _learn_time_property = manager->addProperty(QVariant::Double, tr("Learn Time"));
-
-            updateProperties();
-        }
-
-        parentItem->setPropertyName(tr("Network"));
-        parentItem->addSubProperty(_filename_property);
-        parentItem->addSubProperty(_decay_property);
-        parentItem->addSubProperty(_learn_time_property);
+        int index = _fname.lastIndexOf("/");
+        if (index != -1)
+            return _fname.mid(index+1);
+        else
+            return _fname;
     }
 
-    /// Updates the properties from the values in memory.
-    void LabNetwork::updateProperties()
+    NeuroCell::NeuroValue LabNetwork::decay() const
     {
-        _updating = true;
-
-        if (!_neuronet)
-            return;
-
-        if (_filename_property)
-        {
-            QString fname = _fname;
-            int index = fname.lastIndexOf('/');
-            if (index == -1)
-                index = fname.lastIndexOf('\\');
-            if (index != -1)
-                fname = fname.mid(index+1);
-
-            _filename_property->setValue(QVariant(fname));
-        }
-
-        if (_decay_property)
-            _decay_property->setValue(QVariant(_neuronet->decay()));
-        if (_learn_property)
-            _learn_property->setValue(QVariant(_neuronet->learn()));
-        if (_learn_time_property)
-            _learn_time_property->setValue(QVariant(_neuronet->learnTime()));
-
-        _updating = false;
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->decay();
     }
 
-    /// Changes the values in memory if the properties in the property grid change.
-    void LabNetwork::propertyValueChanged(QtProperty *property, const QVariant & value)
+    void LabNetwork::setDecay(const NeuroLib::NeuroCell::NeuroValue & decay)
     {
-        if (_updating)
-            return;
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setDecay(decay);
+    }
 
-        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
-        float prev;
-        bool changed = false;
+    NeuroCell::NeuroValue LabNetwork::learnRate() const
+    {
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->learnRate();
+    }
 
-        if (vprop == _decay_property)
-        {
-            prev = _neuronet->decay();
-            _neuronet->setDecay(value.toFloat());
-            changed = prev != _neuronet->decay();
-        }
-        else if (vprop == _learn_property)
-        {
-            prev = _neuronet->learn();
-            _neuronet->setLearn(value.toFloat());
-            changed = prev != _neuronet->learn();
-        }
-        else if (vprop == _learn_time_property)
-        {
-            prev = _neuronet->learnTime();
-            _neuronet->setLearnTime(value.toFloat());
-            changed = prev != _neuronet->learnTime();
-        }
+    void LabNetwork::setLearnRate(const NeuroLib::NeuroCell::NeuroValue & learnRate)
+    {
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setLearnRate(learnRate);
+    }
 
-        if (changed)
-            setDirty(true);
+    NeuroCell::NeuroValue LabNetwork::learnTime() const
+    {
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->learnTime();
+    }
+
+    void LabNetwork::setLearnTime(const NeuroLib::NeuroCell::NeuroValue & learnTime)
+    {
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setLearnTime(learnTime);
     }
 
     /// Handles setting the main window's properties when the selected item changes.
@@ -282,7 +245,7 @@ namespace NeuroLab
             }
         }
 
-        setDirty(false);
+        setChanged(false);
 
         if (prevRunning)
             start();
@@ -294,7 +257,7 @@ namespace NeuroLab
     /// \return True if the network was closed successfully.
     bool LabNetwork::close()
     {
-        if (_dirty && !save())
+        if (_changed && !save())
             return false;
         return true;
     }
@@ -305,7 +268,7 @@ namespace NeuroLab
         if (scene() && view())
         {
             scene()->newItem(typeName, scene()->lastMousePos());
-            setDirty();
+            setChanged();
         }
     }
 
@@ -319,7 +282,7 @@ namespace NeuroLab
             for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
             {
                 QGraphicsItem *item = i.peekNext();
-                setDirty();
+                setChanged();
 
                 if (sc->itemUnderMouse() == dynamic_cast<NeuroItem *>(item))
                     sc->setItemUnderMouse(0);
@@ -352,14 +315,14 @@ namespace NeuroLab
         _neuronet->step();
         running = false;
 
-        setDirty();
+        setChanged();
         _tree->update();
     }
 
     /// Resets the network: all nodes and links that are not frozen have their output values set to 0.
     void LabNetwork::reset()
     {
-        setDirty();
+        setChanged();
         _tree->reset();
     }
 

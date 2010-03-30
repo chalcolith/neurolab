@@ -7,18 +7,17 @@
 namespace NeuroLab
 {
 
-    /// An item that represents a node in Narrow notation.
-    class NEUROGUISHARED_EXPORT NeuroNodeItem
+    /// Base class for node objects.
+    class NEUROGUISHARED_EXPORT NeuroNodeItemBase
         : public NeuroNarrowItem
     {
         Q_OBJECT
-        NEUROITEM_DECLARE_CREATOR
 
         QRectF _rect;
 
     public:
-        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos);
-        virtual ~NeuroNodeItem();
+        NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos);
+        virtual ~NeuroNodeItemBase();
 
         /// The node will be drawn as an ellipse within this rectangle (in item coordinates).
         /// \see setRect()
@@ -28,13 +27,10 @@ namespace NeuroLab
         /// \see rect()
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void adjustLinks();
 
     protected:
-        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
 
         virtual void writeBinary(QDataStream &) const;
@@ -44,25 +40,73 @@ namespace NeuroLab
         void adjustLinksAux(const QList<NeuroItem *> &);
     };
 
-    /// An item that represents an oscillator.
-    class NEUROGUISHARED_EXPORT NeuroOscillatorItem
-        : public NeuroNodeItem
+
+    /// An item that represents a node in Narrow notation.
+    class NEUROGUISHARED_EXPORT NeuroNodeItem
+        : public NeuroNodeItemBase
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
-        QtVariantProperty *_phase_property;
-        QtVariantProperty *_peak_property;
-        QtVariantProperty *_gap_property;
-        QtVariantProperty *_value_property;
+        Property<NeuroNodeItem, QVariant::Bool, bool, bool> _frozen_property;
+        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _inputs_property;
+        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _run_property;
+
+    public:
+        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos);
+        virtual ~NeuroNodeItem();
+
+        virtual QString uiName() const { return tr("Node"); }
+
+        bool frozen() const;
+        void setFrozen(const bool & f);
+
+        NeuroLib::NeuroCell::NeuroValue inputs() const;
+        void setInputs(const NeuroLib::NeuroCell::NeuroValue &);
+
+        NeuroLib::NeuroCell::NeuroValue run() const;
+        void setRun(const NeuroLib::NeuroCell::NeuroValue &);
+
+    public slots:
+        virtual void reset();
+
+        /// Toggles the output value of the item between 0 and 1.
+        virtual void toggleActivated();
+
+        /// Toggles whether or not the item is frozen (i.e. whether or not its output value will change during a time step).
+        virtual void toggleFrozen();
+
+    protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &);
+    };
+
+
+    /// An item that represents an oscillator.
+    class NEUROGUISHARED_EXPORT NeuroOscillatorItem
+        : public NeuroNodeItemBase
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _phase_property;
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _peak_property;
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _gap_property;
 
     public:
         NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroOscillatorItem();
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
-        virtual void updateProperties();
-        virtual void propertyValueChanged(QtProperty *property, const QVariant & value);
+        virtual QString uiName() const { return tr("Oscillator"); }
+
+        NeuroLib::NeuroCell::NeuroStep phase() const;
+        void setPhase(const NeuroLib::NeuroCell::NeuroStep &);
+
+        NeuroLib::NeuroCell::NeuroStep peak() const;
+        void setPeak(const NeuroLib::NeuroCell::NeuroStep &);
+
+        NeuroLib::NeuroCell::NeuroStep gap() const;
+        void setGap(const NeuroLib::NeuroCell::NeuroStep &);
 
     public slots:
         virtual void reset();

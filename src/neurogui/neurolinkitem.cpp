@@ -23,8 +23,8 @@ namespace NeuroLab
     //////////////////////////////////////////////////////////////////
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNarrowItem(network, scenePos), 
-        _weight_property(this, &weight, &setWeight),
+        : NeuroNarrowItem(network, scenePos),
+        _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight, tr("Weight")),
         _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
     {
         Q_ASSERT(network != 0);
@@ -35,13 +35,13 @@ namespace NeuroLab
         _frontLinkTarget = 0;
         _backLinkTarget = 0;
     }
-    
-    const NeuroCell::NeuroValue & NeuroLinkItem::weight() const
+
+    NeuroCell::NeuroValue NeuroLinkItem::weight() const
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
-        return cell ? cell->current()->weight() : 0.0f;
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().weight() : 0;
     }
-    
+
     void NeuroLinkItem::setWeight(const NeuroCell::NeuroValue & value)
     {
         NeuroNet::ASYNC_STATE *cell = getCell();
@@ -244,50 +244,64 @@ namespace NeuroLab
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if ((labScene = dynamic_cast<LabScene *>(scene())) && labScene->selectedItems().size() <= 1)
+            if ((labScene = dynamic_cast<LabScene *>(scene())))
             {
-                if (!settingLine)
+                if (labScene->selectedItems().size() <= 1)
                 {
-                    // adjust position
-                    QVector2D center(pos());
-                    QVector2D front(_line.p2());
-                    QVector2D back(_line.p1());
-                    QVector2D mousePos(labScene->lastMousePos());
-
-                    qreal distFront = (mousePos - front).lengthSquared();
-                    qreal distBack = (mousePos - back).lengthSquared();
-
-                    dragFront = distFront < distBack;
-                    if (dragFront)
-                        front = mousePos;
-                    else
-                        back = mousePos;
-
-                    _line.setP1(back.toPointF());
-                    _line.setP2(front.toPointF());
-
-                    QVector2D newCenter = (front + back) * 0.5;
-
-                    // adjust if we're linked
-                    if (_frontLinkTarget)
-                        _frontLinkTarget->adjustLinks();
-                    if (_backLinkTarget)
-                        _backLinkTarget->adjustLinks();
-
-                    QVector2D adjustedCenter(pos());
-                    if (adjustedCenter != center)
-                        newCenter = adjustedCenter;
-
-                    // handle move
-                    QPointF movePos(newCenter.toPointF());
-
-                    if (handleMove(mousePos.toPointF(), movePos))
+                    if (!settingLine)
                     {
-                        adjustLinks();
-                        updateShape();
+                        // adjust position
+                        QVector2D center(pos());
+                        QVector2D front(_line.p2());
+                        QVector2D back(_line.p1());
+                        QVector2D mousePos(labScene->lastMousePos());
 
-                        return QVariant(movePos);
+                        qreal distFront = (mousePos - front).lengthSquared();
+                        qreal distBack = (mousePos - back).lengthSquared();
+
+                        dragFront = distFront < distBack;
+                        if (dragFront)
+                            front = mousePos;
+                        else
+                            back = mousePos;
+
+                        _line.setP1(back.toPointF());
+                        _line.setP2(front.toPointF());
+
+                        QVector2D newCenter = (front + back) * 0.5;
+
+                        // adjust if we're linked
+                        if (_frontLinkTarget)
+                            _frontLinkTarget->adjustLinks();
+                        if (_backLinkTarget)
+                            _backLinkTarget->adjustLinks();
+
+                        QVector2D adjustedCenter(pos());
+                        if (adjustedCenter != center)
+                            newCenter = adjustedCenter;
+
+                        // handle move
+                        QPointF movePos(newCenter.toPointF());
+
+                        if (handleMove(mousePos.toPointF(), movePos))
+                        {
+                            adjustLinks();
+                            updateShape();
+
+                            return QVariant(movePos);
+                        }
                     }
+                }
+                else if (!settingLine)
+                {
+                    QVector2D oldCenter(pos());
+                    QVector2D newCenter(value.toPointF());
+                    QVector2D delta = newCenter - oldCenter;
+                    QVector2D p1(_line.p1());
+                    QVector2D p2(_line.p2());
+
+                    _line.setP1((p1 + delta).toPointF());
+                    _line.setP2((p2 + delta).toPointF());
                 }
 
                 return value;
@@ -374,20 +388,14 @@ namespace NeuroLab
         : NeuroLinkItem(network, scenePos)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
-        
+
         NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-        setCellIndex(index);        
+        setCellIndex(index);
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 
     NeuroExcitoryLinkItem::~NeuroExcitoryLinkItem()
     {
-    }
-
-    void NeuroExcitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
-    {
-        NeuroNarrowItem::buildProperties(manager, parentItem);
-        parentItem->setPropertyName(tr("Excitory Link"));
     }
 
     void NeuroExcitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -431,20 +439,14 @@ namespace NeuroLab
         : NeuroLinkItem(network, scenePos)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
-        
-        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
-        setCellIndex(index);        
+
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -100000000));
+        setCellIndex(index);
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 
     NeuroInhibitoryLinkItem::~NeuroInhibitoryLinkItem()
     {
-    }
-
-    void NeuroInhibitoryLinkItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
-    {
-        NeuroNarrowItem::buildProperties(manager, parentItem);
-        parentItem->setPropertyName(tr("Inhibitory Link"));
     }
 
     void NeuroInhibitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const

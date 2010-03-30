@@ -14,9 +14,9 @@ namespace NeuroLab
         : public NeuroNarrowItem
     {
         Q_OBJECT
-        
-        Property<NeuroLinkItem, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
-        
+
+        Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+
     protected:
         QLineF _line;
         mutable QVector2D c1, c2;
@@ -30,9 +30,9 @@ namespace NeuroLab
         NeuroLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroLinkItem();
 
-        const NeuroLib::NeuroCell::NeuroValue & weight() const;
+        NeuroLib::NeuroCell::NeuroValue weight() const;
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
-        
+
         /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
         QLineF line() const { return _line; }
 
@@ -106,16 +106,16 @@ namespace NeuroLab
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
-        
+
     public:
         NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroExcitoryLinkItem();
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        virtual QString uiName() const { return tr("Excitory Link"); }
 
-    protected:        
+    protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
@@ -126,12 +126,12 @@ namespace NeuroLab
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
-        
+
     public:
         NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroInhibitoryLinkItem();
 
-        virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
+        virtual QString uiName() const { return tr("Inhibitory Link"); }
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;

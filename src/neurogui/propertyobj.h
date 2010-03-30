@@ -19,72 +19,78 @@ namespace NeuroLab
         : public QObject
     {
         Q_OBJECT
-        
+
     protected:
         bool _updating;
 
         class PropertyBase
         {
-        protected:
-            QtVariantProperty *_property;
-            
         public:
+            QtVariantProperty *_property;
+
             PropertyBase() : _property(0) {}
             virtual ~PropertyBase() {}
-            
+
             virtual void create(QtVariantPropertyManager *manager) = 0;
             virtual void update() = 0;
             virtual void valueChanged(const QVariant & value) = 0;
         };
-        
+
         QList<PropertyBase *> _properties;
-        
-        template <typename CType, typename VType, typename DType>
+
+        template <typename CType, int TypeID, typename VType, typename DType>
         class Property : public PropertyBase
         {
             CType *_container;
-                                    
-            const DType & (CType::*_getter) ();
+
+            DType (CType::*_getter) () const;
             void (CType::*_setter)(const DType &);
-            
+
+            QString _name;
+            bool _enabled;
+
         public:
-            Property(CType *container, const DType & (CType::*getter)(), void (CType::*setter)(const DType &))
-                : _container(container),
-                _getter(getter), _setter(setter),
-                _manager(0), _property(0)
+            Property(CType *container, DType (CType::*getter)() const, void (CType::*setter)(const DType &), const QString & name, bool enabled = true)
+                : PropertyBase(),
+                _container(container), _getter(getter), _setter(setter), _name(name), _enabled(enabled)
             {
-                Q_ASSERT(container != 0);
-                Q_ASSERT(getter != 0);
-                Q_ASSERT(setter != 0);
-                
+                Q_ASSERT(_container != 0);
                 container->_properties.append(this);
             }
-            
+
             virtual void create(QtVariantPropertyManager *manager)
             {
                 Q_ASSERT(manager != 0);
-                
+
                 if (!_property)
                 {
-                    _property = new QtVariantProperty(manager);
-                    QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)));
+                    _property = manager->addProperty(TypeID, _name);
+                    _property->setEnabled(_enabled);
+                    QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)));
                 }
             }
-            
+
             virtual void update()
             {
-                _property->setValue(QVariant(static_cast<VType>(_access->*getter())));
+                if (_getter)
+                    _property->setValue(QVariant(static_cast<VType>((_container->*_getter)())));
             }
-            
+
             virtual void valueChanged(const QVariant & value)
             {
-                _access->*setter(static_cast<DType>(value.value<VType>()));
+                if (_setter && _getter && value != (_container->*_getter)())
+                {
+                    (_container->*_setter)(static_cast<DType>(value.value<VType>()));
+                    _container->setChanged(true);
+                }
             }
         };
 
     public:
-        PropertyObject();
+        PropertyObject(QObject *parent);
         virtual ~PropertyObject();
+
+        virtual QString uiName() const { return QString("?Unknown?"); }
 
         /// Add properties to the parent item.
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
@@ -92,7 +98,7 @@ namespace NeuroLab
         /// Update the properties from the object's state.
         virtual void updateProperties();
 
-    public slots:        
+    public slots:
         /// Handle changes to the property values.
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
     };

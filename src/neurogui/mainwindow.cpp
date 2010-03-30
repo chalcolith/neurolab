@@ -168,6 +168,9 @@ namespace NeuroLab
     {
         LabNetwork *newNetwork = 0;
 
+        if (_currentNetwork && !closeNetwork())
+            return false;
+
         try
         {
             newNetwork = LabNetwork::open(this, QString());
@@ -180,12 +183,6 @@ namespace NeuroLab
 
         if (newNetwork)
         {
-            if (_currentNetwork && !closeNetwork())
-            {
-                setNetwork(0);
-                return false;
-            }
-
             setNetwork(newNetwork);
             return true;
         }
@@ -217,7 +214,7 @@ namespace NeuroLab
         if (_currentNetwork)
         {
             bool discard = false;
-            if (_currentNetwork->dirty())
+            if (_currentNetwork->changed())
             {
                 FileDirtyDialog fdd(this);
                 fdd.exec();
@@ -255,11 +252,11 @@ namespace NeuroLab
             if (index != -1)
                 fname = fname.mid(index+1);
 
-            this->setWindowTitle(QString("%1: %2%3").arg(title).arg(fname).arg(_currentNetwork->dirty() ? "*" : ""));
+            this->setWindowTitle(QString("%1: %2%3").arg(title).arg(fname).arg(_currentNetwork->changed() ? "*" : ""));
         }
         else
         {
-            this->setWindowTitle(QString("%1%2").arg(title).arg(_currentNetwork && _currentNetwork->dirty() ? "*" : ""));
+            this->setWindowTitle(QString("%1%2").arg(title).arg(_currentNetwork && _currentNetwork->changed() ? "*" : ""));
         }
     }
 

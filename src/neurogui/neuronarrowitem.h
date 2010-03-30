@@ -14,23 +14,17 @@ namespace NeuroLab
     {
         Q_OBJECT
 
-        NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
+        Property<NeuroNarrowItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
 
-        Property<NeuroNarrowItem, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
-        
-//        QtVariantProperty *_frozen_property; ///< Property for controlling whether or not the item is frozen.
-//        QtVariantProperty *_inputs_property; ///< Property for controlling the item's input weight.
-//        QtVariantProperty *_weight_property; ///< Property for controlling the item's output weight.
-//        QtVariantProperty *_run_property;    ///< Property for controlling the item's sigmoid curve's slope.
-//        QtVariantProperty *_value_property;  ///< Property for controlling the item's output value.
+        NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
 
     public:
         NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNarrowItem();
 
-        const NeuroLib::NeuroCell::NeuroValue & outputValue() const;
+        NeuroLib::NeuroCell::NeuroValue outputValue() const;
         void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
-        
+
         virtual bool addIncoming(NeuroItem *linkItem);
         virtual bool removeIncoming(NeuroItem *linkItem);
 
@@ -40,17 +34,9 @@ namespace NeuroLab
         /// Resets the item.  If it is not frozen, sets the output value to zero.
         virtual void reset();
 
-        /// Toggles the output value of the item between 0 and 1.
-        virtual void toggleActivated();
-
-        /// Toggles whether or not the item is frozen (i.e. whether or not its output value will change during a time step).
-        virtual void toggleFrozen();
-
     protected:
         NeuroLib::NeuroCell::NeuroIndex cellIndex() const { return _cellIndex; }
         void setCellIndex(const NeuroLib::NeuroCell::NeuroIndex & index) { _cellIndex = index; }
-
-        void buildActionMenuAux(LabScene *scene, const QPointF &pos, QMenu &menu);
 
         /// \return A pointer to the neural network cell's previous and current state.
         const NeuroLib::NeuroNet::ASYNC_STATE *getCell() const;

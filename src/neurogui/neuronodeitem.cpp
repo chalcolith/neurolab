@@ -5,6 +5,8 @@
 
 #include <QVector2D>
 #include <QApplication>
+#include <QMenu>
+
 #include <QtVariantProperty>
 
 #include <cmath>
@@ -14,58 +16,35 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow|Node"));
-
-    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos)
+    NeuroNodeItemBase::NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos)
         : NeuroNarrowItem(network, scenePos)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
-
-        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
-        setCellIndex(index);
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
     }
 
-    NeuroNodeItem::~NeuroNodeItem()
+    NeuroNodeItemBase::~NeuroNodeItemBase()
     {
     }
 
-    bool NeuroNodeItem::canCreateNewOnMe(const QString &typeName, const QPointF &) const
+    bool NeuroNodeItemBase::canCreateNewOnMe(const QString &typeName, const QPointF &) const
     {
         return typeName.indexOf("LinkItem") >= 0;
     }
 
-    void NeuroNodeItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
-    {
-        NeuroNarrowItem::buildProperties(manager, parentItem);
-        parentItem->setPropertyName(tr("Node"));
-    }
-
-    void NeuroNodeItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
-    {
-        NeuroNarrowItem::addToShape(drawPath, texts);
-        drawPath.addEllipse(rect());
-
-        const NeuroNet::ASYNC_STATE *cell = getCell();
-        if (cell)
-        {
-            texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
-        }
-    }
-
-    bool NeuroNodeItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
         // can only be connected to by links
         return dynamic_cast<NeuroLinkItem *>(item);
     }
 
-    void NeuroNodeItem::adjustLinks()
+    void NeuroNodeItemBase::adjustLinks()
     {
         adjustLinksAux(incoming());
         adjustLinksAux(outgoing());
     }
 
-    void NeuroNodeItem::adjustLinksAux(const QList<NeuroItem *> & list)
+    void NeuroNodeItemBase::adjustLinksAux(const QList<NeuroItem *> & list)
     {
         QVector2D center(pos());
 
@@ -109,13 +88,13 @@ namespace NeuroLab
         }
     }
 
-    void NeuroNodeItem::writeBinary(QDataStream & data) const
+    void NeuroNodeItemBase::writeBinary(QDataStream & data) const
     {
         NeuroNarrowItem::writeBinary(data);
         data << _rect;
     }
 
-    void NeuroNodeItem::readBinary(QDataStream & data)
+    void NeuroNodeItemBase::readBinary(QDataStream & data)
     {
         NeuroNarrowItem::readBinary(data);
 
@@ -127,117 +106,231 @@ namespace NeuroLab
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroOscillatorItem, QObject::tr("Narrow|Oscillator"));
+    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow|Node"));
 
-    NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNodeItem(network, scenePos),
-        _phase_property(0), _peak_property(0), _gap_property(0), _value_property(0)
+    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroNodeItemBase(network, scenePos),
+        _frozen_property(this, &NeuroNodeItem::frozen, &NeuroNodeItem::setFrozen, tr("Frozen")),
+        _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs, tr("Inputs")),
+        _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun, tr("1 / Slope"))
     {
-        Q_ASSERT(network != 0 && network->neuronet() != 0);
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+        setCellIndex(index);
+    }
 
+    NeuroNodeItem::~NeuroNodeItem()
+    {
+    }
+
+    bool NeuroNodeItem::frozen() const
+    {
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().frozen() : false;
+    }
+
+    void NeuroNodeItem::setFrozen(const bool & frozen)
+    {
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            cell->current().setWeight(0);
-            cell->former().setWeight(0);
-            cell->current().setRun(0);
-            cell->former().setRun(0);
+            cell->current().setFrozen(frozen);
+            cell->former().setFrozen(frozen);
         }
+    }
+
+    NeuroCell::NeuroValue NeuroNodeItem::inputs() const
+    {
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().weight() : 0;
+    }
+
+    void NeuroNodeItem::setInputs(const NeuroLib::NeuroCell::NeuroValue & inputs)
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            cell->current().setWeight(inputs);
+            cell->former().setWeight(inputs);
+        }
+    }
+
+    NeuroCell::NeuroValue NeuroNodeItem::run() const
+    {
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().run() : 0;
+    }
+
+    void NeuroNodeItem::setRun(const NeuroLib::NeuroCell::NeuroValue & run)
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            cell->current().setRun(run);
+            cell->former().setRun(run);
+        }
+    }
+
+    void NeuroNodeItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
+    {
+        NeuroNarrowItem::addToShape(drawPath, texts);
+        drawPath.addEllipse(rect());
+
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
+        }
+    }
+
+    void NeuroNodeItem::buildActionMenu(LabScene *, const QPointF &, QMenu & menu)
+    {
+        menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
+        menu.addAction(tr("Freeze/Unfreeze"), this, SLOT(toggleFrozen()));
+    }
+
+    void NeuroNodeItem::reset()
+    {
+        if (!frozen())
+        {
+            setOutputValue(0);
+            updateProperties();
+        }
+    }
+
+    void NeuroNodeItem::toggleActivated()
+    {
+        if (!scene())
+            return;
+
+        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
+        {
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.peekNext());
+            if (item)
+            {
+                NeuroNet::ASYNC_STATE *cell = item->getCell();
+
+                if (cell)
+                {
+                    NeuroCell::NeuroValue val = 0;
+
+                    if (qAbs(cell->current().outputValue()) < 0.1f)
+                        val = 1;
+
+                    if (cell->current().weight() < 0)
+                        val *= -1;
+
+                    cell->current().setOutputValue(val);
+                    cell->former().setOutputValue(val);
+
+                    item->update();
+                }
+            }
+        }
+    }
+
+    void NeuroNodeItem::toggleFrozen()
+    {
+        if (!scene())
+            return;
+
+        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
+        {
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.peekNext());
+            if (item)
+            {
+                NeuroNet::ASYNC_STATE *cell = item->getCell();
+                if (cell)
+                {
+                    bool val = !cell->current().frozen();
+
+                    cell->current().setFrozen(val);
+                    cell->former().setFrozen(val);
+
+                    item->update();
+                }
+            }
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////////////
+
+    NEUROITEM_DEFINE_CREATOR(NeuroOscillatorItem, QObject::tr("Narrow|Oscillator"));
+
+    NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos)
+        : NeuroNodeItemBase(network, scenePos),
+        _phase_property(this, &NeuroOscillatorItem::phase, &NeuroOscillatorItem::setPhase, tr("Phase")),
+        _peak_property(this, &NeuroOscillatorItem::peak, &NeuroOscillatorItem::setPeak, tr("Spike")),
+        _gap_property(this, &NeuroOscillatorItem::gap, &NeuroOscillatorItem::setGap, tr("Gap"))
+    {
+        Q_ASSERT(network != 0 && network->neuronet() != 0);
+
+        NeuroCell cell(NeuroCell::OSCILLATOR);
+        cell.setGap(1);
+        cell.setPeak(1);
+        cell.setPhase(0);
+        cell.setStep(0);
+        cell.setOutputValue(1);
+
+        NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
+        setCellIndex(index);
     }
 
     NeuroOscillatorItem::~NeuroOscillatorItem()
     {
     }
 
-    void NeuroOscillatorItem::buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem)
+    NeuroCell::NeuroStep NeuroOscillatorItem::phase() const
     {
-        NeuroNodeItem::buildProperties(manager, parentItem); // NOT calling the narrow version!
-
-        if (!_phase_property)
-        {
-            manager->connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-
-            _phase_property = manager->addProperty(QVariant::Int, tr("Phase"));
-            _peak_property = manager->addProperty(QVariant::Int, tr("Spike"));
-            _gap_property = manager->addProperty(QVariant::Int, tr("Gap"));
-            _value_property = manager->addProperty(QVariant::Double, tr("Value"));
-
-            updateProperties();
-        }
-
-        parentItem->setPropertyName(tr("Oscillator"));
-        parentItem->addSubProperty(_phase_property);
-        parentItem->addSubProperty(_peak_property);
-        parentItem->addSubProperty(_gap_property);
-        parentItem->addSubProperty(_value_property);
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().phase() : 0;
     }
 
-    void NeuroOscillatorItem::updateProperties()
+    void NeuroOscillatorItem::setPhase(const NeuroLib::NeuroCell::NeuroStep & phase)
     {
-        NeuroItem::updateProperties();
-
-        _updating = true;
-
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            if (_phase_property)
-                _phase_property->setValue(QVariant(cell->current().phase()));
-            if (_peak_property)
-                _peak_property->setValue(QVariant(cell->current().peak()));
-            if (_gap_property)
-                _gap_property->setValue(QVariant(cell->current().gap()));
-            if (_value_property)
-                _value_property->setValue(QVariant(cell->current().outputValue()));
-        }
+            cell->current().setPhase(phase);
+            cell->former().setPhase(phase);
 
-        _updating = false;
+            reset();
+        }
     }
 
-    void NeuroOscillatorItem::propertyValueChanged(QtProperty *property, const QVariant & value)
+    NeuroCell::NeuroStep NeuroOscillatorItem::peak() const
     {
-        if (_updating)
-            return;
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().peak() : 0;
+    }
 
-        NeuroItem::propertyValueChanged(property, value);
-
-        QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
+    void NeuroOscillatorItem::setPeak(const NeuroLib::NeuroCell::NeuroStep & peak)
+    {
         NeuroNet::ASYNC_STATE *cell = getCell();
-
-        if (vprop && cell)
+        if (cell)
         {
-            bool changed = false;
+            cell->current().setPeak(peak);
+            cell->former().setPeak(peak);
 
-            if (vprop == _phase_property)
-            {
-                cell->current().setPhase(value.toInt());
-                cell->former().setPhase(value.toInt());
-                changed = true;
-            }
-            else if (vprop == _peak_property)
-            {
-                cell->current().setPeak(value.toInt());
-                cell->former().setPeak(value.toInt());
-                changed = true;
-            }
-            else if (vprop == _gap_property)
-            {
-                cell->current().setGap(value.toInt());
-                cell->former().setGap(value.toInt());
-                changed = true;
-            }
-            else if (vprop == _value_property)
-            {
-                cell->current().setOutputValue(value.toFloat());
-                cell->former().setOutputValue(value.toFloat());
-                changed = true;
-            }
+            reset();
+        }
+    }
 
-            if (changed)
-            {
-                updateShape();
-                update();
-            }
+    NeuroCell::NeuroStep NeuroOscillatorItem::gap() const
+    {
+        const NeuroNet::ASYNC_STATE *cell = getCell();
+        return cell ? cell->current().gap() : 0;
+    }
+
+    void NeuroOscillatorItem::setGap(const NeuroLib::NeuroCell::NeuroStep & gap)
+    {
+        NeuroNet::ASYNC_STATE *cell = getCell();
+        if (cell)
+        {
+            cell->current().setGap(gap);
+            cell->former().setGap(gap);
+
+            reset();
         }
     }
 
@@ -250,6 +343,8 @@ namespace NeuroLab
             cell->former().setStep(0);
             cell->current().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
             cell->former().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
+
+            updateProperties();
         }
     }
 
@@ -261,7 +356,7 @@ namespace NeuroLab
         const NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)
         {
-            texts.append(TextPathRec(QPointF(-4, 4), QString("%1/%2").arg(cell->current().peak()).arg(cell->current().gap())));
+            texts.append(TextPathRec(QPointF(-8, 4), QString("%1/%2").arg(cell->current().peak()).arg(cell->current().gap())));
         }
     }
 
