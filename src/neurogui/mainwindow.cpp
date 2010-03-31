@@ -33,7 +33,7 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent),
           _ui(new Ui::MainWindow()),
-          _layout(0), _currentNetwork(0),
+          _networkLayout(0), _currentNetwork(0),
           _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager())
     {
         if (_instance)
@@ -55,8 +55,8 @@ namespace NeuroLab
         setupConnections();
 
         // central widget layout
-        _layout = new QVBoxLayout();
-        _ui->centralWidget->setLayout(_layout);
+        _networkLayout = new QVBoxLayout();
+        _ui->tab_1->setLayout(_networkLayout);
 
         this->setWindowTitle(tr("NeuroLab"));
 
@@ -263,13 +263,13 @@ namespace NeuroLab
     void MainWindow::setNetwork(LabNetwork *network)
     {
         if (_currentNetwork)
-            _layout->removeWidget(_currentNetwork->view());
+            _networkLayout->removeWidget(_currentNetwork->view());
         delete _currentNetwork;
 
         if (network)
         {
             _currentNetwork = network;
-            _layout->addWidget(_currentNetwork->view());
+            _networkLayout->addWidget(_currentNetwork->view());
             _currentNetwork->view()->show();
         }
         else
@@ -373,4 +373,12 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
         _currentNetwork->deleteSelected();
 }
 
+void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
+{
+    
+}
 
+void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
+{
+    
+}
