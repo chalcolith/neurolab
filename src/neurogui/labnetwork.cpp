@@ -307,7 +307,7 @@ namespace NeuroLab
     }
 
     /// Advances the network by one timestep.
-    void LabNetwork::step()
+    void LabNetwork::step(int)
     {
         running = true;
         _neuronet->step();

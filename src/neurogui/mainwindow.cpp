@@ -17,6 +17,8 @@
 #include <QSettings>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QSpinBox>
+
 #include <QtTreePropertyBrowser>
 #include <QtVariantEditorFactory>
 #include <QtVariantPropertyManager>
@@ -33,8 +35,12 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent),
           _ui(new Ui::MainWindow()),
-          _networkLayout(0), _currentNetwork(0),
-          _propertyEditor(0), _propertyFactory(new QtVariantEditorFactory()), _propertyManager(new QtVariantPropertyManager())
+          _networkLayout(0), 
+          _numStepsSpinBox(0), _numStepsSpinBoxAction(0),
+          _currentNetwork(0),
+          _propertyEditor(0), 
+          _propertyFactory(new QtVariantEditorFactory()), 
+          _propertyManager(new QtVariantPropertyManager())
     {
         if (_instance)
             throw LabException("You cannot create more than one main window.");
@@ -52,6 +58,11 @@ namespace NeuroLab
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser());
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
 
+        _numStepsSpinBox = new QSpinBox();
+        _numStepsSpinBox->setRange(0, 10000);
+        _numStepsSpinBox->setValue(1);
+        _numStepsSpinBoxAction = _ui->mainToolBar->insertWidget(_ui->action_Step, _numStepsSpinBox);
+        
         setupConnections();
 
         // central widget layout
@@ -358,7 +369,7 @@ void NeuroLab::MainWindow::on_action_Stop_triggered()
 void NeuroLab::MainWindow::on_action_Step_triggered()
 {
     if (_currentNetwork)
-        _currentNetwork->step();
+        _currentNetwork->step(_numStepsSpinBox->value());
 }
 
 void NeuroLab::MainWindow::on_action_Reset_triggered()

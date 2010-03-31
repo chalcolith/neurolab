@@ -63,11 +63,17 @@ namespace Automata
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
         virtual void step()
         {
-            MapFunctor functor(*this);
-
             // the asynchronous algo take three updates to fully run one step
+            MapFunctor functor(*this);
             QFuture<void> future1 = QtConcurrent::map(this->_nodes, functor);
             future1.waitForFinished();
+        }
+        
+        /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
+        virtual QFuture<void> stepAsync()
+        {
+            MapFunctor functor(*this);
+            return QtConcurrent::map(this->_nodes, functor);
         }
 
         /// Adds a cell to the automaton.

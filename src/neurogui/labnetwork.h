@@ -86,7 +86,7 @@ namespace NeuroLab
         void reset();
         void start();
         void stop();
-        void step();
+        void step(int numSteps);
 
         void selectionChanged();
     };
