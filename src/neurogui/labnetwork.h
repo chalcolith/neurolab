@@ -7,6 +7,8 @@
 
 #include <QObject>
 #include <QVariant>
+#include <QFutureWatcher>
+#include <QTime>
 
 class QtVariantProperty;
 
@@ -27,7 +29,7 @@ namespace NeuroLab
         LabTree *_tree;
         NeuroLib::NeuroNet *_neuronet;
 
-        bool running;
+        bool _running;
 
         bool _changed, first_change;
         QString _fname;
@@ -37,9 +39,16 @@ namespace NeuroLab
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_rate_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
 
+        quint32 _current_step, _max_steps;
+        QFutureWatcher<void> _future_watcher;
+        QTime _step_time;
+
     public:
         LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
+
+        /// \return Whether or not the network is currently running.
+        bool running() const { return _running; }
 
         /// \return Whether or not the network has changed since the last save.
         bool changed() const { return _changed; }
@@ -89,6 +98,16 @@ namespace NeuroLab
         void step(int numSteps);
 
         void selectionChanged();
+
+        void futureFinished();
+
+    signals:
+        void titleChanged(const QString & title);
+        void propertyObjectChanged(PropertyObject *po);
+        void actionsEnabled(bool enabled);
+        void statusChanged(const QString & status);
+        void stepProgressRangeChanged(int minimum, int maximum);
+        void stepProgressValueChanged(int value);
     };
 
 } // namespace NeuroLab

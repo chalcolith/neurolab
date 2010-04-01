@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
 #include "labscene.h"
 #include "neuroitem.h"
 #include "labeldialog.h"
@@ -18,6 +19,7 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QSpinBox>
+#include <QProgressBar>
 
 #include <QtTreePropertyBrowser>
 #include <QtVariantEditorFactory>
@@ -35,20 +37,20 @@ namespace NeuroLab
     MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
         : QMainWindow(parent),
           _ui(new Ui::MainWindow()),
-          _networkLayout(0), 
-          _numStepsSpinBox(0), _numStepsSpinBoxAction(0),
+          _networkLayout(0),
+          _numStepsSpinBox(0),
+          _numStepsSpinBoxAction(0),
+          _stepProgressBar(0),
           _currentNetwork(0),
-          _propertyEditor(0), 
-          _propertyFactory(new QtVariantEditorFactory()), 
-          _propertyManager(new QtVariantPropertyManager())
+          _propertyEditor(0),
+          _propertyFactory(new QtVariantEditorFactory()),
+          _propertyManager(new QtVariantPropertyManager()),
+          _propertyObject(0)
     {
         if (_instance)
             throw LabException("You cannot create more than one main window.");
 
         _instance = this;
-
-        // load plugins
-        loadPlugins();
 
         // set up ui and other connections
         _ui->setupUi(this);
@@ -59,10 +61,15 @@ namespace NeuroLab
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
 
         _numStepsSpinBox = new QSpinBox();
-        _numStepsSpinBox->setRange(0, 10000);
+        _numStepsSpinBox->setRange(0, 1000000);
         _numStepsSpinBox->setValue(1);
         _numStepsSpinBoxAction = _ui->mainToolBar->insertWidget(_ui->action_Step, _numStepsSpinBox);
-        
+
+        _stepProgressBar = new QProgressBar();
+        _stepProgressBar->setVisible(false);
+        _stepProgressBar->reset();
+        _ui->statusBar->addPermanentWidget(_stepProgressBar);
+
         setupConnections();
 
         // central widget layout
@@ -73,6 +80,9 @@ namespace NeuroLab
 
         // read state from settings
         loadStateSettings();
+
+        // load plugins
+        loadPlugins();
 
         // load initial network
         if (initialFname.isNull() || initialFname.isEmpty())
@@ -117,7 +127,8 @@ namespace NeuroLab
             if (QLibrary::isLibrary(fname))
             {
                 QLibrary lib(fname);
-                lib.load(); // the libraries should remain loaded even though the lib object goes out of scope
+                if (lib.load()) // the libraries should remain loaded even though the lib object goes out of scope
+                    setStatus(tr("Loaded %1.").arg(i.peekNext()));
             }
         }
     }
@@ -158,25 +169,44 @@ namespace NeuroLab
         connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)));
     }
 
+    void MainWindow::setActionsEnabled(bool enabled)
+    {
+        QList<QAction *> actions = _ui->mainToolBar->actions();
+        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+        _ui->action_Quit->setEnabled(enabled);
+    }
+
     void MainWindow::closeEvent(QCloseEvent *event)
     {
-        if (closeNetwork())
-            saveStateSettings();
-        else
+        if (_currentNetwork && _currentNetwork->running())
+        {
             event->ignore();
+        }
+        else
+        {
+            if (closeNetwork())
+                saveStateSettings();
+            else
+                event->ignore();
+        }
     }
 
     bool MainWindow::newNetwork()
     {
+        setStatus("");
+
         if (_currentNetwork && !closeNetwork())
             return false;
 
         setNetwork(new LabNetwork());
+        setStatus(tr("Created new network."));
         return true;
     }
 
     bool MainWindow::openNetwork()
     {
+        setStatus("");
         LabNetwork *newNetwork = 0;
 
         if (_currentNetwork && !closeNetwork())
@@ -195,6 +225,7 @@ namespace NeuroLab
         if (newNetwork)
         {
             setNetwork(newNetwork);
+            setStatus(tr("Opened %1").arg(newNetwork->fname()));
             return true;
         }
 
@@ -203,10 +234,13 @@ namespace NeuroLab
 
     bool MainWindow::saveNetwork()
     {
+        setStatus("");
+
         try
         {
             if (_currentNetwork && _currentNetwork->save(false))
             {
+                setStatus(tr("Saved %1").arg(_currentNetwork->fname()));
                 setTitle();
                 return true;
             }
@@ -271,22 +305,41 @@ namespace NeuroLab
         }
     }
 
+    void MainWindow::setStatus(const QString & status)
+    {
+        _ui->statusBar->showMessage(status);
+    }
+
+    void MainWindow::setProgressRange(int minimum, int maximum)
+    {
+        _stepProgressBar->setVisible(true);
+        _stepProgressBar->setRange(minimum, maximum);
+    }
+
+    void MainWindow::setProgressValue(int value)
+    {
+        _stepProgressBar->setValue(value);
+    }
+
     void MainWindow::setNetwork(LabNetwork *network)
     {
         if (_currentNetwork)
             _networkLayout->removeWidget(_currentNetwork->view());
         delete _currentNetwork;
+        _currentNetwork = 0;
 
         if (network)
         {
             _currentNetwork = network;
             _networkLayout->addWidget(_currentNetwork->view());
             _currentNetwork->view()->show();
-        }
-        else
-        {
-            _currentNetwork = 0;
-            _ui->centralWidget = 0;
+
+            connect(network, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)));
+            connect(network, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)));
+            connect(network, SIGNAL(propertyObjectChanged(PropertyObject*)), this, SLOT(setPropertyObject(PropertyObject*)));
+            connect(network, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)));
+            connect(network, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)));
+            connect(network, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)));
         }
 
         setTitle();
@@ -335,7 +388,8 @@ void NeuroLab::MainWindow::on_action_New_triggered()
 
 void NeuroLab::MainWindow::on_action_Open_triggered()
 {
-    openNetwork();
+    if (!openNetwork() && !_currentNetwork)
+        newNetwork();
 }
 
 void NeuroLab::MainWindow::on_action_Close_triggered()
@@ -386,10 +440,10 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
 
 void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
 {
-    
+
 }
 
 void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
 {
-    
+
 }

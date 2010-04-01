@@ -22,18 +22,20 @@ namespace NeuroLab
     /// \param parent The QObject that should own this network object.
     LabNetwork::LabNetwork(QWidget *parent)
         : PropertyObject(parent),
-        _tree(0), _neuronet(0), running(false), _changed(false), first_change(true),
-
+        _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), false),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate")),
         _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Learn Rate")),
-        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"))
+        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window")),
+        _current_step(0), _max_steps(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(parent, this);
 
         if (_tree->scene())
             connect(_tree->scene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)));
+
+        connect(&_future_watcher, SIGNAL(finished()), this, SLOT(futureFinished()));
     }
 
     LabNetwork::~LabNetwork()
@@ -48,7 +50,9 @@ namespace NeuroLab
         _changed = changed;
 
         if (old != _changed)
-            MainWindow::instance()->setTitle();
+        {
+            emit titleChanged(QString());
+        }
     }
 
     LabScene *LabNetwork::scene()
@@ -115,10 +119,10 @@ namespace NeuroLab
         QList<QGraphicsItem *> items = scene()->selectedItems();
         PropertyObject *po = items.size() == 1 ? dynamic_cast<PropertyObject *>(items[0]) : 0;
 
-        MainWindow::instance()->setPropertyObject(po ? po : this);
+        emit propertyObjectChanged(po ? po : this);
     }
 
-    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 007");
+    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 008");
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
@@ -196,7 +200,7 @@ namespace NeuroLab
     /// \param saveAs Forces the file dialog to be used to choose a filename.
     bool LabNetwork::save(bool saveAs)
     {
-        bool prevRunning = this->running;
+        bool prevRunning = this->_running;
         stop();
 
         if (!this->_tree || !this->_neuronet)
@@ -296,27 +300,69 @@ namespace NeuroLab
     /// Starts the network running (currently not implemented).
     void LabNetwork::start()
     {
-        running = true;
+        _running = true;
     }
 
     /// Stops the network running (currently not implemented).
     void LabNetwork::stop()
     {
-        running = false;
+        _running = false;
         _tree->update();
     }
 
     /// Advances the network by one timestep.
-    void LabNetwork::step(int)
+    void LabNetwork::step(int numSteps)
     {
-        running = true;
-        _neuronet->step();
-        _neuronet->step();
-        _neuronet->step();
-        running = false;
+        if (_running)
+            return; // can't happen
+
+        if (numSteps <= 0)
+            return;
 
         setChanged();
-        _tree->update();
+
+        _running = true;
+        _current_step = 0;
+        _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
+        _step_time.start();
+
+        emit actionsEnabled(false);
+        emit statusChanged(tr("Stepping %1 times...").arg(numSteps));
+        emit stepProgressRangeChanged(0, _max_steps);
+        emit stepProgressValueChanged(0);
+
+        _future_watcher.setFuture(_neuronet->stepAsync());
+    }
+
+    void LabNetwork::futureFinished()
+    {
+        ++_current_step;
+        _future_watcher.waitForFinished();
+
+        // are we done?
+        if (_current_step == _max_steps)
+        {
+            emit stepProgressValueChanged(_current_step);
+            emit actionsEnabled(true);
+            emit statusChanged(tr("Done."));
+
+            _running = false;
+            setChanged();
+            _tree->update();
+        }
+        else
+        {
+            _future_watcher.setFuture(_neuronet->stepAsync());
+
+            // only change the display 10 times a second
+            if (_step_time.elapsed() >= 100)
+            {
+                _step_time.start();
+
+                emit stepProgressValueChanged(_current_step);
+                _tree->update();
+            }
+        }
     }
 
     /// Resets the network: all nodes and links that are not frozen have their output values set to 0.

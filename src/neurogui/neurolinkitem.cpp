@@ -24,7 +24,8 @@ namespace NeuroLab
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos)
         : NeuroNarrowItem(network, scenePos),
-        _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight, tr("Weight")),
+        _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight,
+                         tr("Weight"), tr("The output weight of the link.")),
         _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
     {
         Q_ASSERT(network != 0);

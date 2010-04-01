@@ -12,6 +12,7 @@ class QtTreePropertyBrowser;
 class QtVariantEditorFactory;
 class QtVariantPropertyManager;
 class QSpinBox;
+class QProgressBar;
 
 namespace Ui
 {
@@ -37,7 +38,8 @@ namespace NeuroLab
 
         QSpinBox *_numStepsSpinBox;
         QAction *_numStepsSpinBoxAction;
-        
+        QProgressBar *_stepProgressBar;
+
         LabNetwork *_currentNetwork; ///< The current network being viewed/edited.
 
         QtTreePropertyBrowser *_propertyEditor; ///< The property editor widget.
@@ -72,6 +74,12 @@ namespace NeuroLab
     public slots:
         /// Sets the title of the window to the given string plus the current network's filename and dirty status.
         void setTitle(const QString & title = QString("NeuroLab"));
+
+        void setStatus(const QString & status);
+        void setProgressRange(int minimum, int maximum);
+        void setProgressValue(int value);
+
+        void setActionsEnabled(bool enabled = true);
 
         /// Sets the object whose properties are displayed in the property widget.
         void setPropertyObject(PropertyObject *);

@@ -111,8 +111,10 @@ namespace NeuroLab
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos)
         : NeuroNodeItemBase(network, scenePos),
         _frozen_property(this, &NeuroNodeItem::frozen, &NeuroNodeItem::setFrozen, tr("Frozen")),
-        _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs, tr("Inputs")),
-        _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun, tr("1 / Slope"))
+        _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs,
+                         tr("Inputs"), tr("How many inputs in general will it take to activate the node.")),
+        _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun,
+                      tr("1 / Slope"), tr("The range of input values between an output of zero and one.  Conceptually, the inverse of the slope.  Don't set this to zero."))
     {
         NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
         setCellIndex(index);
@@ -259,9 +261,12 @@ namespace NeuroLab
 
     NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos)
         : NeuroNodeItemBase(network, scenePos),
-        _phase_property(this, &NeuroOscillatorItem::phase, &NeuroOscillatorItem::setPhase, tr("Phase")),
-        _peak_property(this, &NeuroOscillatorItem::peak, &NeuroOscillatorItem::setPeak, tr("Spike")),
-        _gap_property(this, &NeuroOscillatorItem::gap, &NeuroOscillatorItem::setGap, tr("Gap"))
+        _phase_property(this, &NeuroOscillatorItem::phase, &NeuroOscillatorItem::setPhase,
+                        tr("Phase"), tr("The number of steps before the oscillator will begin firing.")),
+        _peak_property(this, &NeuroOscillatorItem::peak, &NeuroOscillatorItem::setPeak,
+                       tr("Spike"), tr("The number of steps during which the oscillator will fire (have an output of 1).")),
+        _gap_property(this, &NeuroOscillatorItem::gap, &NeuroOscillatorItem::setGap,
+                      tr("Gap"), tr("The number of steps after the oscillator has fired that it will not fire (have an output of 0)."))
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
 

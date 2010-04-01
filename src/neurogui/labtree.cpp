@@ -5,6 +5,8 @@
 #include "mainwindow.h"
 #include "../automata/exception.h"
 
+#include <QScrollBar>
+
 #include <typeinfo>
 
 namespace NeuroLab
@@ -17,10 +19,7 @@ namespace NeuroLab
         : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0)
     {
         _scene = new LabScene(_tree->network());
-        _scene->setSceneRect(0, 0, LabTree::SCENE_WIDTH, LabTree::SCENE_HEIGHT);
-
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
-        _view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
@@ -68,7 +67,13 @@ namespace NeuroLab
 
     QDataStream & operator<< (QDataStream & data, const LabTreeNode & node)
     {
+        Q_ASSERT(node._scene);
+        Q_ASSERT(node._view);
+
         data << node._id;
+        data << node._view->matrix();
+        data << static_cast<qint32>(node._view->horizontalScrollBar() ? node._view->horizontalScrollBar()->sliderPosition() : 0);
+        data << static_cast<qint32>(node._view->verticalScrollBar() ? node._view->verticalScrollBar()->sliderPosition() : 0);
 
         // graphics items in this scene
         QList<QGraphicsItem *> items = node._scene->items();
@@ -100,6 +105,13 @@ namespace NeuroLab
     QDataStream & operator>> (QDataStream & data, LabTreeNode & node)
     {
         data >> node._id;
+
+        QMatrix matrix;
+        qint32 horiz, vert;
+
+        data >> matrix;
+        data >> horiz;
+        data >> vert;
 
         // graphics items in this scene
         int num_items;
@@ -147,17 +159,22 @@ namespace NeuroLab
             data >> *child;
         }
 
-        //
+        // update scene and view
         node._scene->update();
+
+        node._view->setMatrix(matrix);
+        if (node._view->horizontalScrollBar())
+            node._view->horizontalScrollBar()->setSliderPosition(horiz);
+        if (node._view->verticalScrollBar())
+            node._view->verticalScrollBar()->setSliderPosition(vert);
+
+        //
         return data;
     }
 
 
     //////////////////////////////////////////////////////////////////
     // LabTree
-
-    const int LabTree::SCENE_WIDTH = 1000000;
-    const int LabTree::SCENE_HEIGHT = 1000000;
 
     LabTree::LabTree(QWidget *_parent, LabNetwork *_network)
         : _parent(_parent), _network(_network), _root(new LabTreeNode(this, 0)), _current(0)

@@ -95,9 +95,6 @@ namespace NeuroLab
         /// Updates all the items in the network.
         void update(LabTreeNode *n = 0);
 
-        static const int SCENE_WIDTH;
-        static const int SCENE_HEIGHT;
-
         friend QDataStream & operator<< (QDataStream &, const LabTree &);
         friend QDataStream & operator>> (QDataStream &, LabTree &);
     };

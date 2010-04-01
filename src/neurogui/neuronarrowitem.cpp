@@ -15,7 +15,8 @@ namespace NeuroLab
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
         : NeuroItem(network, scenePos),
-        _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue, tr("Output Value")),
+        _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue,
+                        tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
         _cellIndex(-1)
     {
     }
