@@ -8,11 +8,11 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setOrganizationName("Balafon");
     QCoreApplication::setOrganizationDomain("balafon.net");
-    QCoreApplication::setApplicationName("NeuroLab");
+    QCoreApplication::setApplicationName(QObject::tr("NeuroLab"));
     QCoreApplication::setApplicationVersion(NeuroLab::VERSION);
 
     QApplication application(argc, argv);
-    NeuroLab::MainWindow window;
+    NeuroLab::MainWindow window(0, QCoreApplication::applicationName());
 
     window.show();
 

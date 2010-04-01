@@ -34,8 +34,9 @@ namespace NeuroLab
 
     MainWindow *MainWindow::_instance = 0;
 
-    MainWindow::MainWindow(QWidget *parent, const QString & initialFname)
+    MainWindow::MainWindow(QWidget *parent, const QString & title, const QString & initialFname)
         : QMainWindow(parent),
+          _title(title),
           _ui(new Ui::MainWindow()),
           _networkLayout(0),
           _numStepsSpinBox(0),
@@ -288,6 +289,8 @@ namespace NeuroLab
 
     void MainWindow::setTitle(const QString & title)
     {
+        QString t = !(title.isEmpty() || title.isNull()) ? title : _title;
+
         if (_currentNetwork && !_currentNetwork->fname().isEmpty())
         {
             QString fname = _currentNetwork->fname();
@@ -297,11 +300,11 @@ namespace NeuroLab
             if (index != -1)
                 fname = fname.mid(index+1);
 
-            this->setWindowTitle(QString("%1: %2%3").arg(title).arg(fname).arg(_currentNetwork->changed() ? "*" : ""));
+            this->setWindowTitle(QString("%1: %2%3").arg(t).arg(fname).arg(_currentNetwork->changed() ? "*" : ""));
         }
         else
         {
-            this->setWindowTitle(QString("%1%2").arg(title).arg(_currentNetwork && _currentNetwork->changed() ? "*" : ""));
+            this->setWindowTitle(QString("%1%2").arg(t).arg(_currentNetwork && _currentNetwork->changed() ? "*" : ""));
         }
     }
 

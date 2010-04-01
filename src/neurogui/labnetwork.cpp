@@ -327,9 +327,13 @@ namespace NeuroLab
         _step_time.start();
 
         emit actionsEnabled(false);
-        emit statusChanged(tr("Stepping %1 times...").arg(numSteps));
-        emit stepProgressRangeChanged(0, _max_steps);
-        emit stepProgressValueChanged(0);
+
+        if (numSteps > 1)
+        {
+            emit statusChanged(tr("Stepping %1 times...").arg(numSteps));
+            emit stepProgressRangeChanged(0, _max_steps);
+            emit stepProgressValueChanged(0);
+        }
 
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
@@ -342,7 +346,11 @@ namespace NeuroLab
         // are we done?
         if (_current_step == _max_steps)
         {
-            emit stepProgressValueChanged(_current_step);
+            if (_max_steps > 3)
+            {
+                emit stepProgressValueChanged(_current_step);
+            }
+
             emit actionsEnabled(true);
             emit statusChanged(tr("Done."));
 
@@ -359,7 +367,11 @@ namespace NeuroLab
             {
                 _step_time.start();
 
-                emit stepProgressValueChanged(_current_step);
+                if (_max_steps > 3)
+                {
+                    emit stepProgressValueChanged(_current_step);
+                }
+
                 _tree->update();
             }
         }
@@ -368,6 +380,7 @@ namespace NeuroLab
     /// Resets the network: all nodes and links that are not frozen have their output values set to 0.
     void LabNetwork::reset()
     {
+        emit statusChanged("");
         setChanged();
         _tree->reset();
     }
