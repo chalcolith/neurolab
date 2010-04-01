@@ -50,6 +50,11 @@ namespace NeuroLab
         setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
 
         setAcceptHoverEvents(true);
+
+        if (_network)
+        {
+            connect(this, SIGNAL(labelChanged(NeuroItem*,QString)), _network, SLOT(changeItemLabel(NeuroItem*,QString)), Qt::UniqueConnection);
+        }
     }
 
     NeuroItem::~NeuroItem()
@@ -442,6 +447,9 @@ namespace NeuroLab
 
         data >> _label;
         data >> _id;
+
+        if (_id >= NEXT_ID)
+            NEXT_ID = _id + 1;
     }
 
     /// Writes ids of incoming and outgoing pointers.

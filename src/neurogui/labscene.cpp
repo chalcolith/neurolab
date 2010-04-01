@@ -17,7 +17,8 @@ namespace NeuroLab
     LabScene::LabScene(LabNetwork *_network)
         : QGraphicsScene(_network), _network(_network), _itemUnderMouse(0)
     {
-        connect(this, SIGNAL(selectionChanged()), _network, SLOT(selectionChanged()));
+        connect(this, SIGNAL(selectionChanged()), _network, SLOT(selectionChanged()), Qt::UniqueConnection);
+        connect(this, SIGNAL(itemCreated(NeuroItem*)), MainWindow::instance(), SLOT(createdItem(NeuroItem*)), Qt::UniqueConnection);
     }
 
     LabScene::~LabScene()
@@ -39,9 +40,9 @@ namespace NeuroLab
             item->handleMove(scenePos, movePos);
 
             clearSelection();
-            //item->setSelected(true);
 
             _network->setChanged(true);
+            emit itemCreated(item);
         }
     }
 

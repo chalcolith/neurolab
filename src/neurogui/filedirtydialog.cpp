@@ -3,20 +3,25 @@
 
 namespace NeuroLab
 {
-    
-    FileDirtyDialog::FileDirtyDialog(QWidget *parent) :
-            QDialog(parent),
-            ui(new Ui::filedirtydialog),
-            _response(CANCEL)
+
+    FileDirtyDialog::FileDirtyDialog(const QString & label)
+        : QDialog(0),
+        ui(new Ui::filedirtydialog)
     {
         ui->setupUi(this);
+
+        setWindowTitle(tr("Save?"));
+        setResult(CANCEL);
+
+        if (!label.isNull() && !label.isEmpty())
+            ui->label->setText(label);
     }
-    
+
     FileDirtyDialog::~FileDirtyDialog()
     {
         delete ui;
     }
-    
+
     void FileDirtyDialog::changeEvent(QEvent *e)
     {
         QDialog::changeEvent(e);
@@ -28,23 +33,20 @@ namespace NeuroLab
             break;
         }
     }
-    
+
 }
 
 void NeuroLab::FileDirtyDialog::on_saveButton_clicked()
 {
-    _response = SAVE;
-    this->close();
+    done(SAVE);
 }
 
 void NeuroLab::FileDirtyDialog::on_discardButton_clicked()
 {
-    _response = DISCARD;
-    this->close();
+    done(DISCARD);
 }
 
 void NeuroLab::FileDirtyDialog::on_cancelButton_clicked()
 {
-    _response = CANCEL;
-    this->close();
+    done(CANCEL);
 }

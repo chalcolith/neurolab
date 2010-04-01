@@ -17,6 +17,9 @@
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -26,12 +29,19 @@
        </attribute>
       </widget>
       <widget class="QWidget" name="tab_2">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <attribute name="title">
         <string>Data</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QTableWidget" name="dataTableWidget"/>
+         <widget class="QTableWidget" name="dataTableWidget">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -59,6 +69,7 @@
     <addaction name="separator"/>
     <addaction name="action_New_Data_Set"/>
     <addaction name="action_Save_Data_Set"/>
+    <addaction name="action_Close_Data_Set"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -68,18 +79,8 @@
     </property>
     <addaction name="action_Sidebar"/>
    </widget>
-   <widget class="QMenu" name="menu_Simulation">
-    <property name="title">
-     <string>Simulation</string>
-    </property>
-    <addaction name="action_Start"/>
-    <addaction name="action_Stop"/>
-    <addaction name="action_Step"/>
-    <addaction name="action_Reset"/>
-   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
-   <addaction name="menu_Simulation"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -95,6 +96,7 @@
    <addaction name="separator"/>
    <addaction name="action_New_Data_Set"/>
    <addaction name="action_Save_Data_Set"/>
+   <addaction name="action_Close_Data_Set"/>
    <addaction name="separator"/>
    <addaction name="action_Delete"/>
    <addaction name="separator"/>
@@ -227,6 +229,11 @@
   <action name="action_Save_Data_Set">
    <property name="text">
     <string>Save Data Set...</string>
+   </property>
+  </action>
+  <action name="action_Close_Data_Set">
+   <property name="text">
+    <string>Close Data Set</string>
    </property>
   </action>
  </widget>

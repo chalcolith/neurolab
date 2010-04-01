@@ -48,6 +48,9 @@ namespace NeuroLab
         /// \see NeuroItem
         void newItem(const QString & typeName, const QPointF & scenePos);
 
+    signals:
+        void itemCreated(NeuroItem *item);
+
     protected:
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event);

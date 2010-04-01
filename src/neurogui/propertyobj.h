@@ -81,7 +81,7 @@ namespace NeuroLab
                     _property = manager->addProperty(TypeID, _name);
                     _property->setToolTip(_tooltip);
                     _property->setEnabled(_enabled);
-                    QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)));
+                    QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
                 }
             }
 
@@ -104,6 +104,10 @@ namespace NeuroLab
     public:
         PropertyObject(QObject *parent);
         virtual ~PropertyObject();
+
+        QList<QtVariantProperty *> properties() const;
+
+        void setPropertyValue(const QString & propertyName, const QVariant & value);
 
         virtual QString uiName() const { return QString("?Unknown?"); }
 

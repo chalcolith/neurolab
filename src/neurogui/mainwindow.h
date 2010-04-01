@@ -7,12 +7,15 @@
 
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>
+#include <QMap>
+#include <QList>
+
+class QSpinBox;
+class QProgressBar;
 
 class QtTreePropertyBrowser;
 class QtVariantEditorFactory;
 class QtVariantPropertyManager;
-class QSpinBox;
-class QProgressBar;
 
 namespace Ui
 {
@@ -25,6 +28,9 @@ namespace NeuroLab
     extern NEUROGUISHARED_EXPORT const QString VERSION;
 
     class LabNetwork;
+    class LabDataFile;
+    class NeuroItem;
+
     /// The main window class for the NeuroLab application.
     class NEUROGUISHARED_EXPORT MainWindow
         : public QMainWindow
@@ -43,12 +49,15 @@ namespace NeuroLab
         QProgressBar *_stepProgressBar;
 
         LabNetwork *_currentNetwork; ///< The current network being viewed/edited.
+        LabDataFile *_currentDataFile; ///< The current data file.
 
         QtTreePropertyBrowser *_propertyEditor; ///< The property editor widget.
         QtVariantEditorFactory *_propertyFactory; ///< Property factory for the property editor.
         QtVariantPropertyManager *_propertyManager; ///< Manager for the property editor.
 
         PropertyObject *_propertyObject; ///< The object whose properties are currently on display.
+        QMap<QString, QList<QtVariantProperty *> > _rememberedProperties;
+        bool _rememberProperties;
 
     public:
         /// Constructor.
@@ -86,6 +95,9 @@ namespace NeuroLab
         /// Sets the object whose properties are displayed in the property widget.
         void setPropertyObject(PropertyObject *);
 
+        void createdItem(NeuroItem *);
+        void propertyValueChanged(QtProperty *, const QVariant &);
+
     private:
         void loadPlugins();
         void loadPlugins(const QString & dirPath);
@@ -97,6 +109,9 @@ namespace NeuroLab
         bool openNetwork();
         bool saveNetwork();
         bool closeNetwork();
+
+        bool newDataFile();
+        bool closeDataFile();
 
         void setNetwork(LabNetwork *network);
 
@@ -114,6 +129,7 @@ namespace NeuroLab
         void on_action_Delete_triggered();
         void on_action_Save_Data_Set_triggered();
         void on_action_New_Data_Set_triggered();
+        void on_action_Close_Data_Set_triggered();
     };
 
     /// Base class for exceptions used by the NeuroLab software.

@@ -12,6 +12,7 @@
 #include "labnetwork.h"
 #include "neurolinkitem.h"
 #include "neuronodeitem.h"
+#include "labdatafile.h"
 
 #include <QDir>
 #include <QLibrary>
@@ -43,10 +44,12 @@ namespace NeuroLab
           _numStepsSpinBoxAction(0),
           _stepProgressBar(0),
           _currentNetwork(0),
+          _currentDataFile(0),
           _propertyEditor(0),
           _propertyFactory(new QtVariantEditorFactory()),
           _propertyManager(new QtVariantPropertyManager()),
-          _propertyObject(0)
+          _propertyObject(0),
+          _rememberProperties(true)
     {
         if (_instance)
             throw LabException("You cannot create more than one main window.");
@@ -73,6 +76,8 @@ namespace NeuroLab
 
         setupConnections();
 
+        _ui->tabWidget->setTabText(1, "");
+
         // central widget layout
         _networkLayout = new QVBoxLayout();
         _ui->tab_1->setLayout(_networkLayout);
@@ -87,7 +92,7 @@ namespace NeuroLab
 
         // load initial network
         if (initialFname.isNull() || initialFname.isEmpty())
-            setNetwork(new LabNetwork());
+            newNetwork();
         else
             setNetwork(LabNetwork::open(this, initialFname));
     }
@@ -167,7 +172,8 @@ namespace NeuroLab
 
     void MainWindow::setupConnections()
     {
-        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)));
+        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
     }
 
     void MainWindow::setActionsEnabled(bool enabled)
@@ -201,7 +207,7 @@ namespace NeuroLab
             return false;
 
         setNetwork(new LabNetwork());
-        setStatus(tr("Created new network."));
+
         return true;
     }
 
@@ -209,6 +215,9 @@ namespace NeuroLab
     {
         setStatus("");
         LabNetwork *newNetwork = 0;
+
+        if (_currentDataFile && !closeDataFile())
+            return false;
 
         if (_currentNetwork && !closeNetwork())
             return false;
@@ -257,24 +266,23 @@ namespace NeuroLab
     /// \return True if we closed the network successfully; false otherwise.
     bool MainWindow::closeNetwork()
     {
+        if (!closeDataFile())
+            return false;
+
         if (_currentNetwork)
         {
-            bool discard = false;
             if (_currentNetwork->changed())
             {
-                FileDirtyDialog fdd(this);
+                FileDirtyDialog fdd(tr("Your network file contains changes that have not been saved.  Do you wish to save it, discard it, or cancel closing the network?"));
                 fdd.exec();
 
-                switch (fdd.response())
+                switch (fdd.result())
                 {
                 case FileDirtyDialog::SAVE:
                     if (!saveNetwork())
                         return false;
                     break;
                 case FileDirtyDialog::DISCARD:
-                    discard = true;
-                    delete _currentNetwork;
-                    _currentNetwork = 0;
                     break;
                 case FileDirtyDialog::CANCEL:
                     return false;
@@ -282,6 +290,50 @@ namespace NeuroLab
             }
 
             setNetwork(0);
+        }
+
+        return true;
+    }
+
+    bool MainWindow::newDataFile()
+    {
+        if (!_currentNetwork)
+            return false;
+
+        if (!closeDataFile())
+            return false;
+
+        _ui->tabWidget->setTabText(1, tr("Collecting Data"));
+        _currentDataFile = new NeuroLab::LabDataFile(_currentNetwork, _ui->dataTableWidget, this);
+        return true;
+    }
+
+    bool MainWindow::closeDataFile()
+    {
+        if (_currentDataFile && _currentDataFile->changed())
+        {
+            FileDirtyDialog fdd(tr("You have unsaved data.  Do you wish to save it, discard it, or cancel closing the network?"));
+            fdd.exec();
+
+            switch (fdd.result())
+            {
+            case FileDirtyDialog::SAVE:
+                _currentDataFile->saveAs();
+                break;
+            case FileDirtyDialog::DISCARD:
+                break;
+            case FileDirtyDialog::CANCEL:
+                return false;
+            }
+        }
+
+        if (_currentDataFile)
+        {
+            delete _currentDataFile;
+            _currentDataFile = 0;
+
+            _ui->dataTableWidget->clearContents();
+            _ui->tabWidget->setTabText(1, "");
         }
 
         return true;
@@ -326,10 +378,16 @@ namespace NeuroLab
 
     void MainWindow::setNetwork(LabNetwork *network)
     {
+        if (network == _currentNetwork)
+            return;
+
         if (_currentNetwork)
+        {
             _networkLayout->removeWidget(_currentNetwork->view());
-        delete _currentNetwork;
-        _currentNetwork = 0;
+
+            delete _currentNetwork;
+            _currentNetwork = 0;
+        }
 
         if (network)
         {
@@ -337,12 +395,12 @@ namespace NeuroLab
             _networkLayout->addWidget(_currentNetwork->view());
             _currentNetwork->view()->show();
 
-            connect(network, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)));
-            connect(network, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)));
-            connect(network, SIGNAL(propertyObjectChanged(PropertyObject*)), this, SLOT(setPropertyObject(PropertyObject*)));
-            connect(network, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)));
-            connect(network, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)));
-            connect(network, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)));
+            connect(_currentNetwork, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(propertyObjectChanged(PropertyObject*)), this, SLOT(setPropertyObject(PropertyObject*)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)), Qt::UniqueConnection);
         }
 
         setTitle();
@@ -376,6 +434,38 @@ namespace NeuroLab
 
             _propertyEditor->addProperty(topItem);
             _propertyEditor->setRootIsDecorated(false);
+        }
+    }
+
+    void MainWindow::createdItem(NeuroItem *item)
+    {
+        if (item)
+        {
+            _rememberProperties = false;
+            setPropertyObject(item);
+            _rememberProperties = true;
+
+            QString typeName(typeid(*item).name());
+
+            if (_rememberedProperties.contains(typeName))
+            {
+                for (QListIterator<QtVariantProperty *> i(_rememberedProperties[typeName]); i.hasNext(); i.next())
+                {
+                    QtVariantProperty *p = i.peekNext();
+                    const QString name = p->propertyName();
+                    const QVariant value = p->value();
+                    item->setPropertyValue(name, value);
+                }
+            }
+        }
+    }
+
+    void MainWindow::propertyValueChanged(QtProperty *, const QVariant &)
+    {
+        if (_rememberProperties && _propertyObject)
+        {
+            QString typeName(typeid(*_propertyObject).name());
+            _rememberedProperties[typeName] = _propertyObject->properties();
         }
     }
 
@@ -431,6 +521,9 @@ void NeuroLab::MainWindow::on_action_Step_triggered()
 
 void NeuroLab::MainWindow::on_action_Reset_triggered()
 {
+    if (_currentDataFile && !closeDataFile())
+        return;
+
     if (_currentNetwork)
         _currentNetwork->reset();
 }
@@ -443,10 +536,16 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
 
 void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
 {
-
+    newDataFile();
 }
 
 void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
 {
+    if (_currentDataFile)
+        _currentDataFile->saveAs();
+}
 
+void NeuroLab::MainWindow::on_action_Close_Data_Set_triggered()
+{
+    closeDataFile();
 }

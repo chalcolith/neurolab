@@ -9,7 +9,9 @@
 #include <QVariant>
 #include <QFutureWatcher>
 #include <QTime>
+#include <QList>
 
+class QGraphicsItem;
 class QtVariantProperty;
 
 namespace NeuroLab
@@ -59,6 +61,8 @@ namespace NeuroLab
         /// \return The currently active graphics scene.
         LabScene *scene();
 
+        QList<QGraphicsItem *> items() const;
+
         /// \return The currently active graphics view.
         LabView *view();
 
@@ -98,14 +102,19 @@ namespace NeuroLab
         void step(int numSteps);
 
         void selectionChanged();
+        void changeItemLabel(NeuroItem *, const QString & label);
 
         void futureFinished();
 
     signals:
         void titleChanged(const QString & title);
         void propertyObjectChanged(PropertyObject *po);
+        void itemLabelChanged(NeuroItem *, const QString & label);
+        void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
+        void valuesChanged();
+        void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);
         void stepProgressValueChanged(int value);
     };

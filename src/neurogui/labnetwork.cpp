@@ -33,9 +33,9 @@ namespace NeuroLab
         _tree = new LabTree(parent, this);
 
         if (_tree->scene())
-            connect(_tree->scene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)));
+            connect(_tree->scene(), SIGNAL(changed(QList<QRectF>)), this, SLOT(changed(QList<QRectF>)), Qt::UniqueConnection);
 
-        connect(&_future_watcher, SIGNAL(finished()), this, SLOT(futureFinished()));
+        connect(&_future_watcher, SIGNAL(finished()), this, SLOT(futureFinished()), Qt::UniqueConnection);
     }
 
     LabNetwork::~LabNetwork()
@@ -58,6 +58,11 @@ namespace NeuroLab
     LabScene *LabNetwork::scene()
     {
         return _tree ? _tree->scene() : 0;
+    }
+
+    QList<QGraphicsItem *> LabNetwork::items() const
+    {
+        return _tree ? _tree->items() : QList<QGraphicsItem *>();
     }
 
     LabView *LabNetwork::view()
@@ -122,7 +127,13 @@ namespace NeuroLab
         emit propertyObjectChanged(po ? po : this);
     }
 
-    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 008");
+    void LabNetwork::changeItemLabel(NeuroItem *item, const QString & label)
+    {
+        emit itemLabelChanged(item, label);
+    }
+
+    /// Should be changed whenever anything in the the network file formate changes.
+    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 009");
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
@@ -155,27 +166,33 @@ namespace NeuroLab
 
         {
             QFile file(network_fname);
-            file.open(QIODevice::ReadOnly);
-
-            try
+            if (file.open(QIODevice::ReadOnly))
             {
-                QDataStream data(&file);
-                data >> *ln->_neuronet;
+                try
+                {
+                    QDataStream data(&file);
+                    data >> *ln->_neuronet;
 
-                ln->updateProperties();
+                    ln->updateProperties();
+                }
+                catch (...)
+                {
+                    delete ln;
+                    throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                }
             }
-            catch (...)
+            else
             {
                 delete ln;
-                throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                throw LabException(tr("Unable to open network file."));
             }
         }
 
         // read scene data
         {
             QFile file(nln_fname);
-            file.open(QIODevice::ReadOnly);
 
+            if (file.open(QIODevice::ReadOnly))
             {
                 QDataStream data(&file);
                 data.setVersion(QDataStream::Qt_4_5);
@@ -189,6 +206,11 @@ namespace NeuroLab
                 }
 
                 data >> *ln->_tree;
+            }
+            else
+            {
+                delete ln;
+                throw LabException(tr("Unable to open network scene file."));
             }
         }
 
@@ -227,25 +249,35 @@ namespace NeuroLab
         // write network
         {
             QFile file(network_fname);
-            file.open(QIODevice::WriteOnly);
+            if (file.open(QIODevice::WriteOnly))
             {
                 QDataStream data(&file);
                 data << *_neuronet;
+            }
+            else
+            {
+                throw LabException(tr("Unable to write network file."));
             }
         }
 
         // write scene
         {
             QFile file(this->_fname);
-            file.open(QIODevice::WriteOnly);
 
-            // items
-            if (_tree)
+            if (file.open(QIODevice::WriteOnly))
             {
-                QDataStream data(&file);
-                data.setVersion(QDataStream::Qt_4_5);
-                data << LAB_SCENE_COOKIE;
-                data << *_tree;
+                // items
+                if (_tree)
+                {
+                    QDataStream data(&file);
+                    data.setVersion(QDataStream::Qt_4_5);
+                    data << LAB_SCENE_COOKIE;
+                    data << *_tree;
+                }
+            }
+            else
+            {
+                throw LabException(tr("Unable to write network scene file."));
             }
         }
 
@@ -285,14 +317,23 @@ namespace NeuroLab
         {
             for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
             {
-                QGraphicsItem *item = i.peekNext();
-                setChanged();
+                QGraphicsItem *gi = i.peekNext();
+                if (!gi)
+                    continue;
 
-                if (sc->itemUnderMouse() == dynamic_cast<NeuroItem *>(item))
-                    sc->setItemUnderMouse(0);
+                NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
+                if (item)
+                {
+                    emit itemDeleted(item);
 
-                sc->removeItem(item);
-                delete item;
+                    setChanged();
+
+                    if (sc->itemUnderMouse() == item)
+                        sc->setItemUnderMouse(0);
+                }
+
+                sc->removeItem(gi);
+                delete gi;
             }
         }
     }
@@ -327,6 +368,7 @@ namespace NeuroLab
         _step_time.start();
 
         emit actionsEnabled(false);
+        emit valuesChanged();
 
         if (numSteps > 1)
         {
@@ -343,6 +385,9 @@ namespace NeuroLab
         ++_current_step;
         _future_watcher.waitForFinished();
 
+        if ((_current_step % 3) == 0)
+            emit stepIncremented();
+
         // are we done?
         if (_current_step == _max_steps)
         {
@@ -352,7 +397,7 @@ namespace NeuroLab
             }
 
             emit actionsEnabled(true);
-            emit statusChanged(tr("Done."));
+            emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
 
             _running = false;
             setChanged();

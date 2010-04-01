@@ -79,7 +79,7 @@ namespace NeuroLab
         QString label() const { return _label; }
 
         /// Set the item's label.
-        void setLabel(const QString & s) { _label = s; updateShape(); update(); }
+        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
 
         /// \return The node's ID, for use when saving and loading.
         int id() { return _id; }
@@ -92,6 +92,9 @@ namespace NeuroLab
 
         virtual void setChanged(bool changed = true);
         virtual void updateProperties();
+
+        /// Used to write data values to the data file.
+        virtual QString dataValue() const { return QString(); }
 
         /// Add an incoming link.  Derived classes may override this to provide custom behavior.
         /// \see NeuroNarrowItem::addIncoming()
@@ -154,6 +157,9 @@ namespace NeuroLab
 
         static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
         static void removeItemCreator(const QString & typeName);
+
+    signals:
+        void labelChanged(NeuroItem *item, const QString & newLabel);
 
     protected:
         /// Should be overridden to add to the drawing painter path.

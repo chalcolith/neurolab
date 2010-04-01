@@ -17,25 +17,21 @@ namespace NeuroLab
     {
         Q_OBJECT
     public:
-        FileDirtyDialog(QWidget *parent = 0);
+        FileDirtyDialog(const QString & label = QString());
         ~FileDirtyDialog();
 
         enum Response
         {
-            SAVE,
-            DISCARD,
-            CANCEL
+            CANCEL = QDialog::Rejected,
+            SAVE = QDialog::Accepted,
+            DISCARD
         };
-
-        Response response() const { return _response; }
 
     protected:
         void changeEvent(QEvent *e);
 
     private:
         Ui::filedirtydialog *ui;
-
-        Response _response;
 
     private slots:
         void on_cancelButton_clicked();

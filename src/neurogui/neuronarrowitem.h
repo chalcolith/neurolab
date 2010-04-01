@@ -22,6 +22,8 @@ namespace NeuroLab
         NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroNarrowItem();
 
+        virtual QString dataValue() const { return QString::number(outputValue()); }
+
         NeuroLib::NeuroCell::NeuroValue outputValue() const;
         void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
 

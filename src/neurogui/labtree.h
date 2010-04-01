@@ -7,6 +7,7 @@
 
 class QDataStream;
 class QWidget;
+class QGraphicsItem;
 
 namespace NeuroLab
 {
@@ -88,6 +89,9 @@ namespace NeuroLab
 
         /// \return The current node's scene's view.
         LabView *view() { return _current ? _current->view() : 0; }
+
+        /// \return All the items in the tree's scenes.
+        QList<QGraphicsItem *> items(LabTreeNode *n = 0) const;
 
         /// Resets all the items in the network.
         void reset(LabTreeNode *n = 0);

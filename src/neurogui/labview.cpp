@@ -7,7 +7,8 @@ namespace NeuroLab
     LabView::LabView(LabScene *scene, QWidget *parent)
         : QGraphicsView(scene, parent)
     {
-        setAlignment(Qt::AlignCenter);
+        setSceneRect(0, 0, 10000, 10000);
+        setAlignment(Qt::AlignLeft | Qt::AlignTop);
         setDragMode(QGraphicsView::RubberBandDrag);
         setResizeAnchor(QGraphicsView::AnchorViewCenter);
     }

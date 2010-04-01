@@ -72,8 +72,6 @@ namespace NeuroLab
 
         data << node._id;
         data << node._view->matrix();
-        data << static_cast<qint32>(node._view->horizontalScrollBar() ? node._view->horizontalScrollBar()->sliderPosition() : 0);
-        data << static_cast<qint32>(node._view->verticalScrollBar() ? node._view->verticalScrollBar()->sliderPosition() : 0);
 
         // graphics items in this scene
         QList<QGraphicsItem *> items = node._scene->items();
@@ -107,11 +105,8 @@ namespace NeuroLab
         data >> node._id;
 
         QMatrix matrix;
-        qint32 horiz, vert;
 
         data >> matrix;
-        data >> horiz;
-        data >> vert;
 
         // graphics items in this scene
         int num_items;
@@ -161,12 +156,7 @@ namespace NeuroLab
 
         // update scene and view
         node._scene->update();
-
         node._view->setMatrix(matrix);
-        if (node._view->horizontalScrollBar())
-            node._view->horizontalScrollBar()->setSliderPosition(horiz);
-        if (node._view->verticalScrollBar())
-            node._view->verticalScrollBar()->setSliderPosition(vert);
 
         //
         return data;
@@ -190,10 +180,28 @@ namespace NeuroLab
         delete _root;
     }
 
+    QList<QGraphicsItem *> LabTree::items(LabTreeNode *n) const
+    {
+        if (!n)
+            n = _root;
+
+        Q_ASSERT(n != 0);
+        Q_ASSERT(n->scene() != 0);
+
+        QList<QGraphicsItem *> results = n->scene()->items();
+
+        for (QListIterator<LabTreeNode *> i(n->_children); i.hasNext(); i.next())
+            results.append(items(i.peekNext()));
+
+        return results;
+    }
+
     void LabTree::reset(LabTreeNode *n)
     {
         if (!n)
             n = _root;
+
+        Q_ASSERT(n != 0);
 
         n->reset();
 
@@ -206,6 +214,8 @@ namespace NeuroLab
         if (!n)
             n = _root;
 
+        Q_ASSERT(n != 0);
+
         for (QListIterator<LabTreeNode *> i(n->_children); i.hasNext(); i.next())
             update(i.peekNext());
 
@@ -215,6 +225,8 @@ namespace NeuroLab
     QDataStream & operator<< (QDataStream & data, const LabTree & ctree)
     {
         LabTree & tree = const_cast<LabTree &>(ctree);
+        Q_ASSERT(tree.root() != 0);
+
         data << tree.current()->_id;
         data << *tree.root();
         return data;
@@ -229,6 +241,9 @@ namespace NeuroLab
         tree._root = tree._current = node;
 
         data >> *node;
+
+        /// \todo Find current node in the tree.
+
         return data;
     }
 
