@@ -71,8 +71,10 @@ goto :EOF
 echo incrementing version...
 pushd .
 for /f usebackq %%v in (`utils\incversion\release\incversion.exe version.txt`) do set HG_TAG=%%v
+if ERRORLEVEL 1 goto error
+hg commit -m "AUTOMATED DEPLOY: incremented version to %HG_TAG%"
+if ERRORLEVEL 1 goto error
 hg tag %HG_TAG%
-hg commit -m "tagged version %HG_TAG%"
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
