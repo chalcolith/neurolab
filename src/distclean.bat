@@ -8,22 +8,22 @@ echo > dummy.user
 call :clean *.user
 
 if not exist debug mkdir debug
-call :clean debug 
+call :clean debug
 
 echo > dummy.o
-call :clean *.o 
+call :clean *.o
 
 echo > moc_dummy
-call :clean moc_* 
+call :clean moc_*
 
 echo > uidummy.h
-call :clean ui*.h 
+call :clean ui*.h
 
 echo > object_scriptdummy
-call :clean object_script* 
+call :clean object_script*
 
 goto :EOF
 
 :clean
-del /s /q %* > %TEMP%\distclean.log
+del /s /q %* > "%TEMP%\distclean.log"
 goto :EOF
