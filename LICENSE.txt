@@ -1,4 +1,3 @@
-/*
 Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
@@ -32,38 +31,3 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include <QtGui/QApplication>
-#include <QMessageBox>
-
-#include "../automata/exception.h"
-#include "../neurogui/mainwindow.h"
-
-int main(int argc, char *argv[])
-{
-    QCoreApplication::setOrganizationName("Balafon");
-    QCoreApplication::setOrganizationDomain("balafon.net");
-    QCoreApplication::setApplicationName(QObject::tr("NeuroLab"));
-    QCoreApplication::setApplicationVersion(NeuroLab::VERSION);
-
-    QApplication application(argc, argv);
-    NeuroLab::MainWindow window(0, QCoreApplication::applicationName());
-
-    window.show();
-
-    try
-    {
-        return application.exec();
-    }
-    catch (Automata::Exception & ne)
-    {
-        QMessageBox::critical(0, "Critical Error", ne.message());
-    }
-    catch (std::exception & se)
-    {
-        QMessageBox::critical(0, "Critical Error", se.what());
-    }
-
-    return -1;
-}
