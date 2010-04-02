@@ -5,7 +5,7 @@ TEMPLATE = lib
 
 TARGET = automata
 
-include(../neurolab_version.txt)
+include(../version.txt)
 DEFINES += AUTOMATA_LIBRARY
 
 SOURCES += exception.cpp

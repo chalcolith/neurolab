@@ -87,7 +87,7 @@ namespace NeuroLib
         for (int i = 0; i < neighbor_indices.size(); ++i)
             input_sum += neighbors[i]->_output_value;
 
-        NeuroValue next_value;
+        NeuroValue next_value = 0;
 
         switch (prev._kind)
         {

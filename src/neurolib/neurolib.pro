@@ -2,7 +2,7 @@ QT -= gui
 QT += testlib
 TEMPLATE = lib
 TARGET = neurolib
-include(../neurolab_version.txt)
+include(../version.txt)
 
 DEFINES += NEUROLIB_LIBRARY
 

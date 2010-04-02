@@ -66,7 +66,7 @@ namespace NeuroLab
 {
 
     const QString
-#include "../neurolab_version.txt"
+#include "../version.txt"
     ;
 
     MainWindow *MainWindow::_instance = 0;

@@ -3,7 +3,7 @@ QT += testlib
 TEMPLATE = lib
 TARGET = neurogui
 DEFINES += NEUROGUI_LIBRARY
-include(../neurolab_version.txt)
+include(../version.txt)
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
 SOURCES += mainwindow.cpp \
     labnetwork.cpp \

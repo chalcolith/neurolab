@@ -3,7 +3,7 @@ QT += svg
 TEMPLATE = app
 TARGET = neurolab
 
-include(../neurolab_version.txt)
+include(../version.txt)
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
 
 SOURCES += main.cpp
