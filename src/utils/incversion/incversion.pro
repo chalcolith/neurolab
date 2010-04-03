@@ -13,5 +13,3 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp
-
-QMAKE_LFLAGS += -static

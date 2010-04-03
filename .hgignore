@@ -6,5 +6,6 @@ glob:*.ncb
 glob:*.suo
 glob:debug
 glob:release
+glob:distrib
 glob:src/neurolab/GeneratedFiles
 glob:*_resource.rc

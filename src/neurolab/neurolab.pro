@@ -8,8 +8,8 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 SOURCES += main.cpp
 
-debug:BUILDDIR = debug
-else:BUILDDIR = release
+release:BUILDDIR=release
+else:BUILDDIR=debug
 
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR

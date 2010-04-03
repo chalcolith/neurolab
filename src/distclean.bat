@@ -1,5 +1,4 @@
-%echo off
-echo cleaning...
+@echo off
 
 echo > Makefile_dummy
 call :clean Makefile*
@@ -9,6 +8,9 @@ call :clean *.user
 
 if not exist debug mkdir debug
 call :clean debug
+
+if not exist release mkdir release
+call :clean release
 
 echo > dummy.o
 call :clean *.o

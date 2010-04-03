@@ -3,8 +3,11 @@ QT += testlib
 TEMPLATE = lib
 TARGET = neurogui
 DEFINES += NEUROGUI_LIBRARY
+
 include(../version.txt)
+
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
+
 SOURCES += mainwindow.cpp \
     labnetwork.cpp \
     labscene.cpp \
@@ -35,12 +38,15 @@ HEADERS += neurogui_global.h \
 FORMS += mainwindow.ui \
     labeldialog.ui \
     filedirtydialog.ui
-debug:BUILDDIR = debug
-else:BUILDDIR = release
+
+release:BUILDDIR=release
+else:BUILDDIR=debug
+
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
+
 win32:LIBS = -L$$DESTDIR \
     -lneurolib0 \
     -lautomata0 \

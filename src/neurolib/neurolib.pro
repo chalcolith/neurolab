@@ -12,8 +12,8 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+release:BUILDDIR=release
+else:BUILDDIR=debug
 
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR

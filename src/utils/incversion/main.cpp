@@ -100,6 +100,9 @@ int main(int argc, char *argv[])
         }
         file.close();
 
+        if (!bump)
+            continue;
+
         // write
         if (file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
