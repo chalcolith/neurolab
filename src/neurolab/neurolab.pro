@@ -18,9 +18,9 @@ MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
 win32:LIBS += -L../$$BUILDDIR \
-    -lneurogui0 \
-    -lneurolib0 \
-    -lautomata0 \
+    -lneurogui1 \
+    -lneurolib1 \
+    -lautomata1 \
     -lqtpropertybrowser2
 else:LIBS += -L../$$BUILDDIR \
     -lneurogui \

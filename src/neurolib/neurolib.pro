@@ -23,5 +23,5 @@ OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-win32:LIBS = -L$$DESTDIR -lautomata0
+win32:LIBS = -L$$DESTDIR -lautomata1
 else:LIBS = -L$$DESTDIR -lautomata
