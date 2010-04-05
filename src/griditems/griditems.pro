@@ -14,8 +14,8 @@ SOURCES += neurogriditem.cpp
 HEADERS += neurogriditem.h\
         griditems_global.h
 
-release:BUILDDIR=release
-else:BUILDDIR=debug
+debug:BUILDDIR=debug
+else:BUILDDIR=release
 
 DESTDIR = ../$$BUILDDIR/plugins
 OBJECTS_DIR = $$BUILDDIR

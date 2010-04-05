@@ -22,8 +22,8 @@ HEADERS += $$SRC/qtpropertybrowser.h \
             $$SRC/qtpropertybrowserutils_p.h
 RESOURCES += $$SRC/qtpropertybrowser.qrc
 
-release:BUILDDIR=release
-else:BUILDDIR=debug
+debug:BUILDDIR=debug
+else:BUILDDIR=release
 
 DESTDIR = ../../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR

@@ -1,7 +1,10 @@
 QT -= gui
 QT += testlib
+
 TEMPLATE = lib
+
 TARGET = neurolib
+
 include(../version.txt)
 
 DEFINES += NEUROLIB_LIBRARY
@@ -12,8 +15,8 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-release:BUILDDIR=release
-else:BUILDDIR=debug
+debug:BUILDDIR=debug
+else:BUILDDIR=release
 
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR

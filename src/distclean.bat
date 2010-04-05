@@ -1,31 +1,25 @@
 @echo off
 
-echo > Makefile_dummy
-call :clean Makefile*
+if not exist Makefile echo > Makefile
+del /s /q Makefile* > "%TEMP%\distclean.log"
 
-echo > dummy.user
-call :clean *.user
+if not exist neurolab_all.user echo > neurolab_all.user
+del /s /q *.user > "%TEMP%\distclean.log"
 
 if not exist debug mkdir debug
-call :clean debug
+del /s /q debug > "%TEMP%\distclean.log"
 
 if not exist release mkdir release
-call :clean release
+del /s /q release > "%TEMP%\distclean.log"
 
 echo > dummy.o
-call :clean *.o
+del /s /q *.o > "%TEMP%\distclean.log"
 
 echo > moc_dummy
-call :clean moc_*
+del /s /q moc_* > "%TEMP%\distclean.log"
 
 echo > uidummy.h
-call :clean ui*.h
+del /s /q ui*.h > "%TEMP%\distclean.log"
 
 echo > object_scriptdummy
-call :clean object_script*
-
-goto :EOF
-
-:clean
-del /s /q %* > "%TEMP%\distclean.log"
-goto :EOF
+del /s /q object_script* > "%TEMP%\distclean.log"

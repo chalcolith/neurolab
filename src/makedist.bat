@@ -14,10 +14,13 @@ REM ---------------------
 REM Build settings
 
 :build
-set QTDIR=C:\Qt\2010.02.1
+set QT_DIST_DIR=C:\Qt\2010.02.1
+set QTDIR=%QT_DIST_DIR%\qt
+set QMAKESPEC=win32-g++
 
-g++ --version > "%TEMP%\deploy.log"
-if ERRORLEVEL 1 goto setpath
+echo determining qt path
+qmake --version
+if ERRORLEVEL 1 call :setpath
 
 REM ---------------------
 REM Clean build
@@ -80,16 +83,16 @@ if ERRORLEVEL 1 goto :EOF
 REM ---------------------
 REM copy files
 
-call :copyfile "%QTDIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
+call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
 call :copyfile ..\LICENSE.txt %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
-call :copyfile "%QTDIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
-call :copyfile "%QTDIR%\mingw\bin\mingwm10.dll" %RELEASE_DIR%
-call :copyfile "%QTDIR%\qt\bin\qtcore4.dll" %RELEASE_DIR%
-call :copyfile "%QTDIR%\qt\bin\qtgui4.dll" %RELEASE_DIR%
-call :copyfile "%QTDIR%\qt\bin\qtsvg4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\mingw\bin\mingwm10.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\qt\bin\qtcore4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\qt\bin\qtgui4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\qt\bin\qtsvg4.dll" %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
 call :copyfile release\qtpropertybrowser?.dll %RELEASE_DIR%
@@ -113,8 +116,8 @@ REM functions
 
 :setpath
 pushd .
-echo adding %QTDIR%\qt\bin and %QTDIR%\mingw\bin to path
-set PATH=%QTDIR%\qt\bin;%QTDIR%\mingw\bin;%PATH%
+echo adding %QT_DIST_DIR%\qt\bin and %QT_DIST_DIR%\mingw\bin to path
+set PATH=%QT_DIST_DIR%\qt\bin;%QT_DIST_DIR%\mingw\bin;%PATH%
 set ERRORLEVEL=0
 popd
 goto :EOF
@@ -146,11 +149,11 @@ goto :EOF
 
 :bumpdlls
 pushd .
-copy /y "%QTDIR%\mingw\bin\libgcc_s_dw2-1.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" utils\incversion\release > "%TEMP%\deploy.log"
 if ERRORLEVEL 1 goto error
-copy /y "%QTDIR%\mingw\bin\mingwm10.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%QT_DIST_DIR%\mingw\bin\mingwm10.dll" utils\incversion\release > "%TEMP%\deploy.log"
 if ERRORLEVEL 1 goto error
-copy /y "%QTDIR%\qt\bin\qtcore4.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%QT_DIST_DIR%\qt\bin\qtcore4.dll" utils\incversion\release > "%TEMP%\deploy.log"
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
@@ -175,7 +178,7 @@ goto :EOF
 :qmake
 echo running qmake in %1...
 pushd "%1"
-"%QTDIR%\qt\bin\qmake.exe" "%2" -spec win32-g++ -r CONFIG-=debug CONFIG+=release
+"%QT_DIST_DIR%\qt\bin\qmake.exe" "%2" -spec %QMAKESPEC% -r CONFIG-=debug CONFIG+=release
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
@@ -183,7 +186,7 @@ goto :EOF
 :make
 echo running make in %1...
 pushd "%1"
-"%QTDIR%\mingw\bin\mingw32-make.exe" --no-print-directory
+"%QT_DIST_DIR%\mingw\bin\mingw32-make.exe" --no-print-directory
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF

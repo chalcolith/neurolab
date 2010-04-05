@@ -17,8 +17,8 @@ HEADERS += automaton.h \
     asyncstate.h \
     pool.h
 
-release:BUILDDIR=release
-else:BUILDDIR=debug
+debug:BUILDDIR=debug
+else:BUILDDIR=release
 
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR

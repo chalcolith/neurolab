@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -79,8 +79,16 @@
     </property>
     <addaction name="action_Sidebar"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_Manual"/>
+    <addaction name="action_About_NeuroLab"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -129,8 +137,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>79</width>
-          <height>250</height>
+          <width>69</width>
+          <height>269</height>
          </rect>
         </property>
         <attribute name="label">
@@ -234,6 +242,16 @@
   <action name="action_Close_Data_Set">
    <property name="text">
     <string>Close Data Set</string>
+   </property>
+  </action>
+  <action name="action_Manual">
+   <property name="text">
+    <string>Manual...</string>
+   </property>
+  </action>
+  <action name="action_About_NeuroLab">
+   <property name="text">
+    <string>About NeuroLab...</string>
    </property>
   </action>
  </widget>

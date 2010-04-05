@@ -1,7 +1,9 @@
 QT += gui
 QT += testlib
+
 TEMPLATE = lib
 TARGET = neurogui
+
 DEFINES += NEUROGUI_LIBRARY
 
 include(../version.txt)
@@ -20,7 +22,9 @@ SOURCES += mainwindow.cpp \
     propertyobj.cpp \
     filedirtydialog.cpp \
     neuronarrowitem.cpp \
-    labdatafile.cpp
+    labdatafile.cpp \
+    aboutdialog.cpp
+
 HEADERS += neurogui_global.h \
     mainwindow.h \
     labnetwork.h \
@@ -34,13 +38,16 @@ HEADERS += neurogui_global.h \
     propertyobj.h \
     filedirtydialog.h \
     neuronarrowitem.h \
-    labdatafile.h
+    labdatafile.h \
+    aboutdialog.h
+
 FORMS += mainwindow.ui \
     labeldialog.ui \
-    filedirtydialog.ui
+    filedirtydialog.ui \
+    aboutdialog.ui
 
-release:BUILDDIR=release
-else:BUILDDIR=debug
+debug:BUILDDIR=debug
+else:BUILDDIR=release
 
 DESTDIR = ../$$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
