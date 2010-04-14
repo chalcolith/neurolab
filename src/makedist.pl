@@ -44,7 +44,9 @@ print "build neurolab...\n";
 &build('.', 'neurolab_all.pro');
 
 # create release directory
-my $release_dir = "distrib/$version/neurolab-$version-$hg_id";
+my $release = "neurolab-$version-$hg_id";
+my $release_dir = "distrib/$version/$release";
+
 print "create release directory $release_dir...\n";
 &run("rm -rf $release_dir");
 &run("mkdir -p $release_dir/licenses/qt");
@@ -62,12 +64,18 @@ print "copying files...\n";
 &run("cp -a release/* $release_dir");
 
 &run("strip $release_dir/neurolab $release_dir/lib*");
+&run("mv $release_dir/neurolab $release_dir/neurolab-bin");
+&run("cp -a utils/neurolab_run $release_dir/neurolab");
 
-# make zip file
-print "creating zip file...\n";
-&run("mkdir -p distrib/zips");
-my $zipfile = "distrib/zips/neurolab-$version-$hg_id-linux.zip";
-&run("zip -ry $zipfile $release_dir");
+# make tgz file
+print "creating tgz file...\n";
+&run("mkdir -p distrib/tgz");
+
+my $zipfile = "neurolab-$version-$hg_id-linux.tgz";
+my $pwd = `pwd`;
+chdir "distrib/$version";
+&run("tar czf ../tgz/$zipfile $release");
+chdir $pwd;
 
 print "created $zipfile\n";
 

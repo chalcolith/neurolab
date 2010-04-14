@@ -1,0 +1,13 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+if ($0 =~ /^(.+)\/[^\/]+/)
+{
+    my $dir = $1;
+    my $ldpath = $dir;
+    $ldpath .= ':' . $ENV{'LD_LIBRARY_PATH'} if defined $ENV{'LD_LIBRARY_PATH'};
+    $ENV{'LD_LIBRARY_PATH'} = $ldpath;
+
+    exec("\"$dir/neurolab-bin\"");
+}
