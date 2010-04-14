@@ -22,7 +22,7 @@ my $version;
 if ($#ARGV > 0 && $ARGV[0] eq '-bump')
 {
     $version = `utils/incversion/incversion version.txt`;
-    &run("hg commit -m \"makedist: incremented version to $version\"");
+    #&run("hg commit -m \"makedist: incremented version to $version\"");
     &run("hg tag \"$version\"");
 }
 else
@@ -71,7 +71,7 @@ print "copying files...\n";
 print "creating tgz file...\n";
 &run("mkdir -p distrib/tgz");
 
-my $zipfile = "neurolab-$version-$hg_id-linux.tgz";
+my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
 my $pwd = `pwd`;
 chdir "distrib/$version";
 &run("tar czf ../tgz/$zipfile $release");
