@@ -22,7 +22,7 @@ my $version;
 if ($#ARGV > 0 && $ARGV[0] eq '-bump')
 {
     $version = `utils/incversion/incversion version.txt`;
-    #&run("hg commit -m \"makedist: incremented version to $version\"");
+    &run("hg commit -m \"makedist: incremented version.txt to $version\"");
     &run("hg tag \"$version\"");
 }
 else
