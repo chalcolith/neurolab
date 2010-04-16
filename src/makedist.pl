@@ -72,6 +72,9 @@ print "creating tgz file...\n";
 &run("mkdir -p distrib/tgz");
 
 my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
+
+$zipfile =~ s/linux/linux64/ if `uname -a` =~ 'x86_64';
+
 my $pwd = `pwd`;
 chdir "distrib/$version";
 &run("tar czf ../tgz/$zipfile $release");
