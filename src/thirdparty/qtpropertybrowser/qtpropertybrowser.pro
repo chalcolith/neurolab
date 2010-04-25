@@ -1,5 +1,10 @@
-TEMPLATE = lib
+QT += gui
+
 TARGET = qtpropertybrowser
+TEMPLATE = lib
+
+macx:CONFIG += lib_bundle
+
 VERSION = 2.5.1
 
 SRC = qtpropertybrowser-2.5_1-opensource/src
@@ -25,7 +30,9 @@ RESOURCES += $$SRC/qtpropertybrowser.qrc
 debug:BUILDDIR=debug
 else:BUILDDIR=release
 
-DESTDIR = ../../$$BUILDDIR
+macx:DESTDIR = ../../$$BUILDDIR/neurolab.app/Contents/Frameworks
+else:DESTDIR = ../../$$BUILDDIR
+
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR

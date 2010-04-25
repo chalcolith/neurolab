@@ -1,9 +1,9 @@
 QT -= gui
-QT += testlib
-
-TEMPLATE = lib
 
 TARGET = automata
+TEMPLATE = lib
+
+macx:CONFIG += lib_bundle
 
 include(../version.txt)
 DEFINES += AUTOMATA_LIBRARY
@@ -20,7 +20,9 @@ HEADERS += automaton.h \
 debug:BUILDDIR=debug
 else:BUILDDIR=release
 
-DESTDIR = ../$$BUILDDIR
+macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
+else:DESTDIR = ../$$BUILDDIR
+
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR

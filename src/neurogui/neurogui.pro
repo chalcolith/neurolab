@@ -1,8 +1,9 @@
 QT += gui
-QT += testlib
 
-TEMPLATE = lib
 TARGET = neurogui
+TEMPLATE = lib
+
+macx:CONFIG += lib_bundle
 
 DEFINES += NEUROGUI_LIBRARY
 
@@ -49,16 +50,23 @@ FORMS += mainwindow.ui \
 debug:BUILDDIR=debug
 else:BUILDDIR=release
 
-DESTDIR = ../$$BUILDDIR
+macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
+else:DESTDIR = ../$$BUILDDIR
+
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-win32:LIBS = -L$$DESTDIR \
+macx:QMAKE_LFLAGS += -F$$DESTDIR
+
+win32:LIBS += -L$$DESTDIR \
     -lneurolib1 \
     -lautomata1 \
     -lqtpropertybrowser2
-else:LIBS = -L$$DESTDIR \
+macx:LIBS += -framework neurolib \
+    -framework automata \
+    -framework qtpropertybrowser
+else:LIBS += -L$$DESTDIR \
     -lneurolib \
     -lautomata \
     -lqtpropertybrowser
