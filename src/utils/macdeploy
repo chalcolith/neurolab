@@ -1,0 +1,32 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+my $release_dir = 'debug';
+$release_dir = 'release' if grep /--release/, @ARGV;
+
+my $copy_qt = grep /--copyqt/, @ARGV;
+
+opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
+my @entries = readdir $dh;
+closedir $dh;
+
+for my $entry (@entries)
+{
+    if ($entry =~ /^(.*)\.app$/)
+    {
+        &process_app("$release_dir/$entry", $1);
+    }
+}
+
+my @libraries_done = ();
+my @qt_libraries_needed = ();
+
+sub process_app
+{
+    my ($app_dir, $app_name) = @_;
+    print "processing $app_dir\n";
+
+    my @app_libraries = grep /.+/, map { $1 if /^\s+(.*)\s+\(compatibility/ } `otool -L '$app_dir/Contents/MacOS/$app_name'`;
+    print join "\n", @app_libraries;
+}
