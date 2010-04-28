@@ -5,28 +5,146 @@ use strict;
 my $release_dir = 'debug';
 $release_dir = 'release' if grep /--release/, @ARGV;
 
+my $qtlibdir = '';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
 my @entries = readdir $dh;
 closedir $dh;
 
+my @libraries_done;
+
 for my $entry (@entries)
 {
-    if ($entry =~ /^(.*)\.app$/)
+    if (-d $entry && $entry =~ /^(.*)\.app$/)
     {
+        @libraries_done = ();
         &process_app("$release_dir/$entry", $1);
     }
 }
-
-my @libraries_done = ();
-my @qt_libraries_needed = ();
 
 sub process_app
 {
     my ($app_dir, $app_name) = @_;
     print "processing $app_dir\n";
 
-    my @app_libraries = grep /.+/, map { $1 if /^\s+(.*)\s+\(compatibility/ } `otool -L '$app_dir/Contents/MacOS/$app_name'`;
-    print join "\n", @app_libraries;
+    my $binary = "$app_dir/Contents/MacOS/$app_name";
+    &process_libraries($app_dir, $binary);
+}
+
+sub process_libraries
+{
+    my ($app_dir, $binary) = @_;
+
+    # process libraries
+    my @libraries = &get_libraries($binary);
+
+    for my $library (@libraries)
+    {
+        my $relpath;
+
+        # recursively process library
+        if ($library =~ /\W(Qt\w+)/)
+        {
+            my $libname = $1;
+            $relpath = &process_qt_library($app_dir, $library, $libname);
+        }
+        else
+        {
+            $relpath = &process_bundle($app_dir, $library);
+        }
+
+        # now change reference in binary
+        if (defined $relpath)
+        {
+            &run("install_name_tool -change '$library' '\@executable_path/../$relpath' '$binary');
+        }
+    }
+}
+
+sub process_bundle
+{
+    my ($app_dir, $library) = @_;
+    my $binary = "$app_dir/$library";
+
+    my $relpath;
+    if ($library =~ /(Frameworks.*)$/)
+    {
+        $relpath = $1;
+
+        unless (grep {$_ eq $library} @libraries_done)
+        {
+            push @libraries_done, $library;
+            print "processing $library\n";
+
+            # call with -id to relativize the library's id
+            &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
+
+            # now process sub-libraries
+            &process_libraries($app_dir, $binary);
+        }
+    }
+
+    return $relpath;
+}
+
+sub process_qt_library
+{
+    my ($app_dir, $qtlib, $libname) = @_;
+
+    my $relpath;
+    my $binary;
+    if ($qtlib =~ /(Qt\w+\.framework.*)$/)
+    {
+        $relpath = "Frameworks/$1";
+        $binary = "$app_dir/Contents/$relpath";
+
+        unless (grep {$_ eq $qtlib} @libraries_done)
+        {
+            push @libraries_done, $library;
+            print "copying Qt library $library\n";
+
+            &run("mkdir -p '$app_dir/Contents/Frameworks'");
+            &run("cp -fdR '$qtlibdir/$libname.framework' '$app_dir/Contents/Frameworks'");
+
+            &run("install_name_tool -id '@executable_path/../$relpath' '$binary'");
+            &process_libraries($app_dir, $binary) if defined $binary;
+        }
+    }
+
+    return $relpath;
+}
+
+sub get_libraries
+{
+    my ($binary) = @_;
+    my @all_libraries = grep /.+/, map { $1 if /^\s+(.*)\s+\(compatibility/ } `otool -L '$binary'`;
+    my @libraries = ();
+
+    for my $library (@all_libraries)
+    {
+        if ($library =~ /Qt/)
+        {
+            if ($copy_qt)
+            {
+                print "need Qt library $library\n";
+                push @libraries, $library;
+            }
+        }
+        elsif ($library !~ /^\//)
+        {
+            print "need library $library\n";
+            push @libraries, $library;
+        }
+    }
+
+    return @libraries;
+}
+
+sub run
+{
+    my ($cmd) = @_;
+    print "$cmd\n";
+    #my $retval = system($cmd);
+    #die "aborted: $!\n" if $retval != 0;
 }
