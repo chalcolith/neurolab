@@ -3,34 +3,34 @@ Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
 are met:
 
- - Redistributions of source code must retain the above copyright 
+ - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright 
-   notice, this list of conditions and the following disclaimer in 
-   the documentation and/or other materials provided with the 
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
    distribution.
 
- - Neither the name of the Neurocognitive Linguistics Lab nor the 
-   names of its contributors may be used to endorse or promote 
-   products derived from this software without specific prior 
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
    written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -71,7 +71,7 @@ namespace NeuroLab
     //////////////////////////////////////////////
 
     NeuroItem::IdType NeuroItem::NEXT_ID = 1;
-    QMap<QString, QPair<QString, NeuroItem::CreateFT> > NeuroItem::_itemCreators;
+    QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
 
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
@@ -103,20 +103,29 @@ namespace NeuroLab
 
     void NeuroItem::registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc)
     {
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+
         if (!typeName.isNull() && !typeName.isEmpty() && createFunc)
         {
-            _itemCreators[typeName] = QPair<QString, CreateFT>(description, createFunc);
+            (*_itemCreators)[typeName] = QPair<QString, CreateFT>(description, createFunc);
         }
     }
 
     void NeuroItem::removeItemCreator(const QString & typeName)
     {
-        _itemCreators.remove(typeName);
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+
+        _itemCreators->remove(typeName);
     }
 
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
     {
-        CreateFT cf = _itemCreators[name].second;
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+
+        CreateFT cf = (*_itemCreators)[name].second;
 
         if (cf)
             return cf(scene, pos);
@@ -129,7 +138,10 @@ namespace NeuroLab
         QAction *newAction = menu.addAction(tr("New"));
         newAction->setEnabled(false);
 
-        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(_itemCreators); i.hasNext(); i.next())
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+
+        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(*_itemCreators); i.hasNext(); i.next())
         {
             const QString & typeName = i.peekNext().key();
             const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();

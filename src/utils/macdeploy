@@ -5,7 +5,7 @@ use strict;
 my $release_dir = 'debug';
 $release_dir = 'release' if grep /--release/, @ARGV;
 
-my $qtlibdir = '';
+my $qtlibdir = '/Library/Frameworks';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
@@ -16,7 +16,7 @@ my @libraries_done;
 
 for my $entry (@entries)
 {
-    if (-d $entry && $entry =~ /^(.*)\.app$/)
+    if ($entry =~ /^(.*)\.app$/)
     {
         @libraries_done = ();
         &process_app("$release_dir/$entry", $1);
@@ -57,7 +57,7 @@ sub process_libraries
         # now change reference in binary
         if (defined $relpath)
         {
-            &run("install_name_tool -change '$library' '\@executable_path/../$relpath' '$binary');
+            &run("install_name_tool -change '$library' '\@executable_path/../$relpath' '$binary'");
         }
     }
 }
@@ -65,12 +65,9 @@ sub process_libraries
 sub process_bundle
 {
     my ($app_dir, $library) = @_;
-    my $binary = "$app_dir/$library";
+    my $binary = "$app_dir/Contents/Frameworks/$library";
 
-    my $relpath;
-    if ($library =~ /(Frameworks.*)$/)
-    {
-        $relpath = $1;
+    my $relpath = "Frameworks/$library";
 
         unless (grep {$_ eq $library} @libraries_done)
         {
@@ -83,7 +80,6 @@ sub process_bundle
             # now process sub-libraries
             &process_libraries($app_dir, $binary);
         }
-    }
 
     return $relpath;
 }
@@ -101,14 +97,15 @@ sub process_qt_library
 
         unless (grep {$_ eq $qtlib} @libraries_done)
         {
-            push @libraries_done, $library;
-            print "copying Qt library $library\n";
+            push @libraries_done, $qtlib;
+            print "copying Qt library $qtlib\n";
 
             &run("mkdir -p '$app_dir/Contents/Frameworks'");
-            &run("cp -fdR '$qtlibdir/$libname.framework' '$app_dir/Contents/Frameworks'");
+            &run("cp -R '$qtlibdir/$libname.framework/' '$app_dir/Contents/Frameworks/$libname.framework'");
 
-            &run("install_name_tool -id '@executable_path/../$relpath' '$binary'");
+            &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
             &process_libraries($app_dir, $binary) if defined $binary;
+            &run("strip '$binary'");
         }
     }
 
@@ -123,7 +120,7 @@ sub get_libraries
 
     for my $library (@all_libraries)
     {
-        if ($library =~ /Qt/)
+        if ($library =~ /^Qt\w+/)
         {
             if ($copy_qt)
             {
@@ -131,7 +128,7 @@ sub get_libraries
                 push @libraries, $library;
             }
         }
-        elsif ($library !~ /^\//)
+        elsif ($library !~ /^[\@\/]/)
         {
             print "need library $library\n";
             push @libraries, $library;
@@ -145,6 +142,6 @@ sub run
 {
     my ($cmd) = @_;
     print "$cmd\n";
-    #my $retval = system($cmd);
-    #die "aborted: $!\n" if $retval != 0;
+    my $retval = system($cmd);
+    #ie "aborted: $!\n" if $retval != 0;
 }
