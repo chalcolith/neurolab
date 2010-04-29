@@ -57,6 +57,7 @@ print "copying files...\n";
 &run("cp $qt_base_dir/qt/LICENSE.LGPL $release_dir/licenses/qt/LICENSE.LGPL");
 &run("cp thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/LICENSE.LGPL $release_dir/licenses/qtpropertybrowser/LICENSE.LGPL");
 &run("cp ../LICENSE.txt $release_dir");
+&run("cp ../README.txt $release_dir");
 &run("cp -a $qt_base_dir/qt/lib/libQtCore.so* $release_dir");
 &run("cp -a $qt_base_dir/qt/lib/libQtSvg.so* $release_dir");
 &run("cp -a $qt_base_dir/qt/lib/libQtGui.so* $release_dir");
