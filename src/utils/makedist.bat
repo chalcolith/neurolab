@@ -126,7 +126,7 @@ goto :EOF
 :distclean
 echo cleaning...
 pushd .
-call distclean.bat
+call utils\distclean.bat
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF

@@ -5,7 +5,7 @@ use strict;
 my $release_dir = 'debug';
 $release_dir = 'release' if grep /--release/, @ARGV;
 
-my $qtlibdir = '/Library/Frameworks';
+my $qtlibdir = '/usr/local/Trolltech/Qt-4.6.2/lib';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
@@ -65,21 +65,26 @@ sub process_libraries
 sub process_bundle
 {
     my ($app_dir, $library) = @_;
-    my $binary = "$app_dir/Contents/Frameworks/$library";
 
     my $relpath = "Frameworks/$library";
+    $relpath =~ s/\@executable_path\/..\/Frameworks\///;
+    my $binary = "$app_dir/Contents/$relpath";
 
-        unless (grep {$_ eq $library} @libraries_done)
+    unless (grep {$_ eq $library} @libraries_done)
+    {
+        print "processing $library\n";
+
+        # call with -id to relativize the library's id
+        unless ($library =~ /^\@/)
         {
-            push @libraries_done, $library;
-            print "processing $library\n";
-
-            # call with -id to relativize the library's id
             &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
-
-            # now process sub-libraries
-            &process_libraries($app_dir, $binary);
         }
+
+        push @libraries_done, $library;
+
+        # now process sub-libraries
+        &process_libraries($app_dir, $binary);
+    }
 
     return $relpath;
 }
@@ -93,19 +98,28 @@ sub process_qt_library
     if ($qtlib =~ /(Qt\w+\.framework.*)$/)
     {
         $relpath = "Frameworks/$1";
+        $relpath =~ s/\@executable_path\/..\/Frameworks\///;
+
         $binary = "$app_dir/Contents/$relpath";
+
+        print "processing $binary\n";
 
         unless (grep {$_ eq $qtlib} @libraries_done)
         {
-            push @libraries_done, $qtlib;
             print "copying Qt library $qtlib\n";
 
-            &run("mkdir -p '$app_dir/Contents/Frameworks'");
-            &run("cp -R '$qtlibdir/$libname.framework/' '$app_dir/Contents/Frameworks/$libname.framework'");
+            unless ($qtlib =~ /^\@/)
+            {
+                &run("mkdir -p '$app_dir/Contents/Frameworks'");
+                &run("cp -R '$qtlibdir/$libname.framework/' '$app_dir/Contents/Frameworks/$libname.framework'");
 
-            &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
+                &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
+                &run("strip '$binary'") if $release_dir eq 'release';
+            }
+
+            push @libraries_done, $qtlib;
+
             &process_libraries($app_dir, $binary) if defined $binary;
-            &run("strip '$binary'");
         }
     }
 
@@ -120,7 +134,10 @@ sub get_libraries
 
     for my $library (@all_libraries)
     {
-        if ($library =~ /^Qt\w+/)
+        print "considering $library\n";
+        next if grep { $_ eq $library } @libraries;
+
+        if ($library =~ /Qt\w+/)
         {
             if ($copy_qt)
             {
@@ -128,7 +145,7 @@ sub get_libraries
                 push @libraries, $library;
             }
         }
-        elsif ($library !~ /^[\@\/]/)
+        elsif ($library !~ /^[\/]/)
         {
             print "need library $library\n";
             push @libraries, $library;

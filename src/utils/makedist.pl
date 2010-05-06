@@ -8,7 +8,7 @@ my $qt_base_dir = '/opt/qtsdk-2010.02';
 my $cwd = getcwd();
 
 print "cleaning...\n";
-&run('sh distclean.sh');
+&run('sh utils/distclean.sh');
 unlink 'utils/incversion/incversion';
 
 print "updating...\n";
