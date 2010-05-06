@@ -60,14 +60,18 @@ UI_DIR = $$BUILDDIR
 
 macx:QMAKE_LFLAGS += -F$$DESTDIR
 
-win32:LIBS += -L$$DESTDIR \
-    -lneurolib1 \
-    -lautomata1 \
-    -lqtpropertybrowser2
-macx:LIBS += -framework neurolib \
-    -framework automata \
-    -framework qtpropertybrowser
-else:LIBS += -L$$DESTDIR \
-    -lneurolib \
-    -lautomata \
-    -lqtpropertybrowser
+win32 {
+    LIBS += -L$$DESTDIR \
+        -lneurolib1 \
+        -lautomata1 \
+        -lqtpropertybrowser2
+} else:macx {
+    LIBS += -framework neurolib \
+        -framework automata \
+        -framework qtpropertybrowser
+} else {
+    LIBS += -L$$DESTDIR \
+        -lneurolib \
+        -lautomata \
+        -lqtpropertybrowser
+}

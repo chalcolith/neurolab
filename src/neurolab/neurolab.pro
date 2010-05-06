@@ -22,17 +22,21 @@ UI_DIR = $$BUILDDIR
 
 macx:QMAKE_LFLAGS += -F$$DESTDIR/neurolab.app/Contents/Frameworks
 
-win32:LIBS += -L../$$BUILDDIR \
-    -lneurogui1 \
-    -lneurolib1 \
-    -lautomata1 \
-    -lqtpropertybrowser2
-macx:LIBS += -framework neurogui \
-    -framework neurolib \
-    -framework automata \
-    -framework qtpropertybrowser
-else:LIBS += -L../$$BUILDDIR \
-    -lneurogui \
-    -lneurolib \
-    -lautomata \
-    -lqtpropertybrowser
+win32 {
+    LIBS += -L../$$BUILDDIR \
+        -lneurogui1 \
+        -lneurolib1 \
+        -lautomata1 \
+        -lqtpropertybrowser2
+} else:macx {
+    LIBS += -framework neurogui \
+        -framework neurolib \
+        -framework automata \
+        -framework qtpropertybrowser
+} else {
+    LIBS += -L../$$BUILDDIR \
+        -lneurogui \
+        -lneurolib \
+        -lautomata \
+        -lqtpropertybrowser
+}

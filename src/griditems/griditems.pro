@@ -28,17 +28,21 @@ UI_DIR = $$BUILDDIR
 
 macx:QMAKE_LFLAGS += -F$$DESTDIR
 
-win32:LIBS += -L$$DESTDIR/.. \
-    -lneurogui1 \
-    -lneurolib1 \
-    -lautomata1 \
-    -lqtpropertybrowser2
-macx:LIBS += -framework neurogui \
-    -framework neurolib \
-    -framework automata \
-    -framework qtpropertybrowser
-else:LIBS += -L$$DESTDIR/.. \
-    -lneurogui \
-    -lneurolib \
-    -lautomata \
-    -lqtpropertybrowser
+win32 {
+    LIBS += -L$$DESTDIR/.. \
+        -lneurogui1 \
+        -lneurolib1 \
+        -lautomata1 \
+        -lqtpropertybrowser2
+} else:macx {
+    LIBS += -framework neurogui \
+        -framework neurolib \
+        -framework automata \
+        -framework qtpropertybrowser
+} else {
+    LIBS += -L$$DESTDIR/.. \
+        -lneurogui \
+        -lneurolib \
+        -lautomata \
+        -lqtpropertybrowser
+}

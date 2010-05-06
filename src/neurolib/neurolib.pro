@@ -28,6 +28,6 @@ UI_DIR = $$BUILDDIR
 
 macx:QMAKE_LFLAGS += -F$$DESTDIR
 
-win32:LIBS += -L$$DESTDIR -lautomata1
-macx:LIBS += -framework automata
-else:LIBS += -L$$DESTDIR -lautomata
+win32 { LIBS += -L$$DESTDIR -lautomata1 }
+else:macx { LIBS += -framework automata }
+else { LIBS += -L$$DESTDIR -lautomata }
