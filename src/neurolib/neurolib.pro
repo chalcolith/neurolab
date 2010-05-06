@@ -4,6 +4,7 @@ TARGET = neurolib
 TEMPLATE = lib
 
 macx:CONFIG += lib_bundle
+macx:CONFIG += x86 x86_64
 
 include(../version.txt)
 

@@ -108,10 +108,11 @@ sub process_qt_library
         {
             print "copying Qt library $qtlib\n";
 
-            unless ($qtlib =~ /^\@/)
+            my $subdir = "$app_dir/Contents/Frameworks/$libname.framework";
+            unless ($qtlib =~ /^\@/ || -d $subdir)
             {
                 &run("mkdir -p '$app_dir/Contents/Frameworks'");
-                &run("cp -R '$qtlibdir/$libname.framework/' '$app_dir/Contents/Frameworks/$libname.framework'");
+                &run("cp -R '$qtlibdir/$libname.framework/' '$subdir'");
 
                 &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
                 &run("strip '$binary'") if $release_dir eq 'release';

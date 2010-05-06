@@ -4,6 +4,7 @@ TARGET = qtpropertybrowser
 TEMPLATE = lib
 
 macx:CONFIG += lib_bundle
+macx:CONFIG += x86 x86_64
 
 VERSION = 2.5.1
 
