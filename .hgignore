@@ -11,3 +11,5 @@ glob:src/neurolab/GeneratedFiles
 glob:*_resource.rc
 glob:src/utils/incversion/incversion
 glob:src/utils/incversion/main.o
+
+glob:doc/html

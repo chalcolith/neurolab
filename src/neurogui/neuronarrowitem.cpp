@@ -67,7 +67,7 @@ namespace NeuroLab
         return cell ? cell->current().outputValue() : 0.0f;
     }
 
-    void NeuroNarrowItem::setOutputValue(const NeuroCell::NeuroValue & value)
+    void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value)
     {
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)

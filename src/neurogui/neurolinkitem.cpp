@@ -79,7 +79,7 @@ namespace NeuroLab
         return cell ? cell->current().weight() : 0;
     }
 
-    void NeuroLinkItem::setWeight(const NeuroCell::NeuroValue & value)
+    void NeuroLinkItem::setWeight(const NeuroLib::NeuroCell::NeuroValue & value)
     {
         NeuroNet::ASYNC_STATE *cell = getCell();
         if (cell)

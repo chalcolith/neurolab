@@ -287,7 +287,7 @@ namespace NeuroLab
     static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos); \
     static NeuroLab::NeuroItemRegistrator _static_registrator;
 
-    /// Use this macro in the source file for a class derived from \ref NeuroItem in order to have it show up in the context menu.
+    /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
     NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(typeid(TypeName).name(), Description, &TypeName::_create_); \
     NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos) \

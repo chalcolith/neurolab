@@ -53,11 +53,13 @@ class QtTreePropertyBrowser;
 class QtVariantEditorFactory;
 class QtVariantPropertyManager;
 
+/// Qt Designer generated code.
 namespace Ui
 {
     class MainWindow;
 }
 
+/// GUI code.
 namespace NeuroLab
 {
 
@@ -98,6 +100,7 @@ namespace NeuroLab
     public:
         /// Constructor.
         /// \param parent Parent widget (should normally be 0).
+        /// \param title Title of the window.
         /// \param initialFname Initial filename to load.
         MainWindow(QWidget *parent, const QString & title, const QString & initialFname = QString());
         ~MainWindow();

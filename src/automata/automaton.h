@@ -63,6 +63,7 @@ namespace Automata
         Pool<QVector<const TState *> > temp_neighbor_pool;
         QVector<QReadWriteLock *> locks;
 
+        /// \internal Used in the call to QtConcurrent::map()
         struct MapFunctor
         {
             Automaton<TState, TFUpdate, TIndex> & automaton;
@@ -129,6 +130,7 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// \return The lock that governs a cell with the given index.
         QReadWriteLock *getLock(const TIndex & index)
         {
             TIndex lock_index = index/NUM_PER_LOCK;
@@ -140,12 +142,13 @@ namespace Automata
     protected:
         typedef Automaton<TState, TFUpdate, TIndex> BASE;
 
+        //@{
+        /// Implements the asynchronous update operation on a cell in the automaton.
         inline AsyncState<TState, TIndex> & update(const TIndex & index)
         {
             return update(this->_nodes[index]);
         }
 
-        /// Implements the asynchronous update operation on a cell in the automaton.
         inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
         {
             TIndex index = &state - this->_nodes.data();
@@ -217,7 +220,9 @@ namespace Automata
 
             return state;
         }
+        //@}
 
+        /// \return Whether or not a given cell is ready to be updated.
         inline bool isReady(const TIndex & index, const int & r) const
         {
             if (index < this->_nodes.size())

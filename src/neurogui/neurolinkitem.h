@@ -63,6 +63,7 @@ namespace NeuroLab
     public:
         /// Constructor.
         /// \param network The network this item is a part of.
+        /// \param scenePos The scene position at which to create the item.
         NeuroLinkItem(LabNetwork *network, const QPointF & scenePos);
         virtual ~NeuroLinkItem();
 

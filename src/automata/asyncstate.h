@@ -59,6 +59,7 @@ namespace Automata
         AsyncState() : r(0) {}
         AsyncState(const TState & s0, const TState & s1) : q0(s0), q1(s1), r(0) {}
         AsyncState(const AsyncState & state) : q0(state.q0), q1(state.q1), r(state.r) {}
+        virtual ~AsyncState() {}
 
         AsyncState & operator= (const AsyncState & state)
         {
@@ -68,11 +69,17 @@ namespace Automata
             return *this;
         }
 
+        //@{
+        /// The current state of the cell.
         const TState & current() const { return r == 0 ? q0 : q1; }
         TState & current() { return r == 0 ? q0 : q1; }
+        //@}
 
+        //@{
+        /// The former state of the cell.
         const TState & former() const { return r == 0 ? q0 : q1; }
         TState & former() { return r == 0 ? q0 : q1; }
+        //@}
     };
 
     /// Writes the asynchronous cell to a QDataStream.  Writes both the previous and current state objects,

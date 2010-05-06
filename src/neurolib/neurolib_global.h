@@ -45,4 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #  define NEUROLIBSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
+/// Relational networks as asynchronous automata.
+namespace NeuroLib {}
+
 #endif // NEUROLIB_GLOBAL_H

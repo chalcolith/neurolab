@@ -45,4 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #  define AUTOMATASHARED_EXPORT Q_DECL_IMPORT
 #endif
 
+/// Generic asynchronous automata over graphs.
+namespace Automata {}
+
 #endif // AUTOMATA_GLOBAL_H
