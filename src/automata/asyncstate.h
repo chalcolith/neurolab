@@ -6,36 +6,39 @@ Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
 are met:
 
- - Redistributions of source code must retain the above copyright 
+ - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright 
-   notice, this list of conditions and the following disclaimer in 
-   the documentation and/or other materials provided with the 
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
    distribution.
 
- - Neither the name of the Neurocognitive Linguistics Lab nor the 
-   names of its contributors may be used to endorse or promote 
-   products derived from this software without specific prior 
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
    written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
+
+#include "automata_global.h"
+#include "exception.h"
 
 #include <QtGlobal>
 #include <QReadWriteLock>
@@ -54,7 +57,7 @@ namespace Automata
     struct AsyncState
     {
         TState q0, q1;
-        int r;
+        quint8 r;
 
         AsyncState() : r(0) {}
         AsyncState(const TState & s0, const TState & s1) : q0(s0), q1(s1), r(0) {}
@@ -80,29 +83,49 @@ namespace Automata
         const TState & former() const { return r == 0 ? q0 : q1; }
         TState & former() { return r == 0 ? q0 : q1; }
         //@}
+
+        /// Write the cell's data.
+        void writeBinary(QDataStream & ds, const AutomataFileVersion & file_version) const
+        {
+            ds.setVersion(QDataStream::Qt_4_6);
+
+            q0.writeBinary(ds, file_version);
+            q1.writeBinary(ds, file_version);
+            ds << r;
+        }
+
+        /// Read the cell's data (both previous and current states).
+        void readBinary(QDataStream & ds, const AutomataFileVersion & file_version)
+        {
+            ds.setVersion(QDataStream::Qt_4_6);
+
+            q0.readBinary(ds, file_version);
+            q1.readBinary(ds, file_version);
+
+            if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_1)
+            {
+                ds >> r;
+            }
+            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            {
+                int num;
+                ds >> num;
+                r = static_cast<quint8>(num);
+            }
+            else
+            {
+                throw new FileFormatError();
+            }
+        }
     };
 
-    /// Writes the asynchronous cell to a QDataStream.  Writes both the previous and current state objects,
-    /// so the automaton may be saved or loaded in the middle of an asynchronous update.
     template <typename TState, typename TIndex>
-    QDataStream & operator<< (QDataStream & ds, const AsyncState<TState, TIndex> & as)
+    QDataStream & operator>> (QDataStream & ds, AsyncState<TState,TIndex> & as)
     {
-        ds << as.q0;
-        ds << as.q1;
-        ds << as.r;
-
-        return ds;
-    }
-
-    /// Reads the asynchronous cell from a QDataStream.  Reads both the previous and current state objects,
-    /// so the automaton may be saved or loaded in the middle of an asynchronous update.
-    template <typename TState, typename TIndex>
-    QDataStream & operator>> (QDataStream & ds, AsyncState<TState, TIndex> & as)
-    {
-        ds >> as.q0;
-        ds >> as.q1;
-        ds >> as.r;
-
+        Automata::AutomataFileVersion fv;
+        fv.automata_version = 0;
+        fv.client_version = 0;
+        as.readBinary(ds, fv);
         return ds;
     }
 

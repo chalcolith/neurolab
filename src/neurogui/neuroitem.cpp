@@ -480,29 +480,54 @@ namespace NeuroLab
 
     // I/O
 
-    void NeuroItem::writeBinary(QDataStream & data) const
+    void NeuroItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion &) const
     {
-        data << pos();
-        data << _label;
-        data << _id;
+        ds.setVersion(QDataStream::Qt_4_6);
+
+        ds << pos();
+        ds << _label;
+        ds << _id;
     }
 
-    void NeuroItem::readBinary(QDataStream & data)
+    void NeuroItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        QPointF p;
-        data >> p;
-        setPos(p);
+        ds.setVersion(QDataStream::Qt_4_6);
 
-        data >> _label;
-        data >> _id;
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        {
+            QPointF p;
+            ds >> p;
+            setPos(p);
+
+            ds >> _label;
+            ds >> _id;
+        }
+        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        {
+            QPointF p;
+            ds >> p;
+            setPos(p);
+
+            ds >> _label;
+
+            qint64 n;
+            ds >> n;
+            _id = n;
+        }
+        else
+        {
+            throw new Automata::FileFormatError();
+        }
 
         if (_id >= NEXT_ID)
             NEXT_ID = _id + 1;
     }
 
     /// Writes ids of incoming and outgoing pointers.
-    void NeuroItem::writePointerIds(QDataStream & ds) const
+    void NeuroItem::writePointerIds(QDataStream & ds, const NeuroLabFileVersion &) const
     {
+        ds.setVersion(QDataStream::Qt_4_6);
+
         qint32 n = _incoming.size();
         ds << n;
 
@@ -526,34 +551,75 @@ namespace NeuroLab
         }
     }
 
-    void NeuroItem::readPointerIds(QDataStream & ds)
+    void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        qint32 n;
+        ds.setVersion(QDataStream::Qt_4_6);
 
-        _incoming.clear();
-        ds >> n;
-        for (qint32 i = 0; i < n; ++i)
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
         {
-            IdType id;
-            ds >> id;
+            qint32 n;
 
-            if (id)
+            _incoming.clear();
+            ds >> n;
+            for (qint32 i = 0; i < n; ++i)
             {
-                _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
+                IdType id;
+                ds >> id;
+
+                if (id)
+                {
+                    _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
+                }
+            }
+
+            _outgoing.clear();
+            ds >> n;
+            for (qint32 i = 0; i < n; ++i)
+            {
+                IdType id;
+                ds >> id;
+
+                if (id)
+                {
+                    _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
+                }
             }
         }
-
-        _outgoing.clear();
-        ds >> n;
-        for (qint32 i = 0; i < n; ++i)
+        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
-            IdType id;
-            ds >> id;
+            qint32 n;
 
-            if (id)
+            _incoming.clear();
+            ds >> n;
+            for (qint32 i = 0; i < n; ++i)
             {
-                _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
+                qint64 id64;
+                IdType id;
+                ds >> id64; id = static_cast<IdType>(id64);
+
+                if (id)
+                {
+                    _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
+                }
             }
+
+            _outgoing.clear();
+            ds >> n;
+            for (qint32 i = 0; i < n; ++i)
+            {
+                qint64 id64;
+                IdType id;
+                ds >> id64; id = static_cast<IdType>(id64);
+
+                if (id)
+                {
+                    _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
+                }
+            }
+        }
+        else
+        {
+            throw new Automata::FileFormatError();
         }
     }
 
@@ -585,20 +651,6 @@ namespace NeuroLab
             if (!found)
                 throw Automata::Exception(QObject::tr("Dangling node ID %1").arg(id));
         }
-    }
-
-    QDataStream & operator<< (QDataStream & data, const NeuroItem & item)
-    {
-        item.writeBinary(data);
-        item.writePointerIds(data);
-        return data;
-    }
-
-    QDataStream & operator>> (QDataStream & data, NeuroItem & item)
-    {
-        item.readBinary(data);
-        item.readPointerIds(data);
-        return data;
     }
 
 } // namespace NeuroLab

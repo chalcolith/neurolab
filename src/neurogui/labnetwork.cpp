@@ -165,8 +165,11 @@ namespace NeuroLab
         emit itemLabelChanged(item, label);
     }
 
-    /// Should be changed whenever anything in the the network file formate changes.
-    static const QString LAB_SCENE_COOKIE("Neurolab SCENE 009");
+    /// \deprecated
+    static const QString LAB_SCENE_COOKIE_OLD("Neurolab SCENE 009");
+
+    /// Should be changed whenever anything in the the network file format changes.
+    static const QString LAB_SCENE_COOKIE_NEW("Neurolab SCENE");
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
@@ -203,9 +206,11 @@ namespace NeuroLab
             {
                 try
                 {
-                    QDataStream data(&file);
-                    data >> *ln->_neuronet;
+                    QDataStream ds(&file);
+                    ds.setVersion(QDataStream::Qt_4_6);
 
+                    Automata::AutomataFileVersion fv;
+                    ln->_neuronet->readBinary(ds, fv);
                     ln->updateProperties();
                 }
                 catch (...)
@@ -227,18 +232,34 @@ namespace NeuroLab
 
             if (file.open(QIODevice::ReadOnly))
             {
-                QDataStream data(&file);
-                data.setVersion(QDataStream::Qt_4_5);
-                QString cookie;
-                data >> cookie;
+                QDataStream ds(&file);
+                ds.setVersion(QDataStream::Qt_4_6);
 
-                if (cookie != LAB_SCENE_COOKIE)
+                QString cookie;
+                ds >> cookie;
+
+                if (cookie == LAB_SCENE_COOKIE_NEW)
+                {
+                    quint16 ver;
+                    ds >> ver;
+
+                    NeuroLabFileVersion fv;
+                    fv.neurolab_version = ver;
+
+                    ln->_tree->readBinary(ds, fv);
+                }
+                else if (cookie == LAB_SCENE_COOKIE_OLD)
+                {
+                    NeuroLabFileVersion fv;
+                    fv.neurolab_version = NeuroLab::NEUROLAB_FILE_VERSION_OLD;
+
+                    ln->_tree->readBinary(ds, fv);
+                }
+                else
                 {
                     delete ln;
                     throw LabException(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
-
-                data >> *ln->_tree;
             }
             else
             {
@@ -284,8 +305,11 @@ namespace NeuroLab
             QFile file(network_fname);
             if (file.open(QIODevice::WriteOnly))
             {
-                QDataStream data(&file);
-                data << *_neuronet;
+                QDataStream ds(&file);
+                ds.setVersion(QDataStream::Qt_4_6);
+
+                Automata::AutomataFileVersion fv;
+                _neuronet->writeBinary(ds, fv);
             }
             else
             {
@@ -302,10 +326,15 @@ namespace NeuroLab
                 // items
                 if (_tree)
                 {
-                    QDataStream data(&file);
-                    data.setVersion(QDataStream::Qt_4_5);
-                    data << LAB_SCENE_COOKIE;
-                    data << *_tree;
+                    QDataStream ds(&file);
+                    ds.setVersion(QDataStream::Qt_4_6);
+
+                    NeuroLabFileVersion fv;
+                    fv.neurolab_version = NeuroLab::NEUROLAB_NUM_FILE_VERSIONS - 1;
+
+                    ds << LAB_SCENE_COOKIE_NEW;
+                    ds << static_cast<quint16>(fv.neurolab_version);
+                    _tree->writeBinary(ds, fv);
                 }
             }
             else

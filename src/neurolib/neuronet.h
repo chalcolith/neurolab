@@ -83,9 +83,8 @@ namespace NeuroLib
         /// \see NeuroNet::learnTime()
         void setLearnTime(const NeuroCell::NeuroValue & learnTime) { _learn_time = learnTime; }
 
-    protected:
-        virtual QDataStream & writeBinary(QDataStream & ds) const;
-        virtual QDataStream & readBinary(QDataStream & ds);
+        virtual void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
+        virtual void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
     };
 
 } // namespace NeuroLib

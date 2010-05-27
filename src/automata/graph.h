@@ -6,34 +6,34 @@ Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
 are met:
 
- - Redistributions of source code must retain the above copyright 
+ - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright 
-   notice, this list of conditions and the following disclaimer in 
-   the documentation and/or other materials provided with the 
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
    distribution.
 
- - Neither the name of the Neurocognitive Linguistics Lab nor the 
-   names of its contributors may be used to endorse or promote 
-   products derived from this software without specific prior 
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
    written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -53,7 +53,7 @@ namespace Automata
     class Graph
     {
     protected:
-        bool directed;
+        bool _directed;
 
         QVector<TNode> _nodes;
         QVector< QVector<TIndex> > _edges;
@@ -64,7 +64,7 @@ namespace Automata
         /// \param directed Whether or not the graph is directed.  If it is NOT directed, Graph::addEdge() will
         /// add both incoming and outgoing edges.
         Graph(const int initialCapacity = 0, bool directed = false)
-            : directed(directed)
+            : _directed(directed)
         {
             _nodes.reserve(initialCapacity);
             _edges.reserve(initialCapacity);
@@ -104,7 +104,7 @@ namespace Automata
                 throw IndexOverflow();
             }
 
-            if (!directed)
+            if (!_directed)
             {
                 if (to < _edges.size())
                 {
@@ -141,7 +141,7 @@ namespace Automata
                 throw IndexOverflow();
             }
 
-            if (!directed)
+            if (!_directed)
             {
                 if (to < _edges.size())
                 {
@@ -199,59 +199,65 @@ namespace Automata
         }
 
 
-        /// Implemented by derived classes to write to a data stream.
-        virtual QDataStream & writeBinary(QDataStream & ds) const
+        /// Writes the graph's data.  Should be called by derived classes' implementations.
+        virtual void writeBinary(QDataStream & ds, const AutomataFileVersion & file_version) const
         {
-            ds.setVersion(QDataStream::Qt_4_5);
+            ds.setVersion(QDataStream::Qt_4_6);
 
-            int version = 1;
-            ds << version;
+            // directed flag
+            ds << _directed;
 
-            // data
-            ds << this->directed;
-            ds << this->_nodes;
-            ds << this->_edges;
+            // nodes
+            quint32 num = static_cast<quint32>(_nodes.size());
+            ds << num;
 
-            return ds;
+            for (quint32 i = 0; i < num; ++i)
+            {
+                _nodes[i].writeBinary(ds, file_version);
+            }
+
+            // edges
+            ds << _edges;
         }
 
-        /// Implemented by derived classes to read from a data stream.
-        virtual QDataStream & readBinary(QDataStream & ds)
+        /// Reads the graph's data.  Should be called by derived classes' implementations.
+        virtual void readBinary(QDataStream & ds, const AutomataFileVersion & file_version)
         {
-            ds.setVersion(QDataStream::Qt_4_5);
+            ds.setVersion(QDataStream::Qt_4_6);
 
-            int version;
-            ds >> version;
+            if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_1)
+            {
+                ds >> _directed;
 
-            // data
-            ds >> this->directed;
-            ds >> this->_nodes;
-            ds >> this->_edges;
+                // nodes
+                quint32 num;
+                ds >> num;
+                _nodes.resize(num);
 
-            return ds;
+                for (quint32 i = 0; i < num; ++i)
+                {
+                    _nodes[i].readBinary(ds, file_version);
+                }
+
+                // edges
+                ds >> _edges;
+            }
+            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            {
+                int version;
+                ds >> version;
+
+                // data
+                ds >> this->_directed;
+                ds >> this->_nodes;
+                ds >> this->_edges;
+            }
+            else
+            {
+                throw new FileFormatError();
+            }
         }
-
-        template <typename TN, typename TI>
-        friend QDataStream & operator<< (QDataStream &, const Graph<TN, TI> &);
-
-        template <typename TN, typename TI>
-        friend QDataStream & operator>> (QDataStream &, Graph<TN, TI> &);
     };
-
-
-    /// Writes to a data stream.  Derived classes should not re-implement this, but implement Graph::writeBinary() instead.
-    template <typename TNode, typename TIndex>
-    QDataStream & operator<< (QDataStream & s, const Graph<TNode, TIndex> & g)
-    {
-        return g.writeBinary(s);
-    }
-
-    /// Reads from a data stream.  Derived classes should not re-implement this, but implement Graph::readBinary() instead.
-    template <typename TNode, typename TIndex>
-    QDataStream & operator>> (QDataStream & s, Graph<TNode, TIndex> & g)
-    {
-        return g.readBinary(s);
-    }
 
 } // namespace Automata
 

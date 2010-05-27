@@ -166,67 +166,74 @@ namespace NeuroLib
         next._running_average = (next._output_value + (network->learnTime() - ONE)*prev._running_average) / network->learnTime();
     }
 
-    QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc)
+    void NeuroCell::writeBinary(QDataStream & ds, const Automata::AutomataFileVersion &) const
     {
-        ds << static_cast<quint8>(nc._kind);
-        ds << static_cast<bool>(nc._frozen);
+        ds.setVersion(QDataStream::Qt_4_6);
 
-        switch (nc._kind)
+        ds << static_cast<quint8>(_kind);
+        ds << static_cast<bool>(_frozen);
+
+        switch (_kind)
         {
         case NeuroCell::NODE:
         case NeuroCell::EXCITORY_LINK:
         case NeuroCell::INHIBITORY_LINK:
-            ds << static_cast<float>(nc._weight);
-            ds << static_cast<float>(nc._run);
+            ds << static_cast<float>(_weight);
+            ds << static_cast<float>(_run);
             break;
         case NeuroCell::OSCILLATOR:
-            ds << static_cast<quint16>(nc._gap_peak[0]);
-            ds << static_cast<quint16>(nc._gap_peak[1]);
-            ds << static_cast<quint16>(nc._phase_step[0]);
-            ds << static_cast<quint16>(nc._phase_step[1]);
+            ds << static_cast<quint16>(_gap_peak[0]);
+            ds << static_cast<quint16>(_gap_peak[1]);
+            ds << static_cast<quint16>(_phase_step[0]);
+            ds << static_cast<quint16>(_phase_step[1]);
             break;
         default:
             break;
         }
 
-        ds << static_cast<float>(nc._output_value);
-        ds << static_cast<float>(nc._running_average);
-
-        return ds;
+        ds << static_cast<float>(_output_value);
+        ds << static_cast<float>(_running_average);
     }
 
-    QDataStream & operator>> (QDataStream & ds, NeuroCell & nc)
+    void NeuroCell::readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version)
     {
-        quint8 k;
-        quint16 s;
-        float n;
-        bool f;
-
-        ds >> k; nc._kind = static_cast<NeuroCell::KindOfCell>(k);
-        ds >> f; nc._frozen = static_cast<bool>(f);
-
-        switch (nc._kind)
+        if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_OLD)
         {
-        case NeuroCell::NODE:
-        case NeuroCell::EXCITORY_LINK:
-        case NeuroCell::INHIBITORY_LINK:
-            ds >> n; nc._weight = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; nc._run = static_cast<NeuroCell::NeuroValue>(n);
-            break;
-        case NeuroCell::OSCILLATOR:
-            ds >> s; nc._gap_peak[0] = static_cast<NeuroCell::NeuroStep>(s);
-            ds >> s; nc._gap_peak[1] = static_cast<NeuroCell::NeuroStep>(s);
-            ds >> s; nc._phase_step[0] = static_cast<NeuroCell::NeuroStep>(s);
-            ds >> s; nc._phase_step[1] = static_cast<NeuroCell::NeuroStep>(s);
-            break;
-        default:
-            break;
+            ds.setVersion(QDataStream::Qt_4_6);
+
+            quint8 k;
+            quint16 s;
+            float n;
+            bool f;
+
+            ds >> k; _kind = static_cast<NeuroCell::KindOfCell>(k);
+            ds >> f; _frozen = static_cast<bool>(f);
+
+            switch (_kind)
+            {
+            case NeuroCell::NODE:
+            case NeuroCell::EXCITORY_LINK:
+            case NeuroCell::INHIBITORY_LINK:
+                ds >> n; _weight = static_cast<NeuroCell::NeuroValue>(n);
+                ds >> n; _run = static_cast<NeuroCell::NeuroValue>(n);
+                break;
+            case NeuroCell::OSCILLATOR:
+                ds >> s; _gap_peak[0] = static_cast<NeuroCell::NeuroStep>(s);
+                ds >> s; _gap_peak[1] = static_cast<NeuroCell::NeuroStep>(s);
+                ds >> s; _phase_step[0] = static_cast<NeuroCell::NeuroStep>(s);
+                ds >> s; _phase_step[1] = static_cast<NeuroCell::NeuroStep>(s);
+                break;
+            default:
+                break;
+            }
+
+            ds >> n; _output_value = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _running_average = static_cast<NeuroCell::NeuroValue>(n);
         }
-
-        ds >> n; nc._output_value = static_cast<NeuroCell::NeuroValue>(n);
-        ds >> n; nc._running_average = static_cast<NeuroCell::NeuroValue>(n);
-
-        return ds;
+        else
+        {
+            throw new Automata::FileFormatError();
+        }
     }
 
 } // namespace NeuroLib

@@ -62,7 +62,7 @@ namespace NeuroLab
         Q_INTERFACES(QGraphicsItem)
 
     protected:
-        typedef qint64 IdType;
+        typedef qint32 IdType;
 
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
@@ -188,6 +188,18 @@ namespace NeuroLab
         /// Adds actions to the context menu depending on the current item.
         static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
 
+        /// Writes the item's data to a data stream.  Derived classes should call the base class version to correctly save item data.
+        virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+
+        /// Reads the item's data from a data stream.  Derived classes should call the base class version to correctly read item data.
+        virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
+        /// Writes the ids of incoming and outgoing items.
+        virtual void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+
+        /// Reads the ids of incoming and outgoing items.
+        virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
         /// Function type for static item creators.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
 
@@ -219,18 +231,6 @@ namespace NeuroLab
         /// Used to handle movement.
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
-        /// Writes the item's data to a data stream.  Derived classes should call the base class version to correctly save item data.
-        virtual void writeBinary(QDataStream &) const;
-
-        /// Reads the item's data from a data stream.  Derived classes should call the base class version to correctly read item data.
-        virtual void readBinary(QDataStream &);
-
-        /// Writes the ids of incoming and outgoing items.
-        virtual void writePointerIds(QDataStream &) const;
-
-        /// Reads the ids of incoming and outgoing items.
-        virtual void readPointerIds(QDataStream &);
-
         /// Handles transforming ids to actual pointers.
         virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
 
@@ -249,19 +249,8 @@ namespace NeuroLab
         /// Can be overridden to control whether or not a new item with a given type name can be
         /// created on top of an already selected item.
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
-
-        //////////////////////////////////////////////////////////////
-
-        friend QDataStream & operator<< (QDataStream &, const NeuroItem &);
-        friend QDataStream & operator>> (QDataStream &, NeuroItem &);
     };
 
-    //
-
-    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const NeuroItem &);
-    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, NeuroItem &);
-
-    //
 
     /// A helper class for registering item types.
     /// Use the macro \ref NEUROITEM_DEFINE_CREATOR to define an item creator, and then implement

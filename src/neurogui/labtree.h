@@ -6,34 +6,34 @@ Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
 are met:
 
- - Redistributions of source code must retain the above copyright 
+ - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright 
-   notice, this list of conditions and the following disclaimer in 
-   the documentation and/or other materials provided with the 
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
    distribution.
 
- - Neither the name of the Neurocognitive Linguistics Lab nor the 
-   names of its contributors may be used to endorse or promote 
-   products derived from this software without specific prior 
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
    written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -56,8 +56,8 @@ namespace NeuroLab
     /// A node in the hierarchy of scenes.
     class NEUROGUISHARED_EXPORT LabTreeNode
     {
-        int _id;
-        static int NEXT_ID;
+        quint32 _id;
+        static quint32 NEXT_ID;
 
         LabTree *_tree;
         LabTreeNode *_parent;
@@ -73,6 +73,8 @@ namespace NeuroLab
         LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
         virtual ~LabTreeNode();
 
+        quint32 id() const { return _id; }
+
         LabScene *scene() { return _scene; }
         LabView *view() { return _view; }
         QList<LabTreeNode *> & children() { return _children; }
@@ -83,15 +85,10 @@ namespace NeuroLab
         /// Updates all the items in the scene.
         void update();
 
-        friend class LabTree;
-        friend QDataStream & operator<< (QDataStream &, const LabTreeNode &);
-        friend QDataStream & operator>> (QDataStream &, LabTreeNode &);
-        friend QDataStream & operator<< (QDataStream &, const LabTree &);
-        friend QDataStream & operator>> (QDataStream &, LabTree &);
+        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
     };
 
-    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const LabTreeNode &);
-    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, LabTreeNode &);
 
     /// Encapsulates the hierarchy of scenes.  A NeuroItem may contain a subnetwork within it, whose scene can be opened
     /// by double-clicking.  The lab tree encapsulates this.
@@ -135,12 +132,9 @@ namespace NeuroLab
         /// Updates all the items in the network.
         void update(LabTreeNode *n = 0);
 
-        friend QDataStream & operator<< (QDataStream &, const LabTree &);
-        friend QDataStream & operator>> (QDataStream &, LabTree &);
+        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
     };
-
-    extern NEUROGUISHARED_EXPORT QDataStream & operator<< (QDataStream &, const LabTree &);
-    extern NEUROGUISHARED_EXPORT QDataStream & operator>> (QDataStream &, LabTree &);
 
 } // namespace NeuroLab
 

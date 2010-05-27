@@ -3,34 +3,34 @@ Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
 are met:
 
- - Redistributions of source code must retain the above copyright 
+ - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright 
-   notice, this list of conditions and the following disclaimer in 
-   the documentation and/or other materials provided with the 
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
    distribution.
 
- - Neither the name of the Neurocognitive Linguistics Lab nor the 
-   names of its contributors may be used to endorse or promote 
-   products derived from this software without specific prior 
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
    written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -352,48 +352,79 @@ namespace NeuroLab
         return NeuroNarrowItem::itemChange(change, value);
     }
 
-    void NeuroLinkItem::writeBinary(QDataStream & data) const
+    void NeuroLinkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        NeuroNarrowItem::writeBinary(data);
-        data << _line;
+        NeuroNarrowItem::writeBinary(ds, file_version);
+
+        ds.setVersion(QDataStream::Qt_4_6);
+        ds << _line;
     }
 
-    void NeuroLinkItem::readBinary(QDataStream & data)
+    void NeuroLinkItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        NeuroNarrowItem::readBinary(data);
+        NeuroNarrowItem::readBinary(ds, file_version);
 
-        QLineF l;
-        data >> l;
-        setLine(l);
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        {
+            ds.setVersion(QDataStream::Qt_4_6);
+
+            QLineF l;
+            ds >> l;
+            setLine(l);
+        }
+        else
+        {
+            throw new Automata::FileFormatError();
+        }
     }
 
-    void NeuroLinkItem::writePointerIds(QDataStream & data) const
+    void NeuroLinkItem::writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        NeuroNarrowItem::writePointerIds(data);
+        NeuroNarrowItem::writePointerIds(ds, file_version);
+
+        ds.setVersion(QDataStream::Qt_4_6);
 
         IdType id = _frontLinkTarget ? _frontLinkTarget->id() : 0;
-        data << id;
+        ds << id;
 
         id = _backLinkTarget ? _backLinkTarget->id() : 0;
-        data << id;
+        ds << id;
     }
 
-    void NeuroLinkItem::readPointerIds(QDataStream & data)
+    void NeuroLinkItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        NeuroNarrowItem::readPointerIds(data);
+        NeuroNarrowItem::readPointerIds(ds, file_version);
 
         setFrontLinkTarget(0);
         setBackLinkTarget(0);
 
-        IdType id;
+        ds.setVersion(QDataStream::Qt_4_6);
 
-        data >> id;
-        if (id)
-            _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        {
+            IdType id;
 
-        data >> id;
-        if (id)
-            _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
+            ds >> id;
+            if (id)
+                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+
+            ds >> id;
+            if (id)
+                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        }
+        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        {
+            qint64 id64;
+            IdType id;
+
+            ds >> id64; id = static_cast<IdType>(id64);
+            if (id)
+                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+
+            ds >> id64; id = static_cast<IdType>(id64);
+            if (id)
+                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        }
     }
 
     void NeuroLinkItem::idsToPointers(QGraphicsScene *sc)

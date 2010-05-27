@@ -152,6 +152,9 @@ namespace NeuroLib
                              const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const;
         };
 
+        void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
+        void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
+
     private:
         KindOfCell _kind;
         bool _frozen;
@@ -170,16 +173,7 @@ namespace NeuroLib
 
         NeuroValue _output_value;
         NeuroValue _running_average;
-
-        friend NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
-        friend NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
     }; // class NeuroCell
-
-    /// Write a cell to a data stream.
-    extern NEUROLIBSHARED_EXPORT QDataStream & operator<< (QDataStream & ds, const NeuroCell & nc);
-
-    /// Read a cell from a data stream.
-    extern NEUROLIBSHARED_EXPORT QDataStream & operator>> (QDataStream & ds, NeuroCell & nc);
 
 } // namespace NeuroLib
 
