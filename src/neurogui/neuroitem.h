@@ -200,6 +200,12 @@ namespace NeuroLab
         /// Reads the ids of incoming and outgoing items.
         virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        /// Gets the friendly type name of this item type (if it is a registered type).
+        QString getTypeName() const;
+
+        static QString getTypeName(const QString & mangledName);
+        static void registerTypeName(const QString & mangledName, const QString & friendlyName);
+
         /// Function type for static item creators.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
 
@@ -238,17 +244,20 @@ namespace NeuroLab
         /// \return A color that is \c t of the way between \c a and \c b.
         static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
-        //////////////////////////////////////////////////////////////
-
-        /// Registers item creator functions.
-        static QMap<QString, QPair<QString, CreateFT> > *_itemCreators;
-
         /// Can be overridden to add actions to the context menu.
         virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &) { }
 
         /// Can be overridden to control whether or not a new item with a given type name can be
         /// created on top of an already selected item.
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
+
+        //////////////////////////////////////////////////////////////
+
+        /// Maps mangled names to friendly type names.
+        static QMap<QString, QString> *_typeNames;
+
+        /// Registers item creator functions.
+        static QMap<QString, QPair<QString, CreateFT> > *_itemCreators;
     };
 
 
@@ -257,28 +266,33 @@ namespace NeuroLab
     /// a static method called \c create_new() in your class.
     class NEUROGUISHARED_EXPORT NeuroItemRegistrator
     {
-        QString _name;
+        QString _typeName;
+        QString _mangledName;
 
     public:
-        NeuroItemRegistrator(const QString & name, const QString & description, NeuroItem::CreateFT create_func)
-            : _name(name)
+        NeuroItemRegistrator(const QString & typeName, const QString & mangledName, const QString & description, NeuroItem::CreateFT create_func)
+            : _typeName(typeName), _mangledName(mangledName)
         {
-            NeuroItem::registerItemCreator(name, description, create_func);
+            NeuroItem::registerTypeName(mangledName, typeName);
+            NeuroItem::registerItemCreator(typeName, description, create_func);
+            NeuroItem::registerItemCreator(mangledName, description, create_func); // this is for backwards compatibility with the old file format
         }
 
         virtual ~NeuroItemRegistrator()
         {
-            NeuroItem::removeItemCreator(_name);
+            NeuroItem::removeItemCreator(_typeName);
+            NeuroItem::removeItemCreator(_mangledName);
         }
     };
 
+    /// Use this macro in the header file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DECLARE_CREATOR \
     static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos); \
     static NeuroLab::NeuroItemRegistrator _static_registrator;
 
     /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
-    NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(typeid(TypeName).name(), Description, &TypeName::_create_); \
+    NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
     NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos) \
     { \
         if (!(scene && scene->network() && scene->network()->neuronet())) \

@@ -71,6 +71,7 @@ namespace NeuroLab
     //////////////////////////////////////////////
 
     NeuroItem::IdType NeuroItem::NEXT_ID = 1;
+    QMap<QString, QString> *NeuroItem::_typeNames = 0;
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
 
 
@@ -99,6 +100,38 @@ namespace NeuroLab
             removeIncoming(_incoming.front());
         while (_outgoing.size() > 0)
             removeOutgoing(_outgoing.front());
+    }
+
+    void NeuroItem::registerTypeName(const QString & mangledName, const QString & friendlyName)
+    {
+        if (!_typeNames)
+            _typeNames = new QMap<QString, QString>();
+
+        if (!mangledName.isNull() && !mangledName.isEmpty() && !friendlyName.isNull() && !friendlyName.isEmpty() && !_typeNames->contains(mangledName))
+        {
+            (*_typeNames)[mangledName] = friendlyName;
+        }
+    }
+
+    QString NeuroItem::getTypeName() const
+    {
+        if (!_typeNames)
+            _typeNames = new QMap<QString, QString>();
+
+        QString mangledName(typeid(*this).name());
+        return getTypeName(mangledName);
+    }
+
+    QString NeuroItem::getTypeName(const QString & mangledName)
+    {
+        if (!_typeNames)
+            _typeNames = new QMap<QString, QString>();
+
+        // we don't want to insert empty values
+        if (_typeNames->contains(mangledName))
+            return (*_typeNames)[mangledName];
+        else
+            return QString();
     }
 
     void NeuroItem::registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc)
@@ -144,6 +177,13 @@ namespace NeuroLab
         for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(*_itemCreators); i.hasNext(); i.next())
         {
             const QString & typeName = i.peekNext().key();
+
+            // kludge to get rid of mangled names
+            const QString friendlyName = getTypeName(typeName);
+            if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
+                continue;
+
+            // get menu text and create function
             const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();
             const QStringList menuPath = p.first.split('|');
 

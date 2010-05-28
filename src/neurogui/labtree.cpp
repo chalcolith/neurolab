@@ -96,11 +96,6 @@ namespace NeuroLab
         _scene->update();
     }
 
-    static QString get_item_type(NeuroItem const * const item)
-    {
-        return QString(typeid(*item).name());
-    }
-
     void LabTreeNode::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         Q_ASSERT(_scene);
@@ -124,8 +119,8 @@ namespace NeuroLab
             if (!item)
                 continue;
 
-            QString type = get_item_type(item);
-            ds << type;
+            QString typeName = item->getTypeName();
+            ds << typeName;
             item->writeBinary(ds, file_version);
             item->writePointerIds(ds, file_version);
         }
