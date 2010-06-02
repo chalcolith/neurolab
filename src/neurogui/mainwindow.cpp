@@ -600,3 +600,15 @@ void NeuroLab::MainWindow::on_action_About_NeuroLab_triggered()
     about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroLab::VERSION));
     about.exec();
 }
+
+void NeuroLab::MainWindow::on_action_Cut_triggered()
+{
+}
+
+void NeuroLab::MainWindow::on_action_Copy_triggered()
+{
+}
+
+void NeuroLab::MainWindow::on_action_Paste_triggered()
+{
+}

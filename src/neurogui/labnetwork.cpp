@@ -59,7 +59,7 @@ namespace NeuroLab
     LabNetwork::LabNetwork(QWidget *parent)
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
-        _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), false),
+        _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate")),
         _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Learn Rate")),
         _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window")),
@@ -164,6 +164,7 @@ namespace NeuroLab
     {
         emit itemLabelChanged(item, label);
     }
+
 
     /// \deprecated
     static const QString LAB_SCENE_COOKIE_OLD("Neurolab SCENE 009");

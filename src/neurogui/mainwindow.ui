@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -86,7 +86,16 @@
     <addaction name="action_Manual"/>
     <addaction name="action_About_NeuroLab"/>
    </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="action_Cut"/>
+    <addaction name="action_Copy"/>
+    <addaction name="action_Paste"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -137,8 +146,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>69</width>
-          <height>269</height>
+          <width>57</width>
+          <height>276</height>
          </rect>
         </property>
         <attribute name="label">
@@ -252,6 +261,30 @@
   <action name="action_About_NeuroLab">
    <property name="text">
     <string>About NeuroLab...</string>
+   </property>
+  </action>
+  <action name="action_Cut">
+   <property name="text">
+    <string>Cu&amp;t</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="action_Copy">
+   <property name="text">
+    <string>&amp;Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_Paste">
+   <property name="text">
+    <string>&amp;Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
    </property>
   </action>
  </widget>

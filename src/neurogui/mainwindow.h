@@ -171,6 +171,9 @@ namespace NeuroLab
         void on_action_Save_Data_Set_triggered();
         void on_action_New_Data_Set_triggered();
         void on_action_Close_Data_Set_triggered();
+        void on_action_Cut_triggered();
+        void on_action_Copy_triggered();
+        void on_action_Paste_triggered();
     };
 
     /// Base class for exceptions used by the NeuroLab software.
