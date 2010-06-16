@@ -125,12 +125,18 @@ namespace NeuroLab
 
         static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
 
+        bool canPaste() const;
+
     public slots:
         bool save(bool saveAs = false);
         bool close();
 
         void newItem(const QString & typeName);
         void deleteSelected();
+
+        void copySelected();
+        void cutSelected();
+        void pasteItems();
 
         void reset();
         void start();

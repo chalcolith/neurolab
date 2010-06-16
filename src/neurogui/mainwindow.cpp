@@ -213,6 +213,8 @@ namespace NeuroLab
     {
         connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
+
+        connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
     }
 
     void MainWindow::setActionsEnabled(bool enabled)
@@ -508,6 +510,15 @@ namespace NeuroLab
         }
     }
 
+    void MainWindow::filterEditMenu()
+    {
+        bool showEditOps = _currentNetwork && _currentNetwork->scene() && _currentNetwork->scene()->selectedItems().size() > 0;
+
+        _ui->action_Cut->setEnabled(showEditOps);
+        _ui->action_Copy->setEnabled(showEditOps);
+        _ui->action_Paste->setEnabled(_currentNetwork && _currentNetwork->canPaste());
+    }
+
 } // namespace NeuroLab
 
 
@@ -603,12 +614,18 @@ void NeuroLab::MainWindow::on_action_About_NeuroLab_triggered()
 
 void NeuroLab::MainWindow::on_action_Cut_triggered()
 {
+    if (_currentNetwork)
+        _currentNetwork->cutSelected();
 }
 
 void NeuroLab::MainWindow::on_action_Copy_triggered()
 {
+    if (_currentNetwork)
+        _currentNetwork->copySelected();
 }
 
 void NeuroLab::MainWindow::on_action_Paste_triggered()
 {
+    if (_currentNetwork)
+        _currentNetwork->pasteItems();
 }

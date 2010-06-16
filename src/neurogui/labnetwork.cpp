@@ -45,6 +45,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QClipboard>
+#include <QMimeData>
+#include <QApplication>
+#include <QVector2D>
 
 #include <QtVariantPropertyManager>
 #include <QtVariantProperty>
@@ -399,6 +403,112 @@ namespace NeuroLab
                 delete gi;
             }
         }
+    }
+
+    static QString CLIPBOARD_TYPE("application/x-neurocog-items");
+
+    /// \return True if there is something to paste.
+    bool LabNetwork::canPaste() const
+    {
+        QClipboard *clipboard = QApplication::clipboard();
+        if (clipboard)
+        {
+            const QMimeData *data = clipboard->mimeData();
+            if (data && data->data(CLIPBOARD_TYPE).size() > 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// Cuts the selected items to the clipboard.
+    void LabNetwork::cutSelected()
+    {
+        copySelected();
+        deleteSelected();
+    }
+
+    /// Copies the selected items to the clipboard.
+    void LabNetwork::copySelected()
+    {
+        Q_ASSERT(scene());
+        Q_ASSERT(view());
+
+        // get items
+        QList<QGraphicsItem *> selected = scene()->selectedItems();
+        if (selected.size() == 0)
+            return;
+
+        // get center of view and normalized ids
+        QVector2D center(0, 0);
+        QMap<int, int> id_map;
+        int cur_id = 0;
+        for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next(), ++cur_id)
+        {
+            const QGraphicsItem *item = i.peekNext();
+            center += QVector2D(item->pos());
+
+            const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
+            if (ni)
+                id_map[ni->id()] = cur_id;
+        }
+
+        center *= 1.0 / selected.size();
+
+        // write items
+        QByteArray clipboardData;
+
+        {
+            QDataStream ds(&clipboardData, QIODevice::WriteOnly);
+
+            ds << selected.size();
+
+            // write type names so we can create items before reading them...
+            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
+            {
+                const QGraphicsItem *item = i.peekNext();
+                const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
+                if (ni)
+                    ds << ni->getTypeName();
+                else
+                    ds << QString("??Unknown??");
+            }
+
+            // write data
+            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
+            {
+                const QGraphicsItem *item = i.peekNext();
+                const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
+                if (ni)
+                {
+                    ds << ni->getTypeName();
+                    ds << static_cast<qint32>(id_map[ni->id()]);
+
+                    QVector2D relPos = QVector2D(ni->pos()) - center;
+                    ds << relPos;
+
+                    ni->writeClipboard(ds, id_map);
+                }
+                else
+                {
+                    ds << QString("??Unknown??");
+                }
+            }
+        }
+
+        // set to clipboard
+        QClipboard *clipboard = QApplication::clipboard();
+        if (clipboard)
+        {
+            QMimeData *data = new QMimeData();
+            data->setData(CLIPBOARD_TYPE, clipboardData);
+            clipboard->setMimeData(data);
+        }
+    }
+
+    /// Pastes any items in the clipboard.
+    void LabNetwork::pasteItems()
+    {
     }
 
     /// Starts the network running (currently not implemented).

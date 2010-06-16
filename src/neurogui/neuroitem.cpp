@@ -225,7 +225,19 @@ namespace NeuroLab
         if (item)
             item->buildActionMenu(scene, pos, menu);
 
-        QAction *del = menu.addAction(QObject::tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
+        if (!scene->network())
+            return;
+
+        QAction *cut = menu.addAction(tr("Cut"), scene->network(), SLOT(cutSelected()), QKeySequence(QKeySequence::Cut));
+        cut->setEnabled(scene->selectedItems().size() > 0);
+
+        QAction *copy = menu.addAction(tr("Copy"), scene->network(), SLOT(copySelected()), QKeySequence(QKeySequence::Copy));
+        copy->setEnabled(scene->selectedItems().size() > 0);
+
+        QAction *paste = menu.addAction(tr("Paste"), scene->network(), SLOT(pasteItems()), QKeySequence(QKeySequence::Paste));
+        paste->setEnabled(scene->network()->canPaste());
+
+        QAction *del = menu.addAction(tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
         del->setEnabled(scene->selectedItems().size() > 0);
     }
 
@@ -519,6 +531,24 @@ namespace NeuroLab
 
 
     // I/O
+
+    void NeuroItem::writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const
+    {
+        PropertyObject::writeClipboard(ds);
+
+        ds.setVersion(QDataStream::Qt_4_6);
+        ds << _label;
+    }
+
+
+    void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
+    {
+        PropertyObject::readClipboard(ds);
+
+        ds.setVersion(QDataStream::Qt_4_6);
+        ds >> _label;
+    }
+
 
     void NeuroItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion &) const
     {

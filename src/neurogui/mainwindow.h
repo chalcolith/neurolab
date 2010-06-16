@@ -155,6 +155,8 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
 
     private slots:
+        void filterEditMenu();
+
         void on_action_About_NeuroLab_triggered();
         void on_action_Manual_triggered();
         void on_action_New_triggered();

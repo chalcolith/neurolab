@@ -118,7 +118,7 @@ namespace NeuroLab
         void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
 
         /// \return The node's ID, for use when saving and loading.
-        int id() { return _id; }
+        int id() const { return _id; }
 
         /// \return Incoming links.
         const QList<NeuroItem *> & incoming() const { return _incoming; }
@@ -193,6 +193,16 @@ namespace NeuroLab
 
         /// Reads the item's data from a data stream.  Derived classes should call the base class version to correctly read item data.
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
+        /// Writes the item's data to a clipboard data stream.
+        /// \param ds The data stream.
+        /// \param id_map A map from existing item ids to normalized ids in the clipboard.
+        virtual void writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const;
+
+        /// Reads the item's data from a clipboard data stream.
+        /// \param ds The data stream.
+        /// \param id_map Maps from normalized ids to new neuro items.
+        virtual void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
 
         /// Writes the ids of incoming and outgoing items.
         virtual void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
