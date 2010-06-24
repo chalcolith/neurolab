@@ -6,11 +6,7 @@ del /s /q Makefile* > "%TEMP%\distclean.log"
 rem if not exist neurolab_all.user echo > neurolab_all.user
 rem del /s /q *.user > "%TEMP%\distclean.log"
 
-if not exist debug mkdir debug
-del /s /q debug > "%TEMP%\distclean.log"
-
-if not exist release mkdir release
-del /s /q release > "%TEMP%\distclean.log"
+if exist ..\build rmdir /s /q ..\build > "%TEMP%\distclean.log"
 
 echo > dummy.o
 del /s /q *.o > "%TEMP%\distclean.log"

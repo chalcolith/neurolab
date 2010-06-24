@@ -3,8 +3,8 @@ QT += gui
 TARGET = qtpropertybrowser
 TEMPLATE = lib
 
-macx:CONFIG += lib_bundle
-macx:CONFIG += x86 x86_64
+macx { CONFIG += lib_bundle }
+macx { CONFIG += x86 x86_64 }
 
 VERSION = 2.5.1
 
@@ -28,11 +28,11 @@ HEADERS += $$SRC/qtpropertybrowser.h \
             $$SRC/qtpropertybrowserutils_p.h
 RESOURCES += $$SRC/qtpropertybrowser.qrc
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=release }
+build_pass:debug { BUILDDIR=debug }
 
-macx:DESTDIR = ../../$$BUILDDIR/neurolab.app/Contents/Frameworks
-else:DESTDIR = ../../$$BUILDDIR
+macx { DESTDIR = $$OUT_PWD/../../$$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$OUT_PWD/../../$$BUILDDIR }
 
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR

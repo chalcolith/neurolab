@@ -3,8 +3,8 @@ QT += gui
 TARGET = griditems
 TEMPLATE = lib
 
-macx:CONFIG += lib_bundle
-macx:CONFIG += x86 x86_64
+macx { CONFIG += lib_bundle }
+macx { CONFIG += x86 x86_64 }
 
 include(../version.txt)
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
@@ -16,17 +16,17 @@ SOURCES += neurogriditem.cpp
 HEADERS += neurogriditem.h\
         griditems_global.h
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=$$OUT_PWD/release }
+build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
 
-macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
-else:DESTDIR = ../$$BUILDDIR/plugins
+macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$BUILDDIR/plugins }
 
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-macx:QMAKE_LFLAGS += -F$$DESTDIR
+macx { QMAKE_LFLAGS += -F$$DESTDIR }
 
 win32 {
     LIBS += -L$$DESTDIR/.. \

@@ -71,6 +71,9 @@ namespace NeuroLab
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
+
     public slots:
         /// Resets the item.  If it is not frozen, sets the output value to zero.
         virtual void reset();

@@ -3,8 +3,8 @@ QT -= gui
 TARGET = neurolib
 TEMPLATE = lib
 
-macx:CONFIG += lib_bundle
-macx:CONFIG += x86 x86_64
+macx { CONFIG += lib_bundle }
+macx { CONFIG += x86 x86_64 }
 
 include(../version.txt)
 
@@ -16,17 +16,17 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=$$OUT_PWD/release }
+build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
 
-macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
-else:DESTDIR = ../$$BUILDDIR
+macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$BUILDDIR }
 
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-macx:QMAKE_LFLAGS += -F$$DESTDIR
+macx { QMAKE_LFLAGS += -F$$DESTDIR }
 
 win32 { LIBS += -L$$DESTDIR -lautomata1 }
 else:macx { LIBS += -framework automata }

@@ -3,8 +3,8 @@ QT -= gui
 TARGET = automata
 TEMPLATE = lib
 
-macx:CONFIG += lib_bundle
-macx:CONFIG += x86 x86_64
+macx { CONFIG += lib_bundle }
+macx { CONFIG += x86 x86_64 }
 
 include(../version.txt)
 DEFINES += AUTOMATA_LIBRARY
@@ -18,11 +18,11 @@ HEADERS += automaton.h \
     asyncstate.h \
     pool.h
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=$$OUT_PWD/release }
+build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
 
-macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
-else:DESTDIR = ../$$BUILDDIR
+macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$BUILDDIR }
 
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR

@@ -151,19 +151,31 @@ namespace NeuroLab
         updateProperties();
     }
 
+    void NeuroNarrowItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        NeuroItem::writeClipboard(ds, id_map);
+
+        //ds.setVersion(QDataStream::Qt_4_6);
+        // cell index is set by derived type constructor
+    }
+
+    void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+    }
+
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         NeuroItem::writeBinary(ds, file_version);
+
+        ds.setVersion(QDataStream::Qt_4_6);
         ds << static_cast<qint32>(_cellIndex);
     }
 
     void NeuroNarrowItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         NeuroItem::readBinary(ds, file_version);
+
+        ds.setVersion(QDataStream::Qt_4_6);
 
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {

@@ -1,5 +1,6 @@
-glob:Makefile*
+glob:build
 glob:*.user
+glob:Makefile*
 glob:ui_*.h
 glob:object_script.*
 glob:*.ncb

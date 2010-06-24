@@ -3,8 +3,8 @@ QT += gui
 TARGET = neurogui
 TEMPLATE = lib
 
-macx:CONFIG += lib_bundle
-macx:CONFIG += x86 x86_64
+macx { CONFIG += lib_bundle }
+macx { CONFIG += x86 x86_64 }
 
 DEFINES += NEUROGUI_LIBRARY
 
@@ -48,17 +48,17 @@ FORMS += mainwindow.ui \
     filedirtydialog.ui \
     aboutdialog.ui
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=$$OUT_PWD/release }
+build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
 
-macx:DESTDIR = ../$$BUILDDIR/neurolab.app/Contents/Frameworks
-else:DESTDIR = ../$$BUILDDIR
+macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$BUILDDIR }
 
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-macx:QMAKE_LFLAGS += -F$$DESTDIR
+macx { QMAKE_LFLAGS += -F$$DESTDIR }
 
 win32 {
     LIBS += -L$$DESTDIR \

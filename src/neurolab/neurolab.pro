@@ -4,7 +4,7 @@ QT += svg
 TARGET = neurolab
 TEMPLATE = app
 
-macx:CONFIG += x86 x86_64
+macx { CONFIG += x86 x86_64 }
 
 include(../version.txt)
 
@@ -12,15 +12,15 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 SOURCES += main.cpp
 
-debug:BUILDDIR=debug
-else:BUILDDIR=release
+build_pass:release { BUILDDIR=$$OUT_PWD/release }
+build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
 
-DESTDIR = ../$$BUILDDIR
+DESTDIR = $$BUILDDIR
 OBJECTS_DIR = $$BUILDDIR
 MOC_DIR = $$BUILDDIR
 UI_DIR = $$BUILDDIR
 
-macx:QMAKE_LFLAGS += -F$$DESTDIR/neurolab.app/Contents/Frameworks
+macx { QMAKE_LFLAGS += -F$$DESTDIR/neurolab.app/Contents/Frameworks }
 
 win32 {
     LIBS += -L../$$BUILDDIR \
