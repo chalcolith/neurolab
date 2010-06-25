@@ -1,5 +1,7 @@
 @echo off
 
+if exist distclean.bat cd ..
+
 if not exist Makefile echo > Makefile
 del /s /q Makefile* > "%TEMP%\distclean.log"
 

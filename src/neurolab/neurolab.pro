@@ -13,7 +13,7 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 SOURCES += main.cpp
 
 release { BUILDDIR=release }
-debu { BUILDDIR=debug }
+debug { BUILDDIR=debug }
 
 DESTDIR = $$OUT_PWD/../$$BUILDDIR
 TEMPDIR = $$OUT_PWD/$$BUILDDIR

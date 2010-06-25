@@ -1,4 +1,6 @@
-@echo off
+rem @echo off
+
+if exist distclean.bat cd ..
 
 if "%1" == "help" goto help
 if "%1" == "-help" goto help
