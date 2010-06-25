@@ -85,7 +85,7 @@ namespace Automata
 
             return index;
         }
-
+        
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
@@ -198,12 +198,9 @@ namespace Automata
             }
         }
 
-
         /// Writes the graph's data.  Should be called by derived classes' implementations.
         virtual void writeBinary(QDataStream & ds, const AutomataFileVersion & file_version) const
         {
-            ds.setVersion(QDataStream::Qt_4_6);
-
             // directed flag
             ds << _directed;
 
@@ -223,8 +220,6 @@ namespace Automata
         /// Reads the graph's data.  Should be called by derived classes' implementations.
         virtual void readBinary(QDataStream & ds, const AutomataFileVersion & file_version)
         {
-            ds.setVersion(QDataStream::Qt_4_6);
-
             if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_1)
             {
                 ds >> _directed;

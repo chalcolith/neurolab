@@ -52,7 +52,7 @@ namespace NeuroLab
         QRectF _rect;
 
     public:
-        NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos);
+        NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItemBase();
 
         /// The node will be drawn as an ellipse within this rectangle (in item coordinates).
@@ -66,6 +66,9 @@ namespace NeuroLab
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void adjustLinks();
 
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
+        
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
@@ -89,7 +92,7 @@ namespace NeuroLab
         Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _run_property;
 
     public:
-        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItem();
 
         virtual QString uiName() const { return tr("Node"); }
@@ -130,7 +133,7 @@ namespace NeuroLab
         Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _gap_property;
 
     public:
-        NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroOscillatorItem();
 
         virtual QString uiName() const { return tr("Oscillator"); }

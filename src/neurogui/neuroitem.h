@@ -100,12 +100,20 @@ namespace NeuroLab
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
 
+        enum CreateContext
+        {
+            CREATE_NONE = 0,
+            CREATE_UI,
+            CREATE_LOADFILE,
+            NUM_CREATE_CONTEXTS
+        };
+        
         /// Constructor.
-        NeuroItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
 
         /// Creates an item of the correct type, given an RTTI type name that has been registered.
-        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos);
+        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos, const CreateContext & context);
 
         const LabNetwork *network() const { return _network; }
         LabNetwork *network() { return _network; }
@@ -217,7 +225,7 @@ namespace NeuroLab
         static void registerTypeName(const QString & mangledName, const QString & friendlyName);
 
         /// Function type for static item creators.
-        typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos);
+        typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos, const CreateContext & context);
 
         static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
         static void removeItemCreator(const QString & typeName);
@@ -297,17 +305,17 @@ namespace NeuroLab
 
     /// Use this macro in the header file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DECLARE_CREATOR \
-    static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos); \
+    static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
     static NeuroLab::NeuroItemRegistrator _static_registrator;
 
     /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
     NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
-    NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos) \
+    NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
-        NeuroItem *item = new TypeName(scene->network(), scenePos); \
+        NeuroItem *item = new TypeName(scene->network(), scenePos, context); \
         return item; \
     }
 

@@ -45,8 +45,8 @@ namespace GridItems
 
     NEUROITEM_DEFINE_CREATOR(NeuroGridItem, QObject::tr("Grid|Grid Item"));
 
-    NeuroGridItem::NeuroGridItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroItem(network, scenePos)
+    NeuroGridItem::NeuroGridItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroItem(network, scenePos, context)
     {
     }
 

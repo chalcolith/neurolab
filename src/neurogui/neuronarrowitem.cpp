@@ -49,8 +49,8 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroItem(network, scenePos),
+    NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroItem(network, scenePos, context),
         _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue,
                         tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
         _cellIndex(-1)
@@ -161,21 +161,21 @@ namespace NeuroLab
 
     void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
     {
+        NeuroItem::readClipboard(ds, id_map);
+        
+        //ds.setVersion(QDataStream::Qt_4_6);
+        // cell index is set by derived type constructor
     }
 
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroItem::writeBinary(ds, file_version);
-
-        ds.setVersion(QDataStream::Qt_4_6);
         ds << static_cast<qint32>(_cellIndex);
     }
 
     void NeuroNarrowItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
         NeuroItem::readBinary(ds, file_version);
-
-        ds.setVersion(QDataStream::Qt_4_6);
 
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {

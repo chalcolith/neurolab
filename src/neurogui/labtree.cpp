@@ -101,8 +101,6 @@ namespace NeuroLab
         Q_ASSERT(_scene);
         Q_ASSERT(_view);
 
-        ds.setVersion(QDataStream::Qt_4_6);
-
         ds << _id;
 
         // view matrix
@@ -136,8 +134,6 @@ namespace NeuroLab
 
     void LabTreeNode::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _id;
@@ -158,7 +154,7 @@ namespace NeuroLab
                 QString type;
                 ds >> type;
 
-                NeuroItem *new_item = NeuroItem::create(type, _scene, QPointF(0,0));
+                NeuroItem *new_item = NeuroItem::create(type, _scene, QPointF(0,0), NeuroItem::CREATE_LOADFILE);
                 if (new_item)
                 {
                     new_item->readBinary(ds, file_version);
@@ -268,7 +264,6 @@ namespace NeuroLab
     {
         Q_ASSERT(_root);
 
-        ds.setVersion(QDataStream::Qt_4_6);
         ds << _current->id();
         _root->writeBinary(ds, file_version);
     }
@@ -290,8 +285,6 @@ namespace NeuroLab
 
     void LabTree::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             // current node

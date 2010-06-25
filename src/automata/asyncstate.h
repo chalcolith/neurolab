@@ -87,8 +87,6 @@ namespace Automata
         /// Write the cell's data.
         void writeBinary(QDataStream & ds, const AutomataFileVersion & file_version) const
         {
-            ds.setVersion(QDataStream::Qt_4_6);
-
             q0.writeBinary(ds, file_version);
             q1.writeBinary(ds, file_version);
             ds << r;
@@ -97,8 +95,6 @@ namespace Automata
         /// Read the cell's data (both previous and current states).
         void readBinary(QDataStream & ds, const AutomataFileVersion & file_version)
         {
-            ds.setVersion(QDataStream::Qt_4_6);
-
             q0.readBinary(ds, file_version);
             q1.readBinary(ds, file_version);
 

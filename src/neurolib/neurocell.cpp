@@ -168,8 +168,6 @@ namespace NeuroLib
 
     void NeuroCell::writeBinary(QDataStream & ds, const Automata::AutomataFileVersion &) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         ds << static_cast<quint8>(_kind);
         ds << static_cast<bool>(_frozen);
 
@@ -199,8 +197,6 @@ namespace NeuroLib
     {
         if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_OLD)
         {
-            ds.setVersion(QDataStream::Qt_4_6);
-
             quint8 k;
             quint16 s;
             float n;

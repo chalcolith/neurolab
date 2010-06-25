@@ -125,8 +125,6 @@ namespace NeuroLab
 
     void PropertyObject::writeClipboard(QDataStream & ds) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         ds << static_cast<qint32>(_properties.size());
         for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
         {
@@ -141,8 +139,6 @@ namespace NeuroLab
 
     void PropertyObject::readClipboard(QDataStream & ds)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         qint32 num;
         ds >> num;
 

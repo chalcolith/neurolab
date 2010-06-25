@@ -52,8 +52,8 @@ using namespace NeuroLib;
 namespace NeuroLab
 {
 
-    NeuroNodeItemBase::NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNarrowItem(network, scenePos)
+    NeuroNodeItemBase::NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroNarrowItem(network, scenePos, context)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
@@ -123,12 +123,22 @@ namespace NeuroLab
             }
         }
     }
+    
+    void NeuroNodeItemBase::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        NeuroNarrowItem::writeClipboard(ds, id_map);
+        ds << _rect;
+    }
+    
+    void NeuroNodeItemBase::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        NeuroNarrowItem::readClipboard(ds, id_map);
+        ds >> _rect;
+    }
 
     void NeuroNodeItemBase::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroNarrowItem::writeBinary(ds, file_version);
-
-        ds.setVersion(QDataStream::Qt_4_6);
         ds << _rect;
     }
 
@@ -136,13 +146,9 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        ds.setVersion(QDataStream::Qt_4_6);
-
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
-            QRectF r;
-            ds >> r;
-            setRect(r);
+            ds >> _rect;
         }
         else
         {
@@ -155,16 +161,19 @@ namespace NeuroLab
 
     NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow|Node"));
 
-    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNodeItemBase(network, scenePos),
+    NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroNodeItemBase(network, scenePos, context),
         _frozen_property(this, &NeuroNodeItem::frozen, &NeuroNodeItem::setFrozen, tr("Frozen")),
         _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs,
                          tr("Inputs"), tr("How many inputs in general will it take to activate the node.")),
         _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun,
                       tr("1 / Slope"), tr("The range of input values between an output of zero and one.  Conceptually, the inverse of the slope.  Don't set this to zero."))
     {
-        NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
-        setCellIndex(index);
+        if (context == CREATE_UI)
+        {
+            NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+            setCellIndex(index);
+        }
     }
 
     NeuroNodeItem::~NeuroNodeItem()
@@ -306,8 +315,8 @@ namespace NeuroLab
 
     NEUROITEM_DEFINE_CREATOR(NeuroOscillatorItem, QObject::tr("Narrow|Oscillator"));
 
-    NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos)
-        : NeuroNodeItemBase(network, scenePos),
+    NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroNodeItemBase(network, scenePos, context),
         _phase_property(this, &NeuroOscillatorItem::phase, &NeuroOscillatorItem::setPhase,
                         tr("Phase"), tr("The number of steps before the oscillator will begin firing.")),
         _peak_property(this, &NeuroOscillatorItem::peak, &NeuroOscillatorItem::setPeak,
@@ -324,8 +333,11 @@ namespace NeuroLab
         cell.setStep(0);
         cell.setOutputValue(1);
 
-        NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
-        setCellIndex(index);
+        if (context == CREATE_UI)
+        {
+            NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
+            setCellIndex(index);
+        }
     }
 
     NeuroOscillatorItem::~NeuroOscillatorItem()

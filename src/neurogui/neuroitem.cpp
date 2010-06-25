@@ -75,7 +75,7 @@ namespace NeuroLab
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
 
 
-    NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos)
+    NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
         : PropertyObject(network), QGraphicsItem(),
         _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
         _network(network), _id(NEXT_ID++)
@@ -153,7 +153,7 @@ namespace NeuroLab
         _itemCreators->remove(typeName);
     }
 
-    NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos)
+    NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos, const CreateContext & context)
     {
         if (!_itemCreators)
             _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
@@ -161,7 +161,7 @@ namespace NeuroLab
         CreateFT cf = (*_itemCreators)[name].second;
 
         if (cf)
-            return cf(scene, pos);
+            return cf(scene, pos, context);
 
         return 0;
     }
@@ -535,25 +535,18 @@ namespace NeuroLab
     void NeuroItem::writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const
     {
         PropertyObject::writeClipboard(ds);
-
-        ds.setVersion(QDataStream::Qt_4_6);
         ds << _label;
     }
-
 
     void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         PropertyObject::readClipboard(ds);
-
-        ds.setVersion(QDataStream::Qt_4_6);
         ds >> _label;
     }
 
 
     void NeuroItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion &) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         ds << pos();
         ds << _label;
         ds << _id;
@@ -561,8 +554,6 @@ namespace NeuroLab
 
     void NeuroItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
         {
             QPointF p;
@@ -596,8 +587,6 @@ namespace NeuroLab
     /// Writes ids of incoming and outgoing pointers.
     void NeuroItem::writePointerIds(QDataStream & ds, const NeuroLabFileVersion &) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         qint32 n = _incoming.size();
         ds << n;
 
@@ -623,8 +612,6 @@ namespace NeuroLab
 
     void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
         {
             qint32 n;

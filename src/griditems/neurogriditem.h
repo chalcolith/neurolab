@@ -50,7 +50,7 @@ namespace GridItems
         NEUROITEM_DECLARE_CREATOR
 
     public:
-        NeuroGridItem(NeuroLab::LabNetwork *network, const QPointF & scenePos);
+        NeuroGridItem(NeuroLab::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
 
         virtual QString uiName() const { return tr("Test Grid"); }

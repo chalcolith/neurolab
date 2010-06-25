@@ -66,7 +66,7 @@ namespace NeuroLab
         if (!_network)
             return;
 
-        NeuroItem *item = NeuroItem::create(typeName, this, scenePos);
+        NeuroItem *item = NeuroItem::create(typeName, this, scenePos, NeuroItem::CREATE_UI);
         if (item)
         {
             addItem(item);

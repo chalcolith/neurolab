@@ -56,8 +56,6 @@ namespace NeuroLib
 
     void NeuroNet::writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         Automata::AutomataFileVersion & fv = const_cast<Automata::AutomataFileVersion &>(file_version);
 
         fv.automata_version = Automata::AUTOMATA_NUM_FILE_VERSIONS - 1;
@@ -75,8 +73,6 @@ namespace NeuroLib
 
     void NeuroNet::readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version)
     {
-        ds.setVersion(QDataStream::Qt_4_6);
-
         Automata::AutomataFileVersion & fv = const_cast<Automata::AutomataFileVersion &>(file_version);
 
         QString cookie;

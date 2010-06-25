@@ -64,14 +64,14 @@ namespace NeuroLab
         /// Constructor.
         /// \param network The network this item is a part of.
         /// \param scenePos The scene position at which to create the item.
-        NeuroLinkItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroLinkItem();
 
         NeuroLib::NeuroCell::NeuroValue weight() const;
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
 
         /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
-        QLineF line() const { return _line; }
+        QLineF line() const;
 
         /// Sets the link's back (\c p0) and front (\c p1) positions.
         void setLine(const QLineF & l);
@@ -113,15 +113,14 @@ namespace NeuroLab
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();
 
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
+        
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
         virtual void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
-
-    private:
-        /// Updates the link's position to be halfway between its front and back points.
-        void updatePos();
 
     protected:
         /// Adds the link's shape to the drawing painter path.
@@ -146,7 +145,7 @@ namespace NeuroLab
         NEUROITEM_DECLARE_CREATOR
 
     public:
-        NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroExcitoryLinkItem();
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
@@ -166,7 +165,7 @@ namespace NeuroLab
         NEUROITEM_DECLARE_CREATOR
 
     public:
-        NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroInhibitoryLinkItem();
 
         virtual QString uiName() const { return tr("Inhibitory Link"); }

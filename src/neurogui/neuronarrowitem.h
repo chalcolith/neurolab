@@ -55,7 +55,7 @@ namespace NeuroLab
         NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
 
     public:
-        NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos);
+        NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNarrowItem();
 
         virtual QString dataValue() const { return QString::number(outputValue()); }
