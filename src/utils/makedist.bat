@@ -14,6 +14,9 @@ REM ---------------------
 REM Build settings
 
 :build
+set PROJECT_NAME=neurolab_all
+set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
+
 set QT_DIST_DIR=C:\Qt\2010.02.1
 set QTDIR=%QT_DIST_DIR%\qt
 set QMAKESPEC=win32-g++
@@ -64,7 +67,8 @@ echo hg id is %HG_ID%
 REM ---------------------
 REM build NeuroLab
 
-call :build . neurolab_all.pro
+if not exist "%SHADOW_DIR%" mkdir "%SHADOW_DIR%"
+call :build "%SHADOW_DIR%" ..\src\neurolab_all.pro
 if ERRORLEVEL 1 goto :EOF
 
 REM ---------------------
@@ -96,11 +100,11 @@ call :copyfile "%QT_DIST_DIR%\qt\bin\qtgui4.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\qt\bin\qtsvg4.dll" %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
-call :copyfile release\qtpropertybrowser?.dll %RELEASE_DIR%
-call :copyfile release\automata?.dll %RELEASE_DIR%
-call :copyfile release\neurolib?.dll %RELEASE_DIR%
-call :copyfile release\neurogui?.dll %RELEASE_DIR%
-call :copyfile release\neurolab.exe %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\qtpropertybrowser?.dll %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\automata?.dll %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\neurolib?.dll %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\neurogui?.dll %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\neurolab.exe %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
 REM ---------------------

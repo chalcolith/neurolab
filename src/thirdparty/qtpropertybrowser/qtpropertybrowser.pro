@@ -28,13 +28,14 @@ HEADERS += $$SRC/qtpropertybrowser.h \
             $$SRC/qtpropertybrowserutils_p.h
 RESOURCES += $$SRC/qtpropertybrowser.qrc
 
-build_pass:release { BUILDDIR=release }
-build_pass:debug { BUILDDIR=debug }
+release { BUILDDIR=release }
+debug { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../../$$BUILDDIR }
+TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
-OBJECTS_DIR = $$BUILDDIR
-MOC_DIR = $$BUILDDIR
-UI_DIR = $$BUILDDIR
-RCC_DIR = $$BUILDDIR
+OBJECTS_DIR = $$TEMPDIR
+MOC_DIR = $$TEMPDIR
+UI_DIR = $$TEMPDIR
+RCC_DIR = $$TEMPDIR

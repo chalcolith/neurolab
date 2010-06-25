@@ -1,4 +1,4 @@
-glob:build
+glob:*-build-*
 glob:*.user
 glob:Makefile*
 glob:ui_*.h

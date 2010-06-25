@@ -48,17 +48,17 @@ FORMS += mainwindow.ui \
     filedirtydialog.ui \
     aboutdialog.ui
 
-build_pass:release { BUILDDIR=$$OUT_PWD/release }
-build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
+release { BUILDDIR=release }
+debug { BUILDDIR=debug }
 
-macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
-else { DESTDIR = $$BUILDDIR }
+macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }
+TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
-OBJECTS_DIR = $$BUILDDIR
-MOC_DIR = $$BUILDDIR
-UI_DIR = $$BUILDDIR
-
-macx { QMAKE_LFLAGS += -F$$DESTDIR }
+OBJECTS_DIR = $$TEMPDIR
+MOC_DIR = $$TEMPDIR
+UI_DIR = $$TEMPDIR
+RCC_DIR = $$TEMPDIR
 
 win32 {
     LIBS += -L$$DESTDIR \
@@ -66,6 +66,7 @@ win32 {
         -lautomata1 \
         -lqtpropertybrowser2
 } else:macx {
+    QMAKE_LFLAGS += -F$$DESTDIR
     LIBS += -framework neurolib \
         -framework automata \
         -framework qtpropertybrowser

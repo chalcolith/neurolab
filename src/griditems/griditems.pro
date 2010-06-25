@@ -16,31 +16,32 @@ SOURCES += neurogriditem.cpp
 HEADERS += neurogriditem.h\
         griditems_global.h
 
-build_pass:release { BUILDDIR=$$OUT_PWD/release }
-build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
+release { BUILDDIR=release }
+debug { BUILDDIR=debug }
 
-macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
-else { DESTDIR = $$BUILDDIR/plugins }
+macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }
+TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
-OBJECTS_DIR = $$BUILDDIR
-MOC_DIR = $$BUILDDIR
-UI_DIR = $$BUILDDIR
-
-macx { QMAKE_LFLAGS += -F$$DESTDIR }
+OBJECTS_DIR = $$TEMPDIR
+MOC_DIR = $$TEMPDIR
+UI_DIR = $$TEMPDIR
+RCC_DIR = $$TEMPDIR
 
 win32 {
-    LIBS += -L$$DESTDIR/.. \
+    LIBS += -L$$DESTDIR \
         -lneurogui1 \
         -lneurolib1 \
         -lautomata1 \
         -lqtpropertybrowser2
 } else:macx {
+    QMAKE_LFLAGS += -F$$DESTDIR
     LIBS += -framework neurogui \
         -framework neurolib \
         -framework automata \
         -framework qtpropertybrowser
 } else {
-    LIBS += -L$$DESTDIR/.. \
+    LIBS += -L$$DESTDIR \
         -lneurogui \
         -lneurolib \
         -lautomata \

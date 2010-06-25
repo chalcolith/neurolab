@@ -16,18 +16,23 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-build_pass:release { BUILDDIR=$$OUT_PWD/release }
-build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
+release { BUILDDIR=release }
+debug { BUILDDIR=debug }
 
-macx { DESTDIR = $$BUILDDIR/neurolab.app/Contents/Frameworks }
-else { DESTDIR = $$BUILDDIR }
+macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
+else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }
+TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
-OBJECTS_DIR = $$BUILDDIR
-MOC_DIR = $$BUILDDIR
-UI_DIR = $$BUILDDIR
+OBJECTS_DIR = $$TEMPDIR
+MOC_DIR = $$TEMPDIR
+UI_DIR = $$TEMPDIR
+RCC_DIR = $$TEMPDIR
 
-macx { QMAKE_LFLAGS += -F$$DESTDIR }
-
-win32 { LIBS += -L$$DESTDIR -lautomata1 }
-else:macx { LIBS += -framework automata }
-else { LIBS += -L$$DESTDIR -lautomata }
+win32 { 
+    LIBS += -L$$DESTDIR -lautomata1 
+} else:macx { 
+    QMAKE_LFLAGS += -F$$DESTDIR
+    LIBS += -framework automata 
+} else { 
+    LIBS += -L$$DESTDIR -lautomata 
+}

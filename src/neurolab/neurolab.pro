@@ -12,29 +12,31 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 SOURCES += main.cpp
 
-build_pass:release { BUILDDIR=$$OUT_PWD/release }
-build_pass:debug { BUILDDIR=$$OUT_PWD/debug }
+release { BUILDDIR=release }
+debug { BUILDDIR=debug }
 
-DESTDIR = $$BUILDDIR
-OBJECTS_DIR = $$BUILDDIR
-MOC_DIR = $$BUILDDIR
-UI_DIR = $$BUILDDIR
+DESTDIR = $$OUT_PWD/../$$BUILDDIR
+TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
-macx { QMAKE_LFLAGS += -F$$DESTDIR/neurolab.app/Contents/Frameworks }
+OBJECTS_DIR = $$TEMPDIR
+MOC_DIR = $$TEMPDIR
+UI_DIR = $$TEMPDIR
+RCC_DIR = $$TEMPDIR
 
 win32 {
-    LIBS += -L../$$BUILDDIR \
+    LIBS += -L$$DESTDIR \
         -lneurogui1 \
         -lneurolib1 \
         -lautomata1 \
         -lqtpropertybrowser2
 } else:macx {
+    QMAKE_LFLAGS += -F$$DESTDIR/neurolab.app/Contents/Frameworks
     LIBS += -framework neurogui \
         -framework neurolib \
         -framework automata \
         -framework qtpropertybrowser
 } else {
-    LIBS += -L../$$BUILDDIR \
+    LIBS += -L$$DESTDIR \
         -lneurogui \
         -lneurolib \
         -lautomata \
