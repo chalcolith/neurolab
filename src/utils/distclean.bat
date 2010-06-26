@@ -11,10 +11,10 @@ rem del /s /q *.user > "%TEMP%\distclean.log"
 for /d %%d in (..\*build*) do rmdir /s /q %%d > "%TEMP%\distclean.log"
 
 if not exist debug mkdir debug
-del /s /q debug > "%TEMP%\distclean.log"
+for /f usebackq %%d in (`dir /s /b *debug*`) do rmdir /s /q "%%d"
 
 if not exist release mkdir release
-del /s /q release > "%TEMP%\distclean.log"
+for /f usebackq %%d in (`dir /s /b *release*`) do rmdir /s /q "%%d"
 
 echo > dummy.o
 del /s /q *.o > "%TEMP%\distclean.log"

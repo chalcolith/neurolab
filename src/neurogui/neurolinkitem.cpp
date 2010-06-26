@@ -94,22 +94,22 @@ namespace NeuroLab
         QVector2D center(pos());
         QVector2D p1 = QVector2D(_line.p1()) + center;
         QVector2D p2 = QVector2D(_line.p2()) + center;
-        
+
         return QLineF(p1.toPointF(), p2.toPointF());
     }
-    
+
     void NeuroLinkItem::setLine(const QLineF & l)
     {
         settingLine = true;
         prepareGeometryChange();
-        
+
         QVector2D p1(l.p1());
         QVector2D p2(l.p2());
         QVector2D center = (p1 + p2) * 0.5f;
-        
+
         _line = QLineF((p1 - center).toPointF(), (p2 - center).toPointF());
         setPos(center.toPointF());
-        
+
         updateShape();
         adjustLinks();
 
@@ -181,7 +181,7 @@ namespace NeuroLab
         NeuroNarrowItem::addToShape(drawPath, texts);
 
         QVector2D myPos(pos());
-        
+
         // in my frame
         QVector2D myFront(_line.p2());
         QVector2D myBack(_line.p1());
@@ -289,56 +289,44 @@ namespace NeuroLab
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if ((labScene = dynamic_cast<LabScene *>(scene())))
+            if ((labScene = dynamic_cast<LabScene *>(scene()))
+                && labScene->selectedItems().size() <= 1
+                && !settingLine)
             {
-                if (labScene->selectedItems().size() <= 1)
-                {
-                    if (!settingLine)
-                    {
-                        // adjust position
-                        QVector2D center(pos());
-                        QVector2D front(line().p2());
-                        QVector2D back(line().p1());
-                        QVector2D mousePos(labScene->lastMousePos());
+                // adjust position
+                QVector2D front(line().p2());
+                QVector2D back(line().p1());
+                QVector2D mousePos(labScene->lastMousePos());
 
-                        qreal distFront = (mousePos - front).lengthSquared();
-                        qreal distBack = (mousePos - back).lengthSquared();
+                qreal distFront = (mousePos - front).lengthSquared();
+                qreal distBack = (mousePos - back).lengthSquared();
 
-                        dragFront = distFront < distBack;
-                        if (dragFront)
-                            front = mousePos;
-                        else
-                            back = mousePos;
+                dragFront = distFront < distBack;
+                if (dragFront)
+                    front = mousePos;
+                else
+                    back = mousePos;
 
-                        _line.setP1((back - center).toPointF());
-                        _line.setP2((front - center).toPointF());
+                QVector2D newCenter = (front + back) * 0.5;
 
-                        QVector2D newCenter = (front + back) * 0.5;
+                // set new position and line
+                setPos(newCenter.toPointF());
+                _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
 
-                        // adjust if we're linked
-                        if (_frontLinkTarget)
-                            _frontLinkTarget->adjustLinks();
-                        if (_backLinkTarget)
-                            _backLinkTarget->adjustLinks();
+                // adjust if we're linked
+                if (_frontLinkTarget)
+                    _frontLinkTarget->adjustLinks();
+                if (_backLinkTarget)
+                    _backLinkTarget->adjustLinks();
 
-                        QVector2D adjustedCenter(pos());
-                        if (adjustedCenter != center)
-                            newCenter = adjustedCenter;
+                // handle move
+                QPointF movePos(scenePos());
 
-                        // handle move
-                        QPointF movePos(newCenter.toPointF());
+                handleMove(mousePos.toPointF(), movePos);
+                adjustLinks();
+                updateShape();
 
-                        if (handleMove(mousePos.toPointF(), movePos))
-                        {
-                            adjustLinks();
-                            updateShape();
-
-                            return QVariant(movePos);
-                        }
-                    }
-                }
-
-                return value;
+                return QVariant(movePos);
             }
             break;
 
@@ -348,13 +336,13 @@ namespace NeuroLab
 
         return NeuroNarrowItem::itemChange(change, value);
     }
-    
+
     void NeuroLinkItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
-        NeuroNarrowItem::writeClipboard(ds, id_map);        
+        NeuroNarrowItem::writeClipboard(ds, id_map);
         ds << _line;
     }
-    
+
     void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
     {
         NeuroNarrowItem::readClipboard(ds, id_map);
@@ -463,7 +451,7 @@ namespace NeuroLab
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
             setCellIndex(index);
         }
-        
+
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 
@@ -518,7 +506,7 @@ namespace NeuroLab
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -100000000));
             setCellIndex(index);
         }
-        
+
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
     }
 

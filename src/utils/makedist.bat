@@ -1,6 +1,6 @@
-rem @echo off
+@echo off
 
-if exist distclean.bat cd ..
+if exist makedist.bat cd ..
 
 if "%1" == "help" goto help
 if "%1" == "-help" goto help
@@ -16,8 +16,10 @@ REM ---------------------
 REM Build settings
 
 :build
+echo setting build settings...
 set PROJECT_NAME=neurolab_all
 set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
+set DISTRIB_DIR=..\distrib
 
 set QT_DIST_DIR=C:\Qt\2010.02.1
 set QTDIR=%QT_DIST_DIR%\qt
@@ -26,6 +28,7 @@ set QMAKESPEC=win32-g++
 echo determining qt path
 qmake --version
 if ERRORLEVEL 1 call :setpath
+echo done setting build settings.
 
 REM ---------------------
 REM Clean build
@@ -76,8 +79,8 @@ if ERRORLEVEL 1 goto :EOF
 REM ---------------------
 REM create release directory
 
-if not exist distrib\zips mkdir distrib\zips
-set RELEASE_DIR=distrib\%NEUROLAB_VERSION%
+if not exist "%DISTRIB_DIR%\zips" mkdir "%DISTRIB_DIR%\zips"
+set RELEASE_DIR="%DISTRIB_DIR%\%NEUROLAB_VERSION%"
 if exist %RELEASE_DIR% rmdir /q /s %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 mkdir %RELEASE_DIR%
@@ -135,15 +138,17 @@ pushd .
 call utils\distclean.bat
 if ERRORLEVEL 1 goto error
 popd
+echo done cleaning
 goto :EOF
 
 :makezip
-pushd distrib\%1
+pushd "%DISTRIB_DIR%\%1"
 set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
-..\..\thirdparty\zip-3.0-bin\bin\zip -r %ZIPFILE% * > %TEMP%\deploy.log
+echo making zip %ZIPFILE%
+if exist "%ZIPFILE%" del /q "%ZIPFILE%"
+..\..\src\thirdparty\zip-3.0-bin\bin\zip -r "%ZIPFILE%" * > %TEMP%\deploy.log
 if ERRORLEVEL 1 goto error
-echo created %ZIPFILE%
-popd
+echo made %ZIPFILE%
 goto :EOF
 
 :copyfile
@@ -180,6 +185,7 @@ goto :EOF
 :build
 call :qmake %1 %2
 call :make %1
+echo done build
 goto :EOF
 
 :qmake
@@ -193,7 +199,7 @@ goto :EOF
 :make
 echo running make in %1...
 pushd "%1"
-"%QT_DIST_DIR%\mingw\bin\mingw32-make.exe" --no-print-directory
+"%QT_DIST_DIR%\mingw\bin\mingw32-make.exe"
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
