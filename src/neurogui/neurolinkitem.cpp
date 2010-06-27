@@ -91,7 +91,7 @@ namespace NeuroLab
 
     QLineF NeuroLinkItem::line() const
     {
-        QVector2D center(pos());
+        QVector2D center(scenePos());
         QVector2D p1 = QVector2D(_line.p1()) + center;
         QVector2D p2 = QVector2D(_line.p2()) + center;
 
@@ -289,13 +289,16 @@ namespace NeuroLab
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if ((labScene = dynamic_cast<LabScene *>(scene()))
-                && labScene->selectedItems().size() <= 1
-                && !settingLine)
+            labScene = dynamic_cast<LabScene *>(scene());
+            
+            if (!settingLine && labScene && labScene->selectedItems().size() <= 1)
             {
+                prepareGeometryChange();
+                
                 // adjust position
-                QVector2D front(line().p2());
-                QVector2D back(line().p1());
+                QVector2D oldCenter(scenePos());
+                QVector2D front = QVector2D(_line.p2()) + oldCenter;
+                QVector2D back = QVector2D(_line.p1()) + oldCenter;
                 QVector2D mousePos(labScene->lastMousePos());
 
                 qreal distFront = (mousePos - front).lengthSquared();
@@ -307,11 +310,13 @@ namespace NeuroLab
                 else
                     back = mousePos;
 
-                QVector2D newCenter = (front + back) * 0.5;
+                QVector2D newCenter = (front + back) * 0.5f;
 
                 // set new position and line
-                setPos(newCenter.toPointF());
+                settingLine = true;
                 _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
+                setPos(newCenter.toPointF());
+                settingLine = false;
 
                 // adjust if we're linked
                 if (_frontLinkTarget)
@@ -321,12 +326,12 @@ namespace NeuroLab
 
                 // handle move
                 QPointF movePos(scenePos());
-
                 handleMove(mousePos.toPointF(), movePos);
+                
                 adjustLinks();
                 updateShape();
 
-                return QVariant(movePos);
+                return QVariant(scenePos());
             }
             break;
 
@@ -343,9 +348,9 @@ namespace NeuroLab
         ds << _line;
     }
 
-    void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    void NeuroLinkItem::readClipboard(QDataStream &ds)
     {
-        NeuroNarrowItem::readClipboard(ds, id_map);
+        NeuroNarrowItem::readClipboard(ds);
         ds >> _line;
     }
 
@@ -361,9 +366,7 @@ namespace NeuroLab
 
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
-            QLineF l;
-            ds >> l;
-            setLine(l);
+            ds >> _line;
         }
         else
         {

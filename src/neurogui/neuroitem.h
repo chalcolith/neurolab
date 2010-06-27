@@ -209,8 +209,7 @@ namespace NeuroLab
 
         /// Reads the item's data from a clipboard data stream.
         /// \param ds The data stream.
-        /// \param id_map Maps from normalized ids to new neuro items.
-        virtual void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
+        virtual void readClipboard(QDataStream & ds);
 
         /// Writes the ids of incoming and outgoing items.
         virtual void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;

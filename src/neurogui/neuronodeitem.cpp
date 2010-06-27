@@ -130,9 +130,9 @@ namespace NeuroLab
         ds << _rect;
     }
     
-    void NeuroNodeItemBase::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    void NeuroNodeItemBase::readClipboard(QDataStream &ds)
     {
-        NeuroNarrowItem::readClipboard(ds, id_map);
+        NeuroNarrowItem::readClipboard(ds);
         ds >> _rect;
     }
 

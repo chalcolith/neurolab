@@ -538,7 +538,7 @@ namespace NeuroLab
         ds << _label;
     }
 
-    void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
+    void NeuroItem::readClipboard(QDataStream &ds)
     {
         PropertyObject::readClipboard(ds);
         ds >> _label;

@@ -414,7 +414,7 @@ namespace NeuroLab
         if (clipboard)
         {
             const QMimeData *data = clipboard->mimeData();
-            if (data && data->data(CLIPBOARD_TYPE).size() > 0)
+            if (data && data->hasFormat(CLIPBOARD_TYPE) && data->data(CLIPBOARD_TYPE).size() > 0)
                 return true;
         }
 
@@ -461,7 +461,7 @@ namespace NeuroLab
         {
             QDataStream ds(&clipboardData, QIODevice::WriteOnly);
 
-            ds << selected.size();
+            ds << static_cast<quint32>(selected.size());
 
             // write type names so we can create items before reading them...
             for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
@@ -509,6 +509,54 @@ namespace NeuroLab
     /// Pastes any items in the clipboard.
     void LabNetwork::pasteItems()
     {
+        // get data from clipboard
+        QClipboard *clipboard = QApplication::clipboard();
+        if (!clipboard)
+            return;
+        
+        const QMimeData *data = clipboard->mimeData();
+        if (!data || !data->hasFormat(CLIPBOARD_TYPE))
+            return;
+        
+        QByteArray buf = data->data(CLIPBOARD_TYPE);
+        QDataStream ds(&buf, QIODevice::ReadOnly);
+        
+        // read item types and create items
+        QList<NeuroItem *> new_items;
+        quint32 num_items;
+        ds >> num_items;
+        
+        for (quint32 i = 0; i < num_items; ++i)
+        {
+            QString typeName;
+            ds >> typeName;
+            
+            if (typeName != "??Unknown??")
+                new_items.append(NeuroItem::create(typeName, scene(), scene()->lastMousePos(), NeuroItem::CREATE_UI));
+            else
+                new_items.append(0);
+        }
+        
+        // place items in relative order
+        QVector2D center(scene()->lastMousePos());
+        
+        for (QListIterator<NeuroItem *> i(new_items); i.hasNext(); i.next())
+        {
+            NeuroItem *item = i.peekNext();
+            QString typeName; ds >> typeName;
+            qint32 rel_id; ds >> rel_id;
+            QVector2D rel_pos; ds >> rel_pos;
+            
+            item->readClipboard(ds);
+            item->setPos((center + rel_pos).toPointF());
+            
+            scene()->addItem(item);
+        }
+        
+        // TODO: re-connect links
+        
+        // 
+        _tree->update();
     }
 
     /// Starts the network running (currently not implemented).

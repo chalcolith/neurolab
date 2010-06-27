@@ -149,6 +149,7 @@ if exist "%ZIPFILE%" del /q "%ZIPFILE%"
 ..\..\src\thirdparty\zip-3.0-bin\bin\zip -r "%ZIPFILE%" * > %TEMP%\deploy.log
 if ERRORLEVEL 1 goto error
 echo made %ZIPFILE%
+popd
 goto :EOF
 
 :copyfile
