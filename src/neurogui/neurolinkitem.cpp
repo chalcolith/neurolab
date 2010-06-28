@@ -348,9 +348,9 @@ namespace NeuroLab
         ds << _line;
     }
 
-    void NeuroLinkItem::readClipboard(QDataStream &ds)
+    void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, int> & id_map)
     {
-        NeuroNarrowItem::readClipboard(ds);
+        NeuroNarrowItem::readClipboard(ds, id_map);
         ds >> _line;
     }
 
