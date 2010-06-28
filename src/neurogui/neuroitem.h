@@ -107,7 +107,7 @@ namespace NeuroLab
             CREATE_LOADFILE,
             NUM_CREATE_CONTEXTS
         };
-        
+
         /// Constructor.
         NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
@@ -209,7 +209,7 @@ namespace NeuroLab
 
         /// Reads the item's data from a clipboard data stream.
         /// \param ds The data stream.
-        virtual void readClipboard(QDataStream & ds, const QMap<int, int> & id_map);
+        virtual void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
 
         /// Writes the ids of incoming and outgoing items.
         virtual void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;

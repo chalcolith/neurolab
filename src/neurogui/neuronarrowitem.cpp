@@ -159,10 +159,10 @@ namespace NeuroLab
         // cell index is set by derived type constructor
     }
 
-    void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, int> & id_map)
+    void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroItem::readClipboard(ds, id_map);
-        
+
         //ds.setVersion(QDataStream::Qt_4_6);
         // cell index is set by derived type constructor
     }

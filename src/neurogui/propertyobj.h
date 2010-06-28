@@ -168,8 +168,8 @@ namespace NeuroLab
         /// Update the properties from the object's state.
         virtual void updateProperties();
 
-        virtual void writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const;
-        virtual void readClipboard(QDataStream & ds, const QMap<int, int> & id_map);
+        virtual void writeClipboard(QDataStream & ds) const;
+        virtual void readClipboard(QDataStream & ds);
 
     public slots:
         /// Handle changes to the property values.

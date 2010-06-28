@@ -123,14 +123,14 @@ namespace NeuroLab
             }
         }
     }
-    
+
     void NeuroNodeItemBase::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroNarrowItem::writeClipboard(ds, id_map);
         ds << _rect;
     }
-    
-    void NeuroNodeItemBase::readClipboard(QDataStream &d, const QMap<int, int> & id_maps)
+
+    void NeuroNodeItemBase::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroNarrowItem::readClipboard(ds, id_map);
         ds >> _rect;

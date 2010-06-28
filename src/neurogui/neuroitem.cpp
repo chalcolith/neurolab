@@ -536,12 +536,45 @@ namespace NeuroLab
     {
         PropertyObject::writeClipboard(ds);
         ds << _label;
+
+        // incoming
+        ds << static_cast<quint32>(_incoming.size());
+        for (int i = 0; i < _incoming.size(); ++i)
+            ds << static_cast<qint32>(id_map[_incoming[i]->id()]);
+
+        // outgoing
+        ds << static_cast<quint32>(_outgoing.size());
+        for (int i = 0; i < _outgoing.size(); ++i)
+            ds << static_cast<qint32>(id_map[_outgoing[i]->id()]);
     }
 
-    void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, int> & id_map)
+    void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
-        PropertyObject::readClipboard(ds, id_map);
+        PropertyObject::readClipboard(ds);
         ds >> _label;
+
+        quint32 size;
+        qint32 id;
+
+        // incoming
+        ds >> size;
+        for (quint32 i = 0; i < size; ++i)
+        {
+            ds >> id;
+
+            if (id_map[id])
+                addIncoming(id_map[i]);
+        }
+
+        // outgoing
+        ds >> size;
+        for (quint32 i = 0; i < size; ++i)
+        {
+            ds >> id;
+
+            if (id_map[id])
+                addOutgoing(id_map[i]);
+        }
     }
 
 

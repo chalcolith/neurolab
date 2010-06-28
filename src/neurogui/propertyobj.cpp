@@ -137,7 +137,7 @@ namespace NeuroLab
         }
     }
 
-    void PropertyObject::readClipboard(QDataStream & ds, const QMap<int, int> &)
+    void PropertyObject::readClipboard(QDataStream & ds)
     {
         qint32 num;
         ds >> num;

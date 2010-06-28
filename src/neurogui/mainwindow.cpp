@@ -257,17 +257,11 @@ namespace NeuroLab
         setStatus("");
         LabNetwork *newNetwork = 0;
 
-        if (_currentDataFile && !closeDataFile())
-            return false;
-
-        if (_currentNetwork && !closeNetwork())
-            return false;
-
         try
         {
             newNetwork = LabNetwork::open(this, QString());
         }
-        catch (LabException & le)
+        catch (Automata::Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to open network."), le.message());
             newNetwork = 0;
@@ -275,9 +269,28 @@ namespace NeuroLab
 
         if (newNetwork)
         {
-            setNetwork(newNetwork);
-            setStatus(tr("Opened %1").arg(newNetwork->fname()));
-            return true;
+            try
+            {
+                if (_currentDataFile)
+                    closeDataFile();
+                if (_currentNetwork)
+                    closeNetwork();
+            }
+            catch (Automata::Exception & le)
+            {
+                QMessageBox::critical(this, tr("Problem closing network."), le.message());
+            }
+
+            try
+            {
+                setNetwork(newNetwork);
+                setStatus(tr("Opened %1").arg(newNetwork->fname()));
+                return true;
+            }
+            catch (Automata::Exception & le)
+            {
+                QMessageBox::critical(this, tr("Unable to open network."), le.message());
+            }
         }
 
         return false;

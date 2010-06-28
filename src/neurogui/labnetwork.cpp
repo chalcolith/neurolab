@@ -456,6 +456,8 @@ namespace NeuroLab
         center *= 1.0 / selected.size();
 
         // write items
+        PropertyObject *old_property_obj = MainWindow::instance()->propertyObject();
+
         QByteArray clipboardData;
 
         {
@@ -472,20 +474,21 @@ namespace NeuroLab
                     ds << ni->getTypeName();
                 else
                     ds << QString("??Unknown??");
-                
+
                 ds << static_cast<qint32>(id_map[ni->id()]);
             }
 
             // write data
-            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
+            for (QMutableListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
             {
-                const QGraphicsItem *item = i.peekNext();
-                const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
+                QGraphicsItem *item = i.peekNext();
+                NeuroItem *ni = dynamic_cast<NeuroItem *>(item);
                 if (ni)
                 {
                     QVector2D relPos = QVector2D(ni->pos()) - center;
                     ds << relPos;
 
+                    MainWindow::instance()->setPropertyObject(ni); // force properties to be built
                     ni->writeClipboard(ds, id_map);
                 }
                 else
@@ -503,6 +506,9 @@ namespace NeuroLab
             data->setData(CLIPBOARD_TYPE, clipboardData);
             clipboard->setMimeData(data);
         }
+
+        //
+        MainWindow::instance()->setPropertyObject(old_property_obj);
     }
 
     /// Pastes any items in the clipboard.
@@ -512,67 +518,79 @@ namespace NeuroLab
         QClipboard *clipboard = QApplication::clipboard();
         if (!clipboard)
             return;
-        
+
         const QMimeData *data = clipboard->mimeData();
         if (!data || !data->hasFormat(CLIPBOARD_TYPE))
             return;
-        
+
         QByteArray buf = data->data(CLIPBOARD_TYPE);
         QDataStream ds(&buf, QIODevice::ReadOnly);
-        
+
         // read item types and create items
         QList<NeuroItem *> new_items;
-        QMap<int, int> id_map; // maps from ids in clipboard to new ids that are created
-        
+        QMap<int, NeuroItem *> id_map; // maps from ids in clipboard to new items that are created
+
         quint32 num_items;
         ds >> num_items;
-        
+
         for (quint32 i = 0; i < num_items; ++i)
         {
             QString typeName;
             ds >> typeName;
-            
+
             qint32 clip_id;
             ds >> clip_id;
-            
+
             if (typeName != "??Unknown??")
             {
                 NeuroItem *new_item = NeuroItem::create(typeName, scene(), scene()->lastMousePos(), NeuroItem::CREATE_UI);
-                
+
                 if (new_item)
-                    id_map[clip_id] = new_item->id();
-                
+                    id_map[clip_id] = new_item;
+
                 new_items.append(new_item);
+                scene()->addItem(new_item);
             }
             else
             {
                 new_items.append(0);
             }
         }
-        
+
         // place items in relative order
         QVector2D center(scene()->lastMousePos());
-        
+
         for (QListIterator<NeuroItem *> i(new_items); i.hasNext(); i.next())
         {
             NeuroItem *item = i.peekNext();
-            QString typeName; ds >> typeName;
-            qint32 rel_id; ds >> rel_id;
-            QVector2D rel_pos; ds >> rel_pos;
-            
+            if (!item)
+                continue;
+
+            QVector2D rel_pos;
+            ds >> rel_pos;
+
             MainWindow::instance()->setPropertyObject(item); // force properties to be built
-            item->readClipboard(ds);
+            item->readClipboard(ds, id_map);
+
             item->setPos((center + rel_pos).toPointF());
-            
-            scene()->addItem(item);
         }
-        
-        MainWindow::instance()->setPropertyObject(0);
-        
-        // TODO: re-connect links
-        
-        // 
-        _tree->update();
+
+        // update
+        if (new_items.size() > 0)
+        {
+            MainWindow::instance()->setPropertyObject(0);
+
+            for (QMutableListIterator<NeuroItem *> i(new_items); i.hasNext(); i.next())
+            {
+                NeuroItem *item = i.peekNext();
+                if (!item)
+                    continue;
+
+                item->adjustLinks();
+            }
+
+            _tree->update();
+        }
     }
 
     /// Starts the network running (currently not implemented).

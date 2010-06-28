@@ -290,11 +290,13 @@ namespace NeuroLab
         {
         case QGraphicsItem::ItemPositionChange:
             labScene = dynamic_cast<LabScene *>(scene());
-            
-            if (!settingLine && labScene && labScene->selectedItems().size() <= 1)
+            if (!settingLine && labScene
+                && labScene->selectedItems().size() <= 1
+                && labScene->mouseIsDown()
+                && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
             {
                 prepareGeometryChange();
-                
+
                 // adjust position
                 QVector2D oldCenter(scenePos());
                 QVector2D front = QVector2D(_line.p2()) + oldCenter;
@@ -327,12 +329,17 @@ namespace NeuroLab
                 // handle move
                 QPointF movePos(scenePos());
                 handleMove(mousePos.toPointF(), movePos);
-                
+
                 adjustLinks();
                 updateShape();
 
                 return QVariant(scenePos());
             }
+            else
+            {
+                return value;
+            }
+
             break;
 
         default:
@@ -346,12 +353,34 @@ namespace NeuroLab
     {
         NeuroNarrowItem::writeClipboard(ds, id_map);
         ds << _line;
+
+        if (_frontLinkTarget && id_map[_frontLinkTarget->id()])
+            ds << static_cast<qint32>(id_map[_frontLinkTarget->id()]);
+        else
+            ds << static_cast<qint32>(0);
+
+        if (_backLinkTarget && id_map[_backLinkTarget->id()])
+            ds << static_cast<qint32>(id_map[_backLinkTarget->id()]);
+        else
+            ds << static_cast<qint32>(0);
     }
 
-    void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, int> & id_map)
+    void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroNarrowItem::readClipboard(ds, id_map);
         ds >> _line;
+
+        qint32 id;
+
+        // front link target
+        ds >> id;
+        if (id && id_map[id])
+            setFrontLinkTarget(id_map[id]);
+
+        // back link target
+        ds >> id;
+        if (id && id_map[id])
+            setBackLinkTarget(id_map[id]);
     }
 
     void NeuroLinkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
