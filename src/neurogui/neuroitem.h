@@ -102,9 +102,9 @@ namespace NeuroLab
 
         enum CreateContext
         {
-            CREATE_NONE = 0,
-            CREATE_UI,
-            CREATE_LOADFILE,
+            CREATE_NONE = 0,     ///< No create context
+            CREATE_UI,           ///< Created by the UI; will generate a new network node in the automata network.
+            CREATE_LOADFILE,     ///< Created by loading from a file; will not create a new node, as the nodes are already in the NNN file.
             NUM_CREATE_CONTEXTS
         };
 
@@ -209,6 +209,7 @@ namespace NeuroLab
 
         /// Reads the item's data from a clipboard data stream.
         /// \param ds The data stream.
+        /// \param id_map A map from ids in the clipboard data to the new items that were created.
         virtual void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
 
         /// Writes the ids of incoming and outgoing items.

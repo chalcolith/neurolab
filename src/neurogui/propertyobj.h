@@ -92,7 +92,7 @@ namespace NeuroLab
 
         /// Holds a property with specific type information.
         /// \param CType The type of the containing object.
-        /// \param TypeID The variant type (should be a value from the \c QVariant::Type enum).
+        /// \param TypeID The variant type (should be a value from the <tt>QVariant::Type</tt> enum).
         /// \param VType The type used to pass values in and out of the QVariant.
         /// \param DType The actual data type used by the property's getter and setter functions.
         template <typename CType, int TypeID, typename VType, typename DType>

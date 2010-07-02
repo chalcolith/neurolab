@@ -6,7 +6,7 @@
 
 The Neurocognitive Linguistics Laboratory program consists of the following modules:
 
- - \ref Automata - A library for handling asynchronous automata over directed graphs.  The algorithm is from 
+ - \ref Automata - A library for handling asynchronous automata over directed graphs.  The algorithm is from
    <a href="https://uhra.herts.ac.uk/dspace/bitstream/2299/1966/1/900614.pdf">Chrystopher L. Nehaniv, Asynchronous automata networks can emulate any synchronous automata network</a>.
  - \ref NeuroLib - Uses the \ref Automata module to implement Sydney Lamb's <a href="http://www.ruf.rice.edu/~lngbrain/shipman/">narrow network notation</a>, from which higher-level
    relational network structures can be built.  It is implemented as a separate library so that simulations do not need the full
@@ -31,7 +31,7 @@ The main parts of the library are:
      - \ref NeuroLab::NeuroItem - a subclass of QGraphicsItem, and the base class for items that are visible in your network
        (e.g. nodes and links of the relational network notation).  When you subclass a property item, you can define the item's
        appearance and collision information (using \ref NeuroLab::NeuroItem::shape()), as well as how it interacts with other items
-       (using \ref NeuroLab::NeuroItem::canAttachTo(), etc.).  Item types can also add menu items to the context menu 
+       (using \ref NeuroLab::NeuroItem::canAttachTo(), etc.).  Item types can also add menu items to the context menu
        (using \ref NeuroLab::NeuroItem::buildNewMenu() and \ref NeuroLab::NeuroItem::buildActionMenu()).
    - \ref NeuroLab::LabDataFile - data can also be collected for a network simulation; a data file is separate from but dependent on
      the current network.
@@ -43,12 +43,17 @@ The main parts of the library are:
 
 \section building_sec Building
 
-The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator</a> IDE.  Once you have installed the 
-Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator and things should build.
+The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator 2.0</a> IDE.  Once you have installed the
+Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator.
+
+In order to be able to debug and run the program from
+within Qt Creator, you will need to go to the Projects pane, and in the Run Settings create a custom executable that points to the
+actual executable in <tt>neurolab_all-build-desktop/debug</tt> as opposed to <tt>neurolab_all-build-desktop/neurolab/debug</tt>, as Qt Creator 2.0
+doesn't parse the <tt>.pro</tt> file correctly.
 
 \subsection building_osx Building on Mac OS X
 
-On the Mac, you will need to add an extra build step to the neurolab project that calls <tt>utils/macdeploy</tt> before you 
+On the Mac, you will need to add an extra build step to the neurolab project that calls <tt>utils/macdeploy</tt> before you
 can debug or run the program.  This will correctly rename the shared library references in the app bundle.
 
 */
