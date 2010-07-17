@@ -87,7 +87,7 @@ namespace NeuroLab
           _propertyEditor(0),
           _propertyFactory(new QtVariantEditorFactory()),
           _propertyManager(new QtVariantPropertyManager()),
-          _propertyObject(0),
+          _noncePropertyObject(0),
           _rememberProperties(true)
     {
         if (_instance)
@@ -451,7 +451,7 @@ namespace NeuroLab
 
             connect(_currentNetwork, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
-            connect(_currentNetwork, SIGNAL(propertyObjectChanged(PropertyObject*)), this, SLOT(setPropertyObject(PropertyObject*)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)), this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)), Qt::UniqueConnection);
@@ -464,9 +464,13 @@ namespace NeuroLab
 
     void MainWindow::setPropertyObject(PropertyObject *po)
     {
-        if (po == _propertyObject)
-            return;
+        QList<PropertyObject *> property_objects;
+        property_objects.append(po);
+        setPropertyObjects(property_objects);
+    }
 
+    void MainWindow::setPropertyObjects(const QList<PropertyObject *> & property_objects)
+    {
         // remove existing properties
         QList<QtProperty *> currentProperties = _propertyEditor->properties();
         for (QListIterator<QtProperty *> i(currentProperties); i.hasNext(); i.next())
@@ -476,15 +480,29 @@ namespace NeuroLab
             delete property;
         }
 
-        // get new properties
-        _propertyObject = po;
+        // if there is more than one object, make a temporary object to hold the common properties
+        _propertyObjects = property_objects;
 
-        if (_propertyObject)
+        delete _noncePropertyObject;
+        PropertyObject *cur_obj = _noncePropertyObject = 0;
+
+        if (property_objects.size() > 1)
+        {
+            cur_obj = _noncePropertyObject;
+        }
+        else if (property_objects.size() == 1)
+        {
+            // don't assign nonce here, since we don't want to delete it above!
+            cur_obj = property_objects[0];
+        }
+
+        // get new properties
+        if (cur_obj)
         {
             // new top item
             QtProperty *topItem = _propertyManager->addProperty(QtVariantPropertyManager::groupTypeId(), tr("Properties"));
 
-            _propertyObject->buildProperties(_propertyManager, topItem);
+            cur_obj->buildProperties(_propertyManager, topItem);
 
             _propertyEditor->addProperty(topItem);
             _propertyEditor->setRootIsDecorated(false);
@@ -511,15 +529,26 @@ namespace NeuroLab
                     item->setPropertyValue(name, value);
                 }
             }
+
+            item->setSelected(true);
         }
     }
 
+    /// Remembers the properties for the last selected instance of a particular class.
     void MainWindow::propertyValueChanged(QtProperty *, const QVariant &)
     {
-        if (_rememberProperties && _propertyObject)
+        if (_rememberProperties && _propertyObjects.size() > 0)
         {
-            QString typeName(typeid(*_propertyObject).name());
-            _rememberedProperties[typeName] = _propertyObject->properties();
+            for (QListIterator<PropertyObject *> i(_propertyObjects); i.hasNext(); i.next())
+            {
+                PropertyObject *po = i.peekNext();
+
+                if (po)
+                {
+                    QString typeName(typeid(*po).name());
+                    _rememberedProperties[typeName] = po->properties();
+                }
+            }
         }
     }
 

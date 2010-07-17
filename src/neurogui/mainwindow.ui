@@ -93,6 +93,7 @@
     <addaction name="action_Cut"/>
     <addaction name="action_Copy"/>
     <addaction name="action_Paste"/>
+    <addaction name="action_Delete"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>

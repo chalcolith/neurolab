@@ -125,6 +125,10 @@ namespace NeuroLab
             clearSelection();
             _itemUnderMouse->setSelected(true);
         }
+        else if (event->button() == Qt::LeftButton && !_itemUnderMouse && _network)
+        {
+
+        }
 
         QGraphicsScene::mousePressEvent(event);
     }

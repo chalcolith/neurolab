@@ -228,6 +228,8 @@ namespace NeuroLab
         if (!scene->network())
             return;
 
+        menu.addSeparator();
+
         QAction *cut = menu.addAction(tr("Cut"), scene->network(), SLOT(cutSelected()), QKeySequence(QKeySequence::Cut));
         cut->setEnabled(scene->selectedItems().size() > 0);
 
@@ -428,7 +430,7 @@ namespace NeuroLab
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
-        if (MainWindow::instance()->propertyObject() == this)
+        if (MainWindow::instance()->propertyObjects().contains(this))
             updateProperties();
 
         painter->setRenderHint(QPainter::Antialiasing);

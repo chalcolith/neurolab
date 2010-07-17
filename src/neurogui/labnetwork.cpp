@@ -158,10 +158,20 @@ namespace NeuroLab
         if (!scene())
             return;
 
-        QList<QGraphicsItem *> items = scene()->selectedItems();
-        PropertyObject *po = items.size() == 1 ? dynamic_cast<PropertyObject *>(items[0]) : 0;
+        QList<PropertyObject *> property_objects;
 
-        emit propertyObjectChanged(po ? po : this);
+        QList<QGraphicsItem *> items = scene()->selectedItems();
+        for (int i = 0; i < items.size(); ++i)
+        {
+            PropertyObject *po = dynamic_cast<PropertyObject *>(items[i]);
+            if (po)
+                property_objects.append(po);
+        }
+
+        if (property_objects.size() == 0)
+            property_objects.append(this);
+
+        emit propertyObjectChanged(property_objects);
     }
 
     void LabNetwork::changeItemLabel(NeuroItem *item, const QString & label)
@@ -456,7 +466,7 @@ namespace NeuroLab
         center *= 1.0 / selected.size();
 
         // write items
-        PropertyObject *old_property_obj = MainWindow::instance()->propertyObject();
+        QList<PropertyObject *> old_property_objs = MainWindow::instance()->propertyObjects();
 
         QByteArray clipboardData;
 
@@ -508,7 +518,7 @@ namespace NeuroLab
         }
 
         //
-        MainWindow::instance()->setPropertyObject(old_property_obj);
+        MainWindow::instance()->setPropertyObjects(old_property_objs);
     }
 
     /// Pastes any items in the clipboard.

@@ -93,8 +93,10 @@ namespace NeuroLab
         QtVariantEditorFactory *_propertyFactory; ///< Property factory for the property editor.
         QtVariantPropertyManager *_propertyManager; ///< Manager for the property editor.
 
-        PropertyObject *_propertyObject; ///< The object whose properties are currently on display.
-        QMap<QString, QList<QtVariantProperty *> > _rememberedProperties;
+        QList<PropertyObject *> _propertyObjects; ///< The objects whose properties are currently on display.
+        PropertyObject *_noncePropertyObject; ///< A temporary object to hold common properties for multiple selected objects.
+
+        QMap<QString, QList<QtVariantProperty *> > _rememberedProperties; ///< Remembered values for properties.
         bool _rememberProperties;
 
     public:
@@ -114,8 +116,8 @@ namespace NeuroLab
         /// \return A pointer to the property editor widget.
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
 
-        /// \return A pointer to the object whose properties are currently being displayed.
-        PropertyObject *propertyObject() { return _propertyObject; }
+        /// \return Objects whose properties are currently being displayed.
+        QList<PropertyObject *> propertyObjects() { return _propertyObjects; }
 
     protected:
         /// Handles attempts to close the window.
@@ -131,7 +133,8 @@ namespace NeuroLab
 
         void setActionsEnabled(bool enabled = true);
 
-        /// Sets the object whose properties are displayed in the property widget.
+        /// Sets the objects whose properties are displayed in the property widget.
+        void setPropertyObjects(const QList<PropertyObject *> & property_objects);
         void setPropertyObject(PropertyObject *);
 
         void createdItem(NeuroItem *);

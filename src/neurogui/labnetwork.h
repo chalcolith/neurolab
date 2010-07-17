@@ -150,7 +150,7 @@ namespace NeuroLab
 
     signals:
         void titleChanged(const QString & title);
-        void propertyObjectChanged(PropertyObject *po);
+        void propertyObjectChanged(QList<PropertyObject *> property_objects);
         void itemLabelChanged(NeuroItem *, const QString & label);
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
