@@ -39,12 +39,16 @@ The main parts of the library are:
    defining members using the \ref NeuroLab::PropertyObject::Property template.  These then can be edited in the property editing control in the sidebar.
  - Plugins: A plugin is just a DLL or shared library that contains subclasses of \ref NeuroLab::NeuroItem that use the \ref NEUROITEM_DECLARE_CREATOR
    and \ref NEUROITEM_DEFINE_CREATOR macros to hook into the item creation system.  Currently the program will look in a "plugins" directory under where
-   the executable is located.
+   the executable is located.  (Plugins are currently not working on the Mac build.)
 
 \section building_sec Building
 
-The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator 2.0</a> IDE.  Once you have installed the
-Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator.
+The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator 2.0</a> IDE.
+
+Due to limitations in the Qt Creator build system, you will need to clone your copy of the NeuroLab repository to a directory that does
+not have spaces in its path.
+
+Once you have installed the Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator.
 
 In order to be able to debug and run the program from
 within Qt Creator, you will need to go to the Projects pane, and in the Run Settings create a custom executable that points to the

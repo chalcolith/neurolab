@@ -8,7 +8,7 @@ del /s /q Makefile* > "%TEMP%\distclean.log"
 rem if not exist neurolab_all.user echo > neurolab_all.user
 rem del /s /q *.user > "%TEMP%\distclean.log"
 
-for /d %%d in (..\*build*) do rmdir /s /q %%d > "%TEMP%\distclean.log"
+for /d %%d in (..\*build*) do rmdir /s /q "%%d" > "%TEMP%\distclean.log"
 
 if not exist debug mkdir debug
 for /f usebackq %%d in (`dir /s /b *debug*`) do rmdir /s /q "%%d"

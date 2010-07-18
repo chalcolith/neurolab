@@ -84,9 +84,9 @@ namespace NeuroLab
     {
         QVector2D center(pos());
 
-        for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); ln.next())
+        for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); )
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.peekNext());
+            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.next());
             if (link)
             {
                 bool frontLink = link->frontLinkTarget() == this;
@@ -260,9 +260,9 @@ namespace NeuroLab
         if (!scene())
             return;
 
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
+        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); )
         {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.peekNext());
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
                 NeuroNet::ASYNC_STATE *cell = item->getCell();
@@ -291,9 +291,9 @@ namespace NeuroLab
         if (!scene())
             return;
 
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); i.next())
+        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); )
         {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.peekNext());
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
                 NeuroNet::ASYNC_STATE *cell = item->getCell();

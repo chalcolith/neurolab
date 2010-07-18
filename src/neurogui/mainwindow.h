@@ -96,7 +96,7 @@ namespace NeuroLab
         QList<PropertyObject *> _propertyObjects; ///< The objects whose properties are currently on display.
         PropertyObject *_noncePropertyObject; ///< A temporary object to hold common properties for multiple selected objects.
 
-        QMap<QString, QList<QtVariantProperty *> > _rememberedProperties; ///< Remembered values for properties.
+        QMap<QString, QList<PropertyObject::PropertyBase *> > _rememberedProperties; ///< Remembered values for properties.
         bool _rememberProperties;
 
     public:

@@ -65,9 +65,9 @@ namespace NeuroLab
 
     LabTreeNode::~LabTreeNode()
     {
-        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); i.next())
+        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
         {
-            delete i.peekNext();
+            delete i.next();
         }
         _children.clear();
 
@@ -83,9 +83,9 @@ namespace NeuroLab
 
     void LabTreeNode::reset()
     {
-        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); i.next())
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
         {
-            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.peekNext());
+            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.next());
             if (item)
                 item->reset();
         }
@@ -228,8 +228,8 @@ namespace NeuroLab
 
         QList<QGraphicsItem *> results = n->scene()->items();
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); i.next())
-            results.append(items(i.peekNext()));
+        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
+            results.append(items(i.next()));
 
         return results;
     }
@@ -243,8 +243,8 @@ namespace NeuroLab
 
         n->reset();
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); i.next())
-            reset(i.peekNext());
+        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
+            reset(i.next());
     }
 
     void LabTree::update(LabTreeNode *n)
@@ -254,8 +254,8 @@ namespace NeuroLab
 
         Q_ASSERT(n != 0);
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); i.next())
-            update(i.peekNext());
+        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
+            update(i.next());
 
         n->update();
     }
@@ -273,9 +273,9 @@ namespace NeuroLab
         if (n->id() == id)
             return n;
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); i.next())
+        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
         {
-            LabTreeNode *c = find_current(i.peekNext(), id);
+            LabTreeNode *c = find_current(i.next(), id);
             if (c)
                 return c;
         }

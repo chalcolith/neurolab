@@ -236,9 +236,9 @@ namespace NeuroLab
 
         QVector2D center = (back + front) * 0.5f;
 
-        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); i.next())
+        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.peekNext());
+            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
             if (link)
                 link->setLine(link->line().p1(), center.toPointF());
         }

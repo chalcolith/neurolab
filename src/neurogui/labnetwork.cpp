@@ -392,9 +392,9 @@ namespace NeuroLab
 
         if (sc)
         {
-            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); i.next())
+            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); )
             {
-                QGraphicsItem *gi = i.peekNext();
+                QGraphicsItem *gi = i.next();
                 if (!gi)
                     continue;
 
@@ -453,9 +453,9 @@ namespace NeuroLab
         QVector2D center(0, 0);
         QMap<int, int> id_map;
         int cur_id = 1;
-        for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next(), ++cur_id)
+        for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); ++cur_id)
         {
-            const QGraphicsItem *item = i.peekNext();
+            const QGraphicsItem *item = i.next();
             center += QVector2D(item->pos());
 
             const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
@@ -476,9 +476,9 @@ namespace NeuroLab
             ds << static_cast<quint32>(selected.size());
 
             // write type names so we can create items before reading them...
-            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
+            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
             {
-                const QGraphicsItem *item = i.peekNext();
+                const QGraphicsItem *item = i.next();
                 const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
                 if (ni)
                     ds << ni->getTypeName();
@@ -489,9 +489,9 @@ namespace NeuroLab
             }
 
             // write data
-            for (QMutableListIterator<QGraphicsItem *> i(selected); i.hasNext(); i.next())
+            for (QMutableListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
             {
-                QGraphicsItem *item = i.peekNext();
+                QGraphicsItem *item = i.next();
                 NeuroItem *ni = dynamic_cast<NeuroItem *>(item);
                 if (ni)
                 {
@@ -570,9 +570,9 @@ namespace NeuroLab
         // place items in relative order
         QVector2D center(scene()->lastMousePos());
 
-        for (QListIterator<NeuroItem *> i(new_items); i.hasNext(); i.next())
+        for (QListIterator<NeuroItem *> i(new_items); i.hasNext(); )
         {
-            NeuroItem *item = i.peekNext();
+            NeuroItem *item = i.next();
             if (!item)
                 continue;
 
@@ -590,9 +590,9 @@ namespace NeuroLab
         {
             MainWindow::instance()->setPropertyObject(0);
 
-            for (QMutableListIterator<NeuroItem *> i(new_items); i.hasNext(); i.next())
+            for (QMutableListIterator<NeuroItem *> i(new_items); i.hasNext(); )
             {
-                NeuroItem *item = i.peekNext();
+                NeuroItem *item = i.next();
                 if (!item)
                     continue;
 

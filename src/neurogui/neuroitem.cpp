@@ -201,9 +201,9 @@ namespace NeuroLab
                 {
                     // find the submenu
                     bool found = false;
-                    for (QListIterator<QAction *> k(subMenu->actions()); k.hasNext(); k.next())
+                    for (QListIterator<QAction *> k(subMenu->actions()); k.hasNext(); )
                     {
-                        QAction *action = k.peekNext();
+                        QAction *action = k.next();
                         if (action->text() == menuPath[j] && action->menu())
                         {
                             subMenu = action->menu();
@@ -259,9 +259,9 @@ namespace NeuroLab
     void NeuroItem::bringToFront()
     {
         qreal highest_z = this->zValue();
-        for (QListIterator<QGraphicsItem *> i(this->collidingItems()); i.hasNext(); i.next())
+        for (QListIterator<QGraphicsItem *> i(this->collidingItems()); i.hasNext(); )
         {
-            QGraphicsItem *item = i.peekNext();
+            QGraphicsItem *item = i.next();
             if (!item)
                 continue;
 
@@ -360,9 +360,9 @@ namespace NeuroLab
         if (!_label.isNull() && !_label.isEmpty())
             _texts.append(TextPathRec(QPointF(NeuroItem::NODE_WIDTH + 4, -1), _label));
 
-        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
+        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
         {
-            const TextPathRec & rec = i.peekNext();
+            const TextPathRec & rec = i.next();
             _shapePath.addText(rec.pos, QApplication::font(), rec.text);
         }
 
@@ -450,9 +450,9 @@ namespace NeuroLab
         textPen.setWidth(NORMAL_LINE_WIDTH);
         painter->setPen(textPen);
 
-        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); i.next())
+        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
         {
-            const TextPathRec & rec = i.peekNext();
+            const TextPathRec & rec = i.next();
             painter->drawText(rec.pos, rec.text);
         }
     }
@@ -501,9 +501,9 @@ namespace NeuroLab
         QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);
         NeuroItem *itemAtPos = 0;
 
-        for (QListIterator<QGraphicsItem *> i(_network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); i.next())
+        for (QListIterator<QGraphicsItem *> i(_network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); )
         {
-            if ((itemAtPos = dynamic_cast<NeuroItem *>(i.peekNext())))
+            if ((itemAtPos = dynamic_cast<NeuroItem *>(i.next())))
             {
                 if (itemAtPos == this)
                 {
@@ -729,9 +729,10 @@ namespace NeuroLab
         {
             bool found = false;
             IdType id = reinterpret_cast<IdType>(in.peekNext());
-            for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); i.next())
+
+            for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); )
             {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.peekNext());
+                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
                 if (item && item->_id == id)
                 {
                     in.peekNext() = item;

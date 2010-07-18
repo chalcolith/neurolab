@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 
+#include <QMap>
 #include <QList>
 #include <QObject>
 #include <QVariant>
@@ -56,39 +57,48 @@ namespace NeuroLab
     {
         Q_OBJECT
 
-    protected:
-        bool _updating;
-
+    public:
         /// Base class for properties of various types.
-        class PropertyBase
+        class NEUROGUISHARED_EXPORT PropertyBase
         {
         protected:
+            QString _name;
+            QString _tooltip;
+            bool _enabled;
+            int _type;
+
+            PropertyObject *_container;
             QtVariantProperty *_property;
 
             friend class PropertyObject;
 
         public:
-            PropertyBase() : _property(0) {}
-            virtual ~PropertyBase() {}
+            PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type)
+                : _name(name), _tooltip(tooltip), _enabled(enabled), _type(type), _container(container), _property(0) {}
+            virtual ~PropertyBase() { delete _property; }
 
-            virtual void create(QtVariantPropertyManager *manager) = 0;
+            /// This creates the actual variant property in the property grid.
+            virtual void create(QtVariantPropertyManager *manager);
             virtual void update() = 0;
             virtual void valueChanged(const QVariant & value) = 0;
 
-            QString name() const { return _property->propertyName(); }
-            void setName(const QString & n) { _property->setPropertyName(n); }
+            QString name() const { return _name; }
+            void setName(const QString & n) { _name = n; if (_property) _property->setPropertyName(n); }
 
-            QString tooltip() const { return _property->toolTip(); }
-            void setTooltip(const QString & tt) { _property->setToolTip(tt); }
+            QString tooltip() const { return _tooltip; }
+            void setTooltip(const QString & tt) { _tooltip = tt; if (_property) _property->setToolTip(tt); }
 
-            bool enabled() const { return _property->isEnabled(); }
-            void setEnabled(bool e) { _property->setEnabled(e); }
+            bool enabled() const { return _enabled; }
+            void setEnabled(bool e) { _enabled = e; if (_property) _property->setEnabled(e); }
 
-            virtual QVariant value() const { return _property->value(); }
-            virtual void setValue(const QVariant & val) { _property->setValue(val); }
+            int type() const { return _type; }
+
+            virtual QVariant value() const { return _property ? _property->value() : QVariant(); }
+            virtual void setValue(const QVariant & val) { if (_property) _property->setValue(val); }
         };
 
-        QList<PropertyBase *> _properties;
+    protected:
+        bool _updating;
 
         /// Holds a property with specific type information.
         /// \param CType The type of the containing object.
@@ -98,13 +108,10 @@ namespace NeuroLab
         template <typename CType, int TypeID, typename VType, typename DType>
         class Property : public PropertyBase
         {
-            CType *_container;
+            CType *_typed_container;
 
             DType (CType::*_getter) () const;
             void (CType::*_setter)(const DType &);
-
-            QString _name, _tooltip;
-            bool _enabled;
 
         public:
             /// Constructor.
@@ -115,52 +122,40 @@ namespace NeuroLab
             /// \param tooltip A tooltip for the property.
             /// \param enabled Whether or not to enable the property for editing.
             Property(CType *container, DType (CType::*getter)() const, void (CType::*setter)(const DType &), const QString & name, const QString & tooltip = QString(), bool enabled = true)
-                : PropertyBase(),
-                _container(container), _getter(getter), _setter(setter),
-                _name(name), _tooltip(tooltip), _enabled(enabled)
+                : PropertyBase(container, name, tooltip, enabled, TypeID),
+                _typed_container(container), _getter(getter), _setter(setter)
             {
                 Q_ASSERT(_container != 0);
                 container->_properties.append(this);
             }
 
-            virtual void create(QtVariantPropertyManager *manager)
-            {
-                Q_ASSERT(manager != 0);
-
-                if (!_property)
-                {
-                    _property = manager->addProperty(TypeID, _name);
-                    _property->setToolTip(_tooltip);
-                    _property->setEnabled(_enabled);
-                    QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
-                }
-            }
-
             virtual void update()
             {
                 if (_getter)
-                    _property->setValue(QVariant(static_cast<VType>((_container->*_getter)())));
+                    _property->setValue(QVariant(static_cast<VType>((_typed_container->*_getter)())));
             }
 
             virtual void valueChanged(const QVariant & value)
             {
-                if (_setter && _getter && value != (_container->*_getter)())
+                if (_setter && _getter && value != (_typed_container->*_getter)())
                 {
-                    (_container->*_setter)(static_cast<DType>(value.value<VType>()));
-                    _container->setChanged(true);
+                    (_typed_container->*_setter)(static_cast<DType>(value.value<VType>()));
+                    _typed_container->setChanged(true);
                 }
             }
         };
+
+        QList<PropertyBase *> _properties;
 
     public:
         PropertyObject(QObject *parent);
         virtual ~PropertyObject();
 
-        QList<QtVariantProperty *> properties() const;
+        QList<PropertyBase *> properties() const { return _properties; }
 
         void setPropertyValue(const QString & propertyName, const QVariant & value);
 
-        virtual QString uiName() const { return QString("?Unknown?"); }
+        virtual QString uiName() const { return tr("?Unknown?"); }
 
         /// Add properties to the parent item.
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
@@ -176,6 +171,39 @@ namespace NeuroLab
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
     };
 
-}
+
+    /// Hold common properties for a number of property objects, and can update them all at once.
+    class NEUROGUISHARED_EXPORT CommonPropertyObject
+        : public PropertyObject
+    {
+        Q_OBJECT
+
+        class NEUROGUISHARED_EXPORT CommonProperty
+            : public PropertyBase
+        {
+            QList<PropertyBase *> _shared_properties;
+
+        public:
+            CommonProperty(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type);
+            virtual ~CommonProperty();
+
+            void addSharedProperty(PropertyBase *p);
+
+            virtual void update();
+            virtual void valueChanged(const QVariant &value);
+        };
+
+    public:
+        CommonPropertyObject(QObject *parent, const QList<PropertyObject *> & commonObjects);
+        virtual ~CommonPropertyObject();
+
+        virtual QString uiName() const { return tr("Multiple Items"); }
+
+    private:
+        void cleanup();
+        void getCommonProperties(const QList<PropertyObject *> & commonObjects);
+    }; // class CommonPropertyObject
+
+} // namespace NeuroLab
 
 #endif

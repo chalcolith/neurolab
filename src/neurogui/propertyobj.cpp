@@ -38,6 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QtProperty>
 
+#include <QSet>
+
 namespace NeuroLab
 {
 
@@ -51,25 +53,11 @@ namespace NeuroLab
         // properties will be deleted when the manager is deleted
     }
 
-    QList<QtVariantProperty *> PropertyObject::properties() const
-    {
-        QList<QtVariantProperty *> results;
-
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
-        {
-            PropertyBase *p = i.peekNext();
-            if (p->_property)
-                results.append(p->_property);
-        }
-
-        return results;
-    }
-
     void PropertyObject::setPropertyValue(const QString &propertyName, const QVariant &value)
     {
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
-            PropertyBase *p = i.peekNext();
+            PropertyBase *p = i.next();
             if (p->_property && p->_property->propertyName() == propertyName)
             {
                 p->_property->setValue(value);
@@ -83,11 +71,10 @@ namespace NeuroLab
         Q_ASSERT(topProperty != 0);
         topProperty->setPropertyName(uiName());
 
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
-            PropertyBase *p = i.peekNext();
-            if (!p->_property)
-                p->create(manager);
+            PropertyBase *p = i.next();
+            p->create(manager);
             topProperty->addSubProperty(p->_property);
         }
 
@@ -96,9 +83,9 @@ namespace NeuroLab
 
     void PropertyObject::updateProperties()
     {
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
-            PropertyBase *p = i.peekNext();
+            PropertyBase *p = i.next();
             if (p->_property)
                 p->update();
         }
@@ -112,9 +99,9 @@ namespace NeuroLab
 
         bool changed;
 
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
-            PropertyBase *p = i.peekNext();
+            PropertyBase *p = i.next();
             if (p->_property == vprop)
             {
                 changed = true;
@@ -126,9 +113,9 @@ namespace NeuroLab
     void PropertyObject::writeClipboard(QDataStream & ds) const
     {
         ds << static_cast<qint32>(_properties.size());
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
-            const PropertyBase *p = i.peekNext();
+            const PropertyBase *p = i.next();
 
             ds << p->name();
             ds << p->tooltip();
@@ -153,9 +140,9 @@ namespace NeuroLab
             ds >> enabled;
             ds >> value;
 
-            for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); i.next())
+            for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
             {
-                PropertyBase *p = const_cast<PropertyBase *>(i.peekNext());
+                PropertyBase *p = const_cast<PropertyBase *>(i.next());
                 if (p->name() == name)
                 {
                     p->setTooltip(tooltip);
@@ -164,6 +151,174 @@ namespace NeuroLab
                 }
             }
         }
+    }
+
+
+    void PropertyObject::PropertyBase::create(QtVariantPropertyManager *manager)
+    {
+        Q_ASSERT(manager != 0);
+
+        delete _property;
+
+        _property = manager->addProperty(_type, _name);
+        _property->setToolTip(_tooltip);
+        _property->setEnabled(_enabled);
+        QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
+    }
+
+
+    //////////////////////////////////////////////////////////////////
+
+    CommonPropertyObject::CommonPropertyObject(QObject *parent, const QList<PropertyObject *> &commonObjects)
+        : PropertyObject(parent)
+    {
+        getCommonProperties(commonObjects);
+    }
+
+    CommonPropertyObject::~CommonPropertyObject()
+    {
+        cleanup();
+    }
+
+    // We don't use QSet with these, because we want to preserve the order of properties
+
+    static QList<QList<QString> > get_property_name_sets(const QList<PropertyObject *> &commonObjects)
+    {
+        QList<QList<QString> > property_name_sets;
+
+        for (QListIterator<PropertyObject *> obj_i(commonObjects); obj_i.hasNext(); )
+        {
+            const PropertyObject *po = obj_i.next();
+
+            QList<QString> names;
+
+            for (QListIterator<PropertyObject::PropertyBase *> prop_i(po->properties()); prop_i.hasNext(); )
+            {
+                const PropertyObject::PropertyBase *prop = prop_i.next();
+
+                QString format("%1|%2|%3|%4");
+                QString name = format.arg(prop->name(), prop->tooltip(), prop->enabled() ? "1" : 0).arg(prop->type());
+
+                names.append(name);
+            }
+
+            property_name_sets.append(names);
+        }
+
+        return property_name_sets;
+    }
+
+    static QList<QString> get_common_names(const QList<QList<QString> > & property_name_sets)
+    {
+        QList<QString> common_property_names;
+
+        if (property_name_sets.size() > 0)
+        {
+            common_property_names = property_name_sets[0];
+
+            for (int i = 1; i < property_name_sets.size(); ++i)
+            {
+                QList<QString> intersection;
+
+                for (QListIterator<QString> name_i(common_property_names); name_i.hasNext(); )
+                {
+                    QString name = name_i.next();
+
+                    if (property_name_sets[i].contains(name))
+                        intersection.append(name);
+                }
+
+                common_property_names = intersection;
+            }
+        }
+
+        return common_property_names;
+    }
+
+    void CommonPropertyObject::getCommonProperties(const QList<PropertyObject *> & commonObjects)
+    {
+        cleanup();
+
+        // get sets of property names for all the objects, then the intersection of those sets
+        QList<QList<QString> > property_name_sets = get_property_name_sets(commonObjects);
+        QList<QString> common_property_names = get_common_names(property_name_sets);
+
+        // create a property for each name, and build lists of properties to update for each one
+        for (QListIterator<QString> name_i(common_property_names); name_i.hasNext(); )
+        {
+            QList<QString> params = name_i.next().split("|");
+            QString name = params[0];
+            QString tooltip = params[1];
+            bool enabled = (bool) params[2].toInt();
+            int type = params[3].toInt();
+
+            CommonProperty *common = new CommonProperty(this, name, tooltip, enabled, type);
+            _properties.append(common);
+
+            // find matching properties and add them
+            for (QListIterator<PropertyObject *> obj_i(commonObjects); obj_i.hasNext(); )
+            {
+                for (QListIterator<PropertyBase *> prop_i(obj_i.next()->properties()); prop_i.hasNext(); )
+                {
+                    const PropertyBase *obj_prop = prop_i.next();
+
+                    if (obj_prop->name() == name
+                        && obj_prop->tooltip() == tooltip
+                        && obj_prop->enabled() == enabled
+                        && obj_prop->type() == type)
+                    {
+                        common->addSharedProperty(const_cast<PropertyBase *>(obj_prop));
+                    }
+                }
+            }
+        }
+    }
+
+    void CommonPropertyObject::cleanup()
+    {
+        for (QListIterator<PropertyBase *> p(_properties); p.hasNext(); )
+        {
+            delete p.next();
+        }
+
+        _properties.clear();
+    }
+
+
+    CommonPropertyObject::CommonProperty::CommonProperty(PropertyObject *container, const QString &name, const QString &tooltip, bool enabled, int type)
+        : PropertyBase(container, name, tooltip, enabled, type)
+    {
+    }
+
+    CommonPropertyObject::CommonProperty::~CommonProperty()
+    {
+    }
+
+    void CommonPropertyObject::CommonProperty::addSharedProperty(PropertyBase *p)
+    {
+        if (!_shared_properties.contains(p))
+            _shared_properties.append(p);
+    }
+
+    void CommonPropertyObject::CommonProperty::update()
+    {
+        QList<QVariant> all_values;
+
+        for (QListIterator<PropertyBase *> prop(_shared_properties); prop.hasNext(); )
+            all_values.append(prop.next()->value());
+
+        bool values_are_equal = true;
+        for (int i = 1; values_are_equal && i < all_values.size(); ++i)
+            values_are_equal = all_values[i] == all_values[i-1];
+
+        if (values_are_equal && all_values.size() > 0 && _property)
+            _property->setValue(all_values[0]);
+    }
+
+    void CommonPropertyObject::CommonProperty::valueChanged(const QVariant &value)
+    {
+        for (QListIterator<PropertyBase *> p(_shared_properties); p.hasNext(); )
+            p.next()->valueChanged(value);
     }
 
 } // namespace NeuroLab

@@ -47,8 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labview.h"
 #include "labscene.h"
 #include "labnetwork.h"
-#include "neurolinkitem.h"
-#include "neuronodeitem.h"
+#include "propertyobj.h"
 #include "labdatafile.h"
 
 #include <QDir>
@@ -141,6 +140,7 @@ namespace NeuroLab
         setPropertyObject(0);
         setNetwork(0);
 
+        delete _noncePropertyObject;
         delete _propertyManager;
         delete _propertyFactory;
 
@@ -166,14 +166,15 @@ namespace NeuroLab
             return;
 
         QStringList entries = dir.entryList(QDir::Files);
-        for (QStringListIterator i(entries); i.hasNext(); i.next())
+        for (QStringListIterator i(entries); i.hasNext(); )
         {
-            QString fname = dirPath + "/" + i.peekNext();
+            QString entry = i.next();
+            QString fname = dirPath + "/" + entry;
             if (QLibrary::isLibrary(fname))
             {
                 QLibrary lib(fname);
                 if (lib.load()) // the libraries should remain loaded even though the lib object goes out of scope
-                    setStatus(tr("Loaded %1.").arg(i.peekNext()));
+                    setStatus(tr("Loaded %1.").arg(entry));
             }
         }
     }
@@ -473,9 +474,9 @@ namespace NeuroLab
     {
         // remove existing properties
         QList<QtProperty *> currentProperties = _propertyEditor->properties();
-        for (QListIterator<QtProperty *> i(currentProperties); i.hasNext(); i.next())
+        for (QListIterator<QtProperty *> i(currentProperties); i.hasNext(); )
         {
-            QtProperty *property = i.peekNext();
+            QtProperty *property = i.next();
             _propertyEditor->removeProperty(property);
             delete property;
         }
@@ -484,10 +485,12 @@ namespace NeuroLab
         _propertyObjects = property_objects;
 
         delete _noncePropertyObject;
-        PropertyObject *cur_obj = _noncePropertyObject = 0;
+        _noncePropertyObject = 0;
+        PropertyObject *cur_obj = 0;
 
         if (property_objects.size() > 1)
         {
+            _noncePropertyObject = new CommonPropertyObject(0, property_objects);
             cur_obj = _noncePropertyObject;
         }
         else if (property_objects.size() == 1)
@@ -506,6 +509,7 @@ namespace NeuroLab
 
             _propertyEditor->addProperty(topItem);
             _propertyEditor->setRootIsDecorated(false);
+            _propertyEditor->setPropertiesWithoutValueMarked(false);
         }
     }
 
@@ -521,10 +525,11 @@ namespace NeuroLab
 
             if (_rememberedProperties.contains(typeName))
             {
-                for (QListIterator<QtVariantProperty *> i(_rememberedProperties[typeName]); i.hasNext(); i.next())
+                for (QListIterator<PropertyObject::PropertyBase *> i(_rememberedProperties[typeName]); i.hasNext(); )
                 {
-                    QtVariantProperty *p = i.peekNext();
-                    const QString name = p->propertyName();
+                    const PropertyObject::PropertyBase *p = i.next();
+
+                    const QString name = p->name();
                     const QVariant value = p->value();
                     item->setPropertyValue(name, value);
                 }
@@ -539,9 +544,9 @@ namespace NeuroLab
     {
         if (_rememberProperties && _propertyObjects.size() > 0)
         {
-            for (QListIterator<PropertyObject *> i(_propertyObjects); i.hasNext(); i.next())
+            for (QListIterator<PropertyObject *> i(_propertyObjects); i.hasNext(); )
             {
-                PropertyObject *po = i.peekNext();
+                PropertyObject *po = i.next();
 
                 if (po)
                 {
