@@ -582,7 +582,19 @@ namespace NeuroLab
             MainWindow::instance()->setPropertyObject(item); // force properties to be built
             item->readClipboard(ds, id_map);
 
-            item->setPos((center + rel_pos).toPointF());
+            QVector2D itemPos = center + rel_pos;
+            if (itemPos.x() < 0)
+                itemPos.setX(0);
+            if (itemPos.y() < 0)
+                itemPos.setY(0);
+
+            QRectF view = scene()->sceneRect();
+            if (itemPos.x() >= view.x())
+                itemPos.setX(view.x());
+            if (itemPos.y() >= view.y())
+                itemPos.setY(view.y());
+
+            item->setPos(itemPos.toPointF());
         }
 
         // update
