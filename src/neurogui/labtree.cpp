@@ -195,8 +195,8 @@ namespace NeuroLab
             }
 
             // update scene and view
-            _scene->update();
             _view->setMatrix(matrix);
+            _scene->update();
         }
     }
 

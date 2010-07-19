@@ -164,7 +164,7 @@
           <x>0</x>
           <y>0</y>
           <width>110</width>
-          <height>276</height>
+          <height>265</height>
          </rect>
         </property>
         <attribute name="label">
@@ -177,6 +177,10 @@
    </widget>
   </widget>
   <action name="action_Open">
+   <property name="icon">
+    <iconset resource="neurogui.qrc">
+     <normaloff>:/icons/folder.png</normaloff>:/icons/folder.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Open Network...</string>
    </property>
@@ -185,6 +189,11 @@
    </property>
   </action>
   <action name="action_Close">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/delete.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>&amp;Close Network</string>
    </property>
@@ -201,6 +210,11 @@
    </property>
   </action>
   <action name="action_New">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/add.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>&amp;New Network</string>
    </property>
@@ -209,6 +223,11 @@
    </property>
   </action>
   <action name="action_Save">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/disk.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>&amp;Save Network</string>
    </property>
@@ -256,16 +275,31 @@
    </property>
   </action>
   <action name="action_New_Data_Set">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/table_add.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>New Data Set</string>
    </property>
   </action>
   <action name="action_Save_Data_Set">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/table_save.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Save Data Set...</string>
    </property>
   </action>
   <action name="action_Close_Data_Set">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/table_delete.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Close Data Set</string>
    </property>
@@ -334,6 +368,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="neurogui.qrc"/>
+ </resources>
  <connections/>
 </ui>

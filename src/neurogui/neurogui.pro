@@ -4,6 +4,8 @@ QT += svg
 TARGET = neurogui
 TEMPLATE = lib
 
+CONFIG += resources
+
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 x86_64 }
 
@@ -48,6 +50,8 @@ FORMS += mainwindow.ui \
     labeldialog.ui \
     filedirtydialog.ui \
     aboutdialog.ui
+
+RESOURCES += neurogui.qrc
 
 release { BUILDDIR=release }
 debug { BUILDDIR=debug }
