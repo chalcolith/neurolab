@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 #include <QMap>
 #include <QList>
+#include <QDir>
 
 class QSpinBox;
 class QProgressBar;
@@ -119,6 +120,8 @@ namespace NeuroLab
         /// \return Objects whose properties are currently being displayed.
         QList<PropertyObject *> propertyObjects() { return _propertyObjects; }
 
+        static QDir LAST_DIRECTORY;
+
     protected:
         /// Handles attempts to close the window.
         virtual void closeEvent(QCloseEvent *);
@@ -159,6 +162,7 @@ namespace NeuroLab
 
     private slots:
         void filterEditMenu();
+        void filterFileMenu();
 
         void on_action_About_NeuroLab_triggered();
         void on_action_Manual_triggered();
@@ -179,6 +183,12 @@ namespace NeuroLab
         void on_action_Cut_triggered();
         void on_action_Copy_triggered();
         void on_action_Paste_triggered();
+
+        void on_action_Print_triggered();
+        void on_action_SVG_triggered();
+        void on_action_PDF_triggered();
+        void on_action_PS_triggered();
+        void on_action_PNG_triggered();
     };
 
     /// Base class for exceptions used by the NeuroLab software.

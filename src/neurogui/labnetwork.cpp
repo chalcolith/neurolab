@@ -43,12 +43,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "propertyobj.h"
 #include "../neurolib/neuronet.h"
 
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QClipboard>
 #include <QMimeData>
 #include <QApplication>
 #include <QVector2D>
+#include <QPrintDialog>
+#include <QPrinter>
+#include <QFileDialog>
+#include <QSvgGenerator>
 
 #include <QtVariantPropertyManager>
 #include <QtVariantProperty>
@@ -190,16 +193,21 @@ namespace NeuroLab
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
     /// \param parent The parent widget to use if the file dialog is needed.
     /// \param fname The name of the file from which to load the network.  If this is empty, then the standard file dialog is used to request the name of a file.
-    LabNetwork *LabNetwork::open(QWidget *parent, const QString & fname)
+    LabNetwork *LabNetwork::open(const QString & fname)
     {
         QString nln_fname = fname;
 
         if (nln_fname.isEmpty() || nln_fname.isNull())
         {
-            nln_fname = QFileDialog::getOpenFileName(parent, tr("Open Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*)"));
+            nln_fname = QFileDialog::getOpenFileName(MainWindow::instance(),
+                                                     tr("Open Network"),
+                                                     MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                     tr("NeuroLab Networks (*.nln);;All Files (*)"));
 
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return 0;
+            else
+                MainWindow::LAST_DIRECTORY = QFileInfo(nln_fname).absoluteDir();
         }
 
         QString base_fname = nln_fname.endsWith(".nln", Qt::CaseInsensitive) ? nln_fname.left(nln_fname.length() - 4) : nln_fname;
@@ -212,7 +220,7 @@ namespace NeuroLab
         }
 
         // read network
-        LabNetwork *ln = new LabNetwork(parent);
+        LabNetwork *ln = new LabNetwork(MainWindow::instance());
         ln->_fname = nln_fname;
 
         {
@@ -301,10 +309,15 @@ namespace NeuroLab
         {
             this->_fname.clear();
 
-            QString nln_fname = QFileDialog::getSaveFileName(0, tr("Save Network"), ".", tr("NeuroLab Networks (*.nln);;All Files (*)"));
+            QString nln_fname = QFileDialog::getSaveFileName(MainWindow::instance(),
+                                                             tr("Save Network"),
+                                                             MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                             tr("NeuroLab Networks (*.nln);;All Files (*)"));
 
             if (nln_fname.isEmpty() || nln_fname.isNull())
                 return false;
+            else
+                MainWindow::LAST_DIRECTORY = QFileInfo(nln_fname).absoluteDir();
 
             if (!nln_fname.endsWith(".nln", Qt::CaseInsensitive))
                 nln_fname = nln_fname + ".nln";
@@ -705,6 +718,143 @@ namespace NeuroLab
         emit statusChanged("");
         setChanged();
         _tree->reset();
+    }
+
+    void LabNetwork::exportPrint()
+    {
+        if (scene() && view())
+        {
+            QPrinter printer;
+            QPrintDialog pd(&printer, MainWindow::instance());
+            pd.setWindowTitle(tr("Print Network"));
+            pd.setOption(QAbstractPrintDialog::PrintToFile);
+
+            if (pd.exec() == QDialog::Accepted)
+            {
+                QPainter painter;
+                painter.begin(&printer);
+                view()->render(&painter);
+                painter.end();
+
+                MainWindow::instance()->setStatus(tr("Printed."));
+            }
+        }
+    }
+
+    void LabNetwork::exportSVG()
+    {
+        if (scene() && view())
+        {
+            QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
+                                                         tr("Export Network to SVG"),
+                                                         MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                         tr("Scalable Vector Graphics files (*.svg);;All Files (*)"));
+
+            if (!fname.isNull() && !fname.isEmpty())
+            {
+                MainWindow::LAST_DIRECTORY = QFileInfo(fname).absoluteDir();
+
+                QRectF vp = view()->viewport()->rect();
+
+                QSvgGenerator generator;
+                generator.setFileName(fname);
+                generator.setSize(QSize(static_cast<int>(vp.width()), static_cast<int>(vp.height())));
+                generator.setViewBox(vp);
+                generator.setTitle(this->fname());
+
+                QPainter painter;
+                painter.begin(&generator);
+                view()->render(&painter);
+                painter.end();
+
+                MainWindow::instance()->setStatus(tr("Exported to SVG: %1").arg(fname));
+            }
+        }
+    }
+
+    void LabNetwork::exportPNG()
+    {
+        if (scene() && view())
+        {
+            QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
+                                                         tr("Export Network to PNG"),
+                                                         MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                         tr("Portable Network Graphics files (*.png);;All Files(*)"));
+
+            if (!fname.isNull() && !fname.isEmpty())
+            {
+                MainWindow::LAST_DIRECTORY = QFileInfo(fname).absoluteDir();
+
+                QRectF vp = view()->viewport()->rect();
+
+                QImage image(QSize(vp.width(), vp.height()), QImage::Format_ARGB32_Premultiplied);
+                image.fill(0x00000000);
+
+                QPainter painter;
+                painter.begin(&image);
+                view()->render(&painter);
+                painter.end();
+
+                if (image.save(fname))
+                    MainWindow::instance()->setStatus(tr("Exported to PNG: %1").arg(fname));
+                else
+                    throw new LabException(tr("Unable to save image %1").arg(fname));
+            }
+        }
+    }
+
+    void LabNetwork::exportPS()
+    {
+        if (scene() && view())
+        {
+            QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
+                                                         tr("Export Network to PostScript"),
+                                                         MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                         tr("PostScript files (*.ps);;All Files(*)"));
+
+            if (!fname.isNull() && !fname.isEmpty())
+            {
+                MainWindow::LAST_DIRECTORY = QFileInfo(fname).absoluteDir();
+
+                QPrinter printer;
+                printer.setOutputFileName(fname);
+                printer.setOutputFormat(QPrinter::PostScriptFormat);
+
+                QPainter painter;
+                painter.begin(&printer);
+                view()->render(&painter);
+                painter.end();
+
+                MainWindow::instance()->setStatus(tr("Exported to PostScript: %1").arg(fname));
+            }
+        }
+    }
+
+    void LabNetwork::exportPDF()
+    {
+        if (scene() && view())
+        {
+            QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
+                                                         tr("Export Network to PDF"),
+                                                         MainWindow::LAST_DIRECTORY.absolutePath(),
+                                                         tr("Portable Document Format files (*.pdf);;All Files(*)"));
+
+            if (!fname.isNull() && !fname.isEmpty())
+            {
+                MainWindow::LAST_DIRECTORY = QFileInfo(fname).absoluteDir();
+
+                QPrinter printer;
+                printer.setOutputFileName(fname);
+                printer.setOutputFormat(QPrinter::PdfFormat);
+
+                QPainter painter;
+                painter.begin(&printer);
+                view()->render(&painter);
+                painter.end();
+
+                MainWindow::instance()->setStatus(tr("Exported to PDF: %1").arg(fname));
+            }
+        }
     }
 
 } // namespace NeuroLab

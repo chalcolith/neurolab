@@ -62,6 +62,15 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuExport_to">
+     <property name="title">
+      <string>Export to</string>
+     </property>
+     <addaction name="action_SVG"/>
+     <addaction name="action_PNG"/>
+     <addaction name="action_PS"/>
+     <addaction name="action_PDF"/>
+    </widget>
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
     <addaction name="action_Save"/>
@@ -70,6 +79,9 @@
     <addaction name="action_New_Data_Set"/>
     <addaction name="action_Save_Data_Set"/>
     <addaction name="action_Close_Data_Set"/>
+    <addaction name="separator"/>
+    <addaction name="action_Print"/>
+    <addaction name="menuExport_to"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -116,13 +128,17 @@
    <addaction name="action_Save_Data_Set"/>
    <addaction name="action_Close_Data_Set"/>
    <addaction name="separator"/>
-   <addaction name="action_Delete"/>
-   <addaction name="separator"/>
    <addaction name="action_Step"/>
    <addaction name="action_Reset"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="sidebarDockWidget">
+   <property name="minimumSize">
+    <size>
+     <width>128</width>
+     <height>122</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string/>
    </property>
@@ -147,7 +163,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>57</width>
+          <width>110</width>
           <height>276</height>
          </rect>
         </property>
@@ -286,6 +302,34 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="action_Print">
+   <property name="text">
+    <string>&amp;Print...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="action_SVG">
+   <property name="text">
+    <string>SVG (Scalable Vector Graphics</string>
+   </property>
+  </action>
+  <action name="action_PNG">
+   <property name="text">
+    <string>PNG (Bitmap Graphics)</string>
+   </property>
+  </action>
+  <action name="action_PS">
+   <property name="text">
+    <string>PS (PostScript)</string>
+   </property>
+  </action>
+  <action name="action_PDF">
+   <property name="text">
+    <string>PDF (Portable Document Format)</string>
    </property>
   </action>
  </widget>

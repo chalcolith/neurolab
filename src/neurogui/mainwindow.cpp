@@ -73,6 +73,12 @@ namespace NeuroLab
 
     MainWindow *MainWindow::_instance = 0;
 
+#ifdef DEBUG
+    QDir MainWindow::LAST_DIRECTORY = QDir::current();
+#else
+    QDir MainWindow::LAST_DIRECTORY = QDir::home();
+#endif
+
     MainWindow::MainWindow(QWidget *parent, const QString & title, const QString & initialFname)
         : QMainWindow(parent),
           _title(title),
@@ -132,7 +138,7 @@ namespace NeuroLab
         if (initialFname.isNull() || initialFname.isEmpty())
             newNetwork();
         else
-            setNetwork(LabNetwork::open(this, initialFname));
+            setNetwork(LabNetwork::open(initialFname));
     }
 
     MainWindow::~MainWindow()
@@ -197,6 +203,7 @@ namespace NeuroLab
         resize(settings.value("size", QSize(800, 600)).toSize());
         move(settings.value("pos", QPoint(10, 10)).toPoint());
         restoreState(settings.value("status", QByteArray()).toByteArray(), NEUROLAB_APP_VERSION());
+        LAST_DIRECTORY = QDir(settings.value("last_dir", QVariant(LAST_DIRECTORY.absolutePath())).toString());
         settings.endGroup();
     }
 
@@ -207,6 +214,7 @@ namespace NeuroLab
         settings.setValue("size", size());
         settings.setValue("pos", pos());
         settings.setValue("status", saveState(NEUROLAB_APP_VERSION()));
+        settings.setValue("last_dir", QVariant(LAST_DIRECTORY.absolutePath()));
         settings.endGroup();
     }
 
@@ -215,6 +223,7 @@ namespace NeuroLab
         connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
 
+        connect(_ui->menu_File, SIGNAL(aboutToShow()), this, SLOT(filterFileMenu()));
         connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
     }
 
@@ -260,7 +269,7 @@ namespace NeuroLab
 
         try
         {
-            newNetwork = LabNetwork::open(this, QString());
+            newNetwork = LabNetwork::open(QString());
         }
         catch (Automata::Exception & le)
         {
@@ -557,6 +566,29 @@ namespace NeuroLab
         }
     }
 
+    void MainWindow::filterFileMenu()
+    {
+        bool showPrint = false;
+        bool showExport = false;
+        if (_ui->tabWidget->currentWidget() == _ui->tab_1 && _currentNetwork && _currentNetwork->items().size() > 0)
+        {
+            showPrint = true;
+            showExport = true;
+        }
+//        else if (_ui->tabWidget->currentWidget() == _ui->tab_2 && _currentDataFile && _currentDataFile->table() && _currentDataFile->table()->rowCount() > 0)
+//        {
+//            showPrint = true;
+//        }
+
+        _ui->action_Print->setEnabled(showPrint);
+
+        _ui->menuExport_to->setEnabled(showExport);
+        _ui->action_SVG->setEnabled(showExport);
+        _ui->action_PNG->setEnabled(showExport);
+        _ui->action_PS->setEnabled(showExport);
+        _ui->action_PDF->setEnabled(showExport);
+    }
+
     void MainWindow::filterEditMenu()
     {
         bool showEditOps = _currentNetwork && _currentNetwork->scene() && _currentNetwork->scene()->selectedItems().size() > 0;
@@ -573,33 +605,75 @@ namespace NeuroLab
 
 void NeuroLab::MainWindow::on_action_New_triggered()
 {
-    newNetwork();
+    try
+    {
+        newNetwork();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Open_triggered()
 {
-    if (!openNetwork() && !_currentNetwork)
-        newNetwork();
+    try
+    {
+        if (!openNetwork() && !_currentNetwork)
+            newNetwork();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Close_triggered()
 {
-    closeNetwork();
+    try
+    {
+        closeNetwork();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Save_triggered()
 {
-    saveNetwork();
+    try
+    {
+        saveNetwork();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Quit_triggered()
 {
-    close();
+    try
+    {
+        close();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Sidebar_triggered()
 {
-    _ui->sidebarDockWidget->toggleViewAction()->trigger();
+    try
+    {
+        _ui->sidebarDockWidget->toggleViewAction()->trigger();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Start_triggered()
@@ -612,67 +686,217 @@ void NeuroLab::MainWindow::on_action_Stop_triggered()
 
 void NeuroLab::MainWindow::on_action_Step_triggered()
 {
-    if (_currentNetwork)
-        _currentNetwork->step(_numStepsSpinBox->value());
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->step(_numStepsSpinBox->value());
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Reset_triggered()
 {
-    if (_currentDataFile && !closeDataFile())
-        return;
+    try
+    {
+        if (_currentDataFile && !closeDataFile())
+            return;
 
-    if (_currentNetwork)
-        _currentNetwork->reset();
+        if (_currentNetwork)
+            _currentNetwork->reset();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Delete_triggered()
 {
-    if (_currentNetwork)
-        _currentNetwork->deleteSelected();
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->deleteSelected();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
 {
-    newDataFile();
+    try
+    {
+        newDataFile();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
 {
-    if (_currentDataFile)
-        _currentDataFile->saveAs();
+    try
+    {
+        if (_currentDataFile)
+            _currentDataFile->saveAs();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Close_Data_Set_triggered()
 {
-    closeDataFile();
+    try
+    {
+        closeDataFile();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Manual_triggered()
 {
-    QDesktopServices::openUrl(QUrl("http://bitbucket.org/kulibali/neurocogling/wiki/Manual"));
+    try
+    {
+        QDesktopServices::openUrl(QUrl("http://bitbucket.org/kulibali/neurocogling/wiki/Manual"));
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_About_NeuroLab_triggered()
 {
-    NeuroLab::AboutDialog about(this);
-    about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroLab::VERSION));
-    about.exec();
+    try
+    {
+        NeuroLab::AboutDialog about(this);
+        about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroLab::VERSION));
+        about.exec();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Cut_triggered()
 {
-    if (_currentNetwork)
-        _currentNetwork->cutSelected();
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->cutSelected();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Copy_triggered()
 {
-    if (_currentNetwork)
-        _currentNetwork->copySelected();
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->copySelected();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Paste_triggered()
 {
-    if (_currentNetwork)
-        _currentNetwork->pasteItems();
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->pasteItems();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_Print_triggered()
+{
+    try
+    {
+        // are we in the scene or the data file?
+        QWidget *current = _ui->tabWidget->currentWidget();
+
+        if (current == _ui->tab_1 && _currentNetwork)
+        {
+            _currentNetwork->exportPrint();
+        }
+        //    else if (current == _ui->tab_2 && _currentDataFile)
+        //    {
+        //    }
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_SVG_triggered()
+{
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->exportSVG();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_PNG_triggered()
+{
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->exportPNG();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_PS_triggered()
+{
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->exportPS();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_PDF_triggered()
+{
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->exportPDF();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }

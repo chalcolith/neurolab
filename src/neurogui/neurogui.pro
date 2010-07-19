@@ -1,4 +1,5 @@
 QT += gui
+QT += svg
 
 TARGET = neurogui
 TEMPLATE = lib

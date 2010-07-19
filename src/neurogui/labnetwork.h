@@ -123,7 +123,7 @@ namespace NeuroLab
         NeuroLib::NeuroCell::NeuroValue learnTime() const;
         void setLearnTime(const NeuroLib::NeuroCell::NeuroValue &);
 
-        static LabNetwork *open(QWidget *parent = 0, const QString & fname = QString());
+        static LabNetwork *open(const QString & fname = QString());
 
         bool canPaste() const;
 
@@ -147,6 +147,12 @@ namespace NeuroLab
         void changeItemLabel(NeuroItem *, const QString & label);
 
         void futureFinished();
+
+        void exportPrint();
+        void exportSVG();
+        void exportPNG();
+        void exportPS();
+        void exportPDF();
 
     signals:
         void titleChanged(const QString & title);
