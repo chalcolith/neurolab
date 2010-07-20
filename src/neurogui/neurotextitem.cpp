@@ -38,11 +38,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labscene.h"
 #include "labnetwork.h"
 
+#include <QFontMetrics>
+
 namespace NeuroLab
 {
-    
-    NEUROITEM_DEFINE_CREATOR(NeuroTextItem, QObject::tr("Text Item"));
-    
+
+    NEUROITEM_DEFINE_CREATOR(NeuroTextItem, QObject::tr("Misc|Text Item"));
+
     NeuroTextItem::NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
         _font(QApplication::font()),
@@ -50,18 +52,38 @@ namespace NeuroLab
         _font_property(this, &NeuroTextItem::font, &NeuroTextItem::setFont, tr("Font"), tr("The font to use when displaying the text.")),
         _text_property(this, &NeuroTextItem::text, &NeuroTextItem::setText, tr("Text"), tr("The text to display."))
     {
+        this->_label_property.setEnabled(false);
     }
-    
+
     NeuroTextItem::~NeuroTextItem()
     {
     }
-    
-    void NeuroTextItem::addToShape(QPainterPath &, QList<TextPathRec> & texts) const
+
+    void NeuroTextItem::setPenProperties(QPen & pen) const
     {
-        QPen pen;
-        
-        setPenProperties(pen);        
-        texts.append(TextPathRec(scenePos(), text(), font(), pen));
+        pen.setWidth(NORMAL_LINE_WIDTH);
+
+        if (shouldHighlight())
+            pen.setColor(Qt::gray);
+        else
+            pen.setColor(BACKGROUND_COLOR);
     }
-    
+
+    void NeuroTextItem::setBrushProperties(QBrush & brush) const
+    {
+        if (shouldHighlight())
+            brush.setColor(BACKGROUND_COLOR);
+        else
+            brush.setColor(QColor(255, 255, 255, 0));
+    }
+
+    void NeuroTextItem::addToShape(QPainterPath & path, QList<TextPathRec> & texts) const
+    {
+        QFontMetrics metrics(font());
+        QRectF rect = metrics.boundingRect(text());
+
+        path.addRect(rect);
+        texts.append(TextPathRec(QPointF(0,0), text(), font()));
+    }
+
 } // namespace NeuroLab

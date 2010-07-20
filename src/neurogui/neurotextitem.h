@@ -44,38 +44,40 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace NeuroLab
 {
-    
+
     class NEUROGUISHARED_EXPORT NeuroTextItem
         : public NeuroItem
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
-        
+
         QFont _font;
         QString _text;
-        
+
         Property<NeuroTextItem, QVariant::Font, QFont, QFont> _font_property;
         Property<NeuroTextItem, QVariant::String, QString, QString> _text_property;
-                
+
     public:
         NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroTextItem();
-        
+
         QFont font() const { return _font; }
         void setFont(const QFont & f) { _font = f; }
-        
+
         QString text() const { return _text; }
         void setText(const QString & t) { _text = t; }
-        
+
         virtual QString uiName() const { return tr("Text Item"); }
-        
+
         virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) { return false; }
-        
+
     protected:
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+        virtual void setPenProperties(QPen &pen) const;
+        virtual void setBrushProperties(QBrush &brush) const;
     }; // class NeuroTextItem
-    
+
 }
 
 #endif

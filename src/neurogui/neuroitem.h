@@ -69,21 +69,18 @@ namespace NeuroLab
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
         {
-            QPointF pos; 
+            QPointF pos;
             QString text;
             QFont font;
             QPen pen;
-            
-            TextPathRec(const QPointF & pos, const QString & text)
-                : pos(pos), text(text), font(QApplication::font()) {}
-            
-            TextPathRec(const QPointF & pos, const QString & text, const QFont & font, const QPen & pen) 
+
+            TextPathRec(const QPointF & pos, const QString & text, const QFont & font = QApplication::font(), const QPen & pen = QPen())
                 : pos(pos), text(text), font(font), pen(pen) {}
         };
 
-    private:
         Property<NeuroItem, QVariant::String, QString, QString> _label_property;
 
+    private:
         LabNetwork *_network; ///< The network this item is a part of.
 
         IdType _id; ///< Used to remember links when saving and loading.

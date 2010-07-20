@@ -49,6 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
 #include <QPainter>
+#include <QtAlgorithms>
 
 #include <QtVariantProperty>
 
@@ -166,6 +167,21 @@ namespace NeuroLab
         return 0;
     }
 
+    struct ItemTypeLessThan
+    {
+        const QMap<QString, QPair<QString, NeuroItem::CreateFT> > & _item_creators;
+
+        ItemTypeLessThan(const QMap<QString, QPair<QString, NeuroItem::CreateFT> > & item_creators)
+            : _item_creators(item_creators)
+        {
+        }
+
+        bool operator() (const QString & a, const QString & b)
+        {
+            return _item_creators[a].first < _item_creators[b].first;
+        }
+    };
+
     void NeuroItem::buildNewMenu(LabScene *, NeuroItem *item, const QPointF & pos, QMenu & menu)
     {
         QAction *newAction = menu.addAction(tr("New"));
@@ -174,9 +190,13 @@ namespace NeuroLab
         if (!_itemCreators)
             _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
 
-        for (QMapIterator<QString, QPair<QString, NeuroItem::CreateFT> > i(*_itemCreators); i.hasNext(); i.next())
+        // sort type names
+        QList<QString> keys = _itemCreators->keys();
+        qSort(keys.begin(), keys.end(), ItemTypeLessThan(*_itemCreators));
+
+        for (QListIterator<QString> i(keys); i.hasNext(); )
         {
-            const QString & typeName = i.peekNext().key();
+            const QString & typeName = i.next();
 
             // kludge to get rid of mangled names
             const QString friendlyName = getTypeName(typeName);
@@ -184,7 +204,7 @@ namespace NeuroLab
                 continue;
 
             // get menu text and create function
-            const QPair<QString, NeuroItem::CreateFT> & p = i.peekNext().value();
+            const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
             const QStringList menuPath = p.first.split('|');
 
             QMenu *subMenu = &menu;
