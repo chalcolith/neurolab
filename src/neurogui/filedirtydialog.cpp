@@ -40,8 +40,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroLab
 {
 
-    FileDirtyDialog::FileDirtyDialog(const QString & label)
-        : QDialog(0),
+    FileDirtyDialog::FileDirtyDialog(QWidget *parent, const QString & label)
+        : QDialog(parent),
         ui(new Ui::filedirtydialog)
     {
         ui->setupUi(this);

@@ -3,9 +3,14 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '/opt/qtsdk-2010.02';
+my $qt_base_dir = '/opt/qtsdk-2010.04';
 
 my $cwd = getcwd();
+if ($cwd =~ /utils$/)
+{
+    chdir('..');
+    $cwd = getcwd();
+}
 
 print "cleaning...\n";
 &run('sh utils/distclean.sh');
@@ -40,12 +45,15 @@ $hg_id =~ s/\s+$//;
 print "hg id is $hg_id\n";
 
 # build neurolab
+my $build_dir = '../neurolab_all-build-desktop';
+
 print "build neurolab...\n";
-&build('.', 'neurolab_all.pro');
+&build($build_dir, '../src/neurolab_all.pro');
 
 # create release directory
+my $distrib_dir = '../distrib';
 my $release = "neurolab-$version-$hg_id";
-my $release_dir = "distrib/$version/$release";
+my $release_dir = "$distrib_dir/$version/$release";
 
 print "create release directory $release_dir...\n";
 &run("rm -rf $release_dir");
@@ -62,7 +70,7 @@ print "copying files...\n";
 &run("cp -a $qt_base_dir/qt/lib/libQtSvg.so* $release_dir");
 &run("cp -a $qt_base_dir/qt/lib/libQtGui.so* $release_dir");
 
-&run("cp -a release/* $release_dir");
+&run("cp -a $build_dir/release/* $release_dir");
 
 &run("strip $release_dir/neurolab $release_dir/lib*");
 &run("mv $release_dir/neurolab $release_dir/neurolab-bin");
@@ -70,14 +78,14 @@ print "copying files...\n";
 
 # make tgz file
 print "creating tgz file...\n";
-&run("mkdir -p distrib/tgz");
+&run("mkdir -p $distrib_dir/tgz");
 
 my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
 
 $zipfile =~ s/linux/linux64/ if `uname -a` =~ 'x86_64';
 
 my $pwd = `pwd`;
-chdir "distrib/$version";
+chdir "$distrib_dir/$version";
 &run("tar czf ../tgz/$zipfile $release");
 chdir $pwd;
 
@@ -87,7 +95,12 @@ print "created $zipfile\n";
 sub build
 {
     my ($path, $project) = @_;
-    chdir $path;
+    unless (-d $path)
+    {
+        mkdir $path or die "Unable to make $path: $!\n";
+    }
+
+    chdir $path or die "Unable to cd to $path: $!\n";
 
     my $retval = system("$qt_base_dir/qt/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release");
     $retval = system('make') if $retval == 0;

@@ -47,12 +47,13 @@ namespace NeuroLab
 
     NeuroTextItem::NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
-        _font(QApplication::font()),
+        _font(QApplication::font("sans serif")),
         _text(tr("<text label>")),
         _font_property(this, &NeuroTextItem::font, &NeuroTextItem::setFont, tr("Font"), tr("The font to use when displaying the text.")),
         _text_property(this, &NeuroTextItem::text, &NeuroTextItem::setText, tr("Text"), tr("The text to display."))
     {
         this->_label_property.setEnabled(false);
+        this->_label_property.setVisible(false);
     }
 
     NeuroTextItem::~NeuroTextItem()

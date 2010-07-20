@@ -6,6 +6,8 @@ TEMPLATE = lib
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 x86_64 }
 
+QMAKE_CXXFLAGS += -Wno-type-limits
+
 VERSION = 2.5.1
 
 SRC = qtpropertybrowser-2.5_1-opensource/src

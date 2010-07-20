@@ -66,6 +66,7 @@ namespace NeuroLab
             QString _tooltip;
             bool _enabled;
             int _type;
+            bool _visible;
 
             PropertyObject *_container;
             QtVariantProperty *_property;
@@ -74,7 +75,9 @@ namespace NeuroLab
 
         public:
             PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type)
-                : _name(name), _tooltip(tooltip), _enabled(enabled), _type(type), _container(container), _property(0) {}
+                : _name(name), _tooltip(tooltip),
+                  _enabled(enabled), _type(type), _visible(true),
+                  _container(container), _property(0) {}
             virtual ~PropertyBase() { delete _property; }
 
             /// This creates the actual variant property in the property grid.
@@ -92,6 +95,9 @@ namespace NeuroLab
             void setEnabled(bool e) { _enabled = e; if (_property) _property->setEnabled(e); }
 
             int type() const { return _type; }
+
+            bool visible() const { return _visible; }
+            void setVisible(bool visible) { _visible = visible; }
 
             virtual QVariant value() const { return _property ? _property->value() : QVariant(); }
             virtual void setValue(const QVariant & val) { if (_property) _property->setValue(val); }

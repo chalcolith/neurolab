@@ -120,7 +120,7 @@ namespace NeuroLab
         _numStepsSpinBox = new QSpinBox(this);
         _numStepsSpinBox->setRange(0, 1000000);
         _numStepsSpinBox->setValue(1);
-        _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Reset, _numStepsSpinBox);
+        _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Step, _numStepsSpinBox);
 
         _stepProgressBar = new QProgressBar(this);
         _stepProgressBar->setVisible(false);
@@ -362,7 +362,7 @@ namespace NeuroLab
         {
             if (_currentNetwork->changed())
             {
-                FileDirtyDialog fdd(tr("Your network file contains changes that have not been saved.  Do you wish to save it, discard it, or cancel closing the network?"));
+                FileDirtyDialog fdd(this, tr("Your network file contains changes that have not been saved.  Do you wish to save it, discard it, or cancel closing the network?"));
                 fdd.exec();
 
                 switch (fdd.result())
@@ -401,7 +401,7 @@ namespace NeuroLab
     {
         if (_currentDataFile && _currentDataFile->changed())
         {
-            FileDirtyDialog fdd(tr("You have unsaved data.  Do you wish to save it, discard it, or cancel closing the network?"));
+            FileDirtyDialog fdd(this, tr("You have unsaved data.  Do you wish to save it, discard it, or cancel closing the network?"));
             fdd.exec();
 
             switch (fdd.result())

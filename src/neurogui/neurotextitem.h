@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroLab
 {
 
+    /// Displays a string of text in a particular font.
     class NEUROGUISHARED_EXPORT NeuroTextItem
         : public NeuroItem
     {

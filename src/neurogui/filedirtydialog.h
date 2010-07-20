@@ -53,7 +53,7 @@ namespace NeuroLab
     {
         Q_OBJECT
     public:
-        FileDirtyDialog(const QString & label = QString());
+        FileDirtyDialog(QWidget *parent, const QString & label = QString());
         ~FileDirtyDialog();
 
         enum Response

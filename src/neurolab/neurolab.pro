@@ -6,6 +6,8 @@ TEMPLATE = app
 
 macx { CONFIG += x86 x86_64 }
 
+QMAKE_CXXFLAGS += -Wno-type-limits
+
 include(../version.txt)
 
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src

@@ -9,9 +9,11 @@ CONFIG += resources
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 x86_64 }
 
-DEFINES += NEUROGUI_LIBRARY
+QMAKE_CXXFLAGS += -Wno-type-limits
 
 include(../version.txt)
+
+DEFINES += NEUROGUI_LIBRARY
 
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
 

@@ -74,8 +74,11 @@ namespace NeuroLab
         for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
         {
             PropertyBase *p = i.next();
+
             p->create(manager);
-            topProperty->addSubProperty(p->_property);
+
+            if (p->visible())
+                topProperty->addSubProperty(p->_property);
         }
 
         updateProperties();
