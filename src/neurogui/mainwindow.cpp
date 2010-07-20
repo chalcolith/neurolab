@@ -111,7 +111,7 @@ namespace NeuroLab
         _numStepsSpinBox = new QSpinBox();
         _numStepsSpinBox->setRange(0, 1000000);
         _numStepsSpinBox->setValue(1);
-        _numStepsSpinBoxAction = _ui->mainToolBar->insertWidget(_ui->action_Step, _numStepsSpinBox);
+        _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Reset, _numStepsSpinBox);
 
         _stepProgressBar = new QProgressBar();
         _stepProgressBar->setVisible(false);
@@ -220,11 +220,15 @@ namespace NeuroLab
 
     void MainWindow::setupConnections()
     {
-        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
-
         connect(_ui->menu_File, SIGNAL(aboutToShow()), this, SLOT(filterFileMenu()));
         connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
+
+        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+
+        connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
     }
 
     void MainWindow::setActionsEnabled(bool enabled)
@@ -232,6 +236,15 @@ namespace NeuroLab
         QList<QAction *> actions = _ui->mainToolBar->actions();
         for (QListIterator<QAction *> i(actions); i.hasNext(); )
             i.next()->setEnabled(enabled);
+
+        actions = _ui->viewToolbar->actions();
+        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
+        actions = _ui->simulationToolbar->actions();
+        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
         _ui->action_Quit->setEnabled(enabled);
     }
 
@@ -596,6 +609,7 @@ namespace NeuroLab
         _ui->action_Cut->setEnabled(showEditOps);
         _ui->action_Copy->setEnabled(showEditOps);
         _ui->action_Paste->setEnabled(_currentNetwork && _currentNetwork->canPaste());
+        _ui->action_Delete->setEnabled(showEditOps);
     }
 
 } // namespace NeuroLab
@@ -669,6 +683,43 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
     try
     {
         _ui->sidebarDockWidget->toggleViewAction()->trigger();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_Main_Toolbar_triggered()
+{
+    try
+    {
+        _ui->mainToolBar->toggleViewAction()->trigger();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroLab::MainWindow::on_action_View_Toolbar_triggered()
+{
+    try
+    {
+        _ui->viewToolbar->toggleViewAction()->trigger();
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+
+void NeuroLab::MainWindow::on_action_Simulation_Toolbar_triggered()
+{
+    try
+    {
+        _ui->simulationToolbar->toggleViewAction()->trigger();
     }
     catch (Automata::Exception & e)
     {
@@ -900,3 +951,14 @@ void NeuroLab::MainWindow::on_action_PDF_triggered()
         QMessageBox::critical(this, tr("Error"), e.message());
     }
 }
+
+void NeuroLab::MainWindow::on_action_Zoom_In_triggered()
+{
+
+}
+
+void NeuroLab::MainWindow::on_action_Zoom_Out_triggered()
+{
+
+}
+

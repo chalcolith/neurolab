@@ -161,6 +161,7 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
 
     private slots:
+        void on_action_Simulation_Toolbar_triggered();
         void filterEditMenu();
         void filterFileMenu();
 
@@ -172,6 +173,8 @@ namespace NeuroLab
         void on_action_Save_triggered();
         void on_action_Quit_triggered();
         void on_action_Sidebar_triggered();
+        void on_action_View_Toolbar_triggered();
+        void on_action_Main_Toolbar_triggered();
         void on_action_Start_triggered();
         void on_action_Stop_triggered();
         void on_action_Step_triggered();
@@ -189,6 +192,9 @@ namespace NeuroLab
         void on_action_PDF_triggered();
         void on_action_PS_triggered();
         void on_action_PNG_triggered();
+
+        void on_action_Zoom_Out_triggered();
+        void on_action_Zoom_In_triggered();
     };
 
     /// Base class for exceptions used by the NeuroLab software.
