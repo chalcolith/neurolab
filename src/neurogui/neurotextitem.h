@@ -72,6 +72,9 @@ namespace NeuroLab
         virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) { return false; }
 
+        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
     protected:
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void setPenProperties(QPen &pen) const;

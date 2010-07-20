@@ -86,4 +86,26 @@ namespace NeuroLab
         texts.append(TextPathRec(QPointF(0,0), text(), font()));
     }
 
+    void NeuroTextItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        NeuroItem::writeBinary(ds, file_version);
+
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+        {
+            ds << _font;
+            ds << _text;
+        }
+    }
+
+    void NeuroTextItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroItem::readBinary(ds, file_version);
+
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+        {
+            ds >> _font;
+            ds >> _text;
+        }
+    }
+
 } // namespace NeuroLab

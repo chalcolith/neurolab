@@ -101,34 +101,44 @@ namespace NeuroLab
         Q_ASSERT(_scene);
         Q_ASSERT(_view);
 
-        ds << _id;
-
-        // view matrix
-        ds << _view->matrix();
-
-        // graphics items in this scene
-        QList<QGraphicsItem *> items = _scene->items();
-        quint32 num_items = static_cast<quint32>(items.size());
-
-        ds << num_items;
-        for (quint32 i = 0; i < num_items; ++i)
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
-            NeuroItem const * const item = dynamic_cast<NeuroItem const *>(items[i]);
-            if (!item)
-                continue;
+            ds << _id;
 
-            QString typeName = item->getTypeName();
-            ds << typeName;
-            item->writeBinary(ds, file_version);
-            item->writePointerIds(ds, file_version);
-        }
+            // view
+            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+            {
+                _view->writeBinary(ds, file_version);
+            }
+            else
+            {
+                ds << _view->matrix();
+            }
 
-        // children
-        ds << static_cast<quint32>(_children.size());
+            // graphics items in this scene
+            QList<QGraphicsItem *> items = _scene->items();
+            quint32 num_items = static_cast<quint32>(items.size());
 
-        for (int i = 0; i < _children.size(); ++i)
-        {
-            _children[i]->writeBinary(ds, file_version);
+            ds << num_items;
+            for (quint32 i = 0; i < num_items; ++i)
+            {
+                NeuroItem const * const item = dynamic_cast<NeuroItem const *>(items[i]);
+                if (!item)
+                    continue;
+
+                QString typeName = item->getTypeName();
+                ds << typeName;
+                item->writeBinary(ds, file_version);
+                item->writePointerIds(ds, file_version);
+            }
+
+            // children
+            ds << static_cast<quint32>(_children.size());
+
+            for (int i = 0; i < _children.size(); ++i)
+            {
+                _children[i]->writeBinary(ds, file_version);
+            }
         }
     }
 
@@ -142,8 +152,16 @@ namespace NeuroLab
                 NEXT_ID = _id + 1;
 
             // view matrix
-            QMatrix matrix;
-            ds >> matrix;
+            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+            {
+                _view->readBinary(ds, file_version);
+            }
+            else
+            {
+                QMatrix matrix;
+                ds >> matrix;
+                _view->setMatrix(matrix);
+            }
 
             // graphics items in this scene
             quint32 num_items;
@@ -195,7 +213,6 @@ namespace NeuroLab
             }
 
             // update scene and view
-            _view->setMatrix(matrix);
             _scene->update();
         }
     }

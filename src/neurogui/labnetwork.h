@@ -146,6 +146,8 @@ namespace NeuroLab
         void selectionChanged();
         void changeItemLabel(NeuroItem *, const QString & label);
 
+        void setZoom(int new_zoom);
+
         void futureFinished();
 
         void exportPrint();

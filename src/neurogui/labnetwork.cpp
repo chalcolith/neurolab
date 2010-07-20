@@ -182,6 +182,14 @@ namespace NeuroLab
         emit itemLabelChanged(item, label);
     }
 
+    void LabNetwork::setZoom(int new_zoom)
+    {
+        if (view())
+        {
+            view()->setZoom(new_zoom);
+        }
+    }
+
 
     /// \deprecated
     static const QString LAB_SCENE_COOKIE_OLD("Neurolab SCENE 009");

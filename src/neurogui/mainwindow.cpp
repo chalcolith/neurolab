@@ -84,6 +84,7 @@ namespace NeuroLab
           _title(title),
           _ui(new Ui::MainWindow()),
           _networkLayout(0),
+          _zoomSpinBox(0),
           _numStepsSpinBox(0),
           _numStepsSpinBoxAction(0),
           _stepProgressBar(0),
@@ -103,36 +104,45 @@ namespace NeuroLab
         // set up ui and other connections
         _ui->setupUi(this);
 
-        QVBoxLayout *sidebarLayout = new QVBoxLayout();
+        QVBoxLayout *sidebarLayout = new QVBoxLayout(this);
         _ui->sidebar_page_1->setLayout(sidebarLayout);
-        sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser());
+        sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
 
-        _numStepsSpinBox = new QSpinBox();
+        _zoomSpinBox = new QSpinBox(this);
+        _zoomSpinBox->setRange(10, 1000);
+        _zoomSpinBox->setSuffix(QString("%"));
+        _zoomSpinBox->setValue(100);
+        _zoomSpinBox->setSingleStep(10);
+        _zoomSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        _zoomSpinBoxAction = _ui->viewToolbar->insertWidget(_ui->action_Zoom_Out, _zoomSpinBox);
+
+        _numStepsSpinBox = new QSpinBox(this);
         _numStepsSpinBox->setRange(0, 1000000);
         _numStepsSpinBox->setValue(1);
         _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Reset, _numStepsSpinBox);
 
-        _stepProgressBar = new QProgressBar();
+        _stepProgressBar = new QProgressBar(this);
         _stepProgressBar->setVisible(false);
         _stepProgressBar->reset();
         _ui->statusBar->addPermanentWidget(_stepProgressBar);
 
-        setupConnections();
-
         _ui->tabWidget->setTabText(1, "");
 
         // central widget layout
-        _networkLayout = new QVBoxLayout();
+        _networkLayout = new QVBoxLayout(this);
         _ui->tab_1->setLayout(_networkLayout);
 
         this->setWindowTitle(tr("NeuroLab"));
 
-        // read state from settings
-        loadStateSettings();
-
         // load plugins
         loadPlugins();
+
+        // set up connections
+        setupConnections();
+
+        // read state from settings
+        loadStateSettings();
 
         // load initial network
         if (initialFname.isNull() || initialFname.isEmpty())
@@ -227,6 +237,8 @@ namespace NeuroLab
         connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+
+        connect(_zoomSpinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomValueChanged(int)), Qt::UniqueConnection);
 
         connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
     }
@@ -471,6 +483,7 @@ namespace NeuroLab
             _currentNetwork = network;
             _networkLayout->addWidget(_currentNetwork->view());
             _currentNetwork->view()->show();
+            _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
 
             connect(_currentNetwork, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
@@ -479,11 +492,15 @@ namespace NeuroLab
             connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)), Qt::UniqueConnection);
         }
+        else
+        {
+            _zoomSpinBox->setValue(100);
+        }
 
         setTitle();
         setPropertyObject(_currentNetwork);
         update();
-        
+
         filterFileMenu();
         filterEditMenu();
     }
@@ -516,7 +533,7 @@ namespace NeuroLab
         if (property_objects.size() > 1)
         {
             _noncePropertyObject = new CommonPropertyObject(0, property_objects);
-            
+
             cur_obj = _noncePropertyObject;
         }
         else if (property_objects.size() == 1)
@@ -583,6 +600,12 @@ namespace NeuroLab
         }
     }
 
+    void MainWindow::zoomValueChanged(int val)
+    {
+        if (_currentNetwork)
+            _currentNetwork->setZoom(val);
+    }
+
     void MainWindow::filterFileMenu()
     {
         bool showPrint = false;
@@ -604,6 +627,10 @@ namespace NeuroLab
         _ui->action_PNG->setEnabled(showExport);
         _ui->action_PS->setEnabled(showExport);
         _ui->action_PDF->setEnabled(showExport);
+
+        bool showData = _currentDataFile;
+        _ui->action_Save_Data_Set->setEnabled(showData);
+        _ui->action_Close_Data_Set->setEnabled(showData);
     }
 
     void MainWindow::filterEditMenu()
@@ -958,11 +985,35 @@ void NeuroLab::MainWindow::on_action_PDF_triggered()
 
 void NeuroLab::MainWindow::on_action_Zoom_In_triggered()
 {
-
+    try
+    {
+        if (_zoomSpinBox && _currentNetwork)
+        {
+            int prev = _zoomSpinBox->value();
+            int step = _zoomSpinBox->singleStep();
+            _zoomSpinBox->setValue(prev + step);
+        }
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 
 void NeuroLab::MainWindow::on_action_Zoom_Out_triggered()
 {
-
+    try
+    {
+        if (_zoomSpinBox && _currentNetwork)
+        {
+            int prev = _zoomSpinBox->value();
+            int step = _zoomSpinBox->singleStep();
+            _zoomSpinBox->setValue(prev - step);
+        }
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
 }
 

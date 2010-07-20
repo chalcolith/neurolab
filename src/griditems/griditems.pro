@@ -20,7 +20,7 @@ release { BUILDDIR=release }
 debug { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
-else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }
+else { DESTDIR = $$OUT_PWD/../$$BUILDDIR/plugins }
 TEMPDIR = $$OUT_PWD/$$BUILDDIR
 
 OBJECTS_DIR = $$TEMPDIR
@@ -29,7 +29,7 @@ UI_DIR = $$TEMPDIR
 RCC_DIR = $$TEMPDIR
 
 win32 {
-    LIBS += -L$$DESTDIR \
+    LIBS += -L$$DESTDIR/.. \
         -lneurogui1 \
         -lneurolib1 \
         -lautomata1 \
@@ -41,7 +41,7 @@ win32 {
         -framework automata \
         -framework qtpropertybrowser
 } else {
-    LIBS += -L$$DESTDIR \
+    LIBS += -L$$DESTDIR/.. \
         -lneurogui \
         -lneurolib \
         -lautomata \
