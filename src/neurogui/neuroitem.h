@@ -40,8 +40,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neurogui_global.h"
 #include "propertyobj.h"
 
+#include <QApplication>
 #include <QGraphicsItem>
 #include <QPainterPath>
+#include <QPen>
 #include <QColor>
 #include <QList>
 #include <QMap>
@@ -67,8 +69,16 @@ namespace NeuroLab
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
         {
-            QPointF pos; QString text;
-            TextPathRec(const QPointF & pos, const QString & text) : pos(pos), text(text) {}
+            QPointF pos; 
+            QString text;
+            QFont font;
+            QPen pen;
+            
+            TextPathRec(const QPointF & pos, const QString & text)
+                : pos(pos), text(text), font(QApplication::font()) {}
+            
+            TextPathRec(const QPointF & pos, const QString & text, const QFont & font, const QPen & pen) 
+                : pos(pos), text(text), font(font), pen(pen) {}
         };
 
     private:

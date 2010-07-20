@@ -483,6 +483,9 @@ namespace NeuroLab
         setTitle();
         setPropertyObject(_currentNetwork);
         update();
+        
+        filterFileMenu();
+        filterEditMenu();
     }
 
     void MainWindow::setPropertyObject(PropertyObject *po)
@@ -513,6 +516,7 @@ namespace NeuroLab
         if (property_objects.size() > 1)
         {
             _noncePropertyObject = new CommonPropertyObject(0, property_objects);
+            
             cur_obj = _noncePropertyObject;
         }
         else if (property_objects.size() == 1)

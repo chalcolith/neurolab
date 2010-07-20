@@ -47,6 +47,8 @@ namespace NeuroLab
         setAlignment(Qt::AlignLeft | Qt::AlignTop);
         setDragMode(QGraphicsView::RubberBandDrag);
         setResizeAnchor(QGraphicsView::AnchorViewCenter);
+        
+        setToolTip(tr("Right-click to add new network items."));
     }
 
     LabView::~LabView()

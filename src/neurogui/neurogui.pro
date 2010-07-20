@@ -27,6 +27,7 @@ SOURCES += mainwindow.cpp \
     propertyobj.cpp \
     filedirtydialog.cpp \
     neuronarrowitem.cpp \
+    neurotextitem.cpp \
     labdatafile.cpp \
     aboutdialog.cpp
 
@@ -43,6 +44,7 @@ HEADERS += neurogui_global.h \
     propertyobj.h \
     filedirtydialog.h \
     neuronarrowitem.h \
+    neurotextitem.h \
     labdatafile.h \
     aboutdialog.h
 

@@ -363,7 +363,7 @@ namespace NeuroLab
         for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
         {
             const TextPathRec & rec = i.next();
-            _shapePath.addText(rec.pos, QApplication::font(), rec.text);
+            _shapePath.addText(rec.pos, rec.font, rec.text);
         }
 
         _shapePath = _drawPath.united(_shapePath);
@@ -453,6 +453,8 @@ namespace NeuroLab
         for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
         {
             const TextPathRec & rec = i.next();
+            painter->setFont(rec.font);
+            painter->setPen(rec.pen);
             painter->drawText(rec.pos, rec.text);
         }
     }
