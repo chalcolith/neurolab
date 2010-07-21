@@ -97,8 +97,8 @@ call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
 call :copyfile ..\LICENSE.txt %RELEASE_DIR%
 call :copyfile ..\README.txt %RELEASE_DIR%
-xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples
-xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples
+xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples > %TEMP%\deploy.log
+xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples > %TEMP%\deploy.log
 if ERRORLEVEL 1 goto :EOF
 
 call :copyfile "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
@@ -147,8 +147,9 @@ goto :EOF
 :makezip
 pushd "%DISTRIB_DIR%\%1"
 set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
-echo making zip %ZIPFILE%
+echo deleting existing zip
 if exist "%ZIPFILE%" del /q "%ZIPFILE%"
+echo making zip %ZIPFILE%
 ..\..\src\thirdparty\zip-3.0-bin\bin\zip -r "%ZIPFILE%" * > %TEMP%\deploy.log
 if ERRORLEVEL 1 goto error
 echo made %ZIPFILE%
