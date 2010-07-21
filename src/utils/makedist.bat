@@ -1,6 +1,8 @@
 @echo off
 
 if exist makedist.bat cd ..
+if not exist utils goto wrongdir
+if ERRORLEVEL 1 goto error
 
 if "%1" == "help" goto help
 if "%1" == "-help" goto help
@@ -12,7 +14,7 @@ echo usage: makedist.bat [-bump]
 echo  -bump: increment version number and tag mercurial repository
 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Build settings
 
 :build
@@ -30,77 +32,87 @@ qmake --version
 if ERRORLEVEL 1 call :setpath
 echo done setting build settings.
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Clean build
 
 call :distclean
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Update
 
 echo updating...
 hg -q update
-if ERRORLEVEL 1 goto :EOF
+if ERRORLEVEL 1 goto error
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Build Tools
 
 call :build utils\incversion incversion.pro
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Increment version if necessary
 
 call :bumpdlls
 if "%1" == "-bump" call :bump
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM get version
 
 for /f usebackq %%v in (`utils\incversion\release\incversion.exe -nobump version.txt`) do set NEUROLAB_VERSION=%%v
-if ERRORLEVEL 1 goto :EOF
+if ERRORLEVEL 1 goto error
 echo version is %NEUROLAB_VERSION%
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM hg id
 
 for /f usebackq %%i in (`hg -q id`) do set HG_ID=%%i
+if ERRORLEVEL 1 goto error
 echo hg id is %HG_ID%
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM build NeuroLab
 
 if not exist "%SHADOW_DIR%" mkdir "%SHADOW_DIR%"
 call :build "%SHADOW_DIR%" ..\src\neurolab_all.pro
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM create release directory
 
 if not exist "%DISTRIB_DIR%\zips" mkdir "%DISTRIB_DIR%\zips"
-set RELEASE_DIR="%DISTRIB_DIR%\%NEUROLAB_VERSION%"
+set RELEASE_DIR=%DISTRIB_DIR%\%NEUROLAB_VERSION%-%HG_ID%
+
+echo creating release directory %RELEASE_DIR%
 if exist %RELEASE_DIR% rmdir /q /s %RELEASE_DIR%
-if ERRORLEVEL 1 goto :EOF
+if ERRORLEVEL 1 goto error
+
+echo creating other directories...
 mkdir %RELEASE_DIR%
 mkdir %RELEASE_DIR%\plugins
 mkdir %RELEASE_DIR%\licenses\qt
 mkdir %RELEASE_DIR%\licenses\qtpropertybrowser
 mkdir %RELEASE_DIR%\samples
-if ERRORLEVEL 1 goto :EOF
+if ERRORLEVEL 1 goto error
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM copy files
 
+echo copying licenses...
 call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
 call :copyfile ..\LICENSE.txt %RELEASE_DIR%
 call :copyfile ..\README.txt %RELEASE_DIR%
+if ERRORLEVEL 1 goto :EOF
+
+echo copying samples...
 xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples > %TEMP%\deploy.log
 xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples > %TEMP%\deploy.log
 if ERRORLEVEL 1 goto :EOF
 
+echo copying libraries...
 call :copyfile "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\mingw\bin\mingwm10.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\qt\bin\qtcore4.dll" %RELEASE_DIR%
@@ -108,6 +120,7 @@ call :copyfile "%QT_DIST_DIR%\qt\bin\qtgui4.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\qt\bin\qtsvg4.dll" %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
+echo copying program...
 call :copyfile %SHADOW_DIR%\release\qtpropertybrowser?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\automata?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\neurolib?.dll %RELEASE_DIR%
@@ -115,16 +128,16 @@ call :copyfile %SHADOW_DIR%\release\neurogui?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\neurolab.exe %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM make zip file
 call :makezip %NEUROLAB_VERSION% %HG_ID%
 if ERRORLEVEL 1 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM Done
 goto :EOF
 
-REM ---------------------
+REM ------------------------------------------------------------------
 REM functions
 
 :setpath
@@ -145,7 +158,7 @@ echo done cleaning
 goto :EOF
 
 :makezip
-pushd "%DISTRIB_DIR%\%1"
+pushd "%DISTRIB_DIR%\%1-%2"
 set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
 echo deleting existing zip
 if exist "%ZIPFILE%" del /q "%ZIPFILE%"
@@ -188,8 +201,12 @@ popd
 goto :EOF
 
 :build
+pushd .
 call :qmake %1 %2
+if ERRORLEVEL 1 goto error
 call :make %1
+if ERRORLEVEL 1 goto error
+popd
 echo done build
 goto :EOF
 
@@ -209,8 +226,13 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+:wrongdir
+pushd .
+echo You must be in the src directory to run the makedist.bat script!
+goto error
+
 :error
 popd
-echo aborted!
+echo Aborted!
 exit /b 1
 goto :EOF

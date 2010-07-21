@@ -7,9 +7,13 @@ glob:*.ncb
 glob:*.suo
 glob:debug
 glob:release
-glob:distrib
 glob:src/neurolab/GeneratedFiles
 glob:*_resource.rc
 glob:src/utils/incversion/incversion
 glob:src/utils/incversion/main.o
 glob:doc/html
+glob:distrib/1.*
+glob:distrib/zips
+glob:distrib/tgz
+glob:distrib/dmg
+glob:distrib/*.exe
