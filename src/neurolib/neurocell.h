@@ -92,12 +92,12 @@ namespace NeuroLib
         /// \see NeuroCell::frozen()
         inline void setFrozen(const bool & frozen) { _frozen = frozen; }
 
-        /// \return The "weight" of the cell.  For links, this is the output weight; for nodes, this is the input weight (roughly, the input value required to produce an output close to 1).
+        /// \return The "weight" of the cell.  For links, this is the output weight; for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::setWeight()
         const NeuroValue & weight() const { return _weight; }
 
-        /// Set the "weight" of the cell.  For links, this is the output weight; for nodes, this is the input weight (roughly, the input value required to produce an output close to 1).
+        /// Set the "weight" of the cell.  For links, this is the output weight; for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::weight()
         void setWeight(const NeuroValue & weight) { _weight = weight; }

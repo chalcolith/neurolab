@@ -91,9 +91,13 @@ namespace NeuroLab
         }
     }
 
-    void LabTreeNode::update()
+    void LabTreeNode::updateItemProperties()
     {
-        _scene->update();
+        if (_view)
+        {
+            _view->updateItemProperties();
+            _view->update();
+        }
     }
 
     void LabTreeNode::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
@@ -264,17 +268,20 @@ namespace NeuroLab
             reset(i.next());
     }
 
-    void LabTree::update(LabTreeNode *n)
+    void LabTree::updateItemProperties(LabTreeNode *n, bool all)
     {
         if (!n)
-            n = _root;
+            n = all ? _root : _current;
 
         Q_ASSERT(n != 0);
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
-            update(i.next());
+        if (all)
+        {
+            for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
+                updateItemProperties(i.next());
+        }
 
-        n->update();
+        n->updateItemProperties();
     }
 
     void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const

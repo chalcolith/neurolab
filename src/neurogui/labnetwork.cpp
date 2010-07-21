@@ -68,9 +68,8 @@ namespace NeuroLab
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
-        _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
-        _node_raise_property(this, &LabNetwork::nodeRaiseRate, &LabNetwork::setNodeRaiseRate, tr("Node Raise Rate"), tr("Controls the rate of node threshold raising.")),
-        _node_lower_property(this, &LabNetwork::nodeLowerRate, &LabNetwork::setNodeLowerRate, tr("Node Lower Rate"), tr("Controls the rate of node threshold lowering.")),
+        _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
+        _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or lowering.")),
         _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
         _current_step(0), _max_steps(0)
     {
@@ -133,40 +132,28 @@ namespace NeuroLab
         _neuronet->setDecay(decay);
     }
 
-    NeuroCell::NeuroValue LabNetwork::learnRate() const
+    NeuroCell::NeuroValue LabNetwork::linkLearnRate() const
     {
         Q_ASSERT(_neuronet != 0);
-        return _neuronet->learnRate();
+        return _neuronet->linkLearnRate();
     }
 
-    void LabNetwork::setLearnRate(const NeuroLib::NeuroCell::NeuroValue & learnRate)
+    void LabNetwork::setLinkLearnRate(const NeuroLib::NeuroCell::NeuroValue & learnRate)
     {
         Q_ASSERT(_neuronet != 0);
-        _neuronet->setLearnRate(learnRate);
+        _neuronet->setLinkLearnRate(learnRate);
     }
-    
-    NeuroCell::NeuroValue LabNetwork::nodeRaiseRate() const
+
+    NeuroCell::NeuroValue LabNetwork::nodeLearnRate() const
     {
         Q_ASSERT(_neuronet != 0);
-        return _neuronet->nodeRaiseRate();
+        return _neuronet->nodeLearnRate();
     }
-    
-    void LabNetwork::setNodeRaiseRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+
+    void LabNetwork::setNodeLearnRate(const NeuroLib::NeuroCell::NeuroValue & rate)
     {
         Q_ASSERT(_neuronet != 0);
-        _neuronet->setNodeRaiseRate(rate);
-    }
-    
-    NeuroCell::NeuroValue LabNetwork::nodeLowerRate() const
-    {
-        Q_ASSERT(_neuronet != 0);
-        return _neuronet->nodeLowerRate();
-    }
-    
-    void LabNetwork::setNodeLowerRate(const NeuroLib::NeuroCell::NeuroValue & rate)
-    {
-        Q_ASSERT(_neuronet != 0);
-        _neuronet->setNodeLowerRate(rate);
+        _neuronet->setNodeLearnRate(rate);
     }
 
     NeuroCell::NeuroValue LabNetwork::learnTime() const
@@ -225,7 +212,6 @@ namespace NeuroLab
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
-    /// \param parent The parent widget to use if the file dialog is needed.
     /// \param fname The name of the file from which to load the network.  If this is empty, then the standard file dialog is used to request the name of a file.
     LabNetwork *LabNetwork::open(const QString & fname)
     {
@@ -658,7 +644,18 @@ namespace NeuroLab
                 item->adjustLinks();
             }
 
-            _tree->update();
+            _tree->updateItemProperties();
+        }
+    }
+
+    void LabNetwork::selectAll()
+    {
+        if (scene())
+        {
+            QPainterPath path;
+            path.addRect(scene()->sceneRect());
+
+            scene()->setSelectionArea(path);
         }
     }
 
@@ -672,7 +669,7 @@ namespace NeuroLab
     void LabNetwork::stop()
     {
         _running = false;
-        _tree->update();
+        _tree->updateItemProperties();
     }
 
     /// Advances the network by one timestep.
@@ -691,7 +688,9 @@ namespace NeuroLab
         _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
         _step_time.start();
 
-        emit actionsEnabled(false);
+        if (numSteps > 1)
+            emit actionsEnabled(false);
+
         emit valuesChanged();
 
         if (numSteps > 1)
@@ -725,7 +724,7 @@ namespace NeuroLab
 
             _running = false;
             setChanged();
-            _tree->update();
+            _tree->updateItemProperties();
         }
         else
         {
@@ -741,7 +740,7 @@ namespace NeuroLab
                     emit stepProgressValueChanged(_current_step);
                 }
 
-                _tree->update();
+                _tree->updateItemProperties();
             }
         }
     }

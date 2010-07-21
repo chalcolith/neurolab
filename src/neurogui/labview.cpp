@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labview.h"
 #include "labscene.h"
+#include "neuroitem.h"
 
 namespace NeuroLab
 {
@@ -67,6 +68,19 @@ namespace NeuroLab
         qreal ratio = static_cast<qreal>(long_ratio);
         scale(ratio, ratio);
         _zoom = zoom;
+    }
+
+    void LabView::updateItemProperties()
+    {
+        QRect rect = viewport()->rect();
+
+        QList<QGraphicsItem *> in_view = items(rect);
+        for (QMutableListIterator<QGraphicsItem *> i(in_view); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->updateProperties();
+        }
     }
 
     void LabView::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const

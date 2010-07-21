@@ -61,6 +61,8 @@ namespace NeuroLab
         int zoom() const { return _zoom; }
         void setZoom(int zoom);
 
+        void updateItemProperties();
+
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
     };

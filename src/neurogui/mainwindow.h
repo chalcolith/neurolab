@@ -154,9 +154,10 @@ namespace NeuroLab
         void setupConnections();
 
         bool newNetwork();
-        bool openNetwork();
+        bool openNetwork(const QString & fname = QString());
         bool saveNetwork();
         bool closeNetwork();
+        bool reloadNetwork();
 
         bool newDataFile();
         bool closeDataFile();
@@ -173,8 +174,9 @@ namespace NeuroLab
         void on_action_Manual_triggered();
         void on_action_New_triggered();
         void on_action_Open_triggered();
-        void on_action_Close_triggered();
         void on_action_Save_triggered();
+        void on_action_Reload_Network_triggered();
+        void on_action_Close_triggered();
         void on_action_Quit_triggered();
         void on_action_Sidebar_triggered();
         void on_action_Main_Toolbar_triggered();
@@ -188,9 +190,11 @@ namespace NeuroLab
         void on_action_Save_Data_Set_triggered();
         void on_action_New_Data_Set_triggered();
         void on_action_Close_Data_Set_triggered();
+
         void on_action_Cut_triggered();
         void on_action_Copy_triggered();
         void on_action_Paste_triggered();
+        void on_action_Select_All_triggered();
 
         void on_action_Print_triggered();
         void on_action_SVG_triggered();

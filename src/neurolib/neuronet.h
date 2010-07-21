@@ -52,9 +52,8 @@ namespace NeuroLib
         : public Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex>
     {
         NeuroCell::NeuroValue _decay;
-        NeuroCell::NeuroValue _learn_rate;
-        NeuroCell::NeuroValue _node_raise_rate;
-        NeuroCell::NeuroValue _node_lower_rate;
+        NeuroCell::NeuroValue _link_learn_rate;
+        NeuroCell::NeuroValue _node_learn_rate;
         NeuroCell::NeuroValue _learn_time;
 
     public:
@@ -71,17 +70,14 @@ namespace NeuroLib
 
         /// The learn rate of links in the network.  This is the maximum amount a link's weight will increase via Hebbian learning each timestep.
         /// \see NeuroNet::setLearn()
-        NeuroCell::NeuroValue learnRate() const { return _learn_rate; }
+        NeuroCell::NeuroValue linkLearnRate() const { return _link_learn_rate; }
 
         /// Sets the learn rate of links in the network.
         /// \see NeuroNet::learn()
-        void setLearnRate(const NeuroCell::NeuroValue & learn) { _learn_rate = learn; }
-        
-        NeuroCell::NeuroValue nodeRaiseRate() const { return _node_raise_rate; }
-        void setNodeRaiseRate(const NeuroCell::NeuroValue & rate) { _node_raise_rate = rate; }
-        
-        NeuroCell::NeuroValue nodeLowerRate() const { return _node_lower_rate; }
-        void setNodeLowerRate(const NeuroCell::NeuroValue & rate) { _node_lower_rate = rate; }
+        void setLinkLearnRate(const NeuroCell::NeuroValue & learn) { _link_learn_rate = learn; }
+
+        NeuroCell::NeuroValue nodeLearnRate() const { return _node_learn_rate; }
+        void setNodeLearnRate(const NeuroCell::NeuroValue & rate) { _node_learn_rate = rate; }
 
         /// This is the number of timesteps for which a cell's running average is calculated, for the purposes of Hebbian learning.
         /// \see NeuroNet::setLearnTime()

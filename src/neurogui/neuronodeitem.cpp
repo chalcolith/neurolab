@@ -165,7 +165,7 @@ namespace NeuroLab
         : NeuroNodeItemBase(network, scenePos, context),
         _frozen_property(this, &NeuroNodeItem::frozen, &NeuroNodeItem::setFrozen, tr("Frozen")),
         _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs,
-                         tr("Inputs"), tr("How many inputs in general will it take to activate the node.")),
+                         tr("Input Threshold"), tr("How large an input signal will it take to fully activate the node.")),
         _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun,
                       tr("1 / Slope"), tr("The range of input values between an output of zero and one.  Conceptually, the inverse of the slope.  Don't set this to zero."))
     {
@@ -231,13 +231,9 @@ namespace NeuroLab
     void NeuroNodeItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
-        drawPath.addEllipse(rect());
 
-        const NeuroNet::ASYNC_STATE *cell = getCell();
-        if (cell)
-        {
-            texts.append(TextPathRec(QPointF(-4, 4), QString::number(cell->current().weight())));
-        }
+        drawPath.addEllipse(rect());
+        texts.append(TextPathRec(QPointF(-4, 4), QString::number(inputs())));
     }
 
     void NeuroNodeItem::buildActionMenu(LabScene *, const QPointF &, QMenu & menu)

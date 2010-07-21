@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>25</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -77,6 +77,7 @@
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
     <addaction name="action_Save"/>
+    <addaction name="action_Reload_Network"/>
     <addaction name="action_Close"/>
     <addaction name="separator"/>
     <addaction name="action_New_Data_Set"/>
@@ -121,6 +122,8 @@
     <addaction name="action_Copy"/>
     <addaction name="action_Paste"/>
     <addaction name="action_Delete"/>
+    <addaction name="separator"/>
+    <addaction name="action_Select_All"/>
    </widget>
    <widget class="QMenu" name="menuSimulation">
     <property name="title">
@@ -145,6 +148,7 @@
    <addaction name="action_New"/>
    <addaction name="action_Open"/>
    <addaction name="action_Save"/>
+   <addaction name="action_Reload_Network"/>
    <addaction name="action_Close"/>
    <addaction name="separator"/>
    <addaction name="action_Print"/>
@@ -153,7 +157,13 @@
    <addaction name="action_Save_Data_Set"/>
    <addaction name="action_Close_Data_Set"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="styleSheet">
+    <string notr="true">QStatusBar {
+	border: 1px solid gray;
+}</string>
+   </property>
+  </widget>
   <widget class="QDockWidget" name="sidebarDockWidget">
    <property name="minimumSize">
     <size>
@@ -186,7 +196,7 @@
           <x>0</x>
           <y>0</y>
           <width>110</width>
-          <height>239</height>
+          <height>265</height>
          </rect>
         </property>
         <attribute name="label">
@@ -461,6 +471,24 @@
    </property>
    <property name="text">
     <string>Simulation</string>
+   </property>
+  </action>
+  <action name="action_Reload_Network">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/arrow_rotate_anticlockwise.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Reload Network</string>
+   </property>
+  </action>
+  <action name="action_Select_All">
+   <property name="text">
+    <string>Select &amp;All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>

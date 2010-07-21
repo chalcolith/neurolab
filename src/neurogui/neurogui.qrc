@@ -10,5 +10,6 @@
         <file>icons/magnifier_zoom_in.png</file>
         <file>icons/magifier_zoom_out.png</file>
         <file>icons/printer.png</file>
+        <file>icons/arrow_rotate_anticlockwise.png</file>
     </qresource>
 </RCC>

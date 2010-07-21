@@ -87,6 +87,7 @@ mkdir %RELEASE_DIR%
 mkdir %RELEASE_DIR%\plugins
 mkdir %RELEASE_DIR%\licenses\qt
 mkdir %RELEASE_DIR%\licenses\qtpropertybrowser
+mkdir %RELEASE_DIR%\samples
 if ERRORLEVEL 1 goto :EOF
 
 REM ---------------------
@@ -96,6 +97,8 @@ call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
 call :copyfile ..\LICENSE.txt %RELEASE_DIR%
 call :copyfile ..\README.txt %RELEASE_DIR%
+xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples
+xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples
 if ERRORLEVEL 1 goto :EOF
 
 call :copyfile "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%

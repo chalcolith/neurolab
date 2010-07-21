@@ -267,11 +267,15 @@ namespace NeuroLab
     {
         Q_ASSERT(_network != 0);
         _network->setChanged(changed);
+
+        updateShape();
+        update();
     }
 
     void NeuroItem::updateProperties()
     {
         PropertyObject::updateProperties();
+
         updateShape();
         update();
     }
@@ -450,9 +454,6 @@ namespace NeuroLab
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
-        if (MainWindow::instance()->propertyObjects().contains(this))
-            updateProperties();
-
         painter->setRenderHint(QPainter::Antialiasing);
 
         QPen pen(Qt::SolidLine);

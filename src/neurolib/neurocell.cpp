@@ -88,6 +88,7 @@ namespace NeuroLib
             input_sum += neighbors[i]->_output_value;
 
         NeuroValue next_value = 0;
+        NeuroValue diff, delta;
 
         switch (prev._kind)
         {
@@ -104,7 +105,7 @@ namespace NeuroLib
             }
 
             next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
-            
+
             // hebbian learning (link learning)
             for (int i = 0; i < neighbor_indices.size(); ++i)
             {
@@ -113,13 +114,16 @@ namespace NeuroLib
 
                 if (incoming._kind == EXCITORY_LINK)
                 {
-                    NeuroValue delta_weight = network->learnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                    NeuroValue delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
                     incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
                 }
             }
-            
+
             // node raising/lowering
-            
+            diff = qBound(ZERO, next_value - prev._running_average, ONE);
+            delta = network->nodeLearnRate() * (diff * diff * diff - 0.01f);
+
+            next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
 
             break;
         case OSCILLATOR:

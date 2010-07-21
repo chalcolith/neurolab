@@ -58,6 +58,7 @@ namespace NeuroLab
         Q_OBJECT
 
     public:
+
         /// Base class for properties of various types.
         class NEUROGUISHARED_EXPORT PropertyBase
         {

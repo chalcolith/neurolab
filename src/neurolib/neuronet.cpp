@@ -49,9 +49,8 @@ namespace NeuroLib
     NeuroNet::NeuroNet()
         : BASE(),
         _decay(1),
-        _learn_rate(0),
-        _node_raise_rate(0),
-        _node_lower_rate(0),
+        _link_learn_rate(0),
+        _node_learn_rate(0),
         _learn_time(10)
     {
     }
@@ -67,7 +66,11 @@ namespace NeuroLib
         ds << static_cast<quint16>(fv.automata_version);
         ds << static_cast<quint16>(fv.client_version);
         ds << static_cast<float>(_decay);
-        ds << static_cast<float>(_learn_rate);
+        ds << static_cast<float>(_link_learn_rate);
+
+        if (fv.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_2)
+            ds << static_cast<float>(_node_learn_rate);
+
         ds << static_cast<float>(_learn_time);
 
         BASE::writeBinary(ds, fv);
@@ -87,7 +90,7 @@ namespace NeuroLib
 
             float n;
             ds >> n; _decay = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _link_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
             ds >> n; _learn_time = static_cast<NeuroCell::NeuroValue>(n);
 
             BASE::readBinary(ds, fv);
@@ -100,7 +103,11 @@ namespace NeuroLib
 
             float n;
             ds >> n; _decay = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _link_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+
+            if (fv.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_2)
+                ds >> n; _node_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+
             ds >> n; _learn_time = static_cast<NeuroCell::NeuroValue>(n);
 
             BASE::readBinary(ds, fv);

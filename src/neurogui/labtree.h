@@ -83,7 +83,7 @@ namespace NeuroLab
         void reset();
 
         /// Updates all the items in the scene.
-        void update();
+        void updateItemProperties();
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
@@ -129,8 +129,10 @@ namespace NeuroLab
         /// Resets all the items in the network.
         void reset(LabTreeNode *n = 0);
 
-        /// Updates all the items in the network.
-        void update(LabTreeNode *n = 0);
+        /// Updates items in the network.
+        /// \param n The node to update.
+        /// \param all Update all the scenes, not just the current one.
+        void updateItemProperties(LabTreeNode *n = 0, bool all = false);
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
