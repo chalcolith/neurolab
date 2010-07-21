@@ -100,8 +100,7 @@ namespace NeuroLab
         // set up ui and other connections
         _ui->setupUi(this);
 
-        QVBoxLayout *sidebarLayout = new QVBoxLayout(this);
-        _ui->sidebar_page_1->setLayout(sidebarLayout);
+        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
 
@@ -126,9 +125,7 @@ namespace NeuroLab
         _ui->tabWidget->setTabText(1, "");
 
         // central widget layout
-        _networkLayout = new QVBoxLayout(this);
-        _ui->tab_1->setLayout(_networkLayout);
-
+        _networkLayout = new QVBoxLayout(_ui->tab_1);
         this->setWindowTitle(tr("NeuroLab"));
 
         // load plugins

@@ -160,7 +160,8 @@
   <widget class="QStatusBar" name="statusBar">
    <property name="styleSheet">
     <string notr="true">QStatusBar {
-	border: 1px solid gray;
+	border-top: 2px gray;
+	border-top-style: groove;
 }</string>
    </property>
   </widget>
