@@ -59,6 +59,7 @@ print "create release directory $release_dir...\n";
 &run("rm -rf $release_dir");
 &run("mkdir -p $release_dir/licenses/qt");
 &run("mkdir -p $release_dir/licenses/qtpropertybrowser");
+&run("mkdir -p $release_dir/samples");
 
 # copy files
 print "copying files...\n";
@@ -75,6 +76,8 @@ print "copying files...\n";
 &run("strip $release_dir/neurolab $release_dir/lib*");
 &run("mv $release_dir/neurolab $release_dir/neurolab-bin");
 &run("cp -a utils/neurolab_run $release_dir/neurolab");
+
+&run("cp -a ../samples/*.nln ../samples/*.nnn $release_dir/samples");
 
 # make tgz file
 print "creating tgz file...\n";
