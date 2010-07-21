@@ -68,7 +68,7 @@ namespace NeuroLab
         QString text() const { return _text; }
         void setText(const QString & t) { _text = t; }
 
-        virtual QString uiName() const { return tr("Text Item"); }
+        virtual QString uiName() const { return tr("Text"); }
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) { return false; }

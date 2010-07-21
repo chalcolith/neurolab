@@ -50,6 +50,8 @@ namespace NeuroLib
         : BASE(),
         _decay(1),
         _learn_rate(0),
+        _node_raise_rate(0),
+        _node_lower_rate(0),
         _learn_time(10)
     {
     }

@@ -67,9 +67,11 @@ namespace NeuroLab
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
-        _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate")),
-        _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Learn Rate")),
-        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window")),
+        _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
+        _learn_rate_property(this, &LabNetwork::learnRate, &LabNetwork::setLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
+        _node_raise_property(this, &LabNetwork::nodeRaiseRate, &LabNetwork::setNodeRaiseRate, tr("Node Raise Rate"), tr("Controls the rate of node threshold raising.")),
+        _node_lower_property(this, &LabNetwork::nodeLowerRate, &LabNetwork::setNodeLowerRate, tr("Node Lower Rate"), tr("Controls the rate of node threshold lowering.")),
+        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
         _current_step(0), _max_steps(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
@@ -141,6 +143,30 @@ namespace NeuroLab
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setLearnRate(learnRate);
+    }
+    
+    NeuroCell::NeuroValue LabNetwork::nodeRaiseRate() const
+    {
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->nodeRaiseRate();
+    }
+    
+    void LabNetwork::setNodeRaiseRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+    {
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setNodeRaiseRate(rate);
+    }
+    
+    NeuroCell::NeuroValue LabNetwork::nodeLowerRate() const
+    {
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->nodeLowerRate();
+    }
+    
+    void LabNetwork::setNodeLowerRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+    {
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setNodeLowerRate(rate);
     }
 
     NeuroCell::NeuroValue LabNetwork::learnTime() const

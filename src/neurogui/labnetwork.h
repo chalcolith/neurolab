@@ -75,6 +75,8 @@ namespace NeuroLab
         Property<LabNetwork, QVariant::String, QString, QString> _filename_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _decay_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_rate_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_raise_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_lower_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
 
         quint32 _current_step, _max_steps;
@@ -119,6 +121,12 @@ namespace NeuroLab
 
         NeuroLib::NeuroCell::NeuroValue learnRate() const;
         void setLearnRate(const NeuroLib::NeuroCell::NeuroValue &);
+        
+        NeuroLib::NeuroCell::NeuroValue nodeRaiseRate() const;
+        void setNodeRaiseRate(const NeuroLib::NeuroCell::NeuroValue &);
+        
+        NeuroLib::NeuroCell::NeuroValue nodeLowerRate() const;
+        void setNodeLowerRate(const NeuroLib::NeuroCell::NeuroValue &);
 
         NeuroLib::NeuroCell::NeuroValue learnTime() const;
         void setLearnTime(const NeuroLib::NeuroCell::NeuroValue &);

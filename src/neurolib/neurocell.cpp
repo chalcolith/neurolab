@@ -104,8 +104,8 @@ namespace NeuroLib
             }
 
             next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
-
-            // hebbian learning
+            
+            // hebbian learning (link learning)
             for (int i = 0; i < neighbor_indices.size(); ++i)
             {
                 QWriteLocker write_lock(_network->getLock(neighbor_indices[i]));
@@ -117,6 +117,9 @@ namespace NeuroLib
                     incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
                 }
             }
+            
+            // node raising/lowering
+            
 
             break;
         case OSCILLATOR:
