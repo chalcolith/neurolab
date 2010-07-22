@@ -4,9 +4,9 @@ TARGET = neurolib
 TEMPLATE = lib
 
 macx { CONFIG += lib_bundle }
-macx { CONFIG += x86 x86_64 }
-
-QMAKE_CXXFLAGS += -Wno-type-limits
+macx { CONFIG += x86 }
+macx { CONFIG -= x86_64 }
+else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
@@ -30,11 +30,11 @@ MOC_DIR = $$TEMPDIR
 UI_DIR = $$TEMPDIR
 RCC_DIR = $$TEMPDIR
 
-win32 { 
-    LIBS += -L$$DESTDIR -lautomata1 
-} else:macx { 
+win32 {
+    LIBS += -L$$DESTDIR -lautomata1
+} else:macx {
     QMAKE_LFLAGS += -F$$DESTDIR
-    LIBS += -framework automata 
-} else { 
-    LIBS += -L$$DESTDIR -lautomata 
+    LIBS += -framework automata
+} else {
+    LIBS += -L$$DESTDIR -lautomata
 }

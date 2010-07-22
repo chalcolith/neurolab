@@ -2,10 +2,10 @@
 
 use strict;
 
-my $release_dir = 'debug';
-$release_dir = 'release' if grep /--release/, @ARGV;
+my $release_dir = '../neurolab_all-build-desktop/debug';
+$release_dir = '../neurolab_all-build-desktop/release' if grep /--release/, @ARGV;
 
-my $qtlibdir = '/usr/local/Trolltech/Qt-4.6.2/lib';
+my $qtlibdir = '/Library/Frameworks';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
@@ -161,5 +161,5 @@ sub run
     my ($cmd) = @_;
     print "$cmd\n";
     my $retval = system($cmd);
-    #ie "aborted: $!\n" if $retval != 0;
+    die "aborted: $!\n" if $retval != 0;
 }

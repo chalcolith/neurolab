@@ -4,9 +4,9 @@ QT += svg
 TARGET = neurolab
 TEMPLATE = app
 
-macx { CONFIG += x86 x86_64 }
-
-QMAKE_CXXFLAGS += -Wno-type-limits
+macx { CONFIG += x86 }
+macx { CONFIG -= x86_64 }
+else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
