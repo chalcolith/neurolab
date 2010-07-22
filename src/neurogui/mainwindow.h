@@ -132,7 +132,6 @@ namespace NeuroLab
     public slots:
         /// Sets the title of the window to the given string plus the current network's filename and dirty status.
         void setTitle(const QString & title = QString());
-
         void setStatus(const QString & status);
         void setProgressRange(int minimum, int maximum);
         void setProgressValue(int value);
@@ -145,6 +144,8 @@ namespace NeuroLab
 
         void createdItem(NeuroItem *);
         void propertyValueChanged(QtProperty *, const QVariant &);
+
+        void filterActions();
 
     private:
         void loadPlugins();
@@ -165,6 +166,7 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
 
     private slots:
+        void networkChanged(const QString & title);
         void zoomValueChanged(int);
 
         void filterEditMenu();

@@ -76,6 +76,7 @@ namespace NeuroLab
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _decay_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _link_learn_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_learn_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_forget_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
 
         quint32 _current_step, _max_steps;
@@ -124,6 +125,9 @@ namespace NeuroLab
         NeuroLib::NeuroCell::NeuroValue nodeLearnRate() const;
         void setNodeLearnRate(const NeuroLib::NeuroCell::NeuroValue &);
 
+        NeuroLib::NeuroCell::NeuroValue nodeForgetRate() const;
+        void setNodeForgetRate(const NeuroLib::NeuroCell::NeuroValue &);
+
         NeuroLib::NeuroCell::NeuroValue learnTime() const;
         void setLearnTime(const NeuroLib::NeuroCell::NeuroValue &);
 
@@ -162,7 +166,7 @@ namespace NeuroLab
         void exportPDF();
 
     signals:
-        void titleChanged(const QString & title);
+        void networkChanged(const QString & title);
         void propertyObjectChanged(QList<PropertyObject *> property_objects);
         void itemLabelChanged(NeuroItem *, const QString & label);
         void itemDeleted(NeuroItem *);

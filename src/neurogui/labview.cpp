@@ -85,11 +85,8 @@ namespace NeuroLab
 
     void LabView::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
-        {
-            ds << static_cast<quint32>(_zoom);
-            ds << transform();
-        }
+        ds << static_cast<quint32>(_zoom);
+        ds << transform();
     }
 
     void LabView::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)

@@ -69,7 +69,8 @@ namespace NeuroLab
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
         _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
-        _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or lowering.")),
+        _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
+        _node_forget_property(this, &LabNetwork::nodeForgetRate, &LabNetwork::setNodeForgetRate, tr("Node Forget Rate"), tr("Controls the rate of node threshold lowering.")),
         _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
         _current_step(0), _max_steps(0)
     {
@@ -87,12 +88,10 @@ namespace NeuroLab
 
     void LabNetwork::setChanged(bool changed)
     {
-        bool old = _changed;
-        _changed = changed;
-
-        if (old != _changed)
+        if (_changed != changed)
         {
-            emit titleChanged(QString());
+            _changed = changed;
+            emit networkChanged(QString());
         }
     }
 
@@ -154,6 +153,18 @@ namespace NeuroLab
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setNodeLearnRate(rate);
+    }
+
+    NeuroCell::NeuroValue LabNetwork::nodeForgetRate() const
+    {
+        Q_ASSERT(_neuronet != 0);
+        return _neuronet->nodeForgetRate();
+    }
+
+    void LabNetwork::setNodeForgetRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+    {
+        Q_ASSERT(_neuronet != 0);
+        _neuronet->setNodeForgetRate(rate);
     }
 
     NeuroCell::NeuroValue LabNetwork::learnTime() const

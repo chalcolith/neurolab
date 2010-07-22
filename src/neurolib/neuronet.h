@@ -54,6 +54,7 @@ namespace NeuroLib
         NeuroCell::NeuroValue _decay;
         NeuroCell::NeuroValue _link_learn_rate;
         NeuroCell::NeuroValue _node_learn_rate;
+        NeuroCell::NeuroValue _node_forget_rate;
         NeuroCell::NeuroValue _learn_time;
 
     public:
@@ -78,6 +79,9 @@ namespace NeuroLib
 
         NeuroCell::NeuroValue nodeLearnRate() const { return _node_learn_rate; }
         void setNodeLearnRate(const NeuroCell::NeuroValue & rate) { _node_learn_rate = rate; }
+
+        NeuroCell::NeuroValue nodeForgetRate() const { return _node_forget_rate; }
+        void setNodeForgetRate(const NeuroCell::NeuroValue & rate) { _node_forget_rate = rate; }
 
         /// This is the number of timesteps for which a cell's running average is calculated, for the purposes of Hebbian learning.
         /// \see NeuroNet::setLearnTime()

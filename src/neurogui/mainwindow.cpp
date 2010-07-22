@@ -252,8 +252,8 @@ namespace NeuroLab
 
         _ui->action_Quit->setEnabled(enabled);
 
-        filterFileMenu();
-        filterEditMenu();
+        if (enabled)
+            filterActions();
     }
 
     void MainWindow::closeEvent(QCloseEvent *event)
@@ -452,6 +452,12 @@ namespace NeuroLab
         return true;
     }
 
+    void MainWindow::networkChanged(const QString &title)
+    {
+        setTitle(title);
+        filterActions();
+    }
+
     void MainWindow::setTitle(const QString & title)
     {
         QString t = !(title.isEmpty() || title.isNull()) ? title : _title;
@@ -511,7 +517,7 @@ namespace NeuroLab
             _currentNetwork->view()->show();
             _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
 
-            connect(_currentNetwork, SIGNAL(titleChanged(QString)), this, SLOT(setTitle(QString)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)), this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
@@ -527,8 +533,7 @@ namespace NeuroLab
         setPropertyObject(_currentNetwork);
         update();
 
-        filterFileMenu();
-        filterEditMenu();
+        filterActions();
     }
 
     void MainWindow::setPropertyObject(PropertyObject *po)
@@ -606,9 +611,6 @@ namespace NeuroLab
 
             item->setSelected(true);
         }
-
-        filterFileMenu();
-        filterEditMenu();
     }
 
     /// Remembers the properties for the last selected instance of a particular class.
@@ -627,15 +629,18 @@ namespace NeuroLab
                 }
             }
         }
-
-        filterFileMenu();
-        filterEditMenu();
     }
 
     void MainWindow::zoomValueChanged(int val)
     {
         if (_currentNetwork)
             _currentNetwork->setZoom(val);
+    }
+
+    void MainWindow::filterActions()
+    {
+        filterFileMenu();
+        filterEditMenu();
     }
 
     void MainWindow::filterFileMenu()

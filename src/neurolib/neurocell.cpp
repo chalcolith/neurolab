@@ -89,6 +89,7 @@ namespace NeuroLib
 
         NeuroValue next_value = 0;
         NeuroValue diff, delta;
+        int num_neighbors;
 
         switch (prev._kind)
         {
@@ -107,7 +108,8 @@ namespace NeuroLib
             next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
 
             // hebbian learning (link learning)
-            for (int i = 0; i < neighbor_indices.size(); ++i)
+            num_neighbors = neighbor_indices.size();
+            for (int i = 0; i < num_neighbors; ++i)
             {
                 QWriteLocker write_lock(_network->getLock(neighbor_indices[i]));
                 NeuroCell & incoming = (*network)[neighbor_indices[i]].current();
@@ -121,7 +123,7 @@ namespace NeuroLib
 
             // node raising/lowering
             diff = qBound(ZERO, next_value - prev._running_average, ONE);
-            delta = network->nodeLearnRate() * (diff * diff * diff - 0.01f);
+            delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
 
             next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
 

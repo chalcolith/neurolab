@@ -105,44 +105,34 @@ namespace NeuroLab
         Q_ASSERT(_scene);
         Q_ASSERT(_view);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        ds << _id;
+
+        // view
+        _view->writeBinary(ds, file_version);
+
+        // graphics items in this scene
+        QList<QGraphicsItem *> items = _scene->items();
+        quint32 num_items = static_cast<quint32>(items.size());
+
+        ds << num_items;
+        for (quint32 i = 0; i < num_items; ++i)
         {
-            ds << _id;
+            NeuroItem const * const item = dynamic_cast<NeuroItem const *>(items[i]);
+            if (!item)
+                continue;
 
-            // view
-            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
-            {
-                _view->writeBinary(ds, file_version);
-            }
-            else
-            {
-                ds << _view->matrix();
-            }
+            QString typeName = item->getTypeName();
+            ds << typeName;
+            item->writeBinary(ds, file_version);
+            item->writePointerIds(ds, file_version);
+        }
 
-            // graphics items in this scene
-            QList<QGraphicsItem *> items = _scene->items();
-            quint32 num_items = static_cast<quint32>(items.size());
+        // children
+        ds << static_cast<quint32>(_children.size());
 
-            ds << num_items;
-            for (quint32 i = 0; i < num_items; ++i)
-            {
-                NeuroItem const * const item = dynamic_cast<NeuroItem const *>(items[i]);
-                if (!item)
-                    continue;
-
-                QString typeName = item->getTypeName();
-                ds << typeName;
-                item->writeBinary(ds, file_version);
-                item->writePointerIds(ds, file_version);
-            }
-
-            // children
-            ds << static_cast<quint32>(_children.size());
-
-            for (int i = 0; i < _children.size(); ++i)
-            {
-                _children[i]->writeBinary(ds, file_version);
-            }
+        for (int i = 0; i < _children.size(); ++i)
+        {
+            _children[i]->writeBinary(ds, file_version);
         }
     }
 
