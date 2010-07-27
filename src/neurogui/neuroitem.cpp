@@ -482,7 +482,8 @@ namespace NeuroLab
 
     bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
-        return !_incoming.contains(item) && !_outgoing.contains(item);
+        bool result = !_incoming.contains(item) && !_outgoing.contains(item);
+        return result;
     }
 
     bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
@@ -546,7 +547,7 @@ namespace NeuroLab
             attachTo(itemAtPos);
             itemAtPos->onAttachedBy(this);
 
-            itemAtPos->adjustLinks(); // this may change the position
+            //itemAtPos->adjustLinks(); // this may change the position
             movePos = scenePos();
         }
 

@@ -74,11 +74,12 @@ namespace NeuroLab
         /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
         QLineF line() const;
 
-        /// Sets the link's back (\c p0) and front (\c p1) positions.
-        void setLine(const QLineF & l);
-        /// Sets the link's back (\c p0) and front (\c p1) positions.
+        /// Sets the link's back (\c p1) and front (\c p2) positions.
+        /// You can also specify a center point.
+        void setLine(const QLineF & l, const QPointF * c = 0);
+        /// Sets the link's back (\c p1) and front (\c p2) positions.
         void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
-        /// Sets the link's back (\c p0) and front (\c p1) positions.
+        /// Sets the link's back (\c p1) and front (\c p2) positions.
         void setLine(const QPointF & p1, const QPointF & p2);
 
         /// Adds an incoming item.  Overrides the default to create an edge in the neural network.

@@ -98,14 +98,14 @@ namespace NeuroLab
         return QLineF(p1.toPointF(), p2.toPointF());
     }
 
-    void NeuroLinkItem::setLine(const QLineF & l)
+    void NeuroLinkItem::setLine(const QLineF & l, const QPointF *c)
     {
         settingLine = true;
         prepareGeometryChange();
 
         QVector2D p1(l.p1());
         QVector2D p2(l.p2());
-        QVector2D center = (p1 + p2) * 0.5f;
+        QVector2D center = c ? QVector2D(*c) : ((p1 + p2) * 0.5f);
 
         _line = QLineF((p1 - center).toPointF(), (p2 - center).toPointF());
         setPos(center.toPointF());
@@ -249,7 +249,13 @@ namespace NeuroLab
         // cannot link the back of a link to another link
         if (dynamic_cast<NeuroLinkItem *>(item) && !dragFront)
             return false;
-        return NeuroNarrowItem::canAttachTo(pos, item);
+
+        if (dragFront && outgoing().contains(item))
+            return false;
+        else if (!dragFront && incoming().contains(item))
+            return false;
+
+        return true;
     }
 
     bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)

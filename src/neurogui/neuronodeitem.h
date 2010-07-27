@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroLab
 {
 
+    class NeuroLinkItem;
+
     /// Base class for node objects.
     class NEUROGUISHARED_EXPORT NeuroNodeItemBase
         : public NeuroNarrowItem
@@ -50,6 +52,8 @@ namespace NeuroLab
         Q_OBJECT
 
         QRectF _rect;
+
+        QMap<NeuroLinkItem *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
     public:
         NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -64,6 +68,8 @@ namespace NeuroLab
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual void onAttachedBy(NeuroItem *);
+
         virtual void adjustLinks();
 
         virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;

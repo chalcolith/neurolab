@@ -71,7 +71,36 @@ namespace NeuroLab
     bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
         // can only be connected to by links
-        return dynamic_cast<NeuroLinkItem *>(item);
+        bool result = dynamic_cast<NeuroLinkItem *>(item);
+        return result;
+    }
+
+    void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
+    {
+        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
+        if (link)
+        {
+            _incomingAttachments.remove(link);
+            _outgoingAttachments.remove(link);
+
+            // snap to node
+            QList<NeuroItem *> tempList;
+            tempList.append(link);
+            adjustLinksAux(tempList);
+
+            // get new pos and remember
+            QLineF l = link->line();
+            QVector2D front(l.p2());
+            QVector2D back(l.p1());
+            QVector2D center(scenePos());
+
+            if (link->frontLinkTarget() == this)
+                _incomingAttachments[link] = front - center;
+            if (link->backLinkTarget() == this)
+                _outgoingAttachments[link] = back - center;
+        }
+
+        NeuroNarrowItem::onAttachedBy(item);
     }
 
     void NeuroNodeItemBase::adjustLinks()
@@ -82,7 +111,7 @@ namespace NeuroLab
 
     void NeuroNodeItemBase::adjustLinksAux(const QList<NeuroItem *> & list)
     {
-        QVector2D center(pos());
+        QVector2D center(scenePos());
 
         for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); )
         {
@@ -92,34 +121,40 @@ namespace NeuroLab
                 bool frontLink = link->frontLinkTarget() == this;
                 bool backLink = link->backLinkTarget() == this;
 
-                QPointF front = link->line().p2();
-                QPointF back = link->line().p1();
+                QVector2D link_center(link->scenePos());
+                QLineF l(link->line());
+                QVector2D front(l.p2());
+                QVector2D back(l.p1());
 
-                QVector2D toPos = QVector2D(link->pos()) - center;
+                QMap<NeuroLinkItem *, QVector2D> & attach_map = frontLink ? _incomingAttachments : _outgoingAttachments;
+                QVector2D & pos = frontLink ? front : back;
 
-                if (frontLink && backLink)
+                if (attach_map.contains(link))
                 {
-                    toPos.normalize();
-                    double angle = ::atan2(toPos.y(), toPos.x());
-                    angle += (frontLink ? 30.0 : -30.0) * M_PI / 180.0;
-                    toPos.setX(::cos(angle));
-                    toPos.setY(::sin(angle));
+                    pos = center + attach_map[link];
                 }
                 else
                 {
-                    //if (toPos.x() < toPos.y())
-                    //    toPos.setX(toPos.x() * 2);
-                    //else
-                    //    toPos.setY(toPos.y() * 2);
-                    toPos.normalize();
+                    QVector2D toPos = (link_center - center).normalized();
+                    toPos *= NeuroNarrowItem::NODE_WIDTH/2 + 2;
+                    attach_map[link] = toPos;
+                    pos = center + toPos;
                 }
 
-                toPos *= NeuroNarrowItem::NODE_WIDTH/2 + 2;
+                if (frontLink && backLink)
+                {
+                    QVector2D avg_dir = (((front - center) + (back - center)) * 0.5).normalized();
+                    avg_dir *= NeuroNarrowItem::NODE_WIDTH*2;
 
-                QPointF *point = frontLink ? &front : &back;
-                *point = (center + toPos).toPointF();
+                    QPointF new_center = (center + avg_dir).toPointF();
+                    QLineF new_line(back.toPointF(), front.toPointF());
 
-                link->setLine(back, front);
+                    link->setLine(new_line, &new_center);
+                }
+                else
+                {
+                    link->setLine(back.toPointF(), front.toPointF());
+                }
             }
         }
     }
