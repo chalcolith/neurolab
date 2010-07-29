@@ -71,6 +71,7 @@ namespace NeuroLab
         virtual void onAttachedBy(NeuroItem *);
 
         virtual void adjustLinks();
+        virtual void postLoad();
 
         virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
         virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map);
@@ -82,7 +83,7 @@ namespace NeuroLab
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
 
     private:
-        void adjustLinksAux(const QList<NeuroItem *> &);
+        void adjustLinksAux(const QList<NeuroItem *> &, QList<NeuroItem *> & alreadyAdjusted);
     };
 
 

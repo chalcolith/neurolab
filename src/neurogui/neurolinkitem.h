@@ -58,7 +58,7 @@ namespace NeuroLab
         mutable QVector2D c1, c2;
 
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
-        bool dragFront, settingLine;
+        bool _dragFront, _settingLine;
 
     public:
         /// Constructor.
@@ -81,6 +81,9 @@ namespace NeuroLab
         void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
         /// Sets the link's back (\c p1) and front (\c p2) positions.
         void setLine(const QPointF & p1, const QPointF & p2);
+
+        /// If the link is being moved, returns whether or not the front end of the node is being dragged.
+        bool dragFront() const { return _dragFront; }
 
         /// Adds an incoming item.  Overrides the default to create an edge in the neural network.
         virtual bool addIncoming(NeuroItem *linkItem);

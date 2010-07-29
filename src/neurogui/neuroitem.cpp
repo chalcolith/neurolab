@@ -547,7 +547,6 @@ namespace NeuroLab
             attachTo(itemAtPos);
             itemAtPos->onAttachedBy(this);
 
-            //itemAtPos->adjustLinks(); // this may change the position
             movePos = scenePos();
         }
 

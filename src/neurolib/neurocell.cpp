@@ -161,7 +161,7 @@ namespace NeuroLib
 
             break;
         case EXCITORY_LINK:
-            next_value = qBound(ZERO, input_sum * prev._weight, ONE);
+            next_value = qBound(ZERO, input_sum * prev._weight, input_sum * prev._weight);
             break;
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs

@@ -188,6 +188,15 @@ namespace NeuroLab
                     item->idsToPointers(_scene);
             }
 
+            // do further processing if necessary
+            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+            {
+                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+                if (item)
+                    item->postLoad();
+            }
+
+            // build shapes for first draw
             for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
             {
                 NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());

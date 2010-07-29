@@ -62,7 +62,7 @@ namespace NeuroLab
         : NeuroNarrowItem(network, scenePos, context),
         _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight,
                          tr("Weight"), tr("The output weight of the link.")),
-        _frontLinkTarget(0), _backLinkTarget(0), dragFront(false), settingLine(false)
+        _frontLinkTarget(0), _backLinkTarget(0), _dragFront(false), _settingLine(false)
     {
         Q_ASSERT(network != 0);
     }
@@ -100,7 +100,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::setLine(const QLineF & l, const QPointF *c)
     {
-        settingLine = true;
+        _settingLine = true;
         prepareGeometryChange();
 
         QVector2D p1(l.p1());
@@ -113,7 +113,7 @@ namespace NeuroLab
         updateShape();
         adjustLinks();
 
-        settingLine = false;
+        _settingLine = false;
     }
 
     void NeuroLinkItem::setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2)
@@ -180,28 +180,39 @@ namespace NeuroLab
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
 
-        QVector2D myPos(pos());
+        QVector2D myPos(scenePos());
 
         // in my frame
         QVector2D myFront(_line.p2());
         QVector2D myBack(_line.p1());
 
         // calculate control points
-        c1 = myBack + (myFront - myBack) * 0.33;
-        c2 = myBack + (myFront - myBack) * 0.66;
-
-        if (_backLinkTarget)
+        if (_frontLinkTarget && _frontLinkTarget == _backLinkTarget)
         {
-            QVector2D center(_backLinkTarget->pos());
-            QVector2D toBack = QVector2D(line().p1()) - center;
-            c1 = (center + toBack * 3) - myPos;
+            QVector2D toFront = myFront - myBack;
+            QVector2D toBack = myBack - myFront;
+
+            c1 = toBack;
+            c2 = toFront;
         }
-
-        if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
+        else
         {
-            QVector2D center(_frontLinkTarget->pos());
-            QVector2D toFront = QVector2D(line().p2()) - center;
-            c2 = (center + toFront * 3) - myPos;
+            c1 = myBack + (myFront - myBack) * 0.33;
+            c2 = myBack + (myFront - myBack) * 0.66;
+
+            if (_backLinkTarget)
+            {
+                QVector2D center(_backLinkTarget->pos());
+                QVector2D toBack = QVector2D(line().p1()) - center;
+                c1 = (center + toBack * 3) - myPos;
+            }
+
+            if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
+            {
+                QVector2D center(_frontLinkTarget->pos());
+                QVector2D toFront = QVector2D(line().p2()) - center;
+                c2 = (center + toFront * 3) - myPos;
+            }
         }
 
         QPointF front = myFront.toPointF();
@@ -231,10 +242,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::adjustLinks()
     {
-        QVector2D front(line().p2());
-        QVector2D back(line().p1());
-
-        QVector2D center = (back + front) * 0.5f;
+        QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
 
         for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
         {
@@ -247,12 +255,12 @@ namespace NeuroLab
     bool NeuroLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
     {
         // cannot link the back of a link to another link
-        if (dynamic_cast<NeuroLinkItem *>(item) && !dragFront)
+        if (dynamic_cast<NeuroLinkItem *>(item) && !_dragFront)
             return false;
 
-        if (dragFront && outgoing().contains(item))
+        if (_dragFront && outgoing().contains(item))
             return false;
-        else if (!dragFront && incoming().contains(item))
+        else if (!_dragFront && incoming().contains(item))
             return false;
 
         return true;
@@ -266,7 +274,7 @@ namespace NeuroLab
 
     void NeuroLinkItem::attachTo(NeuroItem *item)
     {
-        if (dragFront)
+        if (_dragFront)
             setFrontLinkTarget(item);
         else
             setBackLinkTarget(item);
@@ -275,10 +283,10 @@ namespace NeuroLab
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         // break links
-        NeuroItem *linkedItem = dragFront ? _frontLinkTarget : _backLinkTarget;
+        NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
         if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
         {
-            if (dragFront)
+            if (_dragFront)
                 setFrontLinkTarget(0);
             else
                 setBackLinkTarget(0);
@@ -296,7 +304,7 @@ namespace NeuroLab
         {
         case QGraphicsItem::ItemPositionChange:
             labScene = dynamic_cast<LabScene *>(scene());
-            if (!settingLine && labScene
+            if (!_settingLine && labScene
                 && labScene->selectedItems().size() <= 1
                 && labScene->mouseIsDown()
                 && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
@@ -312,8 +320,8 @@ namespace NeuroLab
                 qreal distFront = (mousePos - front).lengthSquared();
                 qreal distBack = (mousePos - back).lengthSquared();
 
-                dragFront = distFront < distBack;
-                if (dragFront)
+                _dragFront = distFront < distBack;
+                if (_dragFront)
                     front = mousePos;
                 else
                     back = mousePos;
@@ -321,15 +329,15 @@ namespace NeuroLab
                 QVector2D newCenter = (front + back) * 0.5f;
 
                 // set new position and line
-                settingLine = true;
+                _settingLine = true;
                 _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
                 setPos(newCenter.toPointF());
-                settingLine = false;
+                _settingLine = false;
 
                 // adjust if we're linked
-                if (_frontLinkTarget)
+                if (_frontLinkTarget && _dragFront)
                     _frontLinkTarget->adjustLinks();
-                if (_backLinkTarget)
+                if (_backLinkTarget && !_dragFront)
                     _backLinkTarget->adjustLinks();
 
                 // handle move
@@ -458,6 +466,9 @@ namespace NeuroLab
     {
         NeuroNarrowItem::idsToPointers(sc);
 
+        bool foundFront = false;
+        bool foundBack = false;
+
         IdType frontId = reinterpret_cast<IdType>(_frontLinkTarget);
         IdType backId = reinterpret_cast<IdType>(_backLinkTarget);
 
@@ -467,11 +478,23 @@ namespace NeuroLab
             if (item)
             {
                 if (item->id() == frontId)
+                {
                     _frontLinkTarget = item;
-                else if (item->id() == backId)
+                    foundFront = true;
+                }
+
+                if (item->id() == backId)
+                {
                     _backLinkTarget = item;
+                    foundBack = true;
+                }
             }
         }
+
+        if (!foundFront)
+            throw Automata::Exception(tr("Link in file has dangling ID: %1").arg(frontId));
+        if (!foundBack)
+            throw Automata::Exception(tr("Link in file has dangling ID: %2").arg(backId));
     }
 
 
@@ -501,9 +524,9 @@ namespace NeuroLab
     {
         NeuroLinkItem::addToShape(drawPath, texts);
 
-        QVector2D center(pos());
-        QVector2D front(line().p2());
-        QVector2D fromFront((center + c2) - front);
+        QVector2D front(_line.p2());
+        QVector2D fromFront(c2 - front);
+
         double angle = ::atan2(fromFront.y(), fromFront.x());
 
         double langle = angle + (20.0 * M_PI / 180.0);
@@ -511,22 +534,32 @@ namespace NeuroLab
 
         QVector2D end = front + left * ELLIPSE_WIDTH;
 
-        drawPath.moveTo((front - center).toPointF());
-        drawPath.lineTo((end - center).toPointF());
+        drawPath.moveTo(front.toPointF());
+        drawPath.lineTo(end.toPointF());
 
         double rangle = angle - (20.0 * M_PI / 180.0);
         QVector2D right(::cos(rangle), ::sin(rangle));
 
         end = front + right * ELLIPSE_WIDTH;
 
-        drawPath.moveTo((front - center).toPointF());
-        drawPath.lineTo((end - center).toPointF());
+        drawPath.moveTo(front.toPointF());
+        drawPath.lineTo(end.toPointF());
     }
 
     bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
     {
+        // can only attach to narrow items
+        NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(item);
+        if (!narrow)
+            return false;
+
+        // cannot attach to a link at all
+        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
+        if (link)
+            return false;
+
         // can not attach to a link at all
-        return NeuroLinkItem::canAttachTo(pos, item) && !dynamic_cast<NeuroLinkItem *>(item);
+        return NeuroLinkItem::canAttachTo(pos, item);
     }
 
 

@@ -225,6 +225,9 @@ namespace NeuroLab
         /// Reads the ids of incoming and outgoing items.
         virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        /// Called after all nodes have been loaded.
+        virtual void postLoad() {}
+
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 

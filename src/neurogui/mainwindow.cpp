@@ -520,6 +520,8 @@ namespace NeuroLab
             connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)), this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
+
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)), Qt::UniqueConnection);
@@ -539,7 +541,8 @@ namespace NeuroLab
     void MainWindow::setPropertyObject(PropertyObject *po)
     {
         QList<PropertyObject *> property_objects;
-        property_objects.append(po);
+        if (po)
+            property_objects.append(po);
         setPropertyObjects(property_objects);
     }
 
@@ -611,6 +614,12 @@ namespace NeuroLab
 
             item->setSelected(true);
         }
+    }
+
+    void MainWindow::deletedItem(NeuroItem *item)
+    {
+        QString typeName(typeid(*item).name());
+        _rememberedProperties.remove(typeName);
     }
 
     /// Remembers the properties for the last selected instance of a particular class.

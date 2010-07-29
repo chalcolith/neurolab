@@ -144,6 +144,7 @@ namespace NeuroLab
 
         void createdItem(NeuroItem *);
         void propertyValueChanged(QtProperty *, const QVariant &);
+        void deletedItem(NeuroItem *);
 
         void filterActions();
 
