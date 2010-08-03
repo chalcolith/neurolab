@@ -12,6 +12,8 @@ if ($cwd =~ /utils$/)
     $cwd = getcwd();
 }
 
+my $is_darwin = `uname` =~ 'Darwin';
+
 print "cleaning...\n";
 &run('sh utils/distclean.sh');
 unlink 'utils/incversion/incversion';
@@ -53,7 +55,7 @@ print "build neurolab...\n";
 # create release directory
 my $distrib_dir = '../distrib';
 my $release = "neurolab-$version-$hg_id";
-my $release_dir = "$distrib_dir/$version/$release";
+my $release_dir = $is_darwin ? "$distrib_dir/$release/neurolab.app" : "$distrib_dir/$version/$release";
 
 print "create release directory $release_dir...\n";
 &run("rm -rf $release_dir");
@@ -63,36 +65,56 @@ print "create release directory $release_dir...\n";
 
 # copy files
 print "copying files...\n";
-&run("cp $qt_base_dir/qt/LICENSE.LGPL $release_dir/licenses/qt/LICENSE.LGPL");
+
+if ($is_darwin)
+{
+    &run("cp thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/LICENSE.LGPL $release_dir/licenses/qt/LICENSE.LGPL");
+}
+else
+{
+    &run("cp $qt_base_dir/qt/LICENSE.LGPL $release_dir/licenses/qt/LICENSE.LGPL");
+}
+
 &run("cp thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/LICENSE.LGPL $release_dir/licenses/qtpropertybrowser/LICENSE.LGPL");
 &run("cp ../LICENSE.txt $release_dir");
 &run("cp ../README.txt $release_dir");
-&run("cp -a $qt_base_dir/qt/lib/libQtCore.so* $release_dir");
-&run("cp -a $qt_base_dir/qt/lib/libQtSvg.so* $release_dir");
-&run("cp -a $qt_base_dir/qt/lib/libQtGui.so* $release_dir");
-
-&run("cp -a $build_dir/release/* $release_dir");
-
-&run("strip $release_dir/neurolab $release_dir/lib*");
-&run("mv $release_dir/neurolab $release_dir/neurolab-bin");
-&run("cp -a utils/neurolab_run $release_dir/neurolab");
 
 &run("cp -a ../samples/*.nln ../samples/*.nnn $release_dir/samples");
 
-# make tgz file
-print "creating tgz file...\n";
-&run("mkdir -p $distrib_dir/tgz");
+if ($is_darwin)
+{
+    &run("cp -a $build_dir/release/neurolab.app/* $release_dir");
+    &run("macdeployqt $release_dir -no-strip");
+    &run("utils/macdeploy --release $release_dir");
+    &run("macdeployqt $release_dir -no-strip -dmg");
+}
+else
+{
+    &run("cp -a $qt_base_dir/qt/lib/libQtCore.so* $release_dir");
+    &run("cp -a $qt_base_dir/qt/lib/libQtSvg.so* $release_dir");
+    &run("cp -a $qt_base_dir/qt/lib/libQtGui.so* $release_dir");
 
-my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
+    &run("cp -a $build_dir/release/* $release_dir");
 
-$zipfile =~ s/linux/linux64/ if `uname -a` =~ 'x86_64';
+    &run("strip $release_dir/neurolab $release_dir/lib*");
+    &run("mv $release_dir/neurolab $release_dir/neurolab-bin");
+    &run("cp -a utils/neurolab_run $release_dir/neurolab");
 
-my $pwd = `pwd`;
-chdir "$distrib_dir/$version";
-&run("tar czf ../tgz/$zipfile $release");
-chdir $pwd;
+    # make tgz file
+    print "creating tgz file...\n";
+    &run("mkdir -p $distrib_dir/tgz");
 
-print "created $zipfile\n";
+    my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
+
+    $zipfile =~ s/linux/linux64/ if `uname -a` =~ 'x86_64';
+
+    my $pwd = `pwd`;
+    chdir "$distrib_dir/$version";
+    &run("tar czf ../tgz/$zipfile $release");
+    chdir $pwd;
+
+    print "created $zipfile\n";
+}
 
 # functions
 sub build
@@ -103,9 +125,15 @@ sub build
         mkdir $path or die "Unable to make $path: $!\n";
     }
 
+    print "building $project in $path\n";
+
     chdir $path or die "Unable to cd to $path: $!\n";
 
-    my $retval = system("$qt_base_dir/qt/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release");
+    my $cmd = $is_darwin
+        ? "qmake $project -spec macx-g++ CONFIG-=debug CONFIG+=release"
+        : "$qt_base_dir/qt/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
+
+    my $retval = system($cmd);
     $retval = system('make') if $retval == 0;
 
     chdir $cwd;

@@ -8,6 +8,12 @@ $release_dir = '../neurolab_all-build-desktop/release' if grep /--release/, @ARG
 my $qtlibdir = '/Library/Frameworks';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
+for my $arg (@ARGV)
+{
+    next if $arg =~ /--/;
+    $release_dir = $_;
+}
+
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
 my @entries = readdir $dh;
 closedir $dh;
