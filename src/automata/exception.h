@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QString>
 #include <QObject>
+#include <QDebug>
 
 #include "automata_global.h"
 
@@ -51,7 +52,7 @@ namespace Automata
         QString _message;
 
     public:
-        Exception(const QString & message) : _message(message) {}
+        Exception(const QString & message) : _message(message) { qDebug() << "threw: " << message; }
         const QString & message() const { return _message; }
     };
 

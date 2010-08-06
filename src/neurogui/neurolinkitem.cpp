@@ -491,9 +491,9 @@ namespace NeuroLab
             }
         }
 
-        if (!foundFront)
+        if (!foundFront && frontId != 0)
             throw Automata::Exception(tr("Link in file has dangling ID: %1").arg(frontId));
-        if (!foundBack)
+        if (!foundBack && backId != 0)
             throw Automata::Exception(tr("Link in file has dangling ID: %2").arg(backId));
     }
 

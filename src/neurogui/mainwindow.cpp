@@ -97,34 +97,11 @@ namespace NeuroLab
 
         _instance = this;
 
-        // set up ui and other connections
+        // set up ui
         _ui->setupUi(this);
+        this->setupUi();
 
-        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
-        sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
-        _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
-
-        _zoomSpinBox = new QSpinBox(this);
-        _zoomSpinBox->setRange(10, 1000);
-        _zoomSpinBox->setSuffix(QString("%"));
-        _zoomSpinBox->setValue(100);
-        _zoomSpinBox->setSingleStep(10);
-        _zoomSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        _zoomSpinBoxAction = _ui->viewToolbar->insertWidget(_ui->action_Zoom_Out, _zoomSpinBox);
-
-        _numStepsSpinBox = new QSpinBox(this);
-        _numStepsSpinBox->setRange(0, 1000000);
-        _numStepsSpinBox->setValue(1);
-        _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Step, _numStepsSpinBox);
-
-        _stepProgressBar = new QProgressBar(this);
-        _stepProgressBar->setVisible(false);
-        _stepProgressBar->reset();
-        _ui->statusBar->addPermanentWidget(_stepProgressBar);
-
-        _ui->tabWidget->setTabText(1, "");
-
-        // central widget layout
+        // network tab widget
         _networkLayout = new QVBoxLayout(_ui->tab_1);
         this->setWindowTitle(tr("NeuroLab"));
 
@@ -162,9 +139,58 @@ namespace NeuroLab
         return _instance;
     }
 
+    void MainWindow::setupUi()
+    {
+        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
+        sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
+        _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
+
+        _zoomSpinBox = new QSpinBox(this);
+        _zoomSpinBox->setRange(10, 1000);
+        _zoomSpinBox->setSuffix(QString("%"));
+        _zoomSpinBox->setValue(100);
+        _zoomSpinBox->setSingleStep(10);
+        _zoomSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        _zoomSpinBoxAction = _ui->viewToolbar->insertWidget(_ui->action_Zoom_Out, _zoomSpinBox);
+
+        _numStepsSpinBox = new QSpinBox(this);
+        _numStepsSpinBox->setRange(0, 1000000);
+        _numStepsSpinBox->setValue(1);
+        _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Step, _numStepsSpinBox);
+
+        _stepProgressBar = new QProgressBar(this);
+        _stepProgressBar->setVisible(false);
+        _stepProgressBar->reset();
+        _ui->statusBar->addPermanentWidget(_stepProgressBar);
+
+        _ui->tabWidget->setTabText(1, "");
+    }
+
+    void MainWindow::setupConnections()
+    {
+        connect(_ui->menu_File, SIGNAL(aboutToShow()), this, SLOT(filterFileMenu()));
+        connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
+
+        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+
+        connect(_zoomSpinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomValueChanged(int)), Qt::UniqueConnection);
+
+        connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
+    }
+
     void MainWindow::loadPlugins()
     {
         QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins";
+        loadPlugins(pluginPath);
+
+#ifdef __APPLE__
+        /// \todo look in bundle plugin directories
+#endif
+
+        pluginPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
         loadPlugins(pluginPath);
     }
 
@@ -219,21 +245,6 @@ namespace NeuroLab
         settings.setValue("status", saveState(NEUROLAB_APP_VERSION()));
         settings.setValue("last_dir", QVariant(LAST_DIRECTORY.absolutePath()));
         settings.endGroup();
-    }
-
-    void MainWindow::setupConnections()
-    {
-        connect(_ui->menu_File, SIGNAL(aboutToShow()), this, SLOT(filterFileMenu()));
-        connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
-
-        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-
-        connect(_zoomSpinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomValueChanged(int)), Qt::UniqueConnection);
-
-        connect(_propertyManager, SIGNAL(valueChanged(QtProperty*,QVariant)), this, SLOT(propertyValueChanged(QtProperty*,QVariant)));
     }
 
     void MainWindow::setActionsEnabled(bool enabled)
@@ -417,6 +428,7 @@ namespace NeuroLab
             return false;
 
         _ui->tabWidget->setTabText(1, tr("Collecting Data"));
+        _ui->dataTableWidget->setToolTip(tr("Nodes with labels will be recorded here."));
         _currentDataFile = new NeuroLab::LabDataFile(_currentNetwork, _ui->dataTableWidget, this);
         return true;
     }
@@ -482,6 +494,7 @@ namespace NeuroLab
     void MainWindow::setStatus(const QString & status)
     {
         _ui->statusBar->showMessage(status);
+        qDebug() << status;
     }
 
     void MainWindow::setProgressRange(int minimum, int maximum)

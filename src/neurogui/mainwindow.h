@@ -149,11 +149,12 @@ namespace NeuroLab
         void filterActions();
 
     private:
+        void setupUi();
+        void setupConnections();
         void loadPlugins();
         void loadPlugins(const QString & dirPath);
         void loadStateSettings();
         void saveStateSettings();
-        void setupConnections();
 
         bool newNetwork();
         bool openNetwork(const QString & fname = QString());
