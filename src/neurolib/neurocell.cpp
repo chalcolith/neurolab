@@ -202,9 +202,9 @@ namespace NeuroLib
         ds << static_cast<float>(_running_average);
     }
 
-    void NeuroCell::readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version)
+    void NeuroCell::readBinary(QDataStream & ds, const Automata::AutomataFileVersion &)
     {
-        if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_OLD)
+        // if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_OLD)
         {
             quint8 k;
             quint16 s;
@@ -234,10 +234,6 @@ namespace NeuroLib
 
             ds >> n; _output_value = static_cast<NeuroCell::NeuroValue>(n);
             ds >> n; _running_average = static_cast<NeuroCell::NeuroValue>(n);
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 

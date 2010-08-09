@@ -177,14 +177,10 @@ namespace NeuroLab
     {
         NeuroItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             qint32 n;
             ds >> n; _cellIndex = static_cast<NeuroCell::NeuroIndex>(n);
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 

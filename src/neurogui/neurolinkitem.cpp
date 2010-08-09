@@ -252,7 +252,7 @@ namespace NeuroLab
         }
     }
 
-    bool NeuroLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
+    bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
         // cannot link the back of a link to another link
         if (dynamic_cast<NeuroLinkItem *>(item) && !_dragFront)
@@ -407,13 +407,9 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _line;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 
@@ -447,7 +443,7 @@ namespace NeuroLab
             if (id)
                 _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
         }
-        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             qint64 id64;
             IdType id;

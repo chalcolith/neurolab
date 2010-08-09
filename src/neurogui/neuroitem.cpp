@@ -621,7 +621,7 @@ namespace NeuroLab
             ds >> _label;
             ds >> _id;
         }
-        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             QPointF p;
             ds >> p;
@@ -632,10 +632,6 @@ namespace NeuroLab
             qint64 n;
             ds >> n;
             _id = n;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
 
         if (_id >= NEXT_ID)
@@ -700,7 +696,7 @@ namespace NeuroLab
                 }
             }
         }
-        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             qint32 n;
 
@@ -731,10 +727,6 @@ namespace NeuroLab
                     _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
                 }
             }
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 

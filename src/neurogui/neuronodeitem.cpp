@@ -232,13 +232,9 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        //if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _rect;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 

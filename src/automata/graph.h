@@ -237,7 +237,7 @@ namespace Automata
                 // edges
                 ds >> _edges;
             }
-            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {
                 int version;
                 ds >> version;
@@ -246,10 +246,6 @@ namespace Automata
                 ds >> this->_directed;
                 ds >> this->_nodes;
                 ds >> this->_edges;
-            }
-            else
-            {
-                throw new FileFormatError();
             }
         }
     };

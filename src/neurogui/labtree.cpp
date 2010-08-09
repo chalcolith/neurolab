@@ -138,7 +138,7 @@ namespace NeuroLab
 
     void LabTreeNode::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _id;
 
@@ -308,7 +308,7 @@ namespace NeuroLab
 
     void LabTree::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
             // current node
             quint32 current_id;
@@ -324,10 +324,6 @@ namespace NeuroLab
             LabTreeNode *cur = find_current(_root, current_id);
             if (cur)
                 _current = cur;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 

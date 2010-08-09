@@ -102,15 +102,11 @@ namespace Automata
             {
                 ds >> r;
             }
-            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {
                 int num;
                 ds >> num;
                 r = static_cast<quint8>(num);
-            }
-            else
-            {
-                throw new FileFormatError();
             }
         }
     };
