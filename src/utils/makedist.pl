@@ -89,7 +89,7 @@ if ($is_darwin)
     &run("find $release_dir -name '*_debug' | xargs rm -f ");
 
     &run("mkdir -p $distrib_dir/dmg");
-    my $dmg_file = "$distrib_dir/dmg/neurocogling-$release.dmg";
+    my $dmg_file = "$distrib_dir/dmg/neurocogling-$release-osx.dmg";
     &run("rm -f $dmg_file");
     &run("hdiutil create $dmg_file -volname $release -fs HFS+ -srcfolder $release_dir");
 }
