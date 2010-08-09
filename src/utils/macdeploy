@@ -11,7 +11,7 @@ my $copy_qt = grep /--copyqt/, @ARGV;
 for my $arg (@ARGV)
 {
     next if $arg =~ /--/;
-    $release_dir = $_;
+    $release_dir = $arg;
 }
 
 opendir my $dh, $release_dir or die "unable to open '$release_dir': $!\n";
@@ -36,6 +36,22 @@ sub process_app
 
     my $binary = "$app_dir/Contents/MacOS/$app_name";
     &process_libraries($app_dir, $binary);
+
+    my $framework_dir = "$app_dir/Contents/Frameworks";
+    print "frameworks: $framework_dir\n";
+    opendir my $dh, $framework_dir or die "unable to open $framework_dir: $!\n";
+    my @dirs = readdir $dh;
+    closedir $dh;
+
+    for my $entry (@dirs)
+    {
+        if ($entry =~ /(.*)\.framework/)
+        {
+            my $binary = "$app_dir/Contents/Frameworks/$entry/Versions/Current/$1";
+            #print "framework $app_dir   $binary\n";
+            &process_libraries($app_dir, $binary);
+        }
+    }
 }
 
 sub process_libraries
@@ -78,7 +94,7 @@ sub process_bundle
 
     unless (grep {$_ eq $library} @libraries_done)
     {
-        print "processing $library\n";
+        #print "processing $library\n";
 
         # call with -id to relativize the library's id
         unless ($library =~ /^\@/)
@@ -108,7 +124,7 @@ sub process_qt_library
 
         $binary = "$app_dir/Contents/$relpath";
 
-        print "processing $binary\n";
+        #print "processing $binary\n";
 
         unless (grep {$_ eq $qtlib} @libraries_done)
         {
@@ -141,20 +157,20 @@ sub get_libraries
 
     for my $library (@all_libraries)
     {
-        print "considering $library\n";
+        #print "considering $library\n";
         next if grep { $_ eq $library } @libraries;
 
         if ($library =~ /Qt\w+/)
         {
             if ($copy_qt)
             {
-                print "need Qt library $library\n";
+                #print "need Qt library $library\n";
                 push @libraries, $library;
             }
         }
         elsif ($library !~ /^[\/]/)
         {
-            print "need library $library\n";
+            #print "need library $library\n";
             push @libraries, $library;
         }
     }
@@ -165,7 +181,7 @@ sub get_libraries
 sub run
 {
     my ($cmd) = @_;
-    print "$cmd\n";
+    #print "$cmd\n";
     my $retval = system($cmd);
     die "aborted: $!\n" if $retval != 0;
 }

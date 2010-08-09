@@ -17,3 +17,4 @@ glob:distrib/zips
 glob:distrib/tgz
 glob:distrib/dmg
 glob:distrib/*.exe
+glob:.DS_Store

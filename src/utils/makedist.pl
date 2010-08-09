@@ -55,7 +55,7 @@ print "build neurolab...\n";
 # create release directory
 my $distrib_dir = '../distrib';
 my $release = "neurolab-$version-$hg_id";
-my $release_dir = $is_darwin ? "$distrib_dir/$release/neurolab.app" : "$distrib_dir/$version/$release";
+my $release_dir = "$distrib_dir/$version/$release";
 
 print "create release directory $release_dir...\n";
 &run("rm -rf $release_dir");
@@ -83,10 +83,15 @@ else
 
 if ($is_darwin)
 {
-    &run("cp -a $build_dir/release/neurolab.app/* $release_dir");
-    &run("macdeployqt $release_dir -no-strip");
-    &run("utils/macdeploy --release $release_dir");
-    &run("macdeployqt $release_dir -no-strip -dmg");
+    &run("cp -a $build_dir/release/neurolab.app $release_dir");
+    #&run("macdeployqt $release_dir/neurolab.app -no-strip");
+    &run("utils/macdeploy --copyqt --release $release_dir");
+    &run("find $release_dir -name '*_debug' | xargs rm -f ");
+
+    &run("mkdir -p $distrib_dir/dmg");
+    my $dmg_file = "$distrib_dir/dmg/neurocogling-$release.dmg";
+    &run("rm -f $dmg_file");
+    &run("hdiutil create $dmg_file -volname $release -fs HFS+ -srcfolder $release_dir");
 }
 else
 {

@@ -183,15 +183,39 @@ namespace NeuroLab
 
     void MainWindow::loadPlugins()
     {
-        QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins";
-        loadPlugins(pluginPath);
-
 #ifdef __APPLE__
-        /// \todo look in bundle plugin directories
-#endif
+        QString pluginPath = QCoreApplication::applicationDirPath() + "/../Frameworks";
+        {
+            QDir dir(pluginPath);
+            QStringList entries = dir.entryList(QDir::Dirs);
+            for (QStringListIterator i(entries); i.hasNext(); )
+            {
+                QString entry = i.next();
+                if (!entry.startsWith("."))
+                    loadPlugins(pluginPath + "/" + entry + "/Versions/Current");
+            }
+        }
 
         pluginPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
         loadPlugins(pluginPath);
+
+        {
+            QDir dir(pluginPath);
+            QStringList entries = dir.entryList(QDir::Dirs);
+            for (QStringListIterator i(entries); i.hasNext(); )
+            {
+                QString entry = i.next();
+                if (!entry.startsWith("."))
+                    loadPlugins(pluginPath + "/" + entry);
+            }
+        }
+#else
+        QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins";
+        loadPlugins(pluginPath);
+
+        pluginPath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+        loadPlugins(pluginPath);
+#endif
     }
 
     void MainWindow::loadPlugins(const QString & dirPath)
@@ -205,7 +229,9 @@ namespace NeuroLab
         {
             QString entry = i.next();
             QString fname = dirPath + "/" + entry;
+#ifndef __APPLE__
             if (QLibrary::isLibrary(fname))
+#endif
             {
                 QLibrary lib(fname);
                 if (lib.load()) // the libraries should remain loaded even though the lib object goes out of scope
