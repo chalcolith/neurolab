@@ -84,6 +84,7 @@ namespace NeuroLab
           _numStepsSpinBox(0),
           _numStepsSpinBoxAction(0),
           _stepProgressBar(0),
+          _breadCrumbBar(0),
           _currentNetwork(0),
           _currentDataFile(0),
           _propertyEditor(0),
@@ -100,10 +101,6 @@ namespace NeuroLab
         // set up ui
         _ui->setupUi(this);
         this->setupUi();
-
-        // network tab widget
-        _networkLayout = new QVBoxLayout(_ui->tab_1);
-        this->setWindowTitle(tr("NeuroLab"));
 
         // load plugins
         loadPlugins();
@@ -141,6 +138,8 @@ namespace NeuroLab
 
     void MainWindow::setupUi()
     {
+        setTitle();
+
         QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
@@ -164,6 +163,13 @@ namespace NeuroLab
         _ui->statusBar->addPermanentWidget(_stepProgressBar);
 
         _ui->tabWidget->setTabText(1, "");
+
+        // network tab widget
+        _networkLayout = new QVBoxLayout(_ui->tab_1);
+
+        _breadCrumbBar = new QToolBar(tr("breadCrumbBar"));
+        _networkLayout->addWidget(_breadCrumbBar);
+        _breadCrumbBar->setVisible(false);
     }
 
     void MainWindow::setupConnections()
@@ -575,6 +581,9 @@ namespace NeuroLab
         update();
 
         filterActions();
+
+        if (_breadCrumbBar)
+            _breadCrumbBar->setVisible(_currentNetwork != 0);
     }
 
     void MainWindow::setPropertyObject(PropertyObject *po)

@@ -90,6 +90,8 @@ namespace NeuroLab
         QAction *_numStepsSpinBoxAction;
         QProgressBar *_stepProgressBar;
 
+        QToolBar *_breadCrumbBar;
+
         LabNetwork *_currentNetwork; ///< The current network being viewed/edited.
         LabDataFile *_currentDataFile; ///< The current data file.
 
