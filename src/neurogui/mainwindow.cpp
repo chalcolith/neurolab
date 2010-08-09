@@ -583,7 +583,9 @@ namespace NeuroLab
         filterActions();
 
         if (_breadCrumbBar)
+        {
             _breadCrumbBar->setVisible(_currentNetwork != 0);
+        }
     }
 
     void MainWindow::setPropertyObject(PropertyObject *po)

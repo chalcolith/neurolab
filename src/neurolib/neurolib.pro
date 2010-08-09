@@ -6,7 +6,6 @@ TEMPLATE = lib
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 }
 macx { CONFIG -= x86_64 }
-else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
