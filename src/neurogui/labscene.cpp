@@ -122,8 +122,15 @@ namespace NeuroLab
 
         if (event->button() == Qt::RightButton && _itemUnderMouse)
         {
-            clearSelection();
-            _itemUnderMouse->setSelected(true);
+            if ((event->modifiers() & Qt::ControlModifier) != 0)
+            {
+                _itemUnderMouse->setSelected(true);
+            }
+            else
+            {
+                clearSelection();
+                _itemUnderMouse->setSelected(true);
+            }
         }
         else if (event->button() == Qt::LeftButton && !_itemUnderMouse && _network)
         {

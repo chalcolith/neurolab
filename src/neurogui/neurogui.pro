@@ -84,3 +84,9 @@ win32 {
         -lautomata \
         -lqtpropertybrowser
 }
+
+HEADERS += \
+    subnetworkitem.h
+
+SOURCES += \
+    subnetworkitem.cpp
