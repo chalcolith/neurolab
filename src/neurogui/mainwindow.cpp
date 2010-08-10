@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labview.h"
 #include "labscene.h"
 #include "labnetwork.h"
+#include "labtree.h"
 #include "propertyobj.h"
 #include "labdatafile.h"
 
@@ -558,9 +559,7 @@ namespace NeuroLab
         if (network)
         {
             _currentNetwork = network;
-            _networkLayout->addWidget(_currentNetwork->view());
-            _currentNetwork->view()->show();
-            _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
+            setSubNetwork(_currentNetwork->treeNode());
 
             connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
@@ -585,6 +584,75 @@ namespace NeuroLab
         if (_breadCrumbBar)
         {
             _breadCrumbBar->setVisible(_currentNetwork != 0);
+        }
+    }
+
+    void MainWindow::setSubNetwork(LabTreeNode *treeNode)
+    {
+        Q_ASSERT(_networkLayout);
+
+        // sanity checks
+        if (!_currentNetwork || !treeNode)
+            return;
+        if (treeNode->tree()->network() != _currentNetwork)
+            throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
+
+        // remove the current network's view
+        if (_currentNetwork->view())
+        {
+            _currentNetwork->view()->hide();
+            _networkLayout->removeWidget(_currentNetwork->view());
+        }
+
+        // set the new node
+        _currentNetwork->setTreeNode(treeNode);
+
+        if (_currentNetwork->view())
+        {
+            _networkLayout->addWidget(_currentNetwork->view());
+            _currentNetwork->view()->show();
+            _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
+        }
+
+        // create breadcrumbs
+        if (_breadCrumbBar)
+        {
+            // get new breadcrumbs for this network
+            QList<LabTreeNode *> newBreadCrumbs;
+            LabTreeNode *newNode = treeNode;
+            while (newNode)
+            {
+                newBreadCrumbs.insert(0, newNode);
+                newNode = newNode->parent();
+            }
+
+            // see if we're on a common path from the old breadcrumbs,
+            // and whether or not we can maintain the old ones going
+            // deeper than us in the tree
+            int num = _breadCrumbs.size();
+            for (int i = 0; i < num; ++i)
+            {
+                if (i < newBreadCrumbs.size() && newBreadCrumbs[i] != _breadCrumbs[i])
+                    break;
+                if (i >= newBreadCrumbs.size())
+                    newBreadCrumbs.append(_breadCrumbs[i]);
+            }
+
+            // set the new breadcrumbs
+            _breadCrumbBar->clear();
+            _breadCrumbs = newBreadCrumbs;
+
+            num = _breadCrumbs.size();
+            for (int i = 0; i < num; ++i)
+            {
+                QAction *action = _breadCrumbBar->addAction(_breadCrumbs[i]->label());
+                action->setCheckable(true);
+                action->setChecked(_breadCrumbs[i] == treeNode);
+
+                _breadCrumbs[i]->setCurrentAction(action);
+
+                connect(_breadCrumbs[i], SIGNAL(nodeSelected(LabTreeNode*)), this, SLOT(setSubNetwork(LabTreeNode*)));
+            }
         }
     }
 

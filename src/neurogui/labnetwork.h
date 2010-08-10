@@ -56,6 +56,7 @@ namespace NeuroLab
     class LabScene;
     class LabView;
     class LabTree;
+    class LabTreeNode;
     class NeuroItem;
 
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
@@ -96,13 +97,20 @@ namespace NeuroLab
         /// Sets the dirty state of the network.
         void setChanged(bool changed = true);
 
+        /// \return The current subnetwork node.
+        LabTreeNode *treeNode();
+
+        /// Sets the current subnetwork node.
+        void setTreeNode(LabTreeNode *);
+
         /// \return The currently active graphics scene.
         LabScene *scene();
 
-        QList<QGraphicsItem *> items() const;
-
         /// \return The currently active graphics view.
         LabView *view();
+
+        /// \return Items in the network, including all sub-networks.
+        QList<QGraphicsItem *> items() const;
 
         /// \return A pointer to the neural network automaton.
         const NeuroLib::NeuroNet *neuronet() const { return _neuronet; }

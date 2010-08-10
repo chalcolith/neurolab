@@ -243,6 +243,9 @@ namespace NeuroLab
     signals:
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
+    public slots:
+        virtual void reset() {}
+
     protected:
         /// Should be overridden to add to the drawing painter path.
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;

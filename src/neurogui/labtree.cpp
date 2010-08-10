@@ -37,11 +37,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labtree.h"
 #include "labview.h"
 #include "labscene.h"
-#include "neuronarrowitem.h"
+#include "neuroitem.h"
 #include "mainwindow.h"
 #include "../automata/exception.h"
 
-#include <QScrollBar>
+#include <Qaction>
 
 #include <typeinfo>
 
@@ -52,14 +52,14 @@ namespace NeuroLab
     quint32 LabTreeNode::NEXT_ID = 1;
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0)
+        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0)
     {
         _scene = new LabScene(_tree->network());
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view)
+        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view), _currentAction(0)
     {
     }
 
@@ -81,11 +81,64 @@ namespace NeuroLab
         _parent = 0;
     }
 
+    QString LabTreeNode::label() const
+    {
+        if (!_label.isEmpty() && !_label.isNull())
+            return _label;
+        return QString::number(_id);
+    }
+
+    void LabTreeNode::setLabel(const QString & s)
+    {
+        _label = s;
+        emit labelChanged(s);
+    }
+
+    void LabTreeNode::setCurrentAction(QAction *action)
+    {
+        if (_currentAction)
+        {
+            disconnect(_currentAction, SIGNAL(destroyed()), this, SLOT(actionDestroyed()));
+            disconnect(_currentAction, SIGNAL(triggered(bool)), this, SLOT(actionTriggered(bool)));
+        }
+
+        _currentAction = action;
+        if (_currentAction)
+        {
+            connect(_currentAction, SIGNAL(destroyed()), this, SLOT(actionDestroyed()));
+            connect(_currentAction, SIGNAL(triggered(bool)), this, SLOT(actionTriggered(bool)));
+        }
+    }
+
+    void LabTreeNode::actionDestroyed(QObject *)
+    {
+        _currentAction = 0;
+    }
+
+    void LabTreeNode::actionTriggered(bool checked)
+    {
+        if (!checked && _currentAction && _tree->current() == this)
+        {
+            _currentAction->setChecked(true);
+        }
+        else
+        {
+            emit nodeSelected(this);
+        }
+    }
+
+    LabTreeNode *LabTreeNode::createChild(const QString &label)
+    {
+        LabTreeNode *child = new LabTreeNode(_tree, this);
+        _children.append(child);
+        return child;
+    }
+
     void LabTreeNode::reset()
     {
         for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
         {
-            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
             if (item)
                 item->reset();
         }
@@ -106,6 +159,7 @@ namespace NeuroLab
         Q_ASSERT(_view);
 
         ds << _id;
+        ds << _label;
 
         // view
         _view->writeBinary(ds, file_version);
@@ -140,10 +194,17 @@ namespace NeuroLab
     {
         // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
         {
+            // id
             ds >> _id;
 
             if (_id >= NEXT_ID)
                 NEXT_ID = _id + 1;
+
+            // label
+            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
+            {
+                ds >> _label;
+            }
 
             // view matrix
             if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
@@ -228,6 +289,7 @@ namespace NeuroLab
         : _parent(_parent), _network(_network), _root(new LabTreeNode(this, 0)), _current(0)
     {
         _current = _root;
+        _root->setLabel(tr("Top-Level Network"));
     }
 
     LabTree::~LabTree()

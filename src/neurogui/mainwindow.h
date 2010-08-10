@@ -66,6 +66,8 @@ namespace NeuroLab
 
     extern NEUROGUISHARED_EXPORT const QString VERSION;
 
+    class LabTree;
+    class LabTreeNode;
     class LabNetwork;
     class LabDataFile;
     class NeuroItem;
@@ -91,6 +93,7 @@ namespace NeuroLab
         QProgressBar *_stepProgressBar;
 
         QToolBar *_breadCrumbBar;
+        QList<LabTreeNode *> _breadCrumbs;
 
         LabNetwork *_currentNetwork; ///< The current network being viewed/edited.
         LabDataFile *_currentDataFile; ///< The current data file.
@@ -170,6 +173,8 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
 
     private slots:
+        void setSubNetwork(LabTreeNode *treeNode);
+
         void networkChanged(const QString & title);
         void zoomValueChanged(int);
 

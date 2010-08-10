@@ -95,6 +95,17 @@ namespace NeuroLab
         }
     }
 
+    LabTreeNode *LabNetwork::treeNode()
+    {
+        return _tree ? _tree->current() : 0;
+    }
+
+    void LabNetwork::setTreeNode(LabTreeNode *node)
+    {
+        if (node && _tree)
+            _tree->setCurrent(node);
+    }
+
     LabScene *LabNetwork::scene()
     {
         return _tree ? _tree->scene() : 0;
