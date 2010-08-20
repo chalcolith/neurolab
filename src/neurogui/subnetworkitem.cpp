@@ -9,17 +9,17 @@ are met:
 
  - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
  - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in
    the documentation and/or other materials provided with the
    distribution.
-   
+
  - Neither the name of the Neurocognitive Linguistics Lab nor the
    names of its contributors may be used to endorse or promote
    products derived from this software without specific prior
    written permission.
-   
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -35,17 +35,29 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "subnetworkitem.h"
+#include "labtree.h"
+#include "labscene.h"
+#include "labnetwork.h"
 
 namespace NeuroLab
 {
-    
-    SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context) 
-        : NeuroItem(network, scenePos, context)
+
+    NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc|Sub-Network"));
+
+    SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroItem(network, scenePos, context),
+          _treeNode(0)
     {
     }
-    
+
     SubNetworkItem::~SubNetworkItem()
     {
+        delete _treeNode;
     }
-    
+
+    void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> &) const
+    {
+        drawPath.addRect(-15, -10, 30, 20);
+    }
+
 } // namespace NeuroLab

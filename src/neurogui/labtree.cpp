@@ -65,7 +65,13 @@ namespace NeuroLab
 
     LabTreeNode::~LabTreeNode()
     {
-        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
+        if (_parent)
+        {
+            _parent->_children.removeAll(this);
+        }
+
+        QList<LabTreeNode *> childrenCopy = _children; // deleting the children will remove them from our list
+        for (QListIterator<LabTreeNode *> i(childrenCopy); i.hasNext(); )
         {
             delete i.next();
         }

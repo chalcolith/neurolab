@@ -1,11 +1,11 @@
 #include "lifecell.h"
 
-QDataStream & operator<< (QDataStream & ds, const LifeCell & lc)
+void LifeCell::writeBinary(QDataStream &ds, const Automata::AutomataFileVersion &) const
 {
-    return ds << lc.alive;
+    ds << this->alive;
 }
 
-QDataStream & operator>> (QDataStream & ds, LifeCell & lc)
+void LifeCell::readBinary(QDataStream &ds, const Automata::AutomataFileVersion &)
 {
-    return ds >> lc.alive;
+    ds >> this->alive;
 }
