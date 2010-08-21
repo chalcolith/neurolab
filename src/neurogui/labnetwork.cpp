@@ -726,8 +726,6 @@ namespace NeuroLab
     void LabNetwork::futureFinished()
     {
         _future_watcher.waitForFinished();
-        QFuture<NeuroLib::NeuroNet::ASYNC_STATE> future = _future_watcher.future();
-        _neuronet->postStepAsync(future);
         _neuronet->postUpdate();
 
         ++_current_step;
@@ -754,7 +752,7 @@ namespace NeuroLab
             _future_watcher.setFuture(_neuronet->stepAsync());
 
             // only change the display 10 times a second
-            if (_step_time.elapsed() >= 1000)
+            if (_step_time.elapsed() >= 100)
             {
                 _step_time.start();
 

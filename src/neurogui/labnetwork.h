@@ -81,7 +81,7 @@ namespace NeuroLab
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
 
         quint32 _current_step, _max_steps;
-        QFutureWatcher<NeuroLib::NeuroNet::ASYNC_STATE> _future_watcher;
+        QFutureWatcher<void> _future_watcher;
         QTime _step_time;
 
     public:

@@ -41,9 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "exception.h"
 
 #include <QtGlobal>
-#include <QReadWriteLock>
-#include <QReadLocker>
-#include <QWriteLocker>
 #include <QDataStream>
 
 namespace Automata
@@ -56,18 +53,16 @@ namespace Automata
     template <typename TState, typename TIndex>
     struct AsyncState
     {
-        TIndex index;
         TState q0, q1;
         quint8 r;
 
-        AsyncState() : index(-1), r(0) {}
-        AsyncState(const TIndex & index, const TState & s0, const TState & s1) : index(index), q0(s0), q1(s1), r(0) {}
-        AsyncState(const AsyncState & state) : index(state.index), q0(state.q0), q1(state.q1), r(state.r) {}
+        AsyncState() : r(0) {}
+        AsyncState(const TState & s0, const TState & s1) : q0(s0), q1(s1), r(0) {}
+        AsyncState(const AsyncState & state) : q0(state.q0), q1(state.q1), r(state.r) {}
         virtual ~AsyncState() {}
 
         AsyncState & operator= (const AsyncState & state)
         {
-            index = state.index;
             q0 = state.q0;
             q1 = state.q1;
             r = state.r;
@@ -113,7 +108,7 @@ namespace Automata
         }
     };
 
-    // should not be used (is only for old code that will be removed)
+    /// should not be used (is only for old code that will be removed)
     template <typename TState, typename TIndex>
     QDataStream & operator>> (QDataStream & ds, AsyncState<TState,TIndex> & as)
     {

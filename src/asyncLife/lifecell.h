@@ -9,13 +9,8 @@
 class LifeCell
 {
 public:
-    enum
-    {
-        NUM_PER_LOCK = 32
-    };
-
     typedef qint32 LifeIndex;
-    typedef Automata::Automaton<LifeCell, LifeCell::LifeIndex, NUM_PER_LOCK> BOARD_TYPE;
+    typedef Automata::Automaton<LifeCell, LifeCell::LifeIndex> BOARD_TYPE;
 
     bool alive;
 
@@ -33,7 +28,7 @@ public:
         return *this;
     }
 
-    void update(BOARD_TYPE *, const LifeIndex &, LifeCell & next, const QVector<int> & neighbor_indices, const LifeCell * const * const neighbors) const;
+    void update(BOARD_TYPE *, const LifeIndex &, LifeCell & next, const QVector<int> & neighbor_indices, const LifeCell *const neighbors) const;
 
     virtual void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
     virtual void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);

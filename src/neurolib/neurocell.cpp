@@ -67,10 +67,11 @@ namespace NeuroLib
     static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1.0f);
     static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99f);
     static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0f);
-    static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.0001f);
+    static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.000001f);
     static const NeuroCell::NeuroValue MAX_LINK = static_cast<NeuroCell::NeuroValue>(1.1f);
 
-    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next, const QVector<int> &neighbor_indices, const NeuroCell *const *const neighbors) const
+    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next, 
+                           const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
     {
         const NeuroCell & prev = *this;
         NeuroNet *network = dynamic_cast<NeuroNet *>(neuronet);
@@ -85,7 +86,7 @@ namespace NeuroLib
 
         NeuroValue input_sum = 0;
         for (int i = 0; i < neighbor_indices.size(); ++i)
-            input_sum += neighbors[i]->_output_value;
+            input_sum += neighbors[i]._output_value;
 
         NeuroValue next_value = 0;
         NeuroValue diff, delta;
@@ -111,8 +112,7 @@ namespace NeuroLib
             num_neighbors = neighbor_indices.size();
             for (int i = 0; i < num_neighbors; ++i)
             {
-                // QReadLocker read_lock(network->getLock(neighbor_indices[i]));
-                NeuroCell & incoming = (*network)[neighbor_indices[i]].current();
+                const NeuroCell & incoming = neighbors[i];
 
                 if (incoming._kind == EXCITORY_LINK)
                 {
@@ -120,7 +120,7 @@ namespace NeuroLib
 
                     if (qAbs(delta_weight) > EPSILON)
                     {
-                        NeuroValue new_weight = qBound(ZERO, incoming.weight() + delta_weight, 1.1f);
+                        NeuroValue new_weight = qBound(ZERO, incoming.weight() + delta_weight, MAX_LINK);
                         network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
                     }
                 }
@@ -128,13 +128,9 @@ namespace NeuroLib
 
             // node raising/lowering
             diff = qBound(ZERO, next_value - prev._running_average, ONE);
-
-            if (diff > EPSILON)
-            {
-                delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
-                next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
-            }
-
+            delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
+            next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+            
             break;
         case OSCILLATOR:
             {

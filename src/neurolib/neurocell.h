@@ -73,13 +73,7 @@ namespace NeuroLib
         /// Used to count steps for oscillators.
         typedef quint16 NeuroStep;
 
-        enum
-        {
-            /// Number of nodes per read-write lock.
-            NUM_PER_LOCK = 64
-        };
-
-        typedef Automata::Automaton<NeuroCell, NeuroCell::NeuroIndex, NUM_PER_LOCK> NEURONET_BASE;
+        typedef Automata::Automaton<NeuroCell, NeuroCell::NeuroIndex> NEURONET_BASE;
 
         /// Constructor.
         /// \param k The kind of cell.
@@ -155,7 +149,8 @@ namespace NeuroLib
         void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
 
         /// Update function.
-        void update(NEURONET_BASE *neuronet, const NeuroIndex & index, NeuroCell & next, const QVector<int> & neighbor_indices, const NeuroCell *const *const neighbors) const;
+        void update(NEURONET_BASE *neuronet, const NeuroIndex & index, NeuroCell & next, 
+                    const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const;
 
         /// Write to a data stream.
         void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
