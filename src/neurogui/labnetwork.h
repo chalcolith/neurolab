@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "propertyobj.h"
-#include "../neurolib/neurocell.h"
+#include "../neurolib/neuronet.h"
 
 #include <QObject>
 #include <QVariant>
@@ -81,7 +81,7 @@ namespace NeuroLab
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
 
         quint32 _current_step, _max_steps;
-        QFutureWatcher<void> _future_watcher;
+        QFutureWatcher<NeuroLib::NeuroNet::ASYNC_STATE> _future_watcher;
         QTime _step_time;
 
     public:
@@ -180,7 +180,6 @@ namespace NeuroLab
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
-        void valuesChanged();
         void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);
         void stepProgressValueChanged(int value);

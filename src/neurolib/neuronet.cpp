@@ -56,6 +56,26 @@ namespace NeuroLib
     {
     }
 
+    void NeuroNet::preUpdate()
+    {
+        _postUpdates.clear();
+    }
+
+    void NeuroNet::postUpdate()
+    {
+        for (QListIterator<PostUpdateRec> i(_postUpdates); i.hasNext(); )
+        {
+            const PostUpdateRec & rec = i.next();
+            _nodes[rec._index].current().setWeight(rec._weight);
+        }
+    }
+
+    void NeuroNet::addPostUpdate(const PostUpdateRec & rec)
+    {
+        QWriteLocker wl(&_postUpdatesLock);
+        _postUpdates.append(rec);
+    }
+
     void NeuroNet::writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const
     {
         Automata::AutomataFileVersion & fv = const_cast<Automata::AutomataFileVersion &>(file_version);

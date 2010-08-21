@@ -37,19 +37,20 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <QDataStream>
-
 #include "neurolib_global.h"
 #include "neurocell.h"
 
 #include "../automata/automaton.h"
+
+#include <QDataStream>
+#include <QReadWriteLock>
 
 namespace NeuroLib
 {
 
     /// A neurocognitive network.
     class NEUROLIBSHARED_EXPORT NeuroNet
-        : public Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex>
+        : public NeuroCell::NEURONET_BASE
     {
         NeuroCell::NeuroValue _decay;
         NeuroCell::NeuroValue _link_learn_rate;
@@ -91,8 +92,28 @@ namespace NeuroLib
         /// \see NeuroNet::learnTime()
         void setLearnTime(const NeuroCell::NeuroValue & learnTime) { _learn_time = learnTime; }
 
+        struct PostUpdateRec
+        {
+            NeuroCell::NeuroIndex _index;
+            NeuroCell::NeuroValue _weight;
+
+            PostUpdateRec(const NeuroCell::NeuroIndex & index, const NeuroCell::NeuroValue & weight)
+                : _index(index), _weight(weight)
+            {
+            }
+        };
+
+        void addPostUpdate(const PostUpdateRec &);
+
+        void preUpdate();
+        void postUpdate();
+
         virtual void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
+
+    private:
+        QList<PostUpdateRec> _postUpdates;
+        QReadWriteLock _postUpdatesLock;
     };
 
 } // namespace NeuroLib

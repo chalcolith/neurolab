@@ -39,8 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QtGlobal>
 #include <QtConcurrentMap>
-#include <QVarLengthArray>
-#include <QReadWriteLock>
+#include <QtConcurrentRun>
+#include <QThreadPool>
 
 #include "automata_global.h"
 #include "pool.h"
@@ -52,32 +52,32 @@ namespace Automata
 
     /// An automaton over graphs, with asynchronous update capability.
     /// \param TState A cell's state in the automaton.
-    /// \param TFUpdate A functor by which to update states.  Must implement <tt>void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet, const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next, const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const</tt>.
     /// \param TIndex The type used to index cells in the automaton.
     /// \param NUM_PER_LOCK The number of cells per write lock.
-    template <typename TState, typename TFUpdate, typename TIndex = quint32, int NUM_PER_LOCK = 1024>
+    template <typename TState, typename TIndex = quint32, int NUM_PER_LOCK = 1024>
     class Automaton
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
-        const TFUpdate fUpdate;
-        Pool<QVector<const TState *> > temp_neighbor_pool;
-        QVector<QReadWriteLock *> locks;
+        Pool<QVector<const TState *> > _temp_neighbor_pool;
 
-        /// \internal Used in the call to QtConcurrent::map()
+        /// \internal Used in the call to QtConcurrent::mapped()
         struct MapFunctor
         {
-            Automaton<TState, TFUpdate, TIndex> & automaton;
+            Automaton<TState, TIndex, NUM_PER_LOCK> & automaton;
 
         public:
-            typedef AsyncState<TState, TIndex> & result_type;
+            typedef AsyncState<TState, TIndex> result_type;
 
-            MapFunctor(Automaton<TState, TFUpdate, TIndex> & automaton) : automaton(automaton) {}
+            MapFunctor(Automaton<TState, TIndex, NUM_PER_LOCK> & automaton)
+                : automaton(automaton) {}
 
-            inline result_type operator() (result_type item)
+            inline result_type operator() (const result_type & item)
             {
                 return automaton.update(item);
             }
         };
+
+        MapFunctor _functor;
 
     public:
         typedef AsyncState<TState, TIndex> ASYNC_STATE;
@@ -86,41 +86,52 @@ namespace Automata
         /// \param initialCapacity The number of cells for which the automaton will initially reserve memory.
         /// \param directed Whether or not the automaton's graph is directed.
         Automaton(const int initialCapacity = 0, bool directed = true)
-            : Graph<AsyncState<TState, TIndex>, TIndex>(initialCapacity, directed), fUpdate(TFUpdate())
+            : Graph<ASYNC_STATE, TIndex>(initialCapacity, directed), _functor(*this)
         {
         }
 
         virtual ~Automaton()
         {
-            const int n = locks.size();
-            for (int i = 0; i < n; ++i)
-                delete locks[i];
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
-        virtual void step()
+        inline void step()
         {
-            // the asynchronous algo take three updates to fully run one step
-            MapFunctor functor(*this);
-            QFuture<void> future1 = QtConcurrent::map(this->_nodes, functor);
-            future1.waitForFinished();
+            //QFuture<ASYNC_STATE> future = stepAsync();
+            //postStepAsync(future);
+
+            const int num = this->_nodes.size();
+            QVector<ASYNC_STATE> newNodes(num);
+            for (int i = 0; i < num; ++i)
+            {
+                newNodes[i] = update(this->_nodes[i]);
+            }
+            this->_nodes = newNodes;
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
-        virtual QFuture<void> stepAsync()
+        inline QFuture<ASYNC_STATE> stepAsync()
         {
             MapFunctor functor(*this);
-            return QtConcurrent::map(this->_nodes, functor);
+            return QtConcurrent::mapped(this->_nodes, functor);
+        }
+
+        /// Must be called when the future is done.
+        inline void postStepAsync(QFuture<ASYNC_STATE> & future)
+        {
+            this->_nodes = future.results().toVector();
         }
 
         /// Adds a cell to the automaton.
         /// \return The index of the newly-created cell.
         TIndex addNode(const TState & node)
         {
-            TIndex result = Graph<AsyncState<TState,TIndex>, TIndex>::addNode(AsyncState<TState,TIndex>(node, node));
+            TIndex result = Graph<ASYNC_STATE, TIndex>::addNode(AsyncState<TState,TIndex>(-1, node, node));
+            this->_nodes[result].index = result;
             return result;
         }
 
+        /// \note This is not thread-safe; use only for visualization.
         /// \return The asynchronous ready state of a cell in the automaton.
         int readyState(const TIndex & index) const
         {
@@ -130,95 +141,52 @@ namespace Automata
                 throw IndexOverflow();
         }
 
-        /// \return The lock that governs a cell with the given index.
-        QReadWriteLock *getLock(const TIndex & index)
-        {
-            TIndex lock_index = index/NUM_PER_LOCK;
-            while (locks.size() <= lock_index)
-                locks.append(new QReadWriteLock(QReadWriteLock::Recursive));
-            return locks[lock_index];
-        }
-
     protected:
-        typedef Automaton<TState, TFUpdate, TIndex> BASE;
+        typedef Automaton<TState, TIndex, NUM_PER_LOCK> BASE;
 
         //@{
         /// Implements the asynchronous update operation on a cell in the automaton.
-        inline AsyncState<TState, TIndex> & update(const TIndex & index)
+        inline ASYNC_STATE update(const ASYNC_STATE & state)
         {
-            return update(this->_nodes[index]);
-        }
+            ASYNC_STATE result(state);
+            const TIndex & index = state.index; //&state - this->_nodes.data();
 
-        inline AsyncState<TState, TIndex> & update(AsyncState<TState, TIndex> & state)
-        {
-            TIndex index = &state - this->_nodes.data();
-
-            // write lock
-            getLock(index)->lockForWrite();
-
-            try
+            // update
+            if (state.r == 0)
             {
-                // update
-                if (state.r == 0)
+                if (isReady(index, 0))
                 {
-                    if (isReady(index, 0))
+                    // temporary neighbor array
+                    typename Pool<QVector<const TState *> >::Item tni(_temp_neighbor_pool);
+                    QVector<const TState *> *temp_neighbors = tni.data;
+
+                    const QVector<TIndex> & neighbors = this->_edges[index];
+                    if (neighbors.size() > temp_neighbors->size())
+                        temp_neighbors->resize(neighbors.size());
+
+                    // get appropriate states of neighbors
+                    const TState **const temp_ptr = temp_neighbors->data();
+                    for (int i = 0; i < neighbors.size(); ++i)
                     {
-                        // temporary neighbor array
-                        typename Pool<QVector<const TState *> >::Item tni(temp_neighbor_pool);
-                        QVector<const TState *> *temp_neighbors = tni.data;
+                        const ASYNC_STATE & neighbor = this->_nodes[neighbors[i]];
 
-                        const QVector<TIndex> & neighbors = this->_edges[index];
-                        if (neighbors.size() > temp_neighbors->size())
-                            temp_neighbors->resize(neighbors.size());
-
-                        // get appropriate states of neighbors
-                        const TState ** const temp_ptr = temp_neighbors->data();
-                        for (int i = 0; i < neighbors.size(); ++i)
-                        {
-                            getLock(neighbors[i])->lockForWrite();
-                            const AsyncState<TState, TIndex> & neighbor = this->_nodes[neighbors[i]];
-
-                            if (neighbor.r == 0)
-                                temp_ptr[i] = &neighbor.q0;
-                            else if (neighbor.r == 1)
-                                temp_ptr[i] = &neighbor.q1;
-                        }
-
-                        // update
-                        state.q1 = state.q0;
-                        try
-                        {
-                            fUpdate(this, index, state.q1, state.q0, neighbors, temp_ptr);
-                        }
-                        catch (...)
-                        {
-                            for (int i = 0; i < neighbors.size(); ++i)
-                                getLock(neighbors[i])->unlock();
-                            throw;
-                        }
-
-                        state.r = 1;
-
-                        // unlock
-                        for (int i = 0; i < neighbors.size(); ++i)
-                            getLock(neighbors[i])->unlock();
+                        if (neighbor.r == 0)
+                            temp_ptr[i] = &neighbor.q0;
+                        else if (neighbor.r == 1)
+                            temp_ptr[i] = &neighbor.q1;
                     }
-                }
-                else if (isReady(index, state.r))
-                {
-                    state.r = (state.r+1) % 3;
+
+                    // update
+                    state.q1.update(this, index, result.q0, neighbors, temp_ptr);
+                    result.r = 1;
                 }
             }
-            catch (...)
+            else if (isReady(index, state.r))
             {
-                getLock(index)->unlock();
-                throw;
+                result.r = (state.r+1) % 3;
             }
 
-            // unlock and return
-            getLock(index)->unlock();
-
-            return state;
+            return result;
         }
         //@}
 

@@ -4,7 +4,7 @@
 #include "../automata/automaton.h"
 #include "lifecell.h"
 
-class LifeBoard : public Automata::Automaton<LifeCell, LifeCell::Update, LifeCell::LifeIndex>
+class LifeBoard : public LifeCell::BOARD_TYPE
 {
     const int width, height;
 

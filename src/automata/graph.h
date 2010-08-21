@@ -38,8 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QVector>
-#include <QHash>
 #include <QDataStream>
+#include <QReadWriteLock>
 
 #include "exception.h"
 
@@ -57,6 +57,9 @@ namespace Automata
 
         QVector<TNode> _nodes;
         QVector< QVector<TIndex> > _edges;
+
+        QReadWriteLock _nodes_lock;
+        QReadWriteLock _edges_lock;
 
     public:
         /// Constructor.
@@ -78,6 +81,9 @@ namespace Automata
         /// \return The index of the newly-created node.
         TIndex addNode(const TNode & node)
         {
+            QWriteLocker nwl(&_nodes_lock);
+            QWriteLocker ewl(&_edges_lock);
+
             TIndex index = _nodes.size();
 
             _nodes.append(node);
@@ -85,13 +91,15 @@ namespace Automata
 
             return index;
         }
-        
+
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
         /// \see Graph::removeEdge()
         void addEdge(const TIndex & from, const TIndex & to)
         {
+            QWriteLocker ewl(&_edges_lock);
+
             if (from < _edges.size())
             {
                 QVector<TIndex> & outgoing = _edges[from];
@@ -126,6 +134,8 @@ namespace Automata
         /// \see Graph::addEdge()
         void removeEdge(const TIndex & from, const TIndex & to)
         {
+            QWriteLocker eql(&_edges_lock);
+
             if (from < _edges.size())
             {
                 QVector<TIndex> & outgoing = _edges[from];
@@ -188,7 +198,7 @@ namespace Automata
         {
             if (index < _nodes.size())
             {
-                const QVector<TIndex> & nbrs = _edges[index];
+                const QList<TIndex> & nbrs = _edges[index];
                 num = nbrs.size();
                 return nbrs.data();
             }
@@ -227,8 +237,8 @@ namespace Automata
                 // nodes
                 quint32 num;
                 ds >> num;
-                _nodes.resize(num);
 
+                _nodes.resize(num);
                 for (quint32 i = 0; i < num; ++i)
                 {
                     _nodes[i].readBinary(ds, file_version);

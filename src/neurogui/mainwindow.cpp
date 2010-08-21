@@ -82,6 +82,7 @@ namespace NeuroLab
           _ui(new Ui::MainWindow()),
           _networkLayout(0),
           _zoomSpinBox(0),
+          _zoomSpinBoxAction(0),
           _numStepsSpinBox(0),
           _numStepsSpinBoxAction(0),
           _stepProgressBar(0),
@@ -282,19 +283,38 @@ namespace NeuroLab
 
     void MainWindow::setActionsEnabled(bool enabled)
     {
-        QList<QAction *> actions = _ui->mainToolBar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(this->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        actions = _ui->viewToolbar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(_ui->menuBar->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        actions = _ui->simulationToolbar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(_ui->mainToolBar->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        _ui->action_Quit->setEnabled(enabled);
+        for (QListIterator<QAction *> i(_ui->viewToolbar->actions()); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
+        for (QListIterator<QAction *> i(_ui->simulationToolbar->actions()); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
+        if (_breadCrumbBar)
+        {
+            for (QListIterator<QAction *> i(_breadCrumbBar->actions()); i.hasNext(); )
+                i.next()->setEnabled(enabled);
+        }
+
+        if (_zoomSpinBox)
+            _zoomSpinBox->setEnabled(enabled);
+
+        if (_zoomSpinBoxAction)
+            _zoomSpinBoxAction->setEnabled(enabled);
+
+        if (_numStepsSpinBox)
+            _numStepsSpinBox->setEnabled(enabled);
+
+        if (_numStepsSpinBoxAction)
+            _numStepsSpinBoxAction->setEnabled(enabled);
 
         if (enabled)
             filterActions();

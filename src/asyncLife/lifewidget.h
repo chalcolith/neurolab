@@ -2,15 +2,17 @@
 #define LIFEWIDGET_H
 
 #include <QWidget>
-#include "lifeboard.h"
+
+class LifeBoard;
 
 class LifeWidget : public QWidget
 {
     bool autoStep;
-    LifeBoard board;
+    LifeBoard *board;
 
 public:
     LifeWidget(QWidget *parent = 0);
+    virtual ~LifeWidget();
 
 protected:
     virtual void paintEvent(QPaintEvent *);

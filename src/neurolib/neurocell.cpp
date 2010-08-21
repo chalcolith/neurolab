@@ -67,13 +67,13 @@ namespace NeuroLib
     static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1.0f);
     static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99f);
     static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0f);
+    static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.0001f);
+    static const NeuroCell::NeuroValue MAX_LINK = static_cast<NeuroCell::NeuroValue>(1.1f);
 
-    /// Updates the cell.
-    void NeuroCell::Update::operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *_network,
-                                        const NeuroIndex &, const NeuroCell & prev, NeuroCell & next,
-                                        const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const
+    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next, const QVector<int> &neighbor_indices, const NeuroCell *const *const neighbors) const
     {
-        NeuroNet *network = dynamic_cast<NeuroNet *>(_network);
+        const NeuroCell & prev = *this;
+        NeuroNet *network = dynamic_cast<NeuroNet *>(neuronet);
 
         next._frozen = prev._frozen;
 
@@ -111,21 +111,29 @@ namespace NeuroLib
             num_neighbors = neighbor_indices.size();
             for (int i = 0; i < num_neighbors; ++i)
             {
-                QWriteLocker write_lock(_network->getLock(neighbor_indices[i]));
+                // QReadLocker read_lock(network->getLock(neighbor_indices[i]));
                 NeuroCell & incoming = (*network)[neighbor_indices[i]].current();
 
                 if (incoming._kind == EXCITORY_LINK)
                 {
                     NeuroValue delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
-                    incoming.setWeight(qBound(ZERO, incoming.weight() + delta_weight, ONE));
+
+                    if (qAbs(delta_weight) > EPSILON)
+                    {
+                        NeuroValue new_weight = qBound(ZERO, incoming.weight() + delta_weight, 1.1f);
+                        network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
+                    }
                 }
             }
 
             // node raising/lowering
             diff = qBound(ZERO, next_value - prev._running_average, ONE);
-            delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
 
-            next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+            if (diff > EPSILON)
+            {
+                delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
+                next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+            }
 
             break;
         case OSCILLATOR:
@@ -146,13 +154,13 @@ namespace NeuroLib
                 {
                     // calculate next output
                     if ((gap+peak > 0) && ((phase+step) % (gap+peak)) < peak)
-                        next_value = 1;
+                        next_value = ONE;
                     else
-                        next_value = 0;
+                        next_value = ZERO;
                 }
                 else
                 {
-                    next_value = 0;
+                    next_value = ZERO;
                 }
 
                 // save new step value
@@ -161,7 +169,8 @@ namespace NeuroLib
 
             break;
         case EXCITORY_LINK:
-            next_value = qBound(ZERO, input_sum * prev._weight, input_sum * prev._weight);
+            // we allow the weight to be 1.1 so as to maintain activation
+            next_value = qBound(ZERO, input_sum * prev._weight, MAX_LINK);
             break;
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs

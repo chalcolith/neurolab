@@ -710,10 +710,7 @@ namespace NeuroLab
         _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
         _step_time.start();
 
-        if (numSteps > 1)
-            emit actionsEnabled(false);
-
-        emit valuesChanged();
+        emit actionsEnabled(false);
 
         if (numSteps > 1)
         {
@@ -722,14 +719,18 @@ namespace NeuroLab
             emit stepProgressValueChanged(0);
         }
 
+        _neuronet->preUpdate();
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
 
     void LabNetwork::futureFinished()
     {
-        ++_current_step;
         _future_watcher.waitForFinished();
+        QFuture<NeuroLib::NeuroNet::ASYNC_STATE> future = _future_watcher.future();
+        _neuronet->postStepAsync(future);
+        _neuronet->postUpdate();
 
+        ++_current_step;
         if ((_current_step % 3) == 0)
             emit stepIncremented();
 
@@ -753,7 +754,7 @@ namespace NeuroLab
             _future_watcher.setFuture(_neuronet->stepAsync());
 
             // only change the display 10 times a second
-            if (_step_time.elapsed() >= 100)
+            if (_step_time.elapsed() >= 1000)
             {
                 _step_time.start();
 
