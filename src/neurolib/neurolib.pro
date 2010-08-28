@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT -= gui
 
 TARGET = neurolib
@@ -17,11 +18,8 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-CONFIG( debug, debug|release ) {
-    BUILDDIR=debug
-} else {
-    BUILDDIR=release
-}
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }

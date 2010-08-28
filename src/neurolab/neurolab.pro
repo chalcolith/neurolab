@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT += gui
 QT += svg
 
@@ -13,11 +14,8 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 SOURCES += main.cpp
 
-CONFIG( debug, debug|release ) {
-    BUILDDIR=debug
-} else {
-    BUILDDIR=release
-}
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 DESTDIR = $$OUT_PWD/../$$BUILDDIR
 TEMPDIR = $$OUT_PWD/$$BUILDDIR
