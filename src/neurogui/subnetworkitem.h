@@ -51,14 +51,24 @@ namespace NeuroLab
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
+        quint32 _treeNodeIdNeeded;
         LabTreeNode *_treeNode;
 
     public:
         SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
-
+        
+        virtual QString uiName() const { return tr("Sub-Network Item"); }
+        
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+        
+        virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+        
+    private:
+        void makeSubNetwork();
     };
 
 } // namespace NeuroLab

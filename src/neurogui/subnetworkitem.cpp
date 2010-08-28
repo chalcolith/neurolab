@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labtree.h"
 #include "labscene.h"
 #include "labnetwork.h"
+#include "mainwindow.h"
 
 namespace NeuroLab
 {
@@ -46,18 +47,67 @@ namespace NeuroLab
 
     SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
-          _treeNode(0)
+          _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0)
     {
     }
 
     SubNetworkItem::~SubNetworkItem()
     {
-        delete _treeNode;
+        // the tree node will be deleted by the tree itself, so we don't need to delete it
     }
 
     void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> &) const
     {
         drawPath.addRect(-15, -10, 30, 20);
+    }
+
+    void SubNetworkItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+    {
+        makeSubNetwork();
+        
+        if (_treeNode)
+            MainWindow::instance()->setSubNetwork(_treeNode);
+    }
+    
+    void SubNetworkItem::makeSubNetwork()
+    {
+        MainWindow *mainWindow = MainWindow::instance();
+        Q_ASSERT(mainWindow);
+        Q_ASSERT(mainWindow->currentNetwork());
+        
+        // we have an ID from the file, and we need to find it in the current network
+        if (_treeNodeIdNeeded != static_cast<quint32>(-1) && mainWindow->currentNetwork())
+        {
+            _treeNode = mainWindow->currentNetwork()->findSubNetwork(_treeNodeIdNeeded);
+        }
+        
+        // we don't have a tree node; make a new one
+        if (!_treeNode && mainWindow->currentNetwork())
+        {
+            _treeNode = mainWindow->currentNetwork()->newSubNetwork();
+        }
+
+        // don't look for existing node anymore        
+        if (_treeNode)
+            _treeNodeIdNeeded = static_cast<quint32>(-1);
+    }
+    
+    void SubNetworkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
+    {
+        NeuroItem::writeBinary(ds, file_version);
+        
+        quint32 id_to_write = _treeNode ? _treeNode->id() : static_cast<quint32>(-1);
+        ds << id_to_write;
+    }
+    
+    void SubNetworkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroItem::readBinary(ds, file_version);
+        
+        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
+        {
+            ds >> _treeNodeIdNeeded;
+        }
     }
 
 } // namespace NeuroLab

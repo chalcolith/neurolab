@@ -122,6 +122,8 @@ namespace NeuroLab
         /// \return A pointer to the main window's UI object.
         Ui::MainWindow *ui() { return _ui; }
 
+        LabNetwork *currentNetwork() { return _currentNetwork; }
+        
         /// \return A pointer to the property editor widget.
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
 
@@ -142,6 +144,9 @@ namespace NeuroLab
         void setProgressValue(int value);
 
         void setActionsEnabled(bool enabled = true);
+
+        /// Sets the active subnetwork node.
+        void setSubNetwork(LabTreeNode *treeNode);
 
         /// Sets the objects whose properties are displayed in the property widget.
         void setPropertyObjects(const QList<PropertyObject *> & property_objects);
@@ -173,8 +178,6 @@ namespace NeuroLab
         void setNetwork(LabNetwork *network);
 
     private slots:
-        void setSubNetwork(LabTreeNode *treeNode);
-
         void networkChanged(const QString & title);
         void zoomValueChanged(int);
 

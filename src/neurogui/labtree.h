@@ -62,7 +62,6 @@ namespace NeuroLab
         Q_OBJECT
 
         quint32 _id;
-        static quint32 NEXT_ID;
 
         LabTree *_tree;
         LabTreeNode *_parent;
@@ -124,6 +123,8 @@ namespace NeuroLab
     {
         Q_OBJECT
 
+        quint32 NEXT_ID;
+        
         QWidget *_parent;
 
         LabNetwork *_network;
@@ -163,6 +164,9 @@ namespace NeuroLab
         /// \param n The node to update.
         /// \param all Update all the scenes, not just the current one.
         void updateItemProperties(LabTreeNode *n = 0, bool all = false);
+        
+        LabTreeNode *findSubNetwork(const quint32 & id);
+        LabTreeNode *newSubNetwork();
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);

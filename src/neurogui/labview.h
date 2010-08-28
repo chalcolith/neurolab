@@ -53,6 +53,7 @@ namespace NeuroLab
         Q_OBJECT
 
         int _zoom;
+        QTransform _transform;
 
     public:
         LabView(LabScene *scene, QWidget *parent);
@@ -60,7 +61,7 @@ namespace NeuroLab
 
         int zoom() const { return _zoom; }
         void setZoom(int zoom);
-
+        
         void updateItemProperties();
 
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);

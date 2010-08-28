@@ -18,8 +18,11 @@ SOURCES += neurogriditem.cpp
 HEADERS += neurogriditem.h\
         griditems_global.h
 
-release { BUILDDIR=release }
-debug { BUILDDIR=debug }
+CONFIG( debug, debug|release ) {
+    BUILDDIR=debug
+} else {
+    BUILDDIR=release
+}
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR/plugins }

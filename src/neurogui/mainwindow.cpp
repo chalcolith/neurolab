@@ -349,6 +349,9 @@ namespace NeuroLab
 
     bool MainWindow::openNetwork(const QString & fname)
     {
+        if (_currentNetwork && _currentNetwork->changed())
+            saveNetwork();
+        
         setStatus("");
         LabNetwork *newNetwork = 0;
 
@@ -616,7 +619,7 @@ namespace NeuroLab
             return;
         if (treeNode->tree()->network() != _currentNetwork)
             throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
-
+        
         // remove the current network's view
         if (_currentNetwork->view())
         {
@@ -633,6 +636,8 @@ namespace NeuroLab
             _currentNetwork->view()->show();
             _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
         }
+        
+        setPropertyObject(_currentNetwork);
 
         // create breadcrumbs
         if (_breadCrumbBar)

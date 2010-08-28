@@ -49,17 +49,16 @@ namespace NeuroLab
 {
 
     // LabTreeNode
-    quint32 LabTreeNode::NEXT_ID = 1;
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0)
     {
         _scene = new LabScene(_tree->network());
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view), _currentAction(0)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view), _currentAction(0)
     {
     }
 
@@ -97,6 +96,8 @@ namespace NeuroLab
     void LabTreeNode::setLabel(const QString & s)
     {
         _label = s;
+        if (_currentAction)
+            _currentAction->setText(s);
         emit labelChanged(s);
     }
 
@@ -203,8 +204,8 @@ namespace NeuroLab
             // id
             ds >> _id;
 
-            if (_id >= NEXT_ID)
-                NEXT_ID = _id + 1;
+            if (_id >= _tree->NEXT_ID)
+                _tree->NEXT_ID = _id + 1;
 
             // label
             if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
@@ -279,7 +280,10 @@ namespace NeuroLab
             {
                 LabTreeNode *child = new LabTreeNode(_tree, this);
                 if (child)
+                {
+                    _children.append(child);
                     child->readBinary(ds, file_version);
+                }
             }
 
             // update scene and view
@@ -292,9 +296,11 @@ namespace NeuroLab
     // LabTree
 
     LabTree::LabTree(QWidget *_parent, LabNetwork *_network)
-        : _parent(_parent), _network(_network), _root(new LabTreeNode(this, 0)), _current(0)
+        : QObject(_parent), NEXT_ID(0), _parent(_parent), _network(_network), _root(0), _current(0)
     {
+        _root = new LabTreeNode(this, 0);
         _current = _root;
+        
         _root->setLabel(tr("Top-Level Network"));
     }
 
@@ -350,15 +356,7 @@ namespace NeuroLab
 
         n->updateItemProperties();
     }
-
-    void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
-    {
-        Q_ASSERT(_root);
-
-        ds << _current->id();
-        _root->writeBinary(ds, file_version);
-    }
-
+    
     static LabTreeNode *find_current(LabTreeNode *n, const quint32 & id)
     {
         if (n->id() == id)
@@ -372,6 +370,25 @@ namespace NeuroLab
         }
 
         return 0;
+    }
+
+    LabTreeNode *LabTree::findSubNetwork(const quint32 & id)
+    {
+        return find_current(_root, id);
+    }
+    
+    LabTreeNode *LabTree::newSubNetwork()
+    {
+        return _current ? _current->createChild() : 0;
+    }
+
+    void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
+    {
+        Q_ASSERT(_root);
+        Q_ASSERT(_current);
+
+        ds << _current->id();
+        _root->writeBinary(ds, file_version);
     }
 
     void LabTree::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)

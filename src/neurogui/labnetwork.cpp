@@ -67,6 +67,7 @@ namespace NeuroLab
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
+        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel, tr("Subnetwork"), tr("A label for the current subnetwork")),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
         _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
         _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
@@ -128,6 +129,19 @@ namespace NeuroLab
             return _fname.mid(index+1);
         else
             return _fname;
+    }
+    
+    QString LabNetwork::subNetworkLabel() const
+    {
+        if (_tree && _tree->current())
+            return _tree->current()->label();
+        return tr("???");
+    }
+    
+    void LabNetwork::setSubNetworkLabel(const QString & label)
+    {
+        if (_tree && _tree->current())
+            _tree->current()->setLabel(label);
     }
 
     NeuroCell::NeuroValue LabNetwork::decay() const
@@ -471,6 +485,16 @@ namespace NeuroLab
     }
 
     static QString CLIPBOARD_TYPE("application/x-neurocog-items");
+    
+    LabTreeNode *LabNetwork::findSubNetwork(const quint32 & id)
+    {
+        return _tree ? _tree->findSubNetwork(id) : 0;
+    }
+    
+    LabTreeNode *LabNetwork::newSubNetwork()
+    {
+        return _tree ? _tree->newSubNetwork() : 0;
+    }
 
     /// \return True if there is something to paste.
     bool LabNetwork::canPaste() const
@@ -741,7 +765,16 @@ namespace NeuroLab
             }
 
             emit actionsEnabled(true);
-            emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
+            
+            if (_max_steps == 3)
+            {
+                emit statusChanged(tr("Done stepping 1 time."));
+            }
+            else
+            {
+                emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
+            }
+                
 
             _running = false;
             setChanged();

@@ -74,6 +74,7 @@ namespace NeuroLab
         QString _fname;
 
         Property<LabNetwork, QVariant::String, QString, QString> _filename_property;
+        Property<LabNetwork, QVariant::String, QString, QString> _label_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _decay_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _link_learn_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_learn_property;
@@ -124,6 +125,9 @@ namespace NeuroLab
 
         virtual QString uiName() const { return tr("Network"); }
 
+        QString subNetworkLabel() const;
+        void setSubNetworkLabel(const QString & label);
+        
         NeuroLib::NeuroCell::NeuroValue decay() const;
         void setDecay(const NeuroLib::NeuroCell::NeuroValue &);
 
@@ -142,6 +146,9 @@ namespace NeuroLab
         static LabNetwork *open(const QString & fname = QString());
 
         bool canPaste() const;
+        
+        LabTreeNode *findSubNetwork(const quint32 & id);
+        LabTreeNode *newSubNetwork();
 
     public slots:
         bool save(bool saveAs = false);
