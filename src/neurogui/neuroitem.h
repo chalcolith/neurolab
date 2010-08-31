@@ -129,9 +129,6 @@ namespace NeuroLab
         /// \return The item's label.
         QString label() const { return _label; }
 
-        /// Set the item's label.
-        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
-
         /// \return The node's ID, for use when saving and loading.
         int id() const { return _id; }
 
@@ -244,6 +241,9 @@ namespace NeuroLab
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
+        /// Set the item's label.
+        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
+
         virtual void reset() {}
 
     protected:

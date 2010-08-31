@@ -92,6 +92,7 @@ namespace NeuroLab
         LabTreeNode *parent() { return _parent; }
         QList<LabTreeNode *> & children() { return _children; }
 
+        QAction *currentAction() { return _currentAction; }
         void setCurrentAction(QAction *action);
 
         /// Creates a new child node in the network.
@@ -124,7 +125,7 @@ namespace NeuroLab
         Q_OBJECT
 
         quint32 NEXT_ID;
-        
+
         QWidget *_parent;
 
         LabNetwork *_network;
@@ -164,7 +165,7 @@ namespace NeuroLab
         /// \param n The node to update.
         /// \param all Update all the scenes, not just the current one.
         void updateItemProperties(LabTreeNode *n = 0, bool all = false);
-        
+
         LabTreeNode *findSubNetwork(const quint32 & id);
         LabTreeNode *newSubNetwork();
 

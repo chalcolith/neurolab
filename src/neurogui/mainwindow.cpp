@@ -351,7 +351,7 @@ namespace NeuroLab
     {
         if (_currentNetwork && _currentNetwork->changed())
             saveNetwork();
-        
+
         setStatus("");
         LabNetwork *newNetwork = 0;
 
@@ -619,7 +619,7 @@ namespace NeuroLab
             return;
         if (treeNode->tree()->network() != _currentNetwork)
             throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
-        
+
         // remove the current network's view
         if (_currentNetwork->view())
         {
@@ -630,13 +630,18 @@ namespace NeuroLab
         // set the new node
         _currentNetwork->setTreeNode(treeNode);
 
+        if (_currentNetwork->scene())
+        {
+            _currentNetwork->scene()->clearSelection();
+        }
+
         if (_currentNetwork->view())
         {
             _networkLayout->addWidget(_currentNetwork->view());
             _currentNetwork->view()->show();
             _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
         }
-        
+
         setPropertyObject(_currentNetwork);
 
         // create breadcrumbs
@@ -664,19 +669,26 @@ namespace NeuroLab
             }
 
             // set the new breadcrumbs
-            _breadCrumbBar->clear();
             _breadCrumbs = newBreadCrumbs;
-
             num = _breadCrumbs.size();
+
+            _breadCrumbBar->clear();
             for (int i = 0; i < num; ++i)
             {
-                QAction *action = _breadCrumbBar->addAction(_breadCrumbs[i]->label());
-                action->setCheckable(true);
-                action->setChecked(_breadCrumbs[i] == treeNode);
+                if (_breadCrumbs[i]->currentAction())
+                {
+                    _breadCrumbBar->addAction(_breadCrumbs[i]->currentAction());
+                }
+                else
+                {
+                    QAction *action = _breadCrumbBar->addAction(_breadCrumbs[i]->label());
+                    action->setCheckable(true);
+                    connect(_breadCrumbs[i], SIGNAL(nodeSelected(LabTreeNode*)), this, SLOT(setSubNetwork(LabTreeNode*)));
 
-                _breadCrumbs[i]->setCurrentAction(action);
+                    _breadCrumbs[i]->setCurrentAction(action);
+                }
 
-                connect(_breadCrumbs[i], SIGNAL(nodeSelected(LabTreeNode*)), this, SLOT(setSubNetwork(LabTreeNode*)));
+                _breadCrumbs[i]->currentAction()->setChecked(_breadCrumbs[i] == treeNode);
             }
         }
     }

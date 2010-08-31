@@ -57,16 +57,19 @@ namespace NeuroLab
     public:
         SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
-        
+
         virtual QString uiName() const { return tr("Sub-Network Item"); }
-        
+
+    public slots:
+        virtual void propertyValueChanged(QtProperty *, const QVariant &);
+
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-        
+
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
-        
+
     private:
         void makeSubNetwork();
     };

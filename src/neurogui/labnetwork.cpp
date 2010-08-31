@@ -130,14 +130,14 @@ namespace NeuroLab
         else
             return _fname;
     }
-    
+
     QString LabNetwork::subNetworkLabel() const
     {
         if (_tree && _tree->current())
             return _tree->current()->label();
         return tr("???");
     }
-    
+
     void LabNetwork::setSubNetworkLabel(const QString & label)
     {
         if (_tree && _tree->current())
@@ -485,12 +485,12 @@ namespace NeuroLab
     }
 
     static QString CLIPBOARD_TYPE("application/x-neurocog-items");
-    
+
     LabTreeNode *LabNetwork::findSubNetwork(const quint32 & id)
     {
         return _tree ? _tree->findSubNetwork(id) : 0;
     }
-    
+
     LabTreeNode *LabNetwork::newSubNetwork()
     {
         return _tree ? _tree->newSubNetwork() : 0;
@@ -747,6 +747,7 @@ namespace NeuroLab
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
 
+    /// Called when a timestep is complete.
     void LabNetwork::futureFinished()
     {
         _future_watcher.waitForFinished();
@@ -765,7 +766,7 @@ namespace NeuroLab
             }
 
             emit actionsEnabled(true);
-            
+
             if (_max_steps == 3)
             {
                 emit statusChanged(tr("Done stepping 1 time."));
@@ -774,7 +775,7 @@ namespace NeuroLab
             {
                 emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
             }
-                
+
 
             _running = false;
             setChanged();

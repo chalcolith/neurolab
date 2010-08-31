@@ -100,9 +100,11 @@ namespace NeuroLab
             bool visible() const { return _visible; }
             void setVisible(bool visible) { _visible = visible; }
 
+            bool isPropertyFor(QtProperty *underlying) { return underlying == _property; }
+
             virtual QVariant value() const { return _property ? _property->value() : QVariant(); }
             virtual void setValue(const QVariant & val) { if (_property) _property->setValue(val); }
-        };
+        }; // class PropertyBase
 
     protected:
         bool _updating;
@@ -150,7 +152,7 @@ namespace NeuroLab
                     _typed_container->setChanged(true);
                 }
             }
-        };
+        }; // class Property
 
         QList<PropertyBase *> _properties;
 

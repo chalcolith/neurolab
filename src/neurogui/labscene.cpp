@@ -131,6 +131,7 @@ namespace NeuroLab
             {
                 clearSelection();
                 _itemUnderMouse->setSelected(true);
+                update();
                 return;
             }
         }

@@ -76,6 +76,9 @@ namespace NeuroLab
         }
         _children.clear();
 
+        delete _currentAction;
+        _currentAction = 0;
+
         delete _view;
         _view = 0;
 
@@ -107,6 +110,7 @@ namespace NeuroLab
         {
             disconnect(_currentAction, SIGNAL(destroyed()), this, SLOT(actionDestroyed()));
             disconnect(_currentAction, SIGNAL(triggered(bool)), this, SLOT(actionTriggered(bool)));
+            delete _currentAction;
         }
 
         _currentAction = action;
@@ -300,7 +304,7 @@ namespace NeuroLab
     {
         _root = new LabTreeNode(this, 0);
         _current = _root;
-        
+
         _root->setLabel(tr("Top-Level Network"));
     }
 
@@ -356,7 +360,7 @@ namespace NeuroLab
 
         n->updateItemProperties();
     }
-    
+
     static LabTreeNode *find_current(LabTreeNode *n, const quint32 & id)
     {
         if (n->id() == id)
@@ -376,7 +380,7 @@ namespace NeuroLab
     {
         return find_current(_root, id);
     }
-    
+
     LabTreeNode *LabTree::newSubNetwork()
     {
         return _current ? _current->createChild() : 0;

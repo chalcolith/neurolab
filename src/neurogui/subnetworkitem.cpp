@@ -56,6 +56,16 @@ namespace NeuroLab
         // the tree node will be deleted by the tree itself, so we don't need to delete it
     }
 
+    void SubNetworkItem::propertyValueChanged(QtProperty *p, const QVariant & val)
+    {
+        if (_label_property.isPropertyFor(p) && _treeNode)
+        {
+            _treeNode->setLabel(val.toString());
+        }
+
+        NeuroItem::propertyValueChanged(p, val);
+    }
+
     void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> &) const
     {
         drawPath.addRect(-15, -10, 30, 20);
@@ -64,46 +74,51 @@ namespace NeuroLab
     void SubNetworkItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     {
         makeSubNetwork();
-        
+
         if (_treeNode)
             MainWindow::instance()->setSubNetwork(_treeNode);
     }
-    
+
     void SubNetworkItem::makeSubNetwork()
     {
         MainWindow *mainWindow = MainWindow::instance();
         Q_ASSERT(mainWindow);
         Q_ASSERT(mainWindow->currentNetwork());
-        
+
         // we have an ID from the file, and we need to find it in the current network
         if (_treeNodeIdNeeded != static_cast<quint32>(-1) && mainWindow->currentNetwork())
         {
             _treeNode = mainWindow->currentNetwork()->findSubNetwork(_treeNodeIdNeeded);
         }
-        
+
         // we don't have a tree node; make a new one
         if (!_treeNode && mainWindow->currentNetwork())
         {
             _treeNode = mainWindow->currentNetwork()->newSubNetwork();
         }
 
-        // don't look for existing node anymore        
+        // don't look for existing node anymore
         if (_treeNode)
+        {
             _treeNodeIdNeeded = static_cast<quint32>(-1);
+
+            setLabel(_treeNode->label());
+            connect(_treeNode, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
+        }
     }
-    
+
     void SubNetworkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroItem::writeBinary(ds, file_version);
-        
+
         quint32 id_to_write = _treeNode ? _treeNode->id() : static_cast<quint32>(-1);
         ds << id_to_write;
     }
-    
+
     void SubNetworkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
         NeuroItem::readBinary(ds, file_version);
-        
+
         if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
         {
             ds >> _treeNodeIdNeeded;
