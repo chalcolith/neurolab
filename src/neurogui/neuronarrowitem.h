@@ -52,7 +52,8 @@ namespace NeuroLab
 
         Property<NeuroNarrowItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
 
-        NeuroLib::NeuroCell::NeuroIndex _cellIndex; ///< The index of the neural network cell that underlies this item.
+    protected:
+        QList<NeuroLib::NeuroCell::NeuroIndex> _cellIndices; ///< The indexes of the neural network cells that underlie this item.
 
     public:
         NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -60,8 +61,8 @@ namespace NeuroLab
 
         virtual QString dataValue() const { return QString::number(outputValue()); }
 
-        NeuroLib::NeuroCell::NeuroValue outputValue() const;
-        void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
+        virtual NeuroLib::NeuroCell::NeuroValue outputValue() const;
+        virtual void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
 
         virtual bool addIncoming(NeuroItem *linkItem);
         virtual bool removeIncoming(NeuroItem *linkItem);
@@ -79,14 +80,11 @@ namespace NeuroLab
         virtual void reset();
 
     protected:
-        NeuroLib::NeuroCell::NeuroIndex cellIndex() const { return _cellIndex; }
-        void setCellIndex(const NeuroLib::NeuroCell::NeuroIndex & index) { _cellIndex = index; }
+        /// \return A pointer to the neural network cell's previous and current state.
+        const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const;
 
         /// \return A pointer to the neural network cell's previous and current state.
-        const NeuroLib::NeuroNet::ASYNC_STATE *getCell() const;
-
-        /// \return A pointer to the neural network cell's previous and current state.
-        NeuroLib::NeuroNet::ASYNC_STATE *getCell();
+        NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index);
     };
 
 }

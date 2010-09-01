@@ -58,7 +58,7 @@ namespace NeuroLab
         SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
 
-        virtual QString uiName() const { return tr("Sub-Network Item"); }
+        virtual QString uiName() const { return tr("Sub-Network"); }
 
     public slots:
         virtual void propertyValueChanged(QtProperty *, const QVariant &);

@@ -75,13 +75,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroValue NeuroLinkItem::weight() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().weight() : 0;
     }
 
     void NeuroLinkItem::setWeight(const NeuroLib::NeuroCell::NeuroValue & value)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setWeight(value);
@@ -226,7 +226,7 @@ namespace NeuroLab
     {
         NeuroNarrowItem::setPenProperties(pen);
 
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             qreal weight = qBound(0.1f, qAbs(cell->current().weight()), 1.0f);
@@ -506,7 +506,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-            setCellIndex(index);
+            _cellIndices.append(index);
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
@@ -571,7 +571,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -100000000));
-            setCellIndex(index);
+            _cellIndices.append(index);
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);

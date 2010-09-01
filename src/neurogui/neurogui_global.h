@@ -59,6 +59,7 @@ namespace NeuroLab
         NEUROLAB_FILE_VERSION_1   = 1,
         NEUROLAB_FILE_VERSION_2   = 2,
         NEUROLAB_FILE_VERSION_3   = 3,
+        NEUROLAB_FILE_VERSION_4   = 4,
         NEUROLAB_NUM_FILE_VERSIONS
     };
 
