@@ -1,6 +1,3 @@
-#ifndef LABVIEW_H
-#define LABVIEW_H
-
 /*
 Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
@@ -37,37 +34,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-
-#include <QGraphicsView>
+#include "labexception.h"
 
 namespace NeuroGui
 {
 
-    class LabScene;
 
-    /// Derived to display neural network items.
-    class NEUROGUISHARED_EXPORT LabView
-        : public QGraphicsView
-    {
-        Q_OBJECT
 
-        int _zoom;
-        QTransform _transform;
-
-    public:
-        explicit LabView(LabScene *scene, QWidget *parent);
-        virtual ~LabView();
-
-        int zoom() const { return _zoom; }
-        void setZoom(int zoom);
-
-        void updateItemProperties();
-
-        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
-        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
-    };
-
-} // namespace NeuroGui
-
-#endif // LABVIEW_H
+}

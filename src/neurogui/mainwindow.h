@@ -61,7 +61,7 @@ namespace Ui
 }
 
 /// GUI code.
-namespace NeuroLab
+namespace NeuroGui
 {
 
     extern NEUROGUISHARED_EXPORT const QString VERSION;
@@ -113,7 +113,7 @@ namespace NeuroLab
         /// \param parent Parent widget (should normally be 0).
         /// \param title Title of the window.
         /// \param initialFname Initial filename to load.
-        MainWindow(QWidget *parent, const QString & title, const QString & initialFname = QString());
+        explicit MainWindow(QWidget *parent, const QString & title, const QString & initialFname = QString());
         ~MainWindow();
 
         /// \return A pointer to the singleton instance of the main window.
@@ -123,7 +123,7 @@ namespace NeuroLab
         Ui::MainWindow *ui() { return _ui; }
 
         LabNetwork *currentNetwork() { return _currentNetwork; }
-        
+
         /// \return A pointer to the property editor widget.
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
 
@@ -220,14 +220,6 @@ namespace NeuroLab
         void on_action_Zoom_In_triggered();
     };
 
-    /// Base class for exceptions used by the NeuroLab software.
-    class LabException
-        : public Automata::Exception
-    {
-    public:
-        LabException(const QString & message) : Automata::Exception(message) {}
-    };
-
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // MAINWINDOW_H

@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neurogui_global.h"
 #include "neuronarrowitem.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class NeuroLinkItem;
@@ -56,7 +56,7 @@ namespace NeuroLab
         QMap<NeuroLinkItem *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
     public:
-        NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItemBase();
 
         /// The node will be drawn as an ellipse within this rectangle (in item coordinates).
@@ -99,7 +99,7 @@ namespace NeuroLab
         Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _run_property;
 
     public:
-        NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItem();
 
         virtual QString uiName() const { return tr("Node"); }
@@ -140,7 +140,7 @@ namespace NeuroLab
         Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _gap_property;
 
     public:
-        NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroOscillatorItem();
 
         virtual QString uiName() const { return tr("Oscillator"); }
@@ -161,6 +161,6 @@ namespace NeuroLab
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // NEURONODEITEM_H

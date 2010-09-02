@@ -70,7 +70,7 @@ namespace NeuroLib
     static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.000001f);
     static const NeuroCell::NeuroValue MAX_LINK = static_cast<NeuroCell::NeuroValue>(1.1f);
 
-    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next, 
+    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next,
                            const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
     {
         const NeuroCell & prev = *this;
@@ -120,7 +120,7 @@ namespace NeuroLib
 
                     if (qAbs(delta_weight) > EPSILON)
                     {
-                        NeuroValue new_weight = qBound(ZERO, incoming.weight() + delta_weight, MAX_LINK);
+                        NeuroValue new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
                         network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
                     }
                 }
@@ -130,7 +130,7 @@ namespace NeuroLib
             diff = qBound(ZERO, next_value - prev._running_average, ONE);
             delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
             next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
-            
+
             break;
         case OSCILLATOR:
             {
@@ -161,6 +161,12 @@ namespace NeuroLib
 
                 // save new step value
                 next._phase_step[1] = step;
+
+                // inhibit
+                if (input_sum < -EPSILON)
+                {
+                    next_value = qBound(ZERO, next_value + input_sum, next_value);
+                }
             }
 
             break;

@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neuroitem.h"
 #include "../neurolib/neuronet.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// Base class for items in Narrow notation.  These include nodes and one-directional links.
@@ -56,7 +56,7 @@ namespace NeuroLab
         QList<NeuroLib::NeuroCell::NeuroIndex> _cellIndices; ///< The indexes of the neural network cells that underlie this item.
 
     public:
-        NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNarrowItem();
 
         virtual QString dataValue() const { return QString::number(outputValue()); }

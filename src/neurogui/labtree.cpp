@@ -35,17 +35,16 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "labtree.h"
+#include "labexception.h"
 #include "labview.h"
 #include "labscene.h"
 #include "neuroitem.h"
-#include "mainwindow.h"
-#include "../automata/exception.h"
 
 #include <Qaction>
 
 #include <typeinfo>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     // LabTreeNode
@@ -203,7 +202,7 @@ namespace NeuroLab
 
     void LabTreeNode::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             // id
             ds >> _id;
@@ -212,13 +211,13 @@ namespace NeuroLab
                 _tree->NEXT_ID = _id + 1;
 
             // label
-            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
             {
                 ds >> _label;
             }
 
             // view matrix
-            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_2)
             {
                 _view->readBinary(ds, file_version);
             }
@@ -397,7 +396,7 @@ namespace NeuroLab
 
     void LabTree::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             // current node
             quint32 current_id;
@@ -416,4 +415,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mainwindow.h"
+#include "labexception.h"
 #include "labnetwork.h"
 #include "labtree.h"
 #include "labview.h"
@@ -58,7 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// Constructor.
@@ -330,7 +331,7 @@ namespace NeuroLab
                 else if (cookie == LAB_SCENE_COOKIE_OLD)
                 {
                     NeuroLabFileVersion fv;
-                    fv.neurolab_version = NeuroLab::NEUROLAB_FILE_VERSION_OLD;
+                    fv.neurolab_version = NeuroGui::NEUROLAB_FILE_VERSION_OLD;
 
                     ln->_tree->readBinary(ds, fv);
                 }
@@ -414,7 +415,7 @@ namespace NeuroLab
                     ds.setVersion(QDataStream::Qt_4_6);
 
                     NeuroLabFileVersion fv;
-                    fv.neurolab_version = NeuroLab::NEUROLAB_NUM_FILE_VERSIONS - 1;
+                    fv.neurolab_version = NeuroGui::NEUROLAB_NUM_FILE_VERSIONS - 1;
 
                     ds << LAB_SCENE_COOKIE_NEW;
                     ds << static_cast<quint16>(fv.neurolab_version);
@@ -461,6 +462,16 @@ namespace NeuroLab
 
         if (sc)
         {
+            NeuroItem *underMouse = sc->itemUnderMouse();
+            if (underMouse)
+            {
+                emit itemDeleted(underMouse);
+                setChanged();
+                sc->setItemUnderMouse(0);
+                sc->removeItem(underMouse);
+                delete underMouse;
+            }
+
             for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); )
             {
                 QGraphicsItem *gi = i.next();
@@ -945,4 +956,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

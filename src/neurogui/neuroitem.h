@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QPair>
 #include <typeinfo>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabNetwork;
@@ -116,7 +116,7 @@ namespace NeuroLab
         };
 
         /// Constructor.
-        NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
 
         /// Creates an item of the correct type, given an RTTI type name that has been registered.
@@ -225,6 +225,9 @@ namespace NeuroLab
         /// Called after all nodes have been loaded.
         virtual void postLoad() {}
 
+        /// Allows mixins to call prepareGeometryChange().
+        inline void prepGeomChange() { prepareGeometryChange(); }
+
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 
@@ -318,13 +321,13 @@ namespace NeuroLab
 
     /// Use this macro in the header file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DECLARE_CREATOR \
-    static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
-    static NeuroLab::NeuroItemRegistrator _static_registrator;
+    static NeuroGui::NeuroItem *_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
+    static NeuroGui::NeuroItemRegistrator _static_registrator;
 
     /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
-    NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
-    NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
+    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
+    NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
@@ -332,6 +335,6 @@ namespace NeuroLab
         return item; \
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // NEUROITEM_H

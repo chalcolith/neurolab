@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QSet>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     PropertyObject::PropertyObject(QObject *parent)
@@ -324,4 +324,4 @@ namespace NeuroLab
             p.next()->valueChanged(value);
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

@@ -55,7 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     const QColor NeuroItem::NORMAL_LINE_COLOR = Qt::black;
@@ -203,6 +203,12 @@ namespace NeuroLab
             if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
                 continue;
 
+#ifndef DEBUG
+            // don't add debug classes
+            if (friendlyName.startsWith("Debug"))
+                continue;
+#endif
+
             // get menu text and create function
             const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
             const QStringList menuPath = p.first.split('|');
@@ -260,7 +266,7 @@ namespace NeuroLab
         paste->setEnabled(scene->network()->canPaste());
 
         QAction *del = menu.addAction(tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
-        del->setEnabled(scene->selectedItems().size() > 0);
+        del->setEnabled(scene->selectedItems().size() > 0 || scene->itemUnderMouse());
     }
 
     void NeuroItem::setChanged(bool changed)
@@ -513,7 +519,7 @@ namespace NeuroLab
             break;
         }
 
-        return value;
+        return QGraphicsItem::itemChange(change, value);
     }
 
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
@@ -612,7 +618,7 @@ namespace NeuroLab
 
     void NeuroItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
         {
             QPointF p;
             ds >> p;
@@ -621,7 +627,7 @@ namespace NeuroLab
             ds >> _label;
             ds >> _id;
         }
-        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             QPointF p;
             ds >> p;
@@ -666,7 +672,7 @@ namespace NeuroLab
 
     void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
         {
             qint32 n;
 
@@ -696,7 +702,7 @@ namespace NeuroLab
                 }
             }
         }
-        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             qint32 n;
 
@@ -761,4 +767,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

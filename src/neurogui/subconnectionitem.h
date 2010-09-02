@@ -1,5 +1,5 @@
-#ifndef LABVIEW_H
-#define LABVIEW_H
+#ifndef SUBCONNECTIONITEM_H
+#define SUBCONNECTIONITEM_H
 
 /*
 Neurocognitive Linguistics Lab
@@ -38,36 +38,55 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
+#include "neuroitem.h"
 
-#include <QGraphicsView>
+#include "../neurolib/neuronet.h"
+
+#include <QList>
 
 namespace NeuroGui
 {
 
-    class LabScene;
-
-    /// Derived to display neural network items.
-    class NEUROGUISHARED_EXPORT LabView
-        : public QGraphicsView
+    class NEUROGUISHARED_EXPORT SubConnectionItem
+        : public NeuroItem
     {
         Q_OBJECT
-
-        int _zoom;
-        QTransform _transform;
+        NEUROITEM_DECLARE_CREATOR
 
     public:
-        explicit LabView(LabScene *scene, QWidget *parent);
-        virtual ~LabView();
+        enum Direction
+        {
+            NONE     = 0,
+            INCOMING = 1 << 0,
+            OUTGOING = 1 << 1,
+            BOTH     = INCOMING | OUTGOING
+        };
 
-        int zoom() const { return _zoom; }
-        void setZoom(int zoom);
+    private:
+        Direction _direction;
 
-        void updateItemProperties();
+        NeuroItem *_governingItem;
+        Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
 
-        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
-        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+    public:
+        explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        virtual ~SubConnectionItem();
+
+        virtual QString uiName() const { return tr("Subnetwork Connection"); }
+
+        NeuroLib::NeuroCell::NeuroValue outputValue() const;
+        void setOutputValue(const NeuroLib::NeuroCell::NeuroValue &);
+
+        const Direction & direction() const { return _direction; }
+        void setDirection(const Direction & direction) { _direction = direction; }
+
+        NeuroItem *governingItem() const { return _governingItem; }
+        void setGoverningItem(NeuroItem *item) { _governingItem = item; }
+
+    protected:
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };
 
 } // namespace NeuroGui
 
-#endif // LABVIEW_H
+#endif // SUBCONNECTIONITEM_H

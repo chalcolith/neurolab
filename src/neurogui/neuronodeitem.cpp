@@ -49,7 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NeuroNodeItemBase::NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
@@ -136,8 +136,9 @@ namespace NeuroLab
                 bool rememberFront = _incomingAttachments.contains(link);
                 bool rememberBack = _outgoingAttachments.contains(link);
 
-                QVector2D front;
-                QVector2D back;
+                QLineF link_line = link->line();
+                QVector2D front(link_line.p2()); front -= center;
+                QVector2D back(link_line.p1()); back -= center;
 
                 QVector2D mouse_pos(lab_scene->lastMousePos());
                 QVector2D toPos = (mouse_pos - center).normalized();
@@ -177,13 +178,9 @@ namespace NeuroLab
 
                     link->setLine(new_line, &new_center);
                 }
-                else if (frontLink)
+                else
                 {
-                    link->setLine(link->line().p1(), (front + center).toPointF());
-                }
-                else if (backLink)
-                {
-                    link->setLine((back + center).toPointF(), link->line().p2());
+                    link->setLine((back + center).toPointF(), (front + center).toPointF());
                 }
 
                 alreadyAdjusted.append(link);
@@ -232,7 +229,7 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        //if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        //if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _rect;
         }
@@ -254,6 +251,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+            _cellIndices.clear();
             _cellIndices.append(index);
         }
     }
@@ -414,6 +412,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
+            _cellIndices.clear();
             _cellIndices.append(index);
         }
     }
@@ -502,4 +501,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

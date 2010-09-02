@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 class QGraphicsItem;
 class QtVariantProperty;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabScene;
@@ -86,7 +86,7 @@ namespace NeuroLab
         QTime _step_time;
 
     public:
-        LabNetwork(QWidget *parent = 0);
+        explicit LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
 
         /// \return Whether or not the network is currently running.
@@ -127,7 +127,7 @@ namespace NeuroLab
 
         QString subNetworkLabel() const;
         void setSubNetworkLabel(const QString & label);
-        
+
         NeuroLib::NeuroCell::NeuroValue decay() const;
         void setDecay(const NeuroLib::NeuroCell::NeuroValue &);
 
@@ -146,7 +146,7 @@ namespace NeuroLab
         static LabNetwork *open(const QString & fname = QString());
 
         bool canPaste() const;
-        
+
         LabTreeNode *findSubNetwork(const quint32 & id);
         LabTreeNode *newSubNetwork();
 
@@ -192,6 +192,6 @@ namespace NeuroLab
         void stepProgressValueChanged(int value);
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABNETWORK_H

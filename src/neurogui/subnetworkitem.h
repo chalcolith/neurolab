@@ -40,7 +40,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neurogui_global.h"
 #include "neuroitem.h"
 
-namespace NeuroLab
+#include <QMap>
+
+namespace NeuroGui
 {
 
     class LabTreeNode;
@@ -54,8 +56,11 @@ namespace NeuroLab
         quint32 _treeNodeIdNeeded;
         LabTreeNode *_treeNode;
 
+        /// Maps from inputs in the outer network to connection items in the inner network.
+        QMap<NeuroItem *, NeuroItem *> _connections;
+
     public:
-        SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
 
         virtual QString uiName() const { return tr("Sub-Network"); }
@@ -74,6 +79,6 @@ namespace NeuroLab
         void makeSubNetwork();
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // SUBNETWORKITEM_H

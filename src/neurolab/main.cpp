@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Balafon");
     QCoreApplication::setOrganizationDomain("balafon.net");
     QCoreApplication::setApplicationName(QObject::tr("NeuroLab"));
-    QCoreApplication::setApplicationVersion(NeuroLab::VERSION);
+    QCoreApplication::setApplicationVersion(NeuroGui::VERSION);
 
     QApplication application(argc, argv);
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
 #endif
 
-    NeuroLab::MainWindow window(0, QCoreApplication::applicationName());
+    NeuroGui::MainWindow window(0, QCoreApplication::applicationName());
 
     window.show();
 

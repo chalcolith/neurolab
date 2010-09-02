@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QFont>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// Displays a string of text in a particular font.
@@ -59,7 +59,7 @@ namespace NeuroLab
         Property<NeuroTextItem, QVariant::String, QString, QString> _text_property;
 
     public:
-        NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroTextItem();
 
         QFont font() const { return _font; }

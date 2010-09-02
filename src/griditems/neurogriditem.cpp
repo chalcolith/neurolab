@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/labnetwork.h"
 #include "../neurogui/labscene.h"
 
-using namespace NeuroLab;
+using namespace NeuroGui;
 
 namespace GridItems
 {

@@ -48,7 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class QtVariantPropertyManager;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// Base class for objects that can be edited via the property widget.
@@ -75,7 +75,7 @@ namespace NeuroLab
             friend class PropertyObject;
 
         public:
-            PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type)
+            explicit PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type)
                 : _name(name), _tooltip(tooltip),
                   _enabled(enabled), _type(type), _visible(true),
                   _container(container), _property(0) {}
@@ -130,7 +130,8 @@ namespace NeuroLab
             /// \param name The name of the property.
             /// \param tooltip A tooltip for the property.
             /// \param enabled Whether or not to enable the property for editing.
-            Property(CType *container, DType (CType::*getter)() const, void (CType::*setter)(const DType &), const QString & name, const QString & tooltip = QString(), bool enabled = true)
+            explicit Property(CType *container, DType (CType::*getter)() const, void (CType::*setter)(const DType &),
+                              const QString & name, const QString & tooltip = QString(), bool enabled = true)
                 : PropertyBase(container, name, tooltip, enabled, TypeID),
                 _typed_container(container), _getter(getter), _setter(setter)
             {
@@ -157,7 +158,7 @@ namespace NeuroLab
         QList<PropertyBase *> _properties;
 
     public:
-        PropertyObject(QObject *parent);
+        explicit PropertyObject(QObject *parent);
         virtual ~PropertyObject();
 
         QList<PropertyBase *> properties() const { return _properties; }
@@ -193,7 +194,7 @@ namespace NeuroLab
             QList<PropertyBase *> _shared_properties;
 
         public:
-            CommonProperty(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type);
+            explicit CommonProperty(PropertyObject *container, const QString & name, const QString & tooltip, bool enabled, int type);
             virtual ~CommonProperty();
 
             void addSharedProperty(PropertyBase *p);
@@ -203,7 +204,7 @@ namespace NeuroLab
         };
 
     public:
-        CommonPropertyObject(QObject *parent, const QList<PropertyObject *> & commonObjects);
+        explicit CommonPropertyObject(QObject *parent, const QList<PropertyObject *> & commonObjects);
         virtual ~CommonPropertyObject();
 
         virtual QString uiName() const { return tr("Multiple Items"); }
@@ -213,6 +214,6 @@ namespace NeuroLab
         void getCommonProperties(const QList<PropertyObject *> & commonObjects);
     }; // class CommonPropertyObject
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif

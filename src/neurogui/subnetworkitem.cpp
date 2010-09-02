@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labnetwork.h"
 #include "mainwindow.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc|Sub-Network"));
@@ -49,6 +49,7 @@ namespace NeuroLab
         : NeuroItem(network, scenePos, context),
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0)
     {
+
     }
 
     SubNetworkItem::~SubNetworkItem()
@@ -66,8 +67,10 @@ namespace NeuroLab
         NeuroItem::propertyValueChanged(p, val);
     }
 
-    void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> &) const
+    void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
+        NeuroItem::addToShape(drawPath, texts);
+
         drawPath.addRect(-15, -10, 30, 20);
     }
 
@@ -119,10 +122,10 @@ namespace NeuroLab
     {
         NeuroItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_3)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
         {
             ds >> _treeNodeIdNeeded;
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

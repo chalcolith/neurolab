@@ -1,5 +1,5 @@
-#ifndef LABVIEW_H
-#define LABVIEW_H
+#ifndef LABEXCEPTION_H
+#define LABEXCEPTION_H
 
 /*
 Neurocognitive Linguistics Lab
@@ -38,36 +38,19 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
-
-#include <QGraphicsView>
+#include "../automata/exception.h"
 
 namespace NeuroGui
 {
 
-    class LabScene;
-
-    /// Derived to display neural network items.
-    class NEUROGUISHARED_EXPORT LabView
-        : public QGraphicsView
+    /// Base class for exceptions used by the NeuroLab software.
+    class NEUROGUISHARED_EXPORT LabException
+        : public Automata::Exception
     {
-        Q_OBJECT
-
-        int _zoom;
-        QTransform _transform;
-
     public:
-        explicit LabView(LabScene *scene, QWidget *parent);
-        virtual ~LabView();
-
-        int zoom() const { return _zoom; }
-        void setZoom(int zoom);
-
-        void updateItemProperties();
-
-        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
-        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        LabException(const QString & message) : Automata::Exception(message) {}
     };
 
 } // namespace NeuroGui
 
-#endif // LABVIEW_H
+#endif // LABEXCEPTION_H

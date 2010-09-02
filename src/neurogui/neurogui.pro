@@ -91,3 +91,21 @@ HEADERS += \
 
 SOURCES += \
     subnetworkitem.cpp
+
+HEADERS += \
+    subconnectionitem.h
+
+SOURCES += \
+    subconnectionitem.cpp
+
+HEADERS += \
+    labexception.h
+
+SOURCES += \
+    labexception.cpp
+
+HEADERS += \
+    mixinarrow.h
+
+SOURCES += \
+    mixinarrow.cpp

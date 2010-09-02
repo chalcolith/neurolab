@@ -53,24 +53,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     //////////////////////////////////////////////////////////////////
 
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNarrowItem(network, scenePos, context),
+        : NeuroNarrowItem(network, scenePos, context), MixinArrow(this),
         _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight,
-                         tr("Weight"), tr("The output weight of the link.")),
-        _frontLinkTarget(0), _backLinkTarget(0), _dragFront(false), _settingLine(false)
+                         tr("Weight"), tr("The output weight of the link."))
     {
         Q_ASSERT(network != 0);
     }
 
     NeuroLinkItem::~NeuroLinkItem()
     {
-        _frontLinkTarget = 0;
-        _backLinkTarget = 0;
     }
 
     NeuroCell::NeuroValue NeuroLinkItem::weight() const
@@ -87,43 +84,6 @@ namespace NeuroLab
             cell->current().setWeight(value);
             cell->former().setWeight(value);
         }
-    }
-
-    QLineF NeuroLinkItem::line() const
-    {
-        QVector2D center(scenePos());
-        QVector2D p1 = QVector2D(_line.p1()) + center;
-        QVector2D p2 = QVector2D(_line.p2()) + center;
-
-        return QLineF(p1.toPointF(), p2.toPointF());
-    }
-
-    void NeuroLinkItem::setLine(const QLineF & l, const QPointF *c)
-    {
-        _settingLine = true;
-        prepareGeometryChange();
-
-        QVector2D p1(l.p1());
-        QVector2D p2(l.p2());
-        QVector2D center = c ? QVector2D(*c) : ((p1 + p2) * 0.5f);
-
-        _line = QLineF((p1 - center).toPointF(), (p2 - center).toPointF());
-        setPos(center.toPointF());
-
-        updateShape();
-        adjustLinks();
-
-        _settingLine = false;
-    }
-
-    void NeuroLinkItem::setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2)
-    {
-        setLine(QLineF(x1, y1, x2, y2));
-    }
-
-    void NeuroLinkItem::setLine(const QPointF & p1, const QPointF & p2)
-    {
-        setLine(QLineF(p1, p2));
     }
 
     bool NeuroLinkItem::addIncoming(NeuroItem *linkItem)
@@ -150,76 +110,10 @@ namespace NeuroLab
         return NeuroNarrowItem::removeOutgoing(linkItem);
     }
 
-    void NeuroLinkItem::setFrontLinkTarget(NeuroItem *linkTarget)
-    {
-        if (_frontLinkTarget)
-            NeuroNarrowItem::removeOutgoing(_frontLinkTarget);
-
-        if (linkTarget)
-            addOutgoing(linkTarget);
-
-        _frontLinkTarget = linkTarget;
-
-        updateShape();
-    }
-
-    void NeuroLinkItem::setBackLinkTarget(NeuroItem *linkTarget)
-    {
-        if (_backLinkTarget)
-            NeuroNarrowItem::removeIncoming(_backLinkTarget);
-
-        if (linkTarget)
-            addIncoming(linkTarget);
-
-        _backLinkTarget = linkTarget;
-
-        updateShape();
-    }
-
     void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
-
-        QVector2D myPos(scenePos());
-
-        // in my frame
-        QVector2D myFront(_line.p2());
-        QVector2D myBack(_line.p1());
-
-        // calculate control points
-        if (_frontLinkTarget && _frontLinkTarget == _backLinkTarget)
-        {
-            QVector2D toFront = myFront - myBack;
-            QVector2D toBack = myBack - myFront;
-
-            c1 = toBack;
-            c2 = toFront;
-        }
-        else
-        {
-            c1 = myBack + (myFront - myBack) * 0.33;
-            c2 = myBack + (myFront - myBack) * 0.66;
-
-            if (_backLinkTarget)
-            {
-                QVector2D center(_backLinkTarget->pos());
-                QVector2D toBack = QVector2D(line().p1()) - center;
-                c1 = (center + toBack * 3) - myPos;
-            }
-
-            if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
-            {
-                QVector2D center(_frontLinkTarget->pos());
-                QVector2D toFront = QVector2D(line().p2()) - center;
-                c2 = (center + toFront * 3) - myPos;
-            }
-        }
-
-        QPointF front = myFront.toPointF();
-        QPointF back = myBack.toPointF();
-
-        drawPath.moveTo(back);
-        drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
+        addArrow(drawPath);
     }
 
     void NeuroLinkItem::setPenProperties(QPen & pen) const
@@ -298,69 +192,19 @@ namespace NeuroLab
 
     QVariant NeuroLinkItem::itemChange(GraphicsItemChange change, const QVariant & value)
     {
-        LabScene *labScene;
+        LabScene *labScene = dynamic_cast<LabScene *>(scene());
 
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            labScene = dynamic_cast<LabScene *>(scene());
-            if (!_settingLine && labScene
-                && labScene->selectedItems().size() <= 1
-                && labScene->mouseIsDown()
-                && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
-            {
-                prepareGeometryChange();
-
-                // adjust position
-                QVector2D oldCenter(scenePos());
-                QVector2D front = QVector2D(_line.p2()) + oldCenter;
-                QVector2D back = QVector2D(_line.p1()) + oldCenter;
-                QVector2D mousePos(labScene->lastMousePos());
-
-                qreal distFront = (mousePos - front).lengthSquared();
-                qreal distBack = (mousePos - back).lengthSquared();
-
-                _dragFront = distFront < distBack;
-                if (_dragFront)
-                    front = mousePos;
-                else
-                    back = mousePos;
-
-                QVector2D newCenter = (front + back) * 0.5f;
-
-                // set new position and line
-                _settingLine = true;
-                _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
-                setPos(newCenter.toPointF());
-                _settingLine = false;
-
-                // adjust if we're linked
-                if (_frontLinkTarget && _dragFront)
-                    _frontLinkTarget->adjustLinks();
-                if (_backLinkTarget && !_dragFront)
-                    _backLinkTarget->adjustLinks();
-
-                // handle move
-                QPointF movePos(scenePos());
-                handleMove(mousePos.toPointF(), movePos);
-
-                adjustLinks();
-                updateShape();
-
-                return QVariant(scenePos());
-            }
-            else
-            {
-                return value;
-            }
-
-            break;
+            if (labScene && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
+                return changePos(labScene, value);
 
         default:
             break;
         }
 
-        return NeuroNarrowItem::itemChange(change, value);
+        return _settingLine ? value : NeuroNarrowItem::itemChange(change, value);
     }
 
     void NeuroLinkItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
@@ -407,7 +251,7 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _line;
         }
@@ -431,7 +275,7 @@ namespace NeuroLab
         setFrontLinkTarget(0);
         setBackLinkTarget(0);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
         {
             IdType id;
 
@@ -443,7 +287,7 @@ namespace NeuroLab
             if (id)
                 _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
         }
-        else // if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             qint64 id64;
             IdType id;
@@ -506,6 +350,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+            _cellIndices.clear();
             _cellIndices.append(index);
         }
 
@@ -571,6 +416,7 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -100000000));
+            _cellIndices.clear();
             _cellIndices.append(index);
         }
 
@@ -591,4 +437,4 @@ namespace NeuroLab
         drawPath.addEllipse((front-center).toPointF(), ELLIPSE_WIDTH/2, ELLIPSE_WIDTH/2);
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

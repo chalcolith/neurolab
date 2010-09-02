@@ -47,7 +47,7 @@ class QWidget;
 class QGraphicsItem;
 class QAction;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabScene;
@@ -76,8 +76,8 @@ namespace NeuroLab
 
     public:
         /// Constructor.
-        LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
-        LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
+        explicit LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
+        explicit LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
         virtual ~LabTreeNode();
 
         quint32 id() const { return _id; }
@@ -136,7 +136,7 @@ namespace NeuroLab
 
     public:
         /// Constructor.
-        LabTree(QWidget *_parent, LabNetwork *_network);
+        explicit LabTree(QWidget *_parent, LabNetwork *_network);
         virtual ~LabTree();
 
         /// \return The tree's network object.
@@ -173,6 +173,6 @@ namespace NeuroLab
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABTREE_H

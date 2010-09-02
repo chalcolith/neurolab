@@ -1,7 +1,7 @@
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     AboutDialog::AboutDialog(QWidget *parent)

@@ -46,7 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
@@ -54,6 +54,7 @@ namespace NeuroLab
         _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue,
                         tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step."))
     {
+        _cellIndices.append(-1);
     }
 
     NeuroNarrowItem::~NeuroNarrowItem()
@@ -169,7 +170,7 @@ namespace NeuroLab
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroItem::writeBinary(ds, file_version);
-        
+
         quint16 num_indices = static_cast<quint16>(_cellIndices.size());
         ds << num_indices;
         for (quint16 i = 0; i < num_indices; ++i)
@@ -182,27 +183,34 @@ namespace NeuroLab
     {
         NeuroItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_4)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_4)
         {
             quint16 num_indices;
             ds >> num_indices;
-            
+
             _cellIndices.clear();
-            for (quint16 i = 0; i < num_indices; ++i)
+            if (num_indices > 0)
             {
-                qint32 n;
-                ds >> n;
-                _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
+                for (quint16 i = 0; i < num_indices; ++i)
+                {
+                    qint32 n;
+                    ds >> n;
+                    _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
+                }
+            }
+            else
+            {
+                _cellIndices.append(-1);
             }
         }
         else
-        {            
+        {
             qint32 n;
             ds >> n;
-            
+
             _cellIndices.clear();
             _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

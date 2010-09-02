@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     LabScene::LabScene(LabNetwork *_network)
@@ -150,4 +150,4 @@ namespace NeuroLab
         QGraphicsScene::mouseReleaseEvent(event);
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui
