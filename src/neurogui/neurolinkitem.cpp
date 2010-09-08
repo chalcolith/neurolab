@@ -197,7 +197,7 @@ namespace NeuroGui
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if (labScene && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
+            if (!_settingLine && labScene && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
                 return changePos(labScene, value);
 
         default:

@@ -119,7 +119,7 @@ namespace NeuroGui
 
             if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
             {
-                QVector2D center(_frontLinkTarget->pos());
+                QVector2D center(_frontLinkTarget->scenePos());
                 QVector2D toFront = QVector2D(line().p2()) - center;
                 c2 = (center + toFront * 3) - myPos;
             }
@@ -132,7 +132,7 @@ namespace NeuroGui
         drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
     }
 
-    QVariant MixinArrow::changePos(LabScene *labScene, const QVariant & value)
+    QVariant MixinArrow::changePos(LabScene *labScene, const QVariant & value, bool canDragFront, bool canDragBack)
     {
         if (!_settingLine && labScene
             && labScene->selectedItems().size() <= 1
@@ -151,9 +151,19 @@ namespace NeuroGui
 
             _dragFront = distFront < distBack;
             if (_dragFront)
-                front = mousePos;
-            else
-                back = mousePos;
+            {
+                if (canDragFront)
+                    front = mousePos;
+                else
+                    return QVariant(oldCenter);
+            }
+            else if (!_dragFront)
+            {
+                if (canDragBack)
+                    back = mousePos;
+                else
+                    return QVariant(oldCenter);
+            }
 
             QVector2D newCenter = (front + back) * 0.5f;
 

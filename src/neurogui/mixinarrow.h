@@ -107,7 +107,7 @@ namespace NeuroGui
         void addArrow(QPainterPath & drawPath) const;
 
         /// Handles dragging one end of the arrow.
-        QVariant changePos(LabScene *labScene, const QVariant & value);
+        QVariant changePos(LabScene *labScene, const QVariant & value, bool canDragFront = true, bool canDragBack = true);
 
     }; // class MixinArrow
 

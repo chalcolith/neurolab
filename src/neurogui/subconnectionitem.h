@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "neuroitem.h"
+#include "mixinarrow.h"
 
 #include "../neurolib/neuronet.h"
 
@@ -48,7 +49,7 @@ namespace NeuroGui
 {
 
     class NEUROGUISHARED_EXPORT SubConnectionItem
-        : public NeuroItem
+        : public NeuroItem, public MixinArrow
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
@@ -64,6 +65,7 @@ namespace NeuroGui
 
     private:
         Direction _direction;
+        QVector2D _initialPos, _initialDir;
 
         NeuroItem *_governingItem;
         Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
@@ -83,8 +85,14 @@ namespace NeuroGui
         NeuroItem *governingItem() const { return _governingItem; }
         void setGoverningItem(NeuroItem *item) { _governingItem = item; }
 
+        void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
+
     protected:
+        virtual void itemChange(GraphicsItemChange change, const QVariant & value);
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
+    private:
+        void drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b);
     };
 
 } // namespace NeuroGui

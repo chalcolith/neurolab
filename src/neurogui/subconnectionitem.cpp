@@ -40,13 +40,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labscene.h"
 #include "neuronarrowitem.h"
 
+#include <cmath>
+
 namespace NeuroGui
 {
 
     NEUROITEM_DEFINE_CREATOR(SubConnectionItem, QObject::tr("Debug|Subnetwork Connection"));
 
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroItem(network, scenePos, context),
+        : NeuroItem(network, scenePos, context), MixinArrow(this),
           _direction(NONE), _governingItem(0),
           _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."))
     {
@@ -88,7 +90,71 @@ namespace NeuroGui
         }
     }
 
-    void SubConnectionItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
+    void SubConnectionItem::setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir)
+    {
+        _initialPos = initialPos;
+        _initialDir = initialDir.normalized();
+
+        QPointF back = _initialPos.toPointF();
+        QPointF front = (_initialPos + _initialDir * 30).toPointF();
+
+        setLine(back, front);
+    }
+
+    void SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
+    {
+        LabScene *labScene = dynamic_cast<LabScene *>(scene());
+
+        switch (change)
+        {
+        case QGraphicsItem::ItemPositionChange:
+            if (!_settingLine && labScene && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
+                return changePos(labScene, value, true, false);
+
+        default:
+            break;
+        }
+
+        return _settingLine ? value : NeuroNarrowItem::itemChange(change, value);
+    }
+
+    void SubConnectionItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
+    {
+        NeuroItem::addToShape(drawPath, texts);
+
+        // calculate line
+        QVector2D myFront(_line.p1());
+        QVector2D myBack(_line.p2());
+
+        c2 = myBack + (myFront - myBack) * 0.66;
+        c1 = myBack + _initialDir * c2.length();
+
+        if (_frontLinkTarget)
+        {
+            QVector2D center(_frontLinkTarget->scenePos());
+            QVector2D toFront = QVector2D(line().p2()) - center;
+            c2 = (center + toFront * 3) - myPos;
+        }
+
+        QPointF front = myFront.toPointF();
+        QPointF back = myBack.toPointF();
+
+        drawPath.moveTo(back);
+        drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
+
+        // draw wavy line in back (at 90 degrees to initial angle)
+        qreal angle = ::atan2(_initialDir.y(), _initialDir.x());
+        angle += M_PI/2;
+        QVector2D newDir(::cos(angle), ::sin(angle));
+        QVector2D a = myBack + newDir * 20;
+        QVector2D b = myBack - newDir * 20;
+
+        drawWavyLine(drawPath, a, b);
+
+        // draw arrow in front or back depending on direction
+    }
+
+    void SubConnectionItem::drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b)
     {
     }
 
