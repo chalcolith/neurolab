@@ -40,6 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labscene.h"
 #include "neuronarrowitem.h"
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace NeuroGui
@@ -49,9 +50,10 @@ namespace NeuroGui
 
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context), MixinArrow(this),
-          _direction(NONE), _governingItem(0),
-          _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."))
+          _direction(INCOMING), _governingItem(0),
+          _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
     {
+        setInitialPosAndDir(QVector2D(scenePos), QVector2D(-10, 1));
     }
 
     SubConnectionItem::~SubConnectionItem()
@@ -96,12 +98,12 @@ namespace NeuroGui
         _initialDir = initialDir.normalized();
 
         QPointF back = _initialPos.toPointF();
-        QPointF front = (_initialPos + _initialDir * 30).toPointF();
+        QPointF front = (_initialPos + _initialDir * 50).toPointF();
 
         setLine(back, front);
     }
 
-    void SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
+    QVariant SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
     {
         LabScene *labScene = dynamic_cast<LabScene *>(scene());
 
@@ -115,7 +117,7 @@ namespace NeuroGui
             break;
         }
 
-        return _settingLine ? value : NeuroNarrowItem::itemChange(change, value);
+        return _settingLine ? value : NeuroItem::itemChange(change, value);
     }
 
     void SubConnectionItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -123,11 +125,13 @@ namespace NeuroGui
         NeuroItem::addToShape(drawPath, texts);
 
         // calculate line
-        QVector2D myFront(_line.p1());
-        QVector2D myBack(_line.p2());
+        QVector2D myPos(scenePos());   // in scene
 
+        QVector2D myFront(_line.p2()); // in my frame; note the _line not line()
+        QVector2D myBack(_line.p1());  // in my frame
+
+        c1 = myBack + _initialDir * (myFront - myBack).length() * 0.33;
         c2 = myBack + (myFront - myBack) * 0.66;
-        c1 = myBack + _initialDir * c2.length();
 
         if (_frontLinkTarget)
         {
@@ -144,18 +148,119 @@ namespace NeuroGui
 
         // draw wavy line in back (at 90 degrees to initial angle)
         qreal angle = ::atan2(_initialDir.y(), _initialDir.x());
-        angle += M_PI/2;
-        QVector2D newDir(::cos(angle), ::sin(angle));
+        qreal back_angle = angle + M_PI/2;
+        QVector2D newDir(::cos(back_angle), ::sin(back_angle));
         QVector2D a = myBack + newDir * 20;
         QVector2D b = myBack - newDir * 20;
 
-        drawWavyLine(drawPath, a, b);
+        drawWavyLine(drawPath, a, b, back_angle - M_PI/4, back_angle + M_PI/4);
 
         // draw arrow in front or back depending on direction
+        if (_direction & INCOMING)
+        {
+            addPoint(drawPath, front, (myFront - c2).normalized(), ELLIPSE_WIDTH);
+        }
+
+        if (_direction & OUTGOING)
+        {
+            addPoint(drawPath, back, (myBack - c1).normalized(), ELLIPSE_WIDTH);
+        }
     }
 
-    void SubConnectionItem::drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b)
+    static const int NUM_STEPS = 6;
+
+    void SubConnectionItem::drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b, const qreal & angle1, const qreal & angle2) const
     {
+        QVector2D a2b = b - a;
+        qreal len = a2b.length() / NUM_STEPS;
+
+        QVector2D step1(::cos(angle1), ::sin(angle1));
+        step1 *= len;
+
+        QVector2D step2(::cos(angle2), ::sin(angle2));
+        step2 *= len;
+
+        QVector2D center = (a + b) * 0.5;
+
+        QVector2D cur = center;
+        drawPath.moveTo(cur.toPointF());
+        for (int i = 0; i < NUM_STEPS/2; ++i)
+        {
+            cur = cur + step1;
+            drawPath.lineTo(cur.toPointF());
+            cur = cur + step2;
+            drawPath.lineTo(cur.toPointF());
+        }
+
+        cur = center;
+        drawPath.moveTo(cur.toPointF());
+        for (int i = 0; i < NUM_STEPS/2; ++i)
+        {
+            cur = cur - step2;
+            drawPath.lineTo(cur.toPointF());
+            cur = cur - step1;
+            drawPath.lineTo(cur.toPointF());
+        }
+    }
+
+    void SubConnectionItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        NeuroItem::writeBinary(ds, file_version);
+        MixinArrow::writeBinary(ds, file_version);
+
+        ds << _direction;
+        ds << _initialPos;
+        ds << _initialDir;
+    }
+
+    void SubConnectionItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroItem::readBinary(ds, file_version);
+        MixinArrow::readBinary(ds, file_version);
+
+        ds >> _direction;
+        ds >> _initialPos;
+        ds >> _initialDir;
+    }
+
+    void SubConnectionItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        NeuroItem::writePointerIds(ds, file_version);
+        MixinArrow::writePointerIds(ds, file_version);
+
+        NeuroItem::IdType id = _governingItem ? _governingItem->id() : 0;
+        ds << id;
+    }
+
+    void SubConnectionItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroItem::readPointerIds(ds, file_version);
+        MixinArrow::readPointerIds(ds, file_version);
+
+        NeuroItem::IdType id;
+        ds >> id;
+        if (id)
+            _governingItem = reinterpret_cast<NeuroItem *>(id);
+        else
+            _governingItem = 0;
+    }
+
+    void SubConnectionItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
+    {
+        NeuroItem::idsToPointers(idMap);
+        MixinArrow::idsToPointers(idMap);
+
+        NeuroItem::IdType governingId = reinterpret_cast<NeuroItem::IdType>(_governingItem);
+        NeuroItem *wanted_item = idMap[governingId];
+
+        if (governingId && wanted_item)
+        {
+            _governingItem = wanted_item;
+        }
+        else if (governingId)
+        {
+            throw new LabException(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
+        }
     }
 
 } // namespace NeuroGui

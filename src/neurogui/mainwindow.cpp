@@ -662,6 +662,11 @@ namespace NeuroGui
             throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
 
         // remove the current network's view
+        if (_currentNetwork->scene())
+        {
+            _currentNetwork->scene()->setItemUnderMouse(0);
+        }
+
         if (_currentNetwork->view())
         {
             _currentNetwork->view()->hide();
@@ -674,6 +679,7 @@ namespace NeuroGui
         if (_currentNetwork->scene())
         {
             _currentNetwork->scene()->clearSelection();
+            _currentNetwork->scene()->setItemUnderMouse(0);
         }
 
         if (_currentNetwork->view())
@@ -683,6 +689,7 @@ namespace NeuroGui
             _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
         }
 
+        treeNode->updateItemProperties();
         setPropertyObject(_currentNetwork);
 
         // create breadcrumbs

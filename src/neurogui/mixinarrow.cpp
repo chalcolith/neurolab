@@ -1,7 +1,46 @@
+/*
+Neurocognitive Linguistics Lab
+Copyright (c) 2010, Gordon Tisher
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+ - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+ - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+ - Neither the name of the Neurocognitive Linguistics Lab nor the
+   names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior
+   written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "mixinarrow.h"
+#include "labexception.h"
 #include "neuroitem.h"
 #include "neurolinkitem.h"
 #include "labscene.h"
+
+#include <cmath>
 
 namespace NeuroGui
 {
@@ -88,7 +127,7 @@ namespace NeuroGui
         _self->updateShape();
     }
 
-    void MixinArrow::addArrow(QPainterPath & drawPath) const
+    void MixinArrow::addLine(QPainterPath & drawPath) const
     {
         QVector2D myPos(_self->scenePos());
 
@@ -132,6 +171,27 @@ namespace NeuroGui
         drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
     }
 
+    void MixinArrow::addPoint(QPainterPath & drawPath, const QPointF & pos, const QVector2D & dir, const qreal & len) const
+    {
+        QVector2D reverse_dir = -dir;
+
+        qreal reverse_angle = ::atan2(reverse_dir.y(), reverse_dir.x());
+        qreal left_angle = reverse_angle + 30.0 * M_PI / 180.0;
+        qreal right_angle = reverse_angle - 30.0 * M_PI / 180.0;
+
+        QVector2D barb1(::cos(left_angle), ::sin(left_angle));
+        barb1 *= len;
+
+        drawPath.moveTo(pos);
+        drawPath.lineTo((QVector2D(pos) + barb1).toPointF());
+
+        QVector2D barb2(::cos(right_angle), ::sin(right_angle));
+        barb2 *= len;
+
+        drawPath.moveTo(pos);
+        drawPath.lineTo((QVector2D(pos) + barb2).toPointF());
+    }
+
     QVariant MixinArrow::changePos(LabScene *labScene, const QVariant & value, bool canDragFront, bool canDragBack)
     {
         if (!_settingLine && labScene
@@ -142,6 +202,7 @@ namespace NeuroGui
 
             // adjust position
             QVector2D oldCenter(_self->scenePos());
+
             QVector2D front = QVector2D(_line.p2()) + oldCenter;
             QVector2D back = QVector2D(_line.p1()) + oldCenter;
             QVector2D mousePos(labScene->lastMousePos());
@@ -154,15 +215,11 @@ namespace NeuroGui
             {
                 if (canDragFront)
                     front = mousePos;
-                else
-                    return QVariant(oldCenter);
             }
             else if (!_dragFront)
             {
                 if (canDragBack)
                     back = mousePos;
-                else
-                    return QVariant(oldCenter);
             }
 
             QVector2D newCenter = (front + back) * 0.5f;
@@ -191,6 +248,84 @@ namespace NeuroGui
         else
         {
             return value;
+        }
+    }
+
+    void MixinArrow::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        ds << _line;
+    }
+
+    void MixinArrow::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        ds >> _line;
+    }
+
+    void MixinArrow::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &) const
+    {
+        NeuroItem::IdType id = _frontLinkTarget ? _frontLinkTarget->id() : 0;
+        ds << id;
+
+        id = _backLinkTarget ? _backLinkTarget->id() : 0;
+        ds << id;
+    }
+
+    void MixinArrow::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        setFrontLinkTarget(0);
+        setBackLinkTarget(0);
+
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
+        {
+            NeuroItem::IdType id;
+
+            ds >> id;
+            if (id)
+                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+
+            ds >> id;
+            if (id)
+                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        }
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
+        {
+            qint64 id64;
+            NeuroItem::IdType id;
+
+            ds >> id64; id = static_cast<NeuroItem::IdType>(id64);
+            if (id)
+                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
+
+            ds >> id64; id = static_cast<NeuroItem::IdType>(id64);
+            if (id)
+                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
+        }
+    }
+
+    void MixinArrow::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
+    {
+        NeuroItem::IdType frontId = reinterpret_cast<NeuroItem::IdType>(_frontLinkTarget);
+        NeuroItem *frontItem = idMap[frontId];
+
+        if (frontId && frontItem)
+        {
+            _frontLinkTarget = frontItem;
+        }
+        else if (frontId)
+        {
+            throw LabException(QObject::tr("Link in file has dangling ID: %1").arg(frontId));
+        }
+
+        NeuroItem::IdType backId = reinterpret_cast<NeuroItem::IdType>(_backLinkTarget);
+        NeuroItem *backItem = idMap[backId];
+
+        if (backId && backItem)
+        {
+            _backLinkTarget = backItem;
+        }
+        else if (backId)
+        {
+            throw LabException(QObject::tr("Link in file has dangling ID: %2").arg(backId));
         }
     }
 

@@ -38,17 +38,19 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
+#include "neuroitem.h"
 
 #include <QLineF>
 #include <QVector2D>
 #include <QVariant>
 #include <QPainterPath>
 
+class QGraphicsScene;
+
 namespace NeuroGui
 {
 
     class LabScene;
-    class NeuroItem;
 
     /// Mixin class for drawing arrows.
     class NEUROGUISHARED_EXPORT MixinArrow
@@ -87,6 +89,7 @@ namespace NeuroGui
         /// \see line()
         /// \see setFrontLinkTarget()
         NeuroItem *frontLinkTarget() { return _frontLinkTarget; }
+
         /// Sets the item that the front of the link is currently attached to.
         /// \see line()
         /// \see frontLinkTarget()
@@ -104,11 +107,20 @@ namespace NeuroGui
 
     protected:
         /// Draws the arrow's shaft.
-        void addArrow(QPainterPath & drawPath) const;
+        void addLine(QPainterPath & drawPath) const;
+
+        /// Draws an arrowhead.
+        void addPoint(QPainterPath & drawPath, const QPointF & pos, const QVector2D & dir, const qreal & len) const;
 
         /// Handles dragging one end of the arrow.
         QVariant changePos(LabScene *labScene, const QVariant & value, bool canDragFront = true, bool canDragBack = true);
 
+        void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
+        void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+        void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
+        void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
     }; // class MixinArrow
 
 } // namespace NeuroGui

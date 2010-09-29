@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
-#include "propertyobj.h"
+#include "neuroitem.h"
 #include "../neurolib/neuronet.h"
 
 #include <QObject>
@@ -46,6 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QFutureWatcher>
 #include <QTime>
 #include <QList>
+#include <QMap>
 
 class QGraphicsItem;
 class QtVariantProperty;
@@ -57,7 +58,6 @@ namespace NeuroGui
     class LabView;
     class LabTree;
     class LabTreeNode;
-    class NeuroItem;
 
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
     class NEUROGUISHARED_EXPORT LabNetwork
@@ -67,6 +67,7 @@ namespace NeuroGui
 
         LabTree *_tree;
         NeuroLib::NeuroNet *_neuronet;
+        QMap<NeuroItem::IdType, NeuroItem *> _idMap; ///< Maps Ids to pointers.
 
         bool _running;
 
@@ -112,6 +113,9 @@ namespace NeuroGui
 
         /// \return Items in the network, including all sub-networks.
         QList<QGraphicsItem *> items() const;
+
+        /// \return Map of item ids to pointers.
+        QMap<NeuroItem::IdType, NeuroItem *> & idMap() { return _idMap; }
 
         /// \return A pointer to the neural network automaton.
         const NeuroLib::NeuroNet *neuronet() const { return _neuronet; }

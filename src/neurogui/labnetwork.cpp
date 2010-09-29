@@ -68,7 +68,7 @@ namespace NeuroGui
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
-        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel, tr("Subnetwork"), tr("A label for the current subnetwork")),
+        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel, tr("Current Subnetwork"), tr("A label for the current subnetwork")),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
         _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
         _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
@@ -535,25 +535,30 @@ namespace NeuroGui
         Q_ASSERT(view());
 
         // get items
-        QList<QGraphicsItem *> selected = scene()->selectedItems();
-        if (selected.size() == 0)
+        QList<QGraphicsItem *> graphicsitems = scene()->selectedItems();
+        QList<NeuroItem *> neuroitems;
+        for (QMutableListIterator<QGraphicsItem *> i(graphicsitems); i.hasNext(); )
+        {
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(i.next());
+            if (ni && ni->canCutAndPaste())
+                neuroitems.append(ni);
+        }
+
+        if (neuroitems.size() == 0)
             return;
 
         // get center of view and normalized ids
         QVector2D center(0, 0);
         QMap<int, int> id_map;
         int cur_id = 1;
-        for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); ++cur_id)
+        for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); ++cur_id)
         {
-            const QGraphicsItem *item = i.next();
-            center += QVector2D(item->pos());
-
-            const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
-            if (ni)
-                id_map[ni->id()] = cur_id;
+            const NeuroItem *ni = i.next();
+            center += QVector2D(ni->pos());
+            id_map[ni->id()] = cur_id;
         }
 
-        center *= 1.0 / selected.size();
+        center *= 1.0 / neuroitems.size();
 
         // write items
         QList<PropertyObject *> old_property_objs = MainWindow::instance()->propertyObjects();
@@ -563,38 +568,26 @@ namespace NeuroGui
         {
             QDataStream ds(&clipboardData, QIODevice::WriteOnly);
 
-            ds << static_cast<quint32>(selected.size());
+            ds << static_cast<quint32>(neuroitems.size());
 
             // write type names so we can create items before reading them...
-            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
+            for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
             {
-                const QGraphicsItem *item = i.next();
-                const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
-                if (ni)
-                    ds << ni->getTypeName();
-                else
-                    ds << QString("??Unknown??");
-
+                const NeuroItem *ni = i.next();
+                ds << ni->getTypeName();
                 ds << static_cast<qint32>(id_map[ni->id()]);
             }
 
             // write data
-            for (QMutableListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
+            for (QMutableListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
             {
-                QGraphicsItem *item = i.next();
-                NeuroItem *ni = dynamic_cast<NeuroItem *>(item);
-                if (ni)
-                {
-                    QVector2D relPos = QVector2D(ni->pos()) - center;
-                    ds << relPos;
+                NeuroItem *ni = i.next();
 
-                    MainWindow::instance()->setPropertyObject(ni); // force properties to be built
-                    ni->writeClipboard(ds, id_map);
-                }
-                else
-                {
-                    ds << QString("??Unknown??");
-                }
+                QVector2D relPos = QVector2D(ni->pos()) - center;
+                ds << relPos;
+
+                MainWindow::instance()->setPropertyObject(ni); // force properties to be built
+                ni->writeClipboard(ds, id_map);
             }
         }
 

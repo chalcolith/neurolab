@@ -64,7 +64,7 @@ namespace NeuroGui
         };
 
     private:
-        Direction _direction;
+        quint32 _direction;
         QVector2D _initialPos, _initialDir;
 
         NeuroItem *_governingItem;
@@ -79,8 +79,8 @@ namespace NeuroGui
         NeuroLib::NeuroCell::NeuroValue outputValue() const;
         void setOutputValue(const NeuroLib::NeuroCell::NeuroValue &);
 
-        const Direction & direction() const { return _direction; }
-        void setDirection(const Direction & direction) { _direction = direction; }
+        const quint32 & direction() const { return _direction; }
+        void setDirection(const quint32 & direction) { _direction = direction; }
 
         NeuroItem *governingItem() const { return _governingItem; }
         void setGoverningItem(NeuroItem *item) { _governingItem = item; }
@@ -88,11 +88,20 @@ namespace NeuroGui
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
     protected:
-        virtual void itemChange(GraphicsItemChange change, const QVariant & value);
+        virtual bool canCutAndPaste() const { return false; }
+
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
+        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
+        virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+
     private:
-        void drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b);
+        void drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b, const qreal & angle1, const qreal & angle2) const;
     };
 
 } // namespace NeuroGui

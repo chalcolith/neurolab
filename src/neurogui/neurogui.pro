@@ -31,7 +31,12 @@ SOURCES += mainwindow.cpp \
     neuronarrowitem.cpp \
     neurotextitem.cpp \
     labdatafile.cpp \
-    aboutdialog.cpp
+    aboutdialog.cpp \
+    subnetworkitem.cpp \
+    subconnectionitem.cpp \
+    labexception.cpp \
+    mixinarrow.cpp \
+    mixinremember.cpp
 
 HEADERS += neurogui_global.h \
     mainwindow.h \
@@ -48,7 +53,12 @@ HEADERS += neurogui_global.h \
     neuronarrowitem.h \
     neurotextitem.h \
     labdatafile.h \
-    aboutdialog.h
+    aboutdialog.h \
+    subnetworkitem.h \
+    subconnectionitem.h \
+    labexception.h \
+    mixinarrow.h \
+    mixinremember.h \
 
 FORMS += mainwindow.ui \
     labeldialog.ui \
@@ -85,27 +95,3 @@ win32 {
         -lautomata \
         -lqtpropertybrowser
 }
-
-HEADERS += \
-    subnetworkitem.h
-
-SOURCES += \
-    subnetworkitem.cpp
-
-HEADERS += \
-    subconnectionitem.h
-
-SOURCES += \
-    subconnectionitem.cpp
-
-HEADERS += \
-    labexception.h
-
-SOURCES += \
-    labexception.cpp
-
-HEADERS += \
-    mixinarrow.h
-
-SOURCES += \
-    mixinarrow.cpp

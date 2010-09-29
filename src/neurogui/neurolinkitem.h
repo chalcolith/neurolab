@@ -100,7 +100,7 @@ namespace NeuroGui
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
-        virtual void idsToPointers(QGraphicsScene *);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
     };
 
 

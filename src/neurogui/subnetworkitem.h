@@ -38,17 +38,20 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
-#include "neuroitem.h"
+#include "neurolinkitem.h"
+#include "mixinremember.h"
 
 #include <QMap>
+#include <QRectF>
 
 namespace NeuroGui
 {
 
     class LabTreeNode;
+    class SubConnectionItem;
 
     class NEUROGUISHARED_EXPORT SubNetworkItem
-        : public NeuroItem
+        : public NeuroItem, public MixinRemember
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
@@ -56,8 +59,10 @@ namespace NeuroGui
         quint32 _treeNodeIdNeeded;
         LabTreeNode *_treeNode;
 
+        QRectF _rect;
+
         /// Maps from inputs in the outer network to connection items in the inner network.
-        QMap<NeuroItem *, NeuroItem *> _connections;
+        QMap<NeuroItem *, SubConnectionItem *> _connections;
 
     public:
         explicit SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -69,14 +74,34 @@ namespace NeuroGui
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
+        virtual bool canCutAndPaste() const { return false; }
+
+        virtual bool addIncoming(NeuroItem *linkItem);
+        virtual bool removeIncoming(NeuroItem *linkItem);
+
+        virtual bool addOutgoing(NeuroItem *linkItem);
+        virtual bool removeOutgoing(NeuroItem *linkItem);
+
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void adjustLinks();
+        virtual QVector2D getAttachPos(const QVector2D &dirTo);
+
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
+
     private:
         void makeSubNetwork();
+
+        void addConnectionItem(NeuroLinkItem *governingLink, bool is_incoming);
+        void removeConnectionItem(NeuroLinkItem *governingLink);
     };
 
 } // namespace NeuroGui

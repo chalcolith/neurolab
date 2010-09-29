@@ -35,12 +35,12 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuroitem.h"
-#include "mainwindow.h"
+#include "labexception.h"
 #include "neurolinkitem.h"
 #include "labscene.h"
 #include "labnetwork.h"
+#include "mainwindow.h"
 
-#include "../automata/exception.h"
 #include "../neurolib/neuronet.h"
 #include "../neurolib/neurocell.h"
 
@@ -548,12 +548,15 @@ namespace NeuroGui
         }
 
         // attach, if possible
-        if (itemAtPos && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+        if (itemAtPos)
         {
-            attachTo(itemAtPos);
-            itemAtPos->onAttachedBy(this);
+            if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+            {
+                attachTo(itemAtPos);
+                itemAtPos->onAttachedBy(this);
 
-            movePos = scenePos();
+                movePos = scenePos();
+            }
         }
 
         adjustLinks();
@@ -736,34 +739,27 @@ namespace NeuroGui
         }
     }
 
-    void NeuroItem::idsToPointers(QGraphicsScene *sc)
+    void NeuroItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        idsToPointersAux(_incoming, sc);
-        idsToPointersAux(_outgoing, sc);
+        idsToPointersAux(_incoming, idMap);
+        idsToPointersAux(_outgoing, idMap);
     }
 
-    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc)
+    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        QList<QGraphicsItem *> items = sc->items();
-
         for (QMutableListIterator<NeuroItem *> in(list); in.hasNext(); in.next())
         {
-            bool found = false;
-            IdType id = reinterpret_cast<IdType>(in.peekNext());
+            IdType wanted_id = reinterpret_cast<IdType>(in.peekNext());
+            NeuroItem *wanted_item = idMap[wanted_id];
 
-            for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); )
+            if (wanted_item)
             {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item && item->_id == id)
-                {
-                    in.peekNext() = item;
-                    found = true;
-                    break;
-                }
+                in.peekNext() = wanted_item;
             }
-
-            if (!found)
-                throw Automata::Exception(QObject::tr("Dangling node ID %1").arg(id));
+            else
+            {
+                throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
+            }
         }
     }
 

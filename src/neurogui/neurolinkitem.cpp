@@ -113,7 +113,7 @@ namespace NeuroGui
     void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
-        addArrow(drawPath);
+        addLine(drawPath);
     }
 
     void NeuroLinkItem::setPenProperties(QPen & pen) const
@@ -244,97 +244,31 @@ namespace NeuroGui
     void NeuroLinkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroNarrowItem::writeBinary(ds, file_version);
-        ds << _line;
+        MixinArrow::writeBinary(ds, file_version);
     }
 
     void NeuroLinkItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
         NeuroNarrowItem::readBinary(ds, file_version);
-
-        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
-        {
-            ds >> _line;
-        }
+        MixinArrow::readBinary(ds, file_version);
     }
 
     void NeuroLinkItem::writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroNarrowItem::writePointerIds(ds, file_version);
-
-        IdType id = _frontLinkTarget ? _frontLinkTarget->id() : 0;
-        ds << id;
-
-        id = _backLinkTarget ? _backLinkTarget->id() : 0;
-        ds << id;
+        MixinArrow::writePointerIds(ds, file_version);
     }
 
     void NeuroLinkItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
         NeuroNarrowItem::readPointerIds(ds, file_version);
-
-        setFrontLinkTarget(0);
-        setBackLinkTarget(0);
-
-        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
-        {
-            IdType id;
-
-            ds >> id;
-            if (id)
-                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
-
-            ds >> id;
-            if (id)
-                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
-        }
-        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
-        {
-            qint64 id64;
-            IdType id;
-
-            ds >> id64; id = static_cast<IdType>(id64);
-            if (id)
-                _frontLinkTarget = reinterpret_cast<NeuroItem *>(id);
-
-            ds >> id64; id = static_cast<IdType>(id64);
-            if (id)
-                _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
-        }
+        MixinArrow::readPointerIds(ds, file_version);
     }
 
-    void NeuroLinkItem::idsToPointers(QGraphicsScene *sc)
+    void NeuroLinkItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        NeuroNarrowItem::idsToPointers(sc);
-
-        bool foundFront = false;
-        bool foundBack = false;
-
-        IdType frontId = reinterpret_cast<IdType>(_frontLinkTarget);
-        IdType backId = reinterpret_cast<IdType>(_backLinkTarget);
-
-        for (QListIterator<QGraphicsItem *> i(sc->items()); i.hasNext(); )
-        {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-            if (item)
-            {
-                if (item->id() == frontId)
-                {
-                    _frontLinkTarget = item;
-                    foundFront = true;
-                }
-
-                if (item->id() == backId)
-                {
-                    _backLinkTarget = item;
-                    foundBack = true;
-                }
-            }
-        }
-
-        if (!foundFront && frontId != 0)
-            throw Automata::Exception(tr("Link in file has dangling ID: %1").arg(frontId));
-        if (!foundBack && backId != 0)
-            throw Automata::Exception(tr("Link in file has dangling ID: %2").arg(backId));
+        NeuroNarrowItem::idsToPointers(idMap);
+        MixinArrow::idsToPointers(idMap);
     }
 
 
@@ -366,40 +300,23 @@ namespace NeuroGui
         NeuroLinkItem::addToShape(drawPath, texts);
 
         QVector2D front(_line.p2());
-        QVector2D fromFront(c2 - front);
+        QVector2D dir(front - c2);
 
-        double angle = ::atan2(fromFront.y(), fromFront.x());
-
-        double langle = angle + (20.0 * M_PI / 180.0);
-        QVector2D left(::cos(langle), ::sin(langle));
-
-        QVector2D end = front + left * ELLIPSE_WIDTH;
-
-        drawPath.moveTo(front.toPointF());
-        drawPath.lineTo(end.toPointF());
-
-        double rangle = angle - (20.0 * M_PI / 180.0);
-        QVector2D right(::cos(rangle), ::sin(rangle));
-
-        end = front + right * ELLIPSE_WIDTH;
-
-        drawPath.moveTo(front.toPointF());
-        drawPath.lineTo(end.toPointF());
+        addPoint(drawPath, _line.p2(), dir.normalized(), ELLIPSE_WIDTH);
     }
 
     bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
     {
-        // can only attach to narrow items
-        NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(item);
-        if (!narrow)
-            return false;
+//        // can only attach to narrow items
+//        NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(item);
+//        if (!narrow)
+//            return false;
 
         // cannot attach to a link at all
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
         if (link)
             return false;
 
-        // can not attach to a link at all
         return NeuroLinkItem::canAttachTo(pos, item);
     }
 

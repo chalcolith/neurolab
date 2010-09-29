@@ -52,7 +52,7 @@ namespace NeuroGui
         _font_property(this, &NeuroTextItem::font, &NeuroTextItem::setFont, tr("Font"), tr("The font to use when displaying the text.")),
         _text_property(this, &NeuroTextItem::text, &NeuroTextItem::setText, tr("Text"), tr("The text to display."))
     {
-        this->_label_property.setEnabled(false);
+        this->_label_property.setEditable(false);
         this->_label_property.setVisible(false);
     }
 

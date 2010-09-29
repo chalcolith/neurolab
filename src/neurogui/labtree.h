@@ -38,9 +38,11 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
+#include "neuroitem.h"
 
 #include <QObject>
 #include <QList>
+#include <QMap>
 
 class QDataStream;
 class QWidget;
@@ -106,6 +108,7 @@ namespace NeuroGui
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+        void postLoad();
 
     signals:
         void labelChanged(const QString &);

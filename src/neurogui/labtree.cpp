@@ -38,10 +38,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labexception.h"
 #include "labview.h"
 #include "labscene.h"
-#include "neuroitem.h"
+#include "labnetwork.h"
 
 #include <Qaction>
-
 #include <typeinfo>
 
 namespace NeuroGui
@@ -92,7 +91,7 @@ namespace NeuroGui
     {
         if (!_label.isEmpty() && !_label.isNull())
             return _label;
-        return QString::number(_id);
+        return tr("Subnetwork %1").arg(_id);
     }
 
     void LabTreeNode::setLabel(const QString & s)
@@ -243,36 +242,13 @@ namespace NeuroGui
                     new_item->readBinary(ds, file_version);
                     new_item->readPointerIds(ds, file_version);
 
+                    _tree->network()->idMap()[new_item->id()] = new_item;
                     _scene->addItem(new_item);
                 }
                 else
                 {
                     throw LabException(QObject::tr("Error loading; unknown type %1").arg(type));
                 }
-            }
-
-            // turn ids into pointers
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->idsToPointers(_scene);
-            }
-
-            // do further processing if necessary
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->postLoad();
-            }
-
-            // build shapes for first draw
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->updateShape();
             }
 
             // children
@@ -291,6 +267,40 @@ namespace NeuroGui
 
             // update scene and view
             _scene->update();
+        }
+    }
+
+    /// Handles things that need to be done after the whole tree is loaded.
+    void LabTreeNode::postLoad()
+    {
+        // do this depth-first, since subnetwork items, for instance, need to have id maps for children
+        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
+        {
+            i.next()->postLoad();
+        }
+
+        // turn ids into pointers
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->idsToPointers(_tree->network()->idMap());
+        }
+
+        // do further processing if necessary
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->postLoad();
+        }
+
+        // build shapes for first draw
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->updateShape();
         }
     }
 
@@ -407,6 +417,7 @@ namespace NeuroGui
             _root = _current = n;
 
             n->readBinary(ds, file_version);
+            n->postLoad();
 
             // find current node
             LabTreeNode *cur = find_current(_root, current_id);

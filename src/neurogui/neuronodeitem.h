@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "neuronarrowitem.h"
+#include "mixinremember.h"
 
 namespace NeuroGui
 {
@@ -47,13 +48,11 @@ namespace NeuroGui
 
     /// Base class for node objects.
     class NEUROGUISHARED_EXPORT NeuroNodeItemBase
-        : public NeuroNarrowItem
+        : public NeuroNarrowItem, public MixinRemember
     {
         Q_OBJECT
 
         QRectF _rect;
-
-        QMap<NeuroLinkItem *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
     public:
         explicit NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -83,7 +82,8 @@ namespace NeuroGui
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
 
     private:
-        void adjustLinksAux(const QList<NeuroItem *> &, QList<NeuroItem *> & alreadyAdjusted);
+        virtual void adjustLink(NeuroLinkItem *, QList<NeuroLinkItem *> & alreadyAdjusted);
+        virtual QVector2D getAttachPos(const QVector2D & dirTo);
     };
 
 

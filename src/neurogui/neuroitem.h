@@ -63,9 +63,10 @@ namespace NeuroGui
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
 
-    protected:
+    public:
         typedef qint32 IdType;
 
+    protected:
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
         {
@@ -176,7 +177,7 @@ namespace NeuroGui
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
         /// Used to translate ids of incoming and outgoing items (which are used when saving an item) to valid memory pointers.
-        virtual void idsToPointers(QGraphicsScene *);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Updates the item's drawing and collision painter paths.
         /// Calls addToShape(), which when overridden should add text records to be drawn.
@@ -205,6 +206,9 @@ namespace NeuroGui
 
         /// Reads the item's data from a data stream.  Derived classes should call the base class version to correctly read item data.
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
+        /// Whether or not the item can be cut and pasted.
+        virtual bool canCutAndPaste() const { return true; }
 
         /// Writes the item's data to a clipboard data stream.
         /// \param ds The data stream.
@@ -272,7 +276,7 @@ namespace NeuroGui
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
         /// Handles transforming ids to actual pointers.
-        virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
+        virtual void idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Linear interpolation for colors.
         /// \return A color that is \c t of the way between \c a and \c b.

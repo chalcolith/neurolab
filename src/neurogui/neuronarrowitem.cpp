@@ -82,15 +82,13 @@ namespace NeuroGui
         if (!network() || !network()->neuronet())
             return false;
 
-        NeuroNarrowItem *linkItem;
-
-        if (NeuroItem::addIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
+        NeuroNarrowItem *linkItem = dynamic_cast<NeuroNarrowItem *>(item);
+        if (NeuroItem::addIncoming(item) && linkItem)
         {
             if (_cellIndices.first() != -1 && linkItem->_cellIndices.first() != -1)
                 network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.first());
             return true;
         }
-
         return false;
     }
 
