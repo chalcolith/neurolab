@@ -35,41 +35,47 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "labtree.h"
+#include "labexception.h"
 #include "labview.h"
 #include "labscene.h"
-#include "neuronarrowitem.h"
-#include "mainwindow.h"
-#include "../automata/exception.h"
+#include "labnetwork.h"
 
-#include <QScrollBar>
-
+#include <Qaction>
 #include <typeinfo>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     // LabTreeNode
-    quint32 LabTreeNode::NEXT_ID = 1;
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0)
     {
         _scene = new LabScene(_tree->network());
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
-        : _id(NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view), _currentAction(0)
     {
     }
 
     LabTreeNode::~LabTreeNode()
     {
-        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
+        if (_parent)
+        {
+            _parent->_children.removeAll(this);
+        }
+
+        QList<LabTreeNode *> childrenCopy = _children; // deleting the children will remove them from our list
+        for (QListIterator<LabTreeNode *> i(childrenCopy); i.hasNext(); )
         {
             delete i.next();
         }
         _children.clear();
+
+        delete _currentAction;
+        _currentAction = 0;
 
         delete _view;
         _view = 0;
@@ -81,11 +87,67 @@ namespace NeuroLab
         _parent = 0;
     }
 
+    QString LabTreeNode::label() const
+    {
+        if (!_label.isEmpty() && !_label.isNull())
+            return _label;
+        return tr("Subnetwork %1").arg(_id);
+    }
+
+    void LabTreeNode::setLabel(const QString & s)
+    {
+        _label = s;
+        if (_currentAction)
+            _currentAction->setText(s);
+        emit labelChanged(s);
+    }
+
+    void LabTreeNode::setCurrentAction(QAction *action)
+    {
+        if (_currentAction)
+        {
+            disconnect(_currentAction, SIGNAL(destroyed()), this, SLOT(actionDestroyed()));
+            disconnect(_currentAction, SIGNAL(triggered(bool)), this, SLOT(actionTriggered(bool)));
+            delete _currentAction;
+        }
+
+        _currentAction = action;
+        if (_currentAction)
+        {
+            connect(_currentAction, SIGNAL(destroyed()), this, SLOT(actionDestroyed()));
+            connect(_currentAction, SIGNAL(triggered(bool)), this, SLOT(actionTriggered(bool)));
+        }
+    }
+
+    void LabTreeNode::actionDestroyed(QObject *)
+    {
+        _currentAction = 0;
+    }
+
+    void LabTreeNode::actionTriggered(bool checked)
+    {
+        if (!checked && _currentAction && _tree->current() == this)
+        {
+            _currentAction->setChecked(true);
+        }
+        else
+        {
+            emit nodeSelected(this);
+        }
+    }
+
+    LabTreeNode *LabTreeNode::createChild(const QString &label)
+    {
+        LabTreeNode *child = new LabTreeNode(_tree, this);
+        _children.append(child);
+        return child;
+    }
+
     void LabTreeNode::reset()
     {
         for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
         {
-            NeuroNarrowItem *item = dynamic_cast<NeuroNarrowItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
             if (item)
                 item->reset();
         }
@@ -106,6 +168,7 @@ namespace NeuroLab
         Q_ASSERT(_view);
 
         ds << _id;
+        ds << _label;
 
         // view
         _view->writeBinary(ds, file_version);
@@ -138,15 +201,22 @@ namespace NeuroLab
 
     void LabTreeNode::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
+            // id
             ds >> _id;
 
-            if (_id >= NEXT_ID)
-                NEXT_ID = _id + 1;
+            if (_id >= _tree->NEXT_ID)
+                _tree->NEXT_ID = _id + 1;
+
+            // label
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
+            {
+                ds >> _label;
+            }
 
             // view matrix
-            if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_2)
             {
                 _view->readBinary(ds, file_version);
             }
@@ -172,36 +242,13 @@ namespace NeuroLab
                     new_item->readBinary(ds, file_version);
                     new_item->readPointerIds(ds, file_version);
 
+                    _tree->network()->idMap()[new_item->id()] = new_item;
                     _scene->addItem(new_item);
                 }
                 else
                 {
                     throw LabException(QObject::tr("Error loading; unknown type %1").arg(type));
                 }
-            }
-
-            // turn ids into pointers
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->idsToPointers(_scene);
-            }
-
-            // do further processing if necessary
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->postLoad();
-            }
-
-            // build shapes for first draw
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
-            {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item)
-                    item->updateShape();
             }
 
             // children
@@ -212,11 +259,48 @@ namespace NeuroLab
             {
                 LabTreeNode *child = new LabTreeNode(_tree, this);
                 if (child)
+                {
+                    _children.append(child);
                     child->readBinary(ds, file_version);
+                }
             }
 
             // update scene and view
             _scene->update();
+        }
+    }
+
+    /// Handles things that need to be done after the whole tree is loaded.
+    void LabTreeNode::postLoad()
+    {
+        // do this depth-first, since subnetwork items, for instance, need to have id maps for children
+        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
+        {
+            i.next()->postLoad();
+        }
+
+        // turn ids into pointers
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->idsToPointers(_tree->network()->idMap());
+        }
+
+        // do further processing if necessary
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->postLoad();
+        }
+
+        // build shapes for first draw
+        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        {
+            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            if (item)
+                item->updateShape();
         }
     }
 
@@ -225,9 +309,12 @@ namespace NeuroLab
     // LabTree
 
     LabTree::LabTree(QWidget *_parent, LabNetwork *_network)
-        : _parent(_parent), _network(_network), _root(new LabTreeNode(this, 0)), _current(0)
+        : QObject(_parent), NEXT_ID(0), _parent(_parent), _network(_network), _root(0), _current(0)
     {
+        _root = new LabTreeNode(this, 0);
         _current = _root;
+
+        _root->setLabel(tr("Top-Level Network"));
     }
 
     LabTree::~LabTree()
@@ -283,14 +370,6 @@ namespace NeuroLab
         n->updateItemProperties();
     }
 
-    void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
-    {
-        Q_ASSERT(_root);
-
-        ds << _current->id();
-        _root->writeBinary(ds, file_version);
-    }
-
     static LabTreeNode *find_current(LabTreeNode *n, const quint32 & id)
     {
         if (n->id() == id)
@@ -306,9 +385,28 @@ namespace NeuroLab
         return 0;
     }
 
+    LabTreeNode *LabTree::findSubNetwork(const quint32 & id)
+    {
+        return find_current(_root, id);
+    }
+
+    LabTreeNode *LabTree::newSubNetwork()
+    {
+        return _current ? _current->createChild() : 0;
+    }
+
+    void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
+    {
+        Q_ASSERT(_root);
+        Q_ASSERT(_current);
+
+        ds << _current->id();
+        _root->writeBinary(ds, file_version);
+    }
+
     void LabTree::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             // current node
             quint32 current_id;
@@ -319,16 +417,13 @@ namespace NeuroLab
             _root = _current = n;
 
             n->readBinary(ds, file_version);
+            n->postLoad();
 
             // find current node
             LabTreeNode *cur = find_current(_root, current_id);
             if (cur)
                 _current = cur;
         }
-        else
-        {
-            throw new Automata::FileFormatError();
-        }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

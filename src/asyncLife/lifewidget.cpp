@@ -1,8 +1,15 @@
 #include "lifewidget.h"
+#include "lifeboard.h"
+
 #include <QPainter>
 
-LifeWidget::LifeWidget(QWidget *parent) : QWidget(parent), autoStep(false)
+LifeWidget::LifeWidget(QWidget *parent) : QWidget(parent), autoStep(false), board(new LifeBoard())
 {
+}
+
+LifeWidget::~LifeWidget()
+{
+    delete board;
 }
 
 void LifeWidget::paintEvent(QPaintEvent *)
@@ -10,18 +17,18 @@ void LifeWidget::paintEvent(QPaintEvent *)
     QPainter painter(this);
     QRect viewport = painter.viewport();
 
-    int x_step = viewport.width() / this->board.getWidth();
-    int y_step = viewport.height() / this->board.getHeight();
+    int x_step = viewport.width() / this->board->getWidth();
+    int y_step = viewport.height() / this->board->getHeight();
 
-    for (int y = 0; y < this->board.getHeight(); ++y)
+    for (int y = 0; y < this->board->getHeight(); ++y)
     {
-        for (int x = 0; x < this->board.getWidth(); ++x)
+        for (int x = 0; x < this->board->getWidth(); ++x)
         {
-            int index = x + (y * this->board.getWidth());
+            int index = x + (y * this->board->getWidth());
 
             QColor cellColor;
 
-            switch (this->board.readyState(index))
+            switch (this->board->readyState(index))
             {
             case 2:
                 cellColor = Qt::darkGray;
@@ -38,7 +45,7 @@ void LifeWidget::paintEvent(QPaintEvent *)
 
             painter.fillRect(x*x_step, y*y_step, x_step, y_step, cellColor);
 
-            if (this->board[index].current().alive)
+            if ((*this->board)[index].current().alive)
                 painter.fillRect(x*x_step + 1, y*y_step + 1, x_step - 2, y_step - 2, Qt::black);
         }
     }
@@ -50,7 +57,7 @@ void LifeWidget::paintEvent(QPaintEvent *)
 
 void LifeWidget::step()
 {
-    this->board.step();
+    this->board->step();
     update();
 }
 
@@ -68,5 +75,5 @@ void LifeWidget::stop()
 
 void LifeWidget::reset()
 {
-    this->board.reset();
+    this->board->reset();
 }

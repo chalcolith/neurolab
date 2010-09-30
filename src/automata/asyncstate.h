@@ -41,9 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "exception.h"
 
 #include <QtGlobal>
-#include <QReadWriteLock>
-#include <QReadLocker>
-#include <QWriteLocker>
 #include <QDataStream>
 
 namespace Automata
@@ -102,19 +99,16 @@ namespace Automata
             {
                 ds >> r;
             }
-            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {
                 int num;
                 ds >> num;
                 r = static_cast<quint8>(num);
             }
-            else
-            {
-                throw new FileFormatError();
-            }
         }
     };
 
+    /// should not be used (is only for old code that will be removed)
     template <typename TState, typename TIndex>
     QDataStream & operator>> (QDataStream & ds, AsyncState<TState,TIndex> & as)
     {

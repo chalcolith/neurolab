@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "labexception.h"
+
 #include "labscene.h"
 #include "neuroitem.h"
 #include "labeldialog.h"
@@ -47,6 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labview.h"
 #include "labscene.h"
 #include "labnetwork.h"
+#include "labtree.h"
 #include "propertyobj.h"
 #include "labdatafile.h"
 
@@ -64,7 +67,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QtVariantEditorFactory>
 #include <QtVariantPropertyManager>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     const QString
@@ -81,9 +84,11 @@ namespace NeuroLab
           _ui(new Ui::MainWindow()),
           _networkLayout(0),
           _zoomSpinBox(0),
+          _zoomSpinBoxAction(0),
           _numStepsSpinBox(0),
           _numStepsSpinBoxAction(0),
           _stepProgressBar(0),
+          _breadCrumbBar(0),
           _currentNetwork(0),
           _currentDataFile(0),
           _propertyEditor(0),
@@ -100,10 +105,6 @@ namespace NeuroLab
         // set up ui
         _ui->setupUi(this);
         this->setupUi();
-
-        // network tab widget
-        _networkLayout = new QVBoxLayout(_ui->tab_1);
-        this->setWindowTitle(tr("NeuroLab"));
 
         // load plugins
         loadPlugins();
@@ -141,6 +142,8 @@ namespace NeuroLab
 
     void MainWindow::setupUi()
     {
+        setTitle();
+
         QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
@@ -164,6 +167,13 @@ namespace NeuroLab
         _ui->statusBar->addPermanentWidget(_stepProgressBar);
 
         _ui->tabWidget->setTabText(1, "");
+
+        // network tab widget
+        _networkLayout = new QVBoxLayout(_ui->tab_1);
+
+        _breadCrumbBar = new QToolBar(tr("breadCrumbBar"));
+        _networkLayout->addWidget(_breadCrumbBar);
+        _breadCrumbBar->setVisible(false);
     }
 
     void MainWindow::setupConnections()
@@ -275,19 +285,38 @@ namespace NeuroLab
 
     void MainWindow::setActionsEnabled(bool enabled)
     {
-        QList<QAction *> actions = _ui->mainToolBar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(this->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        actions = _ui->viewToolbar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(_ui->menuBar->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        actions = _ui->simulationToolbar->actions();
-        for (QListIterator<QAction *> i(actions); i.hasNext(); )
+        for (QListIterator<QAction *> i(_ui->mainToolBar->actions()); i.hasNext(); )
             i.next()->setEnabled(enabled);
 
-        _ui->action_Quit->setEnabled(enabled);
+        for (QListIterator<QAction *> i(_ui->viewToolbar->actions()); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
+        for (QListIterator<QAction *> i(_ui->simulationToolbar->actions()); i.hasNext(); )
+            i.next()->setEnabled(enabled);
+
+        if (_breadCrumbBar)
+        {
+            for (QListIterator<QAction *> i(_breadCrumbBar->actions()); i.hasNext(); )
+                i.next()->setEnabled(enabled);
+        }
+
+        if (_zoomSpinBox)
+            _zoomSpinBox->setEnabled(enabled);
+
+        if (_zoomSpinBoxAction)
+            _zoomSpinBoxAction->setEnabled(enabled);
+
+        if (_numStepsSpinBox)
+            _numStepsSpinBox->setEnabled(enabled);
+
+        if (_numStepsSpinBoxAction)
+            _numStepsSpinBoxAction->setEnabled(enabled);
 
         if (enabled)
             filterActions();
@@ -322,6 +351,41 @@ namespace NeuroLab
 
     bool MainWindow::openNetwork(const QString & fname)
     {
+        if (_currentDataFile && _currentDataFile->changed())
+        {
+            FileDirtyDialog fdd(this, tr("You have unsaved data.  Do you wish to save it, discard it, or cancel closing the network?"));
+            fdd.exec();
+
+            switch (fdd.result())
+            {
+            case FileDirtyDialog::SAVE:
+                _currentDataFile->saveAs();
+                break;
+            case FileDirtyDialog::DISCARD:
+                break;
+            case FileDirtyDialog::CANCEL:
+                return false;
+            }
+        }
+
+        if (_currentNetwork && _currentNetwork->changed())
+        {
+            FileDirtyDialog fdd(this, tr("Your network file contains changes that have not been saved.  Do you wish to save it, discard it, or cancel closing the network?"));
+            fdd.exec();
+
+            switch (fdd.result())
+            {
+            case FileDirtyDialog::SAVE:
+                if (!saveNetwork())
+                    return false;
+                break;
+            case FileDirtyDialog::DISCARD:
+                break;
+            case FileDirtyDialog::CANCEL:
+                return false;
+            }
+        }
+
         setStatus("");
         LabNetwork *newNetwork = 0;
 
@@ -340,9 +404,16 @@ namespace NeuroLab
             try
             {
                 if (_currentDataFile)
+                {
+                    _currentDataFile->setChanged(false);
                     closeDataFile();
+                }
+
                 if (_currentNetwork)
+                {
+                    _currentNetwork->setChanged(false);
                     closeNetwork();
+                }
             }
             catch (Automata::Exception & le)
             {
@@ -455,7 +526,7 @@ namespace NeuroLab
 
         _ui->tabWidget->setTabText(1, tr("Collecting Data"));
         _ui->dataTableWidget->setToolTip(tr("Nodes with labels will be recorded here."));
-        _currentDataFile = new NeuroLab::LabDataFile(_currentNetwork, _ui->dataTableWidget, this);
+        _currentDataFile = new NeuroGui::LabDataFile(_currentNetwork, _ui->dataTableWidget, this);
         return true;
     }
 
@@ -552,9 +623,7 @@ namespace NeuroLab
         if (network)
         {
             _currentNetwork = network;
-            _networkLayout->addWidget(_currentNetwork->view());
-            _currentNetwork->view()->show();
-            _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
+            setSubNetwork(_currentNetwork->treeNode());
 
             connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
@@ -575,6 +644,101 @@ namespace NeuroLab
         update();
 
         filterActions();
+
+        if (_breadCrumbBar)
+        {
+            _breadCrumbBar->setVisible(_currentNetwork != 0);
+        }
+    }
+
+    void MainWindow::setSubNetwork(LabTreeNode *treeNode)
+    {
+        Q_ASSERT(_networkLayout);
+
+        // sanity checks
+        if (!_currentNetwork || !treeNode)
+            return;
+        if (treeNode->tree()->network() != _currentNetwork)
+            throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
+
+        // remove the current network's view
+        if (_currentNetwork->scene())
+        {
+            _currentNetwork->scene()->setItemUnderMouse(0);
+        }
+
+        if (_currentNetwork->view())
+        {
+            _currentNetwork->view()->hide();
+            _networkLayout->removeWidget(_currentNetwork->view());
+        }
+
+        // set the new node
+        _currentNetwork->setTreeNode(treeNode);
+
+        if (_currentNetwork->scene())
+        {
+            _currentNetwork->scene()->clearSelection();
+            _currentNetwork->scene()->setItemUnderMouse(0);
+        }
+
+        if (_currentNetwork->view())
+        {
+            _networkLayout->addWidget(_currentNetwork->view());
+            _currentNetwork->view()->show();
+            _zoomSpinBox->setValue(_currentNetwork->view()->zoom());
+        }
+
+        treeNode->updateItemProperties();
+        setPropertyObject(_currentNetwork);
+
+        // create breadcrumbs
+        if (_breadCrumbBar)
+        {
+            // get new breadcrumbs for this network
+            QList<LabTreeNode *> newBreadCrumbs;
+            LabTreeNode *newNode = treeNode;
+            while (newNode)
+            {
+                newBreadCrumbs.insert(0, newNode);
+                newNode = newNode->parent();
+            }
+
+            // see if we're on a common path from the old breadcrumbs,
+            // and whether or not we can maintain the old ones going
+            // deeper than us in the tree
+            int num = _breadCrumbs.size();
+            for (int i = 0; i < num; ++i)
+            {
+                if (i < newBreadCrumbs.size() && newBreadCrumbs[i] != _breadCrumbs[i])
+                    break;
+                if (i >= newBreadCrumbs.size())
+                    newBreadCrumbs.append(_breadCrumbs[i]);
+            }
+
+            // set the new breadcrumbs
+            _breadCrumbs = newBreadCrumbs;
+            num = _breadCrumbs.size();
+
+            _breadCrumbBar->clear();
+            for (int i = 0; i < num; ++i)
+            {
+                if (_breadCrumbs[i]->currentAction())
+                {
+                    _breadCrumbBar->addAction(_breadCrumbs[i]->currentAction());
+                }
+                else
+                {
+                    QAction *action = _breadCrumbBar->addAction(_breadCrumbs[i]->label());
+                    action->setCheckable(true);
+                    connect(_breadCrumbs[i], SIGNAL(nodeSelected(LabTreeNode*)), this, SLOT(setSubNetwork(LabTreeNode*)));
+
+                    _breadCrumbs[i]->setCurrentAction(action);
+                }
+
+                _breadCrumbs[i]->currentAction()->setChecked(_breadCrumbs[i] == treeNode);
+            }
+        }
     }
 
     void MainWindow::setPropertyObject(PropertyObject *po)
@@ -705,7 +869,7 @@ namespace NeuroLab
 //            showPrint = true;
 //        }
 
-        _ui->action_Reload_Network->setEnabled(showPrint);
+        _ui->action_Reload_Network->setEnabled(showPrint && _currentNetwork && _currentNetwork->changed() && !_currentNetwork->fname().isEmpty());
         _ui->action_Save->setEnabled(_currentNetwork && _currentNetwork->changed());
         _ui->action_Close->setEnabled(_currentNetwork);
 
@@ -732,12 +896,12 @@ namespace NeuroLab
         _ui->action_Delete->setEnabled(showEditOps);
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 
 // action slots
 
-void NeuroLab::MainWindow::on_action_New_triggered()
+void NeuroGui::MainWindow::on_action_New_triggered()
 {
     try
     {
@@ -749,7 +913,7 @@ void NeuroLab::MainWindow::on_action_New_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Open_triggered()
+void NeuroGui::MainWindow::on_action_Open_triggered()
 {
     try
     {
@@ -762,7 +926,7 @@ void NeuroLab::MainWindow::on_action_Open_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Close_triggered()
+void NeuroGui::MainWindow::on_action_Close_triggered()
 {
     try
     {
@@ -774,7 +938,7 @@ void NeuroLab::MainWindow::on_action_Close_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Reload_Network_triggered()
+void NeuroGui::MainWindow::on_action_Reload_Network_triggered()
 {
     try
     {
@@ -786,7 +950,7 @@ void NeuroLab::MainWindow::on_action_Reload_Network_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Save_triggered()
+void NeuroGui::MainWindow::on_action_Save_triggered()
 {
     try
     {
@@ -798,7 +962,7 @@ void NeuroLab::MainWindow::on_action_Save_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Quit_triggered()
+void NeuroGui::MainWindow::on_action_Quit_triggered()
 {
     try
     {
@@ -810,7 +974,7 @@ void NeuroLab::MainWindow::on_action_Quit_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Sidebar_triggered()
+void NeuroGui::MainWindow::on_action_Sidebar_triggered()
 {
     try
     {
@@ -822,7 +986,7 @@ void NeuroLab::MainWindow::on_action_Sidebar_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Main_Toolbar_triggered()
+void NeuroGui::MainWindow::on_action_Main_Toolbar_triggered()
 {
     try
     {
@@ -834,7 +998,7 @@ void NeuroLab::MainWindow::on_action_Main_Toolbar_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_View_Toolbar_triggered()
+void NeuroGui::MainWindow::on_action_View_Toolbar_triggered()
 {
     try
     {
@@ -847,7 +1011,7 @@ void NeuroLab::MainWindow::on_action_View_Toolbar_triggered()
 }
 
 
-void NeuroLab::MainWindow::on_action_Simulation_Toolbar_triggered()
+void NeuroGui::MainWindow::on_action_Simulation_Toolbar_triggered()
 {
     try
     {
@@ -859,15 +1023,15 @@ void NeuroLab::MainWindow::on_action_Simulation_Toolbar_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Start_triggered()
+void NeuroGui::MainWindow::on_action_Start_triggered()
 {
 }
 
-void NeuroLab::MainWindow::on_action_Stop_triggered()
+void NeuroGui::MainWindow::on_action_Stop_triggered()
 {
 }
 
-void NeuroLab::MainWindow::on_action_Step_triggered()
+void NeuroGui::MainWindow::on_action_Step_triggered()
 {
     try
     {
@@ -880,7 +1044,7 @@ void NeuroLab::MainWindow::on_action_Step_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Reset_triggered()
+void NeuroGui::MainWindow::on_action_Reset_triggered()
 {
     try
     {
@@ -896,7 +1060,7 @@ void NeuroLab::MainWindow::on_action_Reset_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Delete_triggered()
+void NeuroGui::MainWindow::on_action_Delete_triggered()
 {
     try
     {
@@ -909,7 +1073,7 @@ void NeuroLab::MainWindow::on_action_Delete_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
+void NeuroGui::MainWindow::on_action_New_Data_Set_triggered()
 {
     try
     {
@@ -921,7 +1085,7 @@ void NeuroLab::MainWindow::on_action_New_Data_Set_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
+void NeuroGui::MainWindow::on_action_Save_Data_Set_triggered()
 {
     try
     {
@@ -934,7 +1098,7 @@ void NeuroLab::MainWindow::on_action_Save_Data_Set_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Close_Data_Set_triggered()
+void NeuroGui::MainWindow::on_action_Close_Data_Set_triggered()
 {
     try
     {
@@ -946,7 +1110,7 @@ void NeuroLab::MainWindow::on_action_Close_Data_Set_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Manual_triggered()
+void NeuroGui::MainWindow::on_action_Manual_triggered()
 {
     try
     {
@@ -958,12 +1122,12 @@ void NeuroLab::MainWindow::on_action_Manual_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_About_NeuroLab_triggered()
+void NeuroGui::MainWindow::on_action_About_NeuroLab_triggered()
 {
     try
     {
-        NeuroLab::AboutDialog about(this);
-        about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroLab::VERSION));
+        NeuroGui::AboutDialog about(this);
+        about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroGui::VERSION));
         about.exec();
     }
     catch (Automata::Exception & e)
@@ -972,7 +1136,7 @@ void NeuroLab::MainWindow::on_action_About_NeuroLab_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Cut_triggered()
+void NeuroGui::MainWindow::on_action_Cut_triggered()
 {
     try
     {
@@ -985,7 +1149,7 @@ void NeuroLab::MainWindow::on_action_Cut_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Copy_triggered()
+void NeuroGui::MainWindow::on_action_Copy_triggered()
 {
     try
     {
@@ -998,7 +1162,7 @@ void NeuroLab::MainWindow::on_action_Copy_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Paste_triggered()
+void NeuroGui::MainWindow::on_action_Paste_triggered()
 {
     try
     {
@@ -1011,7 +1175,7 @@ void NeuroLab::MainWindow::on_action_Paste_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Select_All_triggered()
+void NeuroGui::MainWindow::on_action_Select_All_triggered()
 {
     try
     {
@@ -1024,7 +1188,7 @@ void NeuroLab::MainWindow::on_action_Select_All_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Print_triggered()
+void NeuroGui::MainWindow::on_action_Print_triggered()
 {
     try
     {
@@ -1045,7 +1209,7 @@ void NeuroLab::MainWindow::on_action_Print_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_SVG_triggered()
+void NeuroGui::MainWindow::on_action_SVG_triggered()
 {
     try
     {
@@ -1058,7 +1222,7 @@ void NeuroLab::MainWindow::on_action_SVG_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_PNG_triggered()
+void NeuroGui::MainWindow::on_action_PNG_triggered()
 {
     try
     {
@@ -1071,7 +1235,7 @@ void NeuroLab::MainWindow::on_action_PNG_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_PS_triggered()
+void NeuroGui::MainWindow::on_action_PS_triggered()
 {
     try
     {
@@ -1084,7 +1248,7 @@ void NeuroLab::MainWindow::on_action_PS_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_PDF_triggered()
+void NeuroGui::MainWindow::on_action_PDF_triggered()
 {
     try
     {
@@ -1097,7 +1261,7 @@ void NeuroLab::MainWindow::on_action_PDF_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Zoom_In_triggered()
+void NeuroGui::MainWindow::on_action_Zoom_In_triggered()
 {
     try
     {
@@ -1114,7 +1278,7 @@ void NeuroLab::MainWindow::on_action_Zoom_In_triggered()
     }
 }
 
-void NeuroLab::MainWindow::on_action_Zoom_Out_triggered()
+void NeuroGui::MainWindow::on_action_Zoom_Out_triggered()
 {
     try
     {

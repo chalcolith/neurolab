@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QSet>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     PropertyObject::PropertyObject(QObject *parent)
@@ -122,7 +122,7 @@ namespace NeuroLab
 
             ds << p->name();
             ds << p->tooltip();
-            ds << p->enabled();
+            ds << p->editable();
             ds << p->value();
         }
     }
@@ -149,7 +149,7 @@ namespace NeuroLab
                 if (p->name() == name)
                 {
                     p->setTooltip(tooltip);
-                    p->setEnabled(enabled);
+                    p->setEditable(enabled);
                     p->setValue(value);
                 }
             }
@@ -165,7 +165,7 @@ namespace NeuroLab
 
         _property = manager->addProperty(_type, _name);
         _property->setToolTip(_tooltip);
-        _property->setEnabled(_enabled);
+        _property->setEnabled(_editable);
         QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
     }
 
@@ -200,7 +200,7 @@ namespace NeuroLab
                 const PropertyObject::PropertyBase *prop = prop_i.next();
 
                 QString format("%1|%2|%3|%4");
-                QString name = format.arg(prop->name(), prop->tooltip(), prop->enabled() ? "1" : 0).arg(prop->type());
+                QString name = format.arg(prop->name(), prop->tooltip(), prop->editable() ? "1" : 0).arg(prop->type());
 
                 names.append(name);
             }
@@ -267,7 +267,7 @@ namespace NeuroLab
 
                     if (obj_prop->name() == name
                         && obj_prop->tooltip() == tooltip
-                        && obj_prop->enabled() == enabled
+                        && obj_prop->editable() == enabled
                         && obj_prop->type() == type)
                     {
                         common->addSharedProperty(const_cast<PropertyBase *>(obj_prop));
@@ -324,4 +324,4 @@ namespace NeuroLab
             p.next()->valueChanged(value);
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

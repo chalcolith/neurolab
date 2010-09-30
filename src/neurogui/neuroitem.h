@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QPair>
 #include <typeinfo>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabNetwork;
@@ -63,9 +63,10 @@ namespace NeuroLab
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
 
-    protected:
+    public:
         typedef qint32 IdType;
 
+    protected:
         /// Used to store strings that should be drawn by the item.
         struct TextPathRec
         {
@@ -116,7 +117,7 @@ namespace NeuroLab
         };
 
         /// Constructor.
-        NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
 
         /// Creates an item of the correct type, given an RTTI type name that has been registered.
@@ -128,9 +129,6 @@ namespace NeuroLab
         /// The label is drawn to the right of the item's scene position.
         /// \return The item's label.
         QString label() const { return _label; }
-
-        /// Set the item's label.
-        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
 
         /// \return The node's ID, for use when saving and loading.
         int id() const { return _id; }
@@ -179,7 +177,7 @@ namespace NeuroLab
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
         /// Used to translate ids of incoming and outgoing items (which are used when saving an item) to valid memory pointers.
-        virtual void idsToPointers(QGraphicsScene *);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Updates the item's drawing and collision painter paths.
         /// Calls addToShape(), which when overridden should add text records to be drawn.
@@ -209,6 +207,9 @@ namespace NeuroLab
         /// Reads the item's data from a data stream.  Derived classes should call the base class version to correctly read item data.
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        /// Whether or not the item can be cut and pasted.
+        virtual bool canCutAndPaste() const { return true; }
+
         /// Writes the item's data to a clipboard data stream.
         /// \param ds The data stream.
         /// \param id_map A map from existing item ids to normalized ids in the clipboard.
@@ -228,6 +229,9 @@ namespace NeuroLab
         /// Called after all nodes have been loaded.
         virtual void postLoad() {}
 
+        /// Allows mixins to call prepareGeometryChange().
+        inline void prepGeomChange() { prepareGeometryChange(); }
+
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 
@@ -242,6 +246,12 @@ namespace NeuroLab
 
     signals:
         void labelChanged(NeuroItem *item, const QString & newLabel);
+
+    public slots:
+        /// Set the item's label.
+        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
+
+        virtual void reset() {}
 
     protected:
         /// Should be overridden to add to the drawing painter path.
@@ -266,7 +276,7 @@ namespace NeuroLab
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
         /// Handles transforming ids to actual pointers.
-        virtual void idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc);
+        virtual void idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Linear interpolation for colors.
         /// \return A color that is \c t of the way between \c a and \c b.
@@ -277,7 +287,7 @@ namespace NeuroLab
 
         /// Can be overridden to control whether or not a new item with a given type name can be
         /// created on top of an already selected item.
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
 
         //////////////////////////////////////////////////////////////
 
@@ -315,13 +325,13 @@ namespace NeuroLab
 
     /// Use this macro in the header file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DECLARE_CREATOR \
-    static NeuroLab::NeuroItem *_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
-    static NeuroLab::NeuroItemRegistrator _static_registrator;
+    static NeuroGui::NeuroItem *_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
+    static NeuroGui::NeuroItemRegistrator _static_registrator;
 
     /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
-    NeuroLab::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
-    NeuroLab::NeuroItem *TypeName::_create_(NeuroLab::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
+    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
+    NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
@@ -329,6 +339,6 @@ namespace NeuroLab
         return item; \
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // NEUROITEM_H

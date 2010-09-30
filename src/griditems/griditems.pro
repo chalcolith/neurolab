@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT += gui
 
 TARGET = griditems
@@ -6,7 +7,6 @@ TEMPLATE = lib
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 }
 macx { CONFIG -= x86_64 }
-else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
@@ -19,8 +19,8 @@ SOURCES += neurogriditem.cpp
 HEADERS += neurogriditem.h\
         griditems_global.h
 
-release { BUILDDIR=release }
-debug { BUILDDIR=debug }
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR/plugins }

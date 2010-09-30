@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mainwindow.h"
+#include "labexception.h"
 #include "labnetwork.h"
 #include "labtree.h"
 #include "labview.h"
@@ -58,7 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// Constructor.
@@ -67,6 +68,7 @@ namespace NeuroLab
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
+        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel, tr("Current Subnetwork"), tr("A label for the current subnetwork")),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
         _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
         _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
@@ -95,6 +97,17 @@ namespace NeuroLab
         }
     }
 
+    LabTreeNode *LabNetwork::treeNode()
+    {
+        return _tree ? _tree->current() : 0;
+    }
+
+    void LabNetwork::setTreeNode(LabTreeNode *node)
+    {
+        if (node && _tree)
+            _tree->setCurrent(node);
+    }
+
     LabScene *LabNetwork::scene()
     {
         return _tree ? _tree->scene() : 0;
@@ -117,6 +130,19 @@ namespace NeuroLab
             return _fname.mid(index+1);
         else
             return _fname;
+    }
+
+    QString LabNetwork::subNetworkLabel() const
+    {
+        if (_tree && _tree->current())
+            return _tree->current()->label();
+        return tr("???");
+    }
+
+    void LabNetwork::setSubNetworkLabel(const QString & label)
+    {
+        if (_tree && _tree->current())
+            _tree->current()->setLabel(label);
     }
 
     NeuroCell::NeuroValue LabNetwork::decay() const
@@ -305,7 +331,7 @@ namespace NeuroLab
                 else if (cookie == LAB_SCENE_COOKIE_OLD)
                 {
                     NeuroLabFileVersion fv;
-                    fv.neurolab_version = NeuroLab::NEUROLAB_FILE_VERSION_OLD;
+                    fv.neurolab_version = NeuroGui::NEUROLAB_FILE_VERSION_OLD;
 
                     ln->_tree->readBinary(ds, fv);
                 }
@@ -389,7 +415,7 @@ namespace NeuroLab
                     ds.setVersion(QDataStream::Qt_4_6);
 
                     NeuroLabFileVersion fv;
-                    fv.neurolab_version = NeuroLab::NEUROLAB_NUM_FILE_VERSIONS - 1;
+                    fv.neurolab_version = NeuroGui::NEUROLAB_NUM_FILE_VERSIONS - 1;
 
                     ds << LAB_SCENE_COOKIE_NEW;
                     ds << static_cast<quint16>(fv.neurolab_version);
@@ -436,6 +462,16 @@ namespace NeuroLab
 
         if (sc)
         {
+            NeuroItem *underMouse = sc->itemUnderMouse();
+            if (underMouse)
+            {
+                emit itemDeleted(underMouse);
+                setChanged();
+                sc->setItemUnderMouse(0);
+                sc->removeItem(underMouse);
+                delete underMouse;
+            }
+
             for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); )
             {
                 QGraphicsItem *gi = i.next();
@@ -460,6 +496,16 @@ namespace NeuroLab
     }
 
     static QString CLIPBOARD_TYPE("application/x-neurocog-items");
+
+    LabTreeNode *LabNetwork::findSubNetwork(const quint32 & id)
+    {
+        return _tree ? _tree->findSubNetwork(id) : 0;
+    }
+
+    LabTreeNode *LabNetwork::newSubNetwork()
+    {
+        return _tree ? _tree->newSubNetwork() : 0;
+    }
 
     /// \return True if there is something to paste.
     bool LabNetwork::canPaste() const
@@ -489,25 +535,30 @@ namespace NeuroLab
         Q_ASSERT(view());
 
         // get items
-        QList<QGraphicsItem *> selected = scene()->selectedItems();
-        if (selected.size() == 0)
+        QList<QGraphicsItem *> graphicsitems = scene()->selectedItems();
+        QList<NeuroItem *> neuroitems;
+        for (QMutableListIterator<QGraphicsItem *> i(graphicsitems); i.hasNext(); )
+        {
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(i.next());
+            if (ni && ni->canCutAndPaste())
+                neuroitems.append(ni);
+        }
+
+        if (neuroitems.size() == 0)
             return;
 
         // get center of view and normalized ids
         QVector2D center(0, 0);
         QMap<int, int> id_map;
         int cur_id = 1;
-        for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); ++cur_id)
+        for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); ++cur_id)
         {
-            const QGraphicsItem *item = i.next();
-            center += QVector2D(item->pos());
-
-            const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
-            if (ni)
-                id_map[ni->id()] = cur_id;
+            const NeuroItem *ni = i.next();
+            center += QVector2D(ni->pos());
+            id_map[ni->id()] = cur_id;
         }
 
-        center *= 1.0 / selected.size();
+        center *= 1.0 / neuroitems.size();
 
         // write items
         QList<PropertyObject *> old_property_objs = MainWindow::instance()->propertyObjects();
@@ -517,38 +568,26 @@ namespace NeuroLab
         {
             QDataStream ds(&clipboardData, QIODevice::WriteOnly);
 
-            ds << static_cast<quint32>(selected.size());
+            ds << static_cast<quint32>(neuroitems.size());
 
             // write type names so we can create items before reading them...
-            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
+            for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
             {
-                const QGraphicsItem *item = i.next();
-                const NeuroItem *ni = dynamic_cast<const NeuroItem *>(item);
-                if (ni)
-                    ds << ni->getTypeName();
-                else
-                    ds << QString("??Unknown??");
-
+                const NeuroItem *ni = i.next();
+                ds << ni->getTypeName();
                 ds << static_cast<qint32>(id_map[ni->id()]);
             }
 
             // write data
-            for (QMutableListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
+            for (QMutableListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
             {
-                QGraphicsItem *item = i.next();
-                NeuroItem *ni = dynamic_cast<NeuroItem *>(item);
-                if (ni)
-                {
-                    QVector2D relPos = QVector2D(ni->pos()) - center;
-                    ds << relPos;
+                NeuroItem *ni = i.next();
 
-                    MainWindow::instance()->setPropertyObject(ni); // force properties to be built
-                    ni->writeClipboard(ds, id_map);
-                }
-                else
-                {
-                    ds << QString("??Unknown??");
-                }
+                QVector2D relPos = QVector2D(ni->pos()) - center;
+                ds << relPos;
+
+                MainWindow::instance()->setPropertyObject(ni); // force properties to be built
+                ni->writeClipboard(ds, id_map);
             }
         }
 
@@ -699,10 +738,7 @@ namespace NeuroLab
         _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
         _step_time.start();
 
-        if (numSteps > 1)
-            emit actionsEnabled(false);
-
-        emit valuesChanged();
+        emit actionsEnabled(false);
 
         if (numSteps > 1)
         {
@@ -711,14 +747,17 @@ namespace NeuroLab
             emit stepProgressValueChanged(0);
         }
 
+        _neuronet->preUpdate();
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
 
+    /// Called when a timestep is complete.
     void LabNetwork::futureFinished()
     {
-        ++_current_step;
         _future_watcher.waitForFinished();
+        _neuronet->postUpdate();
 
+        ++_current_step;
         if ((_current_step % 3) == 0)
             emit stepIncremented();
 
@@ -731,7 +770,16 @@ namespace NeuroLab
             }
 
             emit actionsEnabled(true);
-            emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
+
+            if (_max_steps == 3)
+            {
+                emit statusChanged(tr("Done stepping 1 time."));
+            }
+            else
+            {
+                emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
+            }
+
 
             _running = false;
             setChanged();
@@ -901,4 +949,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

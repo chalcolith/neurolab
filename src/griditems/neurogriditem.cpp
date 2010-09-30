@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/labnetwork.h"
 #include "../neurogui/labscene.h"
 
-using namespace NeuroLab;
+using namespace NeuroGui;
 
 namespace GridItems
 {
@@ -52,16 +52,6 @@ namespace GridItems
 
     NeuroGridItem::~NeuroGridItem()
     {
-    }
-
-    bool NeuroGridItem::canAttachTo(const QPointF &, NeuroItem *)
-    {
-        return false;
-    }
-
-    bool NeuroGridItem::canBeAttachedBy(const QPointF &, NeuroItem *)
-    {
-        return false;
     }
 
     void NeuroGridItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const

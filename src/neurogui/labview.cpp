@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labscene.h"
 #include "neuroitem.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     LabView::LabView(LabScene *scene, QWidget *parent)
@@ -83,7 +83,7 @@ namespace NeuroLab
         }
     }
 
-    void LabView::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
+    void LabView::writeBinary(QDataStream & ds, const NeuroLabFileVersion &) const
     {
         ds << static_cast<quint32>(_zoom);
         ds << transform();
@@ -91,7 +91,7 @@ namespace NeuroLab
 
     void LabView::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_2)
         {
             quint32 zoom;
             ds >> zoom;
@@ -103,4 +103,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

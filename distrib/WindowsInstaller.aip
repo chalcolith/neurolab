@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="7.7" version="7.7" Modules="freeware" RootPath="." Language="en">
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
+    <ROW Property="ALLUSERS" Value="2"/>
+    <ROW Property="ARPCOMMENTS" Value="This intaller will install Neurocognitive Linguistics Laboratory v1.0.3.  IF YOU HAVE VERSION 1.0.2 ALREADY INSTALLED, PLEASE UNINSTALL IT BEFORE RUNNING THIS INSTALLER." ValueLocId="*"/>
+    <ROW Property="ARPURLINFOABOUT" Value="http://bitbucket.org/kulibali/neurocogling/wiki/Home"/>
+    <ROW Property="BannerBitmap" MultiBuildValue="DefaultBuild:banner_image.jpg" Type="1"/>
+    <ROW Property="DialogBitmap" MultiBuildValue="DefaultBuild:dialog_image.jpg" Type="1"/>
+    <ROW Property="Manufacturer" Value="Neurocognitive Linguistics Laboratory" ValueLocId="*"/>
+    <ROW Property="ProductCode" Value="1033:{5EC4A0FE-3211-415D-990A-519A9D3FC1D8} " Type="16"/>
+    <ROW Property="ProductLanguage" Value="1033"/>
+    <ROW Property="ProductName" Value="NeuroLab" ValueLocId="*"/>
+    <ROW Property="ProductVersion" Value="1.0.3"/>
+    <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
+    <ROW Property="UpgradeCode" Value="{51AABD73-0815-49E2-B94F-D31761271FD6}"/>
+    <ROW Property="WindowsFamily9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
+    <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+    <ROW Directory="licenses_DIR" Directory_Parent="APPDIR" DefaultDir="licenses"/>
+    <ROW Directory="qt_DIR" Directory_Parent="licenses_DIR" DefaultDir="qt"/>
+    <ROW Directory="qtpropertybrowser_DIR" Directory_Parent="licenses_DIR" DefaultDir="qtprop~1|qtpropertybrowser"/>
+    <ROW Directory="samples_DIR" Directory_Parent="APPDIR" DefaultDir="samples"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="LICENSE.LGPL" ComponentId="{FC30E1C0-01B2-47A0-8F3C-E2ECF4E42E36}" Directory_="qt_DIR" Attributes="0" KeyPath="LICENSE.LGPL" Type="0"/>
+    <ROW Component="LICENSE.LGPL_1" ComponentId="{385AE053-9179-4720-B685-3335B1551222}" Directory_="qtpropertybrowser_DIR" Attributes="0" KeyPath="LICENSE.LGPL_1" Type="0"/>
+    <ROW Component="LICENSE.txt" ComponentId="{051677D9-FF83-4A2C-A7B8-D4736F8D21C3}" Directory_="APPDIR" Attributes="0" KeyPath="LICENSE.txt" Type="0"/>
+    <ROW Component="QtCore4.dll" ComponentId="{3144FF27-359B-421F-B8BD-AFB6B22D154E}" Directory_="APPDIR" Attributes="0" KeyPath="QtCore4.dll"/>
+    <ROW Component="QtGui4.dll" ComponentId="{EA6F59A2-65B5-4C86-AAE5-7005F5B8DC2B}" Directory_="APPDIR" Attributes="0" KeyPath="QtGui4.dll"/>
+    <ROW Component="QtSvg4.dll" ComponentId="{BB40BA78-61B5-4EE9-8F00-10CF85E49C1C}" Directory_="APPDIR" Attributes="0" KeyPath="QtSvg4.dll"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{62D89F2C-446A-4D95-B62E-4DC27391FF77}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="automata1.dll" ComponentId="{D7F25D5B-5CA7-4EA6-8B3A-CFC62B991613}" Directory_="APPDIR" Attributes="0" KeyPath="automata1.dll"/>
+    <ROW Component="inhibition.nln" ComponentId="{D362F24E-9F35-472B-B948-5092011A4F99}" Directory_="samples_DIR" Attributes="0" KeyPath="inhibition.nln" Type="0"/>
+    <ROW Component="libgcc_s_dw2_1.dll" ComponentId="{C4FFFFFE-F0DC-437B-982B-97C55ED220D4}" Directory_="APPDIR" Attributes="0" KeyPath="libgcc_s_dw2_1.dll"/>
+    <ROW Component="mingwm10.dll" ComponentId="{381A7436-56BC-46C5-99A2-DC297E2D63AD}" Directory_="APPDIR" Attributes="0" KeyPath="mingwm10.dll"/>
+    <ROW Component="neurogui1.dll" ComponentId="{BCE2AC4D-2CEC-469A-A59F-59BDEA8DD672}" Directory_="APPDIR" Attributes="0" KeyPath="neurogui1.dll"/>
+    <ROW Component="neurolab.exe" ComponentId="{E82CFC9F-B108-4F95-AF69-E76511FEE3C7}" Directory_="APPDIR" Attributes="0" KeyPath="neurolab.exe"/>
+    <ROW Component="neurolib1.dll" ComponentId="{FF3D63A6-FFEE-4A80-B92C-0CB8E6D2C488}" Directory_="APPDIR" Attributes="0" KeyPath="neurolib1.dll"/>
+    <ROW Component="qtpropertybrowser2.dll" ComponentId="{CF692EC8-EA33-40DD-ABC7-95ADB64C4362}" Directory_="APPDIR" Attributes="0" KeyPath="qtpropertybrowser2.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="automata1.dll libgcc_s_dw2_1.dll LICENSE.txt LICENSE.LGPL LICENSE.LGPL_1 mingwm10.dll neurogui1.dll neurolab.exe neurolib1.dll QtCore4.dll QtGui4.dll qtpropertybrowser2.dll QtSvg4.dll inhibition.nln SHORTCUTDIR"/>
+    <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="LICENSE.LGPL" Component_="LICENSE.LGPL" FileName="LICENS~1.LGP|LICENSE.LGPL" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\licenses\qt\LICENSE.LGPL" SelfReg="false" Sequence="4"/>
+    <ROW File="LICENSE.LGPL_1" Component_="LICENSE.LGPL_1" FileName="LICENS~1.LGP|LICENSE.LGPL" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\licenses\qtpropertybrowser\LICENSE.LGPL" SelfReg="false" Sequence="5"/>
+    <ROW File="LICENSE.txt" Component_="LICENSE.txt" FileName="LICENSE.txt" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\LICENSE.txt" SelfReg="false" Sequence="3"/>
+    <ROW File="QtCore4.dll" Component_="QtCore4.dll" FileName="QtCore4.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\QtCore4.dll" SelfReg="false" Sequence="10"/>
+    <ROW File="QtGui4.dll" Component_="QtGui4.dll" FileName="QtGui4.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\QtGui4.dll" SelfReg="false" Sequence="11"/>
+    <ROW File="QtSvg4.dll" Component_="QtSvg4.dll" FileName="QtSvg4.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\QtSvg4.dll" SelfReg="false" Sequence="13"/>
+    <ROW File="README.txt" Component_="LICENSE.txt" FileName="README.txt" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\README.txt" SelfReg="false" Sequence="14"/>
+    <ROW File="automata1.dll" Component_="automata1.dll" FileName="automa~1.dll|automata1.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\automata1.dll" SelfReg="false" Sequence="1"/>
+    <ROW File="inhibition.nln" Component_="inhibition.nln" FileName="inhibi~1.nln|inhibition.nln" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\inhibition.nln" SelfReg="false" Sequence="15"/>
+    <ROW File="inhibition.nnn" Component_="inhibition.nln" FileName="inhibi~1.nnn|inhibition.nnn" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\inhibition.nnn" SelfReg="false" Sequence="16"/>
+    <ROW File="items.nln" Component_="inhibition.nln" FileName="items.nln" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\items.nln" SelfReg="false" Sequence="17"/>
+    <ROW File="items.nnn" Component_="inhibition.nln" FileName="items.nnn" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\items.nnn" SelfReg="false" Sequence="18"/>
+    <ROW File="libgcc_s_dw2_1.dll" Component_="libgcc_s_dw2_1.dll" FileName="libgcc~1.dll|libgcc_s_dw2-1.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\libgcc_s_dw2-1.dll" SelfReg="false" Sequence="2"/>
+    <ROW File="link_learning.nln" Component_="inhibition.nln" FileName="link_l~1.nln|link_learning.nln" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\link_learning.nln" SelfReg="false" Sequence="19"/>
+    <ROW File="link_learning.nnn" Component_="inhibition.nln" FileName="link_l~1.nnn|link_learning.nnn" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\link_learning.nnn" SelfReg="false" Sequence="20"/>
+    <ROW File="mingwm10.dll" Component_="mingwm10.dll" FileName="mingwm10.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\mingwm10.dll" SelfReg="false" Sequence="6"/>
+    <ROW File="neurogui1.dll" Component_="neurogui1.dll" FileName="neurog~1.dll|neurogui1.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\neurogui1.dll" SelfReg="false" Sequence="7"/>
+    <ROW File="neurolab.exe" Component_="neurolab.exe" FileName="neurolab.exe" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\neurolab.exe" SelfReg="false" Sequence="8"/>
+    <ROW File="neurolib1.dll" Component_="neurolib1.dll" FileName="neurol~1.dll|neurolib1.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\neurolib1.dll" SelfReg="false" Sequence="9"/>
+    <ROW File="node_learning.nln" Component_="inhibition.nln" FileName="node_l~1.nln|node_learning.nln" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\node_learning.nln" SelfReg="false" Sequence="21"/>
+    <ROW File="node_learning.nnn" Component_="inhibition.nln" FileName="node_l~1.nnn|node_learning.nnn" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\samples\node_learning.nnn" SelfReg="false" Sequence="22"/>
+    <ROW File="qtpropertybrowser2.dll" Component_="qtpropertybrowser2.dll" FileName="qtprop~1.dll|qtpropertybrowser2.dll" Attributes="0" SourcePath="1.0.3-a33ddc2b1f7f\qtpropertybrowser2.dll" SelfReg="false" Sequence="12"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder="." PackageFileName="Neurocogling-NeuroLab-1.0.3-Win32-Installer" Languages="en" InstallationType="4"/>
+    <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
+    <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
+    <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
+    <ROW Fragment="FolderDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\FolderDlg.aip"/>
+    <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
+    <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
+    <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
+    <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
+    <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
+    <ROW Name="banner_image.jpg" SourcePath="&lt;AI_THEMES&gt;classic\resources\banner-image.jpg"/>
+    <ROW Name="dialog_image.jpg" SourcePath="&lt;AI_THEMES&gt;classic\resources\dialog-image.jpg"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
+    <ATTRIBUTE name="FixedSizeBitmaps" value="0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
+    <ROW Dialog_="FolderDlg" Control_="Back" Event="NewDialog" Argument="WelcomeDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="WelcomeDlg" Control_="Next" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="FolderDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_INSTALL" Ordering="3"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceWelcomeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control_="Next" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="2"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="PatchWelcomeDlg" Condition="AI_PATCH" Ordering="1"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="3"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
+    <ROW Directory_="SHORTCUTDIR" Component_="SHORTCUTDIR"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
+    <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\[ProductName]"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
+    <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
+    <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="Not Installed" Sequence="1501"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1399"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="51"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="51"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
+    <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsFamily9X]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
+    <ROW Shortcut="neurolab.exe" Directory_="SHORTCUTDIR" Name="neurolab.exe" Component_="neurolab.exe" Target="[#neurolab.exe]" Description="neurolab.exe" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
+    <ATTRIBUTE name="UsedTheme" value="classic"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMax="[|ProductVersion]" Attributes="1025" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+</DOCUMENT>

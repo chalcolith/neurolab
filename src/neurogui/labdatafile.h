@@ -44,7 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class QTableWidget;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class NeuroItem;
@@ -63,7 +63,7 @@ namespace NeuroLab
         QMap<NeuroItem *, int> _itemColumnIndices;
 
     public:
-        LabDataFile(LabNetwork *network, QTableWidget *table, QObject *parent = 0);
+        explicit LabDataFile(LabNetwork *network, QTableWidget *table, QObject *parent = 0);
         virtual ~LabDataFile();
 
         bool changed() const { return _changed; }

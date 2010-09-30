@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QGraphicsScene>
 #include <QStack>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabNetwork;
@@ -63,7 +63,7 @@ namespace NeuroLab
     public:
         /// Constructor.
         /// \param _network The LabNetwork to display.
-        LabScene(LabNetwork *_network);
+        explicit LabScene(LabNetwork *_network);
         virtual ~LabScene();
 
         /// \return The LabNetwork that this scene displays.
@@ -97,6 +97,6 @@ namespace NeuroLab
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABSCENE_H

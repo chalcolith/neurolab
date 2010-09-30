@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QFontMetrics>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NEUROITEM_DEFINE_CREATOR(NeuroTextItem, QObject::tr("Misc|Text Item"));
@@ -52,7 +52,7 @@ namespace NeuroLab
         _font_property(this, &NeuroTextItem::font, &NeuroTextItem::setFont, tr("Font"), tr("The font to use when displaying the text.")),
         _text_property(this, &NeuroTextItem::text, &NeuroTextItem::setText, tr("Text"), tr("The text to display."))
     {
-        this->_label_property.setEnabled(false);
+        this->_label_property.setEditable(false);
         this->_label_property.setVisible(false);
     }
 
@@ -99,11 +99,11 @@ namespace NeuroLab
     {
         NeuroItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_2)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_2)
         {
             ds >> _font;
             ds >> _text;
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

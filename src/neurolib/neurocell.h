@@ -37,11 +37,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "neurolib_global.h"
+#include "../automata/automaton.h"
+
 #include <QSet>
 #include <QDataStream>
-
-#include "../automata/automaton.h"
-#include "neurolib_global.h"
 
 namespace NeuroLib
 {
@@ -49,6 +49,7 @@ namespace NeuroLib
     class NeuroNet;
 
     /// Base class for elements of the neurocognitive network (nodes or links).
+    /// CANNOT be polymorphic, since the map algo takes an array of these...
     class NEUROLIBSHARED_EXPORT NeuroCell
     {
     public:
@@ -69,7 +70,10 @@ namespace NeuroLib
         /// The type used for real number values in the neural network.
         typedef float NeuroValue;
 
+        /// Used to count steps for oscillators.
         typedef quint16 NeuroStep;
+
+        typedef Automata::Automaton<NeuroCell, NeuroCell::NeuroIndex> NEURONET_BASE;
 
         /// Constructor.
         /// \param k The kind of cell.
@@ -122,7 +126,7 @@ namespace NeuroLib
         void setPhase(const NeuroStep & phase) { _phase_step[0] = phase; }
 
         const NeuroStep & step() const { return _phase_step[1]; }
-        void setStep(const NeuroStep & step) { _phase_step[1] = step; };
+        void setStep(const NeuroStep & step) { _phase_step[1] = step; }
 
         /// \return The current output value of the cell.
         /// \see NeuroCell::NeuroCell()
@@ -144,15 +148,14 @@ namespace NeuroLib
         /// Removes an input from the cell.
         void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
 
-        /// A functor providing the update operation for neural network cells.
-        struct Update
-        {
-            void operator() (Automata::Automaton<NeuroCell, NeuroCell::Update, NeuroCell::NeuroIndex> *neuronet,
-                             const NeuroIndex & index, const NeuroCell & prev, NeuroCell & next,
-                             const QVector<int> & neighbor_indices, const NeuroCell * const * const neighbors) const;
-        };
+        /// Update function.
+        void update(NEURONET_BASE *neuronet, const NeuroIndex & index, NeuroCell & next, 
+                    const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const;
 
+        /// Write to a data stream.
         void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
+
+        /// Read from a data stream.
         void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
 
     private:
@@ -172,7 +175,7 @@ namespace NeuroLib
         };
 
         NeuroValue _output_value;
-        NeuroValue _running_average;
+        NeuroValue _running_average; ///< The running average of output values.
     }; // class NeuroCell
 
 } // namespace NeuroLib

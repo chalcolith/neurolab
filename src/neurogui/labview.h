@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QGraphicsView>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabScene;
@@ -53,9 +53,10 @@ namespace NeuroLab
         Q_OBJECT
 
         int _zoom;
+        QTransform _transform;
 
     public:
-        LabView(LabScene *scene, QWidget *parent);
+        explicit LabView(LabScene *scene, QWidget *parent);
         virtual ~LabView();
 
         int zoom() const { return _zoom; }
@@ -67,6 +68,6 @@ namespace NeuroLab
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABVIEW_H

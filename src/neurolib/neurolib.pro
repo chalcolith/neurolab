@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT -= gui
 
 TARGET = neurolib
@@ -6,7 +7,6 @@ TEMPLATE = lib
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 }
 macx { CONFIG -= x86_64 }
-else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
@@ -18,8 +18,8 @@ HEADERS += neuronet.h \
     neurolib_global.h \
     neurocell.h
 
-release { BUILDDIR=release }
-debug { BUILDDIR=debug }
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }

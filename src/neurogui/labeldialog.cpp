@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labeldialog.h"
 #include "ui_labeldialog.h"
 
-namespace NeuroLab
+namespace NeuroGui
 {
     
     LabelDialog::LabelDialog(QWidget *parent) :

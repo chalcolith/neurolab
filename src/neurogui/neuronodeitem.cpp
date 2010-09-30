@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
+#include "subconnectionitem.h"
 #include "labnetwork.h"
 #include "labscene.h"
 
@@ -49,11 +50,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NeuroNodeItemBase::NeuroNodeItemBase(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNarrowItem(network, scenePos, context)
+        : NeuroNarrowItem(network, scenePos, context), MixinRemember(this)
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
         setRect(QRectF(-NODE_WIDTH/2, -NODE_WIDTH/2, NODE_WIDTH, NODE_WIDTH));
@@ -63,7 +64,7 @@ namespace NeuroLab
     {
     }
 
-    bool NeuroNodeItemBase::canCreateNewOnMe(const QString &typeName, const QPointF &) const
+    bool NeuroNodeItemBase::canCreateNewOnMe(const QString & typeName, const QPointF &) const
     {
         return typeName.indexOf("LinkItem") >= 0;
     }
@@ -71,7 +72,11 @@ namespace NeuroLab
     bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
         // can only be connected to by links
-        bool result = dynamic_cast<NeuroLinkItem *>(item);
+        bool result = dynamic_cast<NeuroLinkItem *>(item) != 0;
+
+        // or a subconnectionitem
+        result = result || dynamic_cast<SubConnectionItem *>(item) != 0;
+
         return result;
     }
 
@@ -80,27 +85,7 @@ namespace NeuroLab
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
         if (link)
         {
-            if (link->frontLinkTarget() == this && link->dragFront())
-                _incomingAttachments.remove(link);
-
-            if (link->backLinkTarget() == this && !link->dragFront())
-                _outgoingAttachments.remove(link);
-
-            // snap to node
-            QList<NeuroItem *> tempList, already;
-            tempList.append(link);
-            adjustLinksAux(tempList, already);
-
-            // get new pos and remember
-            QLineF l = link->line();
-            QVector2D front(l.p2());
-            QVector2D back(l.p1());
-            QVector2D center(scenePos());
-
-            if (link->frontLinkTarget() == this)
-                _incomingAttachments[link] = front - center;
-            if (link->backLinkTarget() == this)
-                _outgoingAttachments[link] = back - center;
+            MixinRemember::onAttachedBy(link);
         }
 
         NeuroNarrowItem::onAttachedBy(item);
@@ -108,87 +93,17 @@ namespace NeuroLab
 
     void NeuroNodeItemBase::adjustLinks()
     {
-        QList<NeuroItem *> alreadyAdjusted;
-
-        adjustLinksAux(incoming(), alreadyAdjusted);
-        adjustLinksAux(outgoing(), alreadyAdjusted);
+        MixinRemember::adjustLinks();
     }
 
-    void NeuroNodeItemBase::adjustLinksAux(const QList<NeuroItem *> & list, QList<NeuroItem *> & alreadyAdjusted)
+    void NeuroNodeItemBase::adjustLink(NeuroLinkItem *link, QList<NeuroLinkItem *> & alreadyAdjusted)
     {
-        LabScene *lab_scene = dynamic_cast<LabScene *>(scene());
-        if (!lab_scene)
-            return;
+        MixinRemember::adjustLink(link, alreadyAdjusted);
+    }
 
-        QVector2D center(scenePos());
-
-        for (QListIterator<NeuroItem *> ln(list); ln.hasNext(); )
-        {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ln.next());
-            if (link)
-            {
-                if (alreadyAdjusted.contains(link))
-                    continue;
-
-                bool frontLink = link->frontLinkTarget() == this;
-                bool backLink = link->backLinkTarget() == this;
-
-                bool rememberFront = _incomingAttachments.contains(link);
-                bool rememberBack = _outgoingAttachments.contains(link);
-
-                QVector2D front;
-                QVector2D back;
-
-                QVector2D mouse_pos(lab_scene->lastMousePos());
-                QVector2D toPos = (mouse_pos - center).normalized();
-                qreal len = NeuroNarrowItem::NODE_WIDTH/2 + 2;
-
-                if (frontLink)
-                {
-                    if (rememberFront)
-                    {
-                        front = _incomingAttachments[link];
-                    }
-                    else
-                    {
-                        front = toPos * len;
-                        _incomingAttachments[link] = front;
-                    }
-                }
-
-                if (backLink)
-                {
-                    if (rememberBack)
-                    {
-                        back = _outgoingAttachments[link];
-                    }
-                    else
-                    {
-                        back = toPos * len;
-                        _outgoingAttachments[link] = back;
-                    }
-                }
-
-                if (frontLink && backLink)
-                {
-                    QVector2D avg_dir = ((front + back) * 0.5).normalized();
-                    QPointF new_center = (center + avg_dir * (NeuroNarrowItem::NODE_WIDTH*2)).toPointF();
-                    QLineF new_line((back + center).toPointF(), (front + center).toPointF());
-
-                    link->setLine(new_line, &new_center);
-                }
-                else if (frontLink)
-                {
-                    link->setLine(link->line().p1(), (front + center).toPointF());
-                }
-                else if (backLink)
-                {
-                    link->setLine((back + center).toPointF(), link->line().p2());
-                }
-
-                alreadyAdjusted.append(link);
-            }
-        }
+    QVector2D NeuroNodeItemBase::getAttachPos(const QVector2D & dirTo)
+    {
+        return dirTo * (NeuroNarrowItem::NODE_WIDTH/2.0 + 2.0);
     }
 
     void NeuroNodeItemBase::postLoad()
@@ -232,13 +147,9 @@ namespace NeuroLab
     {
         NeuroNarrowItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        //if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             ds >> _rect;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
     }
 
@@ -258,7 +169,8 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
-            setCellIndex(index);
+            _cellIndices.clear();
+            _cellIndices.append(index);
         }
     }
 
@@ -268,13 +180,13 @@ namespace NeuroLab
 
     bool NeuroNodeItem::frozen() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().frozen() : false;
     }
 
     void NeuroNodeItem::setFrozen(const bool & frozen)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setFrozen(frozen);
@@ -284,13 +196,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroValue NeuroNodeItem::inputs() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().weight() : 0;
     }
 
     void NeuroNodeItem::setInputs(const NeuroLib::NeuroCell::NeuroValue & inputs)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setWeight(inputs);
@@ -300,13 +212,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroValue NeuroNodeItem::run() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().run() : 0;
     }
 
     void NeuroNodeItem::setRun(const NeuroLib::NeuroCell::NeuroValue & run)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setRun(run);
@@ -347,7 +259,7 @@ namespace NeuroLab
             NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
-                NeuroNet::ASYNC_STATE *cell = item->getCell();
+                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
 
                 if (cell)
                 {
@@ -362,7 +274,7 @@ namespace NeuroLab
                     cell->current().setOutputValue(val);
                     cell->former().setOutputValue(val);
 
-                    item->update();
+                    item->updateProperties();
                 }
             }
         }
@@ -378,7 +290,7 @@ namespace NeuroLab
             NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
-                NeuroNet::ASYNC_STATE *cell = item->getCell();
+                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
                 if (cell)
                 {
                     bool val = !cell->current().frozen();
@@ -386,7 +298,7 @@ namespace NeuroLab
                     cell->current().setFrozen(val);
                     cell->former().setFrozen(val);
 
-                    item->update();
+                    item->updateProperties();
                 }
             }
         }
@@ -418,7 +330,8 @@ namespace NeuroLab
         if (context == CREATE_UI)
         {
             NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
-            setCellIndex(index);
+            _cellIndices.clear();
+            _cellIndices.append(index);
         }
     }
 
@@ -428,13 +341,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroStep NeuroOscillatorItem::phase() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().phase() : 0;
     }
 
     void NeuroOscillatorItem::setPhase(const NeuroLib::NeuroCell::NeuroStep & phase)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setPhase(phase);
@@ -446,13 +359,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroStep NeuroOscillatorItem::peak() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().peak() : 0;
     }
 
     void NeuroOscillatorItem::setPeak(const NeuroLib::NeuroCell::NeuroStep & peak)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setPeak(peak);
@@ -464,13 +377,13 @@ namespace NeuroLab
 
     NeuroCell::NeuroStep NeuroOscillatorItem::gap() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().gap() : 0;
     }
 
     void NeuroOscillatorItem::setGap(const NeuroLib::NeuroCell::NeuroStep & gap)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setGap(gap);
@@ -482,7 +395,7 @@ namespace NeuroLab
 
     void NeuroOscillatorItem::reset()
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             cell->current().setStep(0);
@@ -499,11 +412,11 @@ namespace NeuroLab
         NeuroNarrowItem::addToShape(drawPath, texts);
         drawPath.addEllipse(rect());
 
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
         {
             texts.append(TextPathRec(QPointF(-8, 4), QString("%1/%2").arg(cell->current().peak()).arg(cell->current().gap())));
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

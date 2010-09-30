@@ -28,6 +28,7 @@ signals:
     void setStatus(const QString & status);
 
 private slots:
+    void on_actionReset_triggered();
     void on_actionStep_triggered();
     void on_actionStop_triggered();
     void on_actionStart_triggered();

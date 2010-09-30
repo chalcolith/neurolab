@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT += gui
 QT += svg
 
@@ -9,7 +10,6 @@ CONFIG += resources
 macx { CONFIG += lib_bundle }
 macx { CONFIG += x86 }
 macx { CONFIG -= x86_64 }
-else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
@@ -31,7 +31,12 @@ SOURCES += mainwindow.cpp \
     neuronarrowitem.cpp \
     neurotextitem.cpp \
     labdatafile.cpp \
-    aboutdialog.cpp
+    aboutdialog.cpp \
+    subnetworkitem.cpp \
+    subconnectionitem.cpp \
+    labexception.cpp \
+    mixinarrow.cpp \
+    mixinremember.cpp
 
 HEADERS += neurogui_global.h \
     mainwindow.h \
@@ -48,7 +53,12 @@ HEADERS += neurogui_global.h \
     neuronarrowitem.h \
     neurotextitem.h \
     labdatafile.h \
-    aboutdialog.h
+    aboutdialog.h \
+    subnetworkitem.h \
+    subconnectionitem.h \
+    labexception.h \
+    mixinarrow.h \
+    mixinremember.h \
 
 FORMS += mainwindow.ui \
     labeldialog.ui \
@@ -57,8 +67,8 @@ FORMS += mainwindow.ui \
 
 RESOURCES += neurogui.qrc
 
-release { BUILDDIR=release }
-debug { BUILDDIR=debug }
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }

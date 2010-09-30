@@ -45,7 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #  define NEUROGUISHARED_EXPORT Q_DECL_IMPORT
 #endif
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     struct NEUROGUISHARED_EXPORT NeuroLabFileVersion
@@ -58,9 +58,12 @@ namespace NeuroLab
         NEUROLAB_FILE_VERSION_OLD = 0,
         NEUROLAB_FILE_VERSION_1   = 1,
         NEUROLAB_FILE_VERSION_2   = 2,
+        NEUROLAB_FILE_VERSION_3   = 3,
+        NEUROLAB_FILE_VERSION_4   = 4,
+        NEUROLAB_FILE_VERSION_5   = 5,
         NEUROLAB_NUM_FILE_VERSIONS
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // NEUROGUI_GLOBAL_H

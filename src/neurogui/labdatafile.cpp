@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labdatafile.h"
 #include "labnetwork.h"
 #include "neuroitem.h"
-#include "mainwindow.h"
+#include "labexception.h"
 
 #include <QTableWidget>
 #include <QFileDialog>
@@ -46,7 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QDateTime>
 #include <QVariant>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     LabDataFile::LabDataFile(LabNetwork *network, QTableWidget *table, QObject *parent)
@@ -262,4 +262,4 @@ namespace NeuroLab
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

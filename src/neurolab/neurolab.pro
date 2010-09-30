@@ -1,3 +1,4 @@
+CONFIG += debug_and_release
 QT += gui
 QT += svg
 
@@ -6,7 +7,6 @@ TEMPLATE = app
 
 macx { CONFIG += x86 }
 macx { CONFIG -= x86_64 }
-else { QMAKE_CXXFLAGS += -Wno-type-limits }
 
 include(../version.txt)
 
@@ -14,8 +14,8 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 SOURCES += main.cpp
 
-release { BUILDDIR=release }
-debug { BUILDDIR=debug }
+CONFIG(release, debug|release) { BUILDDIR=release }
+CONFIG(debug, debug|release) { BUILDDIR=debug }
 
 DESTDIR = $$OUT_PWD/../$$BUILDDIR
 TEMPDIR = $$OUT_PWD/$$BUILDDIR

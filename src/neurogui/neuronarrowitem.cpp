@@ -46,15 +46,15 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
         _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue,
-                        tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
-        _cellIndex(-1)
+                        tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step."))
     {
+        _cellIndices.append(-1);
     }
 
     NeuroNarrowItem::~NeuroNarrowItem()
@@ -63,17 +63,28 @@ namespace NeuroLab
 
     NeuroCell::NeuroValue NeuroNarrowItem::outputValue() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         return cell ? cell->current().outputValue() : 0.0f;
     }
 
     void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell();
-        if (cell)
+        for (int i = 0; i < _cellIndices.size(); ++i)
         {
-            cell->current().setOutputValue(value);
-            cell->former().setOutputValue(value);
+            NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
+            if (cell)
+            {
+                if (i == _cellIndices.size() - 1)
+                {
+                    cell->current().setOutputValue(value);
+                    cell->former().setOutputValue(value);
+                }
+                else
+                {
+                    cell->current().setOutputValue(0);
+                    cell->former().setOutputValue(0);
+                }
+            }
         }
     }
 
@@ -83,14 +94,12 @@ namespace NeuroLab
             return false;
 
         NeuroNarrowItem *linkItem;
-
         if (NeuroItem::addIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
-            if (_cellIndex != -1 && linkItem->_cellIndex != -1)
-                network()->neuronet()->addEdge(_cellIndex, linkItem->_cellIndex);
+            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
+                network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.last());
             return true;
         }
-
         return false;
     }
 
@@ -100,11 +109,10 @@ namespace NeuroLab
             return false;
 
         NeuroNarrowItem *linkItem;
-
         if (NeuroItem::removeIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
-            if (_cellIndex != -1 && linkItem->_cellIndex != -1)
-                network()->neuronet()->removeEdge(_cellIndex, linkItem->_cellIndex);
+            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
+                network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.last());
             return true;
         }
 
@@ -115,11 +123,10 @@ namespace NeuroLab
     {
         NeuroItem::setPenProperties(pen);
 
-        const NeuroNet::ASYNC_STATE *cell = getCell();
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         if (cell)
         {
-            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->current().outputValue())), static_cast<qreal>(1));
-
+            qreal t = qBound(0.0f, qAbs(cell->current().outputValue()), 1.0f);
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
             if (cell->current().frozen())
@@ -129,20 +136,20 @@ namespace NeuroLab
         }
     }
 
-    const NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell() const
+    const NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const
     {
         if (!network() || !network()->neuronet())
             return 0;
 
-        return _cellIndex != -1 ? &((*network()->neuronet())[_cellIndex]) : 0;
+        return index != -1 ? &((*network()->neuronet())[index]) : 0;
     }
 
-    NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell()
+    NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index)
     {
         if (!network() || !network()->neuronet())
             return 0;
 
-        return _cellIndex != -1 ? &((*network()->neuronet())[_cellIndex]) : 0;
+        return index != -1 ? &((*network()->neuronet())[index]) : 0;
     }
 
     void NeuroNarrowItem::reset()
@@ -154,38 +161,57 @@ namespace NeuroLab
     void NeuroNarrowItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroItem::writeClipboard(ds, id_map);
-
-        //ds.setVersion(QDataStream::Qt_4_6);
-        // cell index is set by derived type constructor
     }
 
     void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroItem::readClipboard(ds, id_map);
-
-        //ds.setVersion(QDataStream::Qt_4_6);
-        // cell index is set by derived type constructor
     }
 
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
         NeuroItem::writeBinary(ds, file_version);
-        ds << static_cast<qint32>(_cellIndex);
+
+        quint16 num_indices = static_cast<quint16>(_cellIndices.size());
+        ds << num_indices;
+        for (quint16 i = 0; i < num_indices; ++i)
+        {
+            ds << static_cast<qint32>(_cellIndices[i]);
+        }
     }
 
     void NeuroNarrowItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
         NeuroItem::readBinary(ds, file_version);
 
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_4)
         {
-            qint32 n;
-            ds >> n; _cellIndex = static_cast<NeuroCell::NeuroIndex>(n);
+            quint16 num_indices;
+            ds >> num_indices;
+
+            _cellIndices.clear();
+            if (num_indices > 0)
+            {
+                for (quint16 i = 0; i < num_indices; ++i)
+                {
+                    qint32 n;
+                    ds >> n;
+                    _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
+                }
+            }
+            else
+            {
+                _cellIndices.append(-1);
+            }
         }
         else
         {
-            throw new Automata::FileFormatError();
+            qint32 n;
+            ds >> n;
+
+            _cellIndices.clear();
+            _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

@@ -38,14 +38,18 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
+#include "neuroitem.h"
 
+#include <QObject>
 #include <QList>
+#include <QMap>
 
 class QDataStream;
 class QWidget;
 class QGraphicsItem;
+class QAction;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabScene;
@@ -55,9 +59,11 @@ namespace NeuroLab
 
     /// A node in the hierarchy of scenes.
     class NEUROGUISHARED_EXPORT LabTreeNode
+        : public QObject
     {
+        Q_OBJECT
+
         quint32 _id;
-        static quint32 NEXT_ID;
 
         LabTree *_tree;
         LabTreeNode *_parent;
@@ -65,19 +71,34 @@ namespace NeuroLab
         LabScene *_scene;
         LabView *_view;
 
+        QString _label;
         QList<LabTreeNode *> _children;
+
+        QAction *_currentAction;
 
     public:
         /// Constructor.
-        LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
-        LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
+        explicit LabTreeNode(LabTree *tree, LabTreeNode *parent = 0);
+        explicit LabTreeNode(LabScene *scene, LabView *view, LabTree *tree, LabTreeNode *parent = 0);
         virtual ~LabTreeNode();
 
         quint32 id() const { return _id; }
 
+        QString label() const;
+        void setLabel(const QString &);
+
         LabScene *scene() { return _scene; }
         LabView *view() { return _view; }
+
+        LabTree *tree() { return _tree; }
+        LabTreeNode *parent() { return _parent; }
         QList<LabTreeNode *> & children() { return _children; }
+
+        QAction *currentAction() { return _currentAction; }
+        void setCurrentAction(QAction *action);
+
+        /// Creates a new child node in the network.
+        LabTreeNode *createChild(const QString & label = QString());
 
         /// Resets all the items in the scene.
         void reset();
@@ -87,13 +108,27 @@ namespace NeuroLab
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+        void postLoad();
+
+    signals:
+        void labelChanged(const QString &);
+        void nodeSelected(LabTreeNode *);
+
+    public slots:
+        void actionDestroyed(QObject *obj = 0);
+        void actionTriggered(bool checked = true);
     };
 
 
     /// Encapsulates the hierarchy of scenes.  A NeuroItem may contain a subnetwork within it, whose scene can be opened
     /// by double-clicking.  The lab tree encapsulates this.
     class NEUROGUISHARED_EXPORT LabTree
+        : public QObject
     {
+        Q_OBJECT
+
+        quint32 NEXT_ID;
+
         QWidget *_parent;
 
         LabNetwork *_network;
@@ -104,7 +139,7 @@ namespace NeuroLab
 
     public:
         /// Constructor.
-        LabTree(QWidget *_parent, LabNetwork *_network);
+        explicit LabTree(QWidget *_parent, LabNetwork *_network);
         virtual ~LabTree();
 
         /// \return The tree's network object.
@@ -115,7 +150,7 @@ namespace NeuroLab
 
         /// \return The current node whose scene is being displayed.
         LabTreeNode *current() { return _current; }
-        void setCurrent(LabTreeNode *node) { _current = node; }
+        void setCurrent(LabTreeNode *node) { if (node) _current = node; }
 
         /// \return The current node's scene.
         LabScene *scene() { return _current ? _current->scene() : 0; }
@@ -134,10 +169,13 @@ namespace NeuroLab
         /// \param all Update all the scenes, not just the current one.
         void updateItemProperties(LabTreeNode *n = 0, bool all = false);
 
+        LabTreeNode *findSubNetwork(const quint32 & id);
+        LabTreeNode *newSubNetwork();
+
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABTREE_H

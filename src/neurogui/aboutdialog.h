@@ -7,7 +7,7 @@ namespace Ui {
     class AboutDialog;
 }
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class AboutDialog
@@ -15,7 +15,7 @@ namespace NeuroLab
     {
         Q_OBJECT
     public:
-        AboutDialog(QWidget *parent = 0);
+        explicit AboutDialog(QWidget *parent = 0);
         ~AboutDialog();
 
         void setLabel(const QString &);

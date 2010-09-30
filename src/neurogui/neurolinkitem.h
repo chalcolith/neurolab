@@ -39,51 +39,36 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "neuronarrowitem.h"
+#include "mixinarrow.h"
 
 #include <QVector2D>
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     /// A link item that represents a one-directional link in Narrow notation.
     class NEUROGUISHARED_EXPORT NeuroLinkItem
-        : public NeuroNarrowItem
+        : public NeuroNarrowItem, public MixinArrow
     {
         Q_OBJECT
 
-        Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
-
     protected:
-        QLineF _line;
-        mutable QVector2D c1, c2;
-
-        NeuroItem *_frontLinkTarget, *_backLinkTarget;
-        bool _dragFront, _settingLine;
+        Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+        Property<NeuroLinkItem, QVariant::Int, int, int> _length_property;
 
     public:
         /// Constructor.
         /// \param network The network this item is a part of.
         /// \param scenePos The scene position at which to create the item.
         /// \param context The context in which the item is being created.
-        NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroLinkItem();
 
         NeuroLib::NeuroCell::NeuroValue weight() const;
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
 
-        /// The link's back (\c p0) and front (\c p1) position, in scene coordinates.
-        QLineF line() const;
-
-        /// Sets the link's back (\c p1) and front (\c p2) positions.
-        /// You can also specify a center point.
-        void setLine(const QLineF & l, const QPointF * c = 0);
-        /// Sets the link's back (\c p1) and front (\c p2) positions.
-        void setLine(const qreal & x1, const qreal & y1, const qreal & x2, const qreal & y2);
-        /// Sets the link's back (\c p1) and front (\c p2) positions.
-        void setLine(const QPointF & p1, const QPointF & p2);
-
-        /// If the link is being moved, returns whether or not the front end of the node is being dragged.
-        bool dragFront() const { return _dragFront; }
+        int length() const { return _cellIndices.size(); }
+        void setLength(const int & value);
 
         /// Adds an incoming item.  Overrides the default to create an edge in the neural network.
         virtual bool addIncoming(NeuroItem *linkItem);
@@ -92,24 +77,6 @@ namespace NeuroLab
 
         virtual bool addOutgoing(NeuroItem *linkItem);
         virtual bool removeOutgoing(NeuroItem *linkItem);
-
-        /// The item that the front of the link is currently attached to.
-        /// \see line()
-        /// \see setFrontLinkTarget()
-        NeuroItem *frontLinkTarget() { return _frontLinkTarget; }
-        /// Sets the item that the front of the link is currently attached to.
-        /// \see line()
-        /// \see frontLinkTarget()
-        void setFrontLinkTarget(NeuroItem *linkTarget);
-
-        /// The item that the back of the link is currently attached to.
-        /// \see line()
-        /// \see setBackLinkTarget()
-        NeuroItem *backLinkTarget() { return _backLinkTarget; }
-        /// Sets the item that the back of the link is currently attached to.
-        /// \see line()
-        /// \see backLinkTarget()
-        void setBackLinkTarget(NeuroItem *linkTarget);
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
@@ -131,14 +98,13 @@ namespace NeuroLab
         /// Adds the link's shape to the drawing painter path.
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
-
         virtual void setPenProperties(QPen & pen) const;
-        virtual void setBrushProperties(QBrush & brush) const;
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
-        virtual void idsToPointers(QGraphicsScene *);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+
+        virtual void addNewCell() = 0;
     };
 
 
@@ -150,7 +116,7 @@ namespace NeuroLab
         NEUROITEM_DECLARE_CREATOR
 
     public:
-        NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroExcitoryLinkItem();
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
@@ -159,6 +125,7 @@ namespace NeuroLab
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void addNewCell();
     };
 
 
@@ -170,15 +137,16 @@ namespace NeuroLab
         NEUROITEM_DECLARE_CREATOR
 
     public:
-        NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroInhibitoryLinkItem();
 
         virtual QString uiName() const { return tr("Inhibitory Link"); }
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void addNewCell();
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // NEUROLINKITEM_H

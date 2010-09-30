@@ -38,25 +38,26 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurogui_global.h"
-#include "propertyobj.h"
-#include "../neurolib/neurocell.h"
+#include "neuroitem.h"
+#include "../neurolib/neuronet.h"
 
 #include <QObject>
 #include <QVariant>
 #include <QFutureWatcher>
 #include <QTime>
 #include <QList>
+#include <QMap>
 
 class QGraphicsItem;
 class QtVariantProperty;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     class LabScene;
     class LabView;
     class LabTree;
-    class NeuroItem;
+    class LabTreeNode;
 
     /// Contains information for working with a NeuroLib::NeuroNet in the GUI.
     class NEUROGUISHARED_EXPORT LabNetwork
@@ -66,6 +67,7 @@ namespace NeuroLab
 
         LabTree *_tree;
         NeuroLib::NeuroNet *_neuronet;
+        QMap<NeuroItem::IdType, NeuroItem *> _idMap; ///< Maps Ids to pointers.
 
         bool _running;
 
@@ -73,6 +75,7 @@ namespace NeuroLab
         QString _fname;
 
         Property<LabNetwork, QVariant::String, QString, QString> _filename_property;
+        Property<LabNetwork, QVariant::String, QString, QString> _label_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _decay_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _link_learn_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_learn_property;
@@ -84,7 +87,7 @@ namespace NeuroLab
         QTime _step_time;
 
     public:
-        LabNetwork(QWidget *parent = 0);
+        explicit LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
 
         /// \return Whether or not the network is currently running.
@@ -96,13 +99,23 @@ namespace NeuroLab
         /// Sets the dirty state of the network.
         void setChanged(bool changed = true);
 
+        /// \return The current subnetwork node.
+        LabTreeNode *treeNode();
+
+        /// Sets the current subnetwork node.
+        void setTreeNode(LabTreeNode *);
+
         /// \return The currently active graphics scene.
         LabScene *scene();
 
-        QList<QGraphicsItem *> items() const;
-
         /// \return The currently active graphics view.
         LabView *view();
+
+        /// \return Items in the network, including all sub-networks.
+        QList<QGraphicsItem *> items() const;
+
+        /// \return Map of item ids to pointers.
+        QMap<NeuroItem::IdType, NeuroItem *> & idMap() { return _idMap; }
 
         /// \return A pointer to the neural network automaton.
         const NeuroLib::NeuroNet *neuronet() const { return _neuronet; }
@@ -115,6 +128,9 @@ namespace NeuroLab
         QString fname() const;
 
         virtual QString uiName() const { return tr("Network"); }
+
+        QString subNetworkLabel() const;
+        void setSubNetworkLabel(const QString & label);
 
         NeuroLib::NeuroCell::NeuroValue decay() const;
         void setDecay(const NeuroLib::NeuroCell::NeuroValue &);
@@ -134,6 +150,9 @@ namespace NeuroLab
         static LabNetwork *open(const QString & fname = QString());
 
         bool canPaste() const;
+
+        LabTreeNode *findSubNetwork(const quint32 & id);
+        LabTreeNode *newSubNetwork();
 
     public slots:
         bool save(bool saveAs = false);
@@ -172,12 +191,11 @@ namespace NeuroLab
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
-        void valuesChanged();
         void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);
         void stepProgressValueChanged(int value);
     };
 
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // LABNETWORK_H

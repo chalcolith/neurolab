@@ -61,11 +61,13 @@ namespace Ui
 }
 
 /// GUI code.
-namespace NeuroLab
+namespace NeuroGui
 {
 
     extern NEUROGUISHARED_EXPORT const QString VERSION;
 
+    class LabTree;
+    class LabTreeNode;
     class LabNetwork;
     class LabDataFile;
     class NeuroItem;
@@ -90,6 +92,9 @@ namespace NeuroLab
         QAction *_numStepsSpinBoxAction;
         QProgressBar *_stepProgressBar;
 
+        QToolBar *_breadCrumbBar;
+        QList<LabTreeNode *> _breadCrumbs;
+
         LabNetwork *_currentNetwork; ///< The current network being viewed/edited.
         LabDataFile *_currentDataFile; ///< The current data file.
 
@@ -108,7 +113,7 @@ namespace NeuroLab
         /// \param parent Parent widget (should normally be 0).
         /// \param title Title of the window.
         /// \param initialFname Initial filename to load.
-        MainWindow(QWidget *parent, const QString & title, const QString & initialFname = QString());
+        explicit MainWindow(QWidget *parent, const QString & title, const QString & initialFname = QString());
         ~MainWindow();
 
         /// \return A pointer to the singleton instance of the main window.
@@ -116,6 +121,8 @@ namespace NeuroLab
 
         /// \return A pointer to the main window's UI object.
         Ui::MainWindow *ui() { return _ui; }
+
+        LabNetwork *currentNetwork() { return _currentNetwork; }
 
         /// \return A pointer to the property editor widget.
         QtTreePropertyBrowser *propertyEditor() { return _propertyEditor; }
@@ -137,6 +144,9 @@ namespace NeuroLab
         void setProgressValue(int value);
 
         void setActionsEnabled(bool enabled = true);
+
+        /// Sets the active subnetwork node.
+        void setSubNetwork(LabTreeNode *treeNode);
 
         /// Sets the objects whose properties are displayed in the property widget.
         void setPropertyObjects(const QList<PropertyObject *> & property_objects);
@@ -210,14 +220,6 @@ namespace NeuroLab
         void on_action_Zoom_In_triggered();
     };
 
-    /// Base class for exceptions used by the NeuroLab software.
-    class LabException
-        : public Automata::Exception
-    {
-    public:
-        LabException(const QString & message) : Automata::Exception(message) {}
-    };
-
-} // namespace NeuroLab
+} // namespace NeuroGui
 
 #endif // MAINWINDOW_H

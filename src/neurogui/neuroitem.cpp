@@ -35,12 +35,12 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuroitem.h"
-#include "mainwindow.h"
+#include "labexception.h"
 #include "neurolinkitem.h"
 #include "labscene.h"
 #include "labnetwork.h"
+#include "mainwindow.h"
 
-#include "../automata/exception.h"
 #include "../neurolib/neuronet.h"
 #include "../neurolib/neurocell.h"
 
@@ -55,7 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace NeuroLib;
 
-namespace NeuroLab
+namespace NeuroGui
 {
 
     const QColor NeuroItem::NORMAL_LINE_COLOR = Qt::black;
@@ -63,7 +63,7 @@ namespace NeuroLab
     const QColor NeuroItem::BACKGROUND_COLOR = Qt::white;
     const QColor NeuroItem::ACTIVE_COLOR = Qt::red;
 
-    const int NeuroItem::NORMAL_LINE_WIDTH = 1;
+    const int NeuroItem::NORMAL_LINE_WIDTH = 0;
     const int NeuroItem::HOVER_LINE_WIDTH = 3;
 
     const int NeuroItem::NODE_WIDTH = 30;
@@ -203,6 +203,12 @@ namespace NeuroLab
             if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
                 continue;
 
+#ifndef DEBUG
+            // don't add debug classes
+            if (friendlyName.startsWith("Debug"))
+                continue;
+#endif
+
             // get menu text and create function
             const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
             const QStringList menuPath = p.first.split('|');
@@ -260,7 +266,7 @@ namespace NeuroLab
         paste->setEnabled(scene->network()->canPaste());
 
         QAction *del = menu.addAction(tr("Delete"), scene->network(), SLOT(deleteSelected()), QKeySequence(QKeySequence::Delete));
-        del->setEnabled(scene->selectedItems().size() > 0);
+        del->setEnabled(scene->selectedItems().size() > 0 || scene->itemUnderMouse());
     }
 
     void NeuroItem::setChanged(bool changed)
@@ -482,13 +488,12 @@ namespace NeuroLab
 
     bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
-        bool result = !_incoming.contains(item) && !_outgoing.contains(item);
-        return result;
+        return false;
     }
 
     bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        return !_incoming.contains(item) && !_outgoing.contains(item);
+        return false;
     }
 
     QVariant NeuroItem::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -513,7 +518,7 @@ namespace NeuroLab
             break;
         }
 
-        return value;
+        return QGraphicsItem::itemChange(change, value);
     }
 
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
@@ -542,12 +547,15 @@ namespace NeuroLab
         }
 
         // attach, if possible
-        if (itemAtPos && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+        if (itemAtPos)
         {
-            attachTo(itemAtPos);
-            itemAtPos->onAttachedBy(this);
+            if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+            {
+                attachTo(itemAtPos);
+                itemAtPos->onAttachedBy(this);
 
-            movePos = scenePos();
+                movePos = scenePos();
+            }
         }
 
         adjustLinks();
@@ -612,7 +620,7 @@ namespace NeuroLab
 
     void NeuroItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
         {
             QPointF p;
             ds >> p;
@@ -621,7 +629,7 @@ namespace NeuroLab
             ds >> _label;
             ds >> _id;
         }
-        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             QPointF p;
             ds >> p;
@@ -632,10 +640,6 @@ namespace NeuroLab
             qint64 n;
             ds >> n;
             _id = n;
-        }
-        else
-        {
-            throw new Automata::FileFormatError();
         }
 
         if (_id >= NEXT_ID)
@@ -670,7 +674,7 @@ namespace NeuroLab
 
     void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
         {
             qint32 n;
 
@@ -700,7 +704,7 @@ namespace NeuroLab
                 }
             }
         }
-        else if (file_version.neurolab_version >= NeuroLab::NEUROLAB_FILE_VERSION_OLD)
+        else // if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_OLD)
         {
             qint32 n;
 
@@ -732,41 +736,30 @@ namespace NeuroLab
                 }
             }
         }
-        else
-        {
-            throw new Automata::FileFormatError();
-        }
     }
 
-    void NeuroItem::idsToPointers(QGraphicsScene *sc)
+    void NeuroItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        idsToPointersAux(_incoming, sc);
-        idsToPointersAux(_outgoing, sc);
+        idsToPointersAux(_incoming, idMap);
+        idsToPointersAux(_outgoing, idMap);
     }
 
-    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, QGraphicsScene *sc)
+    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        QList<QGraphicsItem *> items = sc->items();
-
         for (QMutableListIterator<NeuroItem *> in(list); in.hasNext(); in.next())
         {
-            bool found = false;
-            IdType id = reinterpret_cast<IdType>(in.peekNext());
+            IdType wanted_id = reinterpret_cast<IdType>(in.peekNext());
+            NeuroItem *wanted_item = idMap[wanted_id];
 
-            for (QListIterator<QGraphicsItem *> i(items); i.hasNext(); )
+            if (wanted_item)
             {
-                NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
-                if (item && item->_id == id)
-                {
-                    in.peekNext() = item;
-                    found = true;
-                    break;
-                }
+                in.peekNext() = wanted_item;
             }
-
-            if (!found)
-                throw Automata::Exception(QObject::tr("Dangling node ID %1").arg(id));
+            else
+            {
+                throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
+            }
         }
     }
 
-} // namespace NeuroLab
+} // namespace NeuroGui

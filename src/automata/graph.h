@@ -38,8 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QVector>
-#include <QHash>
 #include <QDataStream>
+#include <QReadWriteLock>
 
 #include "exception.h"
 
@@ -57,6 +57,10 @@ namespace Automata
 
         QVector<TNode> _nodes;
         QVector< QVector<TIndex> > _edges;
+        QList<TIndex> _free_nodes;
+
+        QReadWriteLock _nodes_lock;
+        QReadWriteLock _edges_lock;
 
     public:
         /// Constructor.
@@ -78,20 +82,62 @@ namespace Automata
         /// \return The index of the newly-created node.
         TIndex addNode(const TNode & node)
         {
-            TIndex index = _nodes.size();
+            QWriteLocker nwl(&_nodes_lock);
+            QWriteLocker ewl(&_edges_lock);
 
-            _nodes.append(node);
-            _edges.append(QVector<TIndex>());
+            TIndex index;
+
+            if (_free_nodes.size() > 0)
+            {
+                index = _free_nodes.last();
+                _free_nodes.removeAt(_free_nodes.size() - 1);
+
+                _nodes[index] = node;
+            }
+            else
+            {
+                index = _nodes.size();
+
+                _nodes.append(node);
+                _edges.append(QVector<TIndex>());
+            }
 
             return index;
         }
-        
+
+        /// Removes a node from the graph.
+        /// \note This can be quite expensive in a large graph.
+        void removeNode(const TIndex & index)
+        {
+            QWriteLocker nwl(&_nodes_lock);
+            QWriteLocker ewl(&_edges_lock);
+
+            if (index < _edges.size())
+            {
+                _edges[index].clear();
+                for (TIndex i = 0; i < _nodes.size(); ++i)
+                {
+                    int ii = _edges[i].indexOf(index);
+
+                    if (ii != -1)
+                        _edges[i].remove(ii);
+                }
+                _free_nodes.append(index);
+            }
+            else
+            {
+                throw IndexOverflow();
+            }
+        }
+
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
         /// \see Graph::removeEdge()
         void addEdge(const TIndex & from, const TIndex & to)
         {
+            QWriteLocker ewl(&_edges_lock);
+
             if (from < _edges.size())
             {
                 QVector<TIndex> & outgoing = _edges[from];
@@ -126,6 +172,8 @@ namespace Automata
         /// \see Graph::addEdge()
         void removeEdge(const TIndex & from, const TIndex & to)
         {
+            QWriteLocker eql(&_edges_lock);
+
             if (from < _edges.size())
             {
                 QVector<TIndex> & outgoing = _edges[from];
@@ -188,7 +236,7 @@ namespace Automata
         {
             if (index < _nodes.size())
             {
-                const QVector<TIndex> & nbrs = _edges[index];
+                const QList<TIndex> & nbrs = _edges[index];
                 num = nbrs.size();
                 return nbrs.data();
             }
@@ -215,6 +263,16 @@ namespace Automata
 
             // edges
             ds << _edges;
+
+            // free nodes
+            num = static_cast<quint32>(_free_nodes.size());
+            ds << num;
+
+            for (quint32 i = 0; i < num; ++i)
+            {
+                quint32 index = static_cast<quint32>(_free_nodes[i]);
+                ds << index;
+            }
         }
 
         /// Reads the graph's data.  Should be called by derived classes' implementations.
@@ -227,8 +285,8 @@ namespace Automata
                 // nodes
                 quint32 num;
                 ds >> num;
-                _nodes.resize(num);
 
+                _nodes.resize(num);
                 for (quint32 i = 0; i < num; ++i)
                 {
                     _nodes[i].readBinary(ds, file_version);
@@ -236,8 +294,22 @@ namespace Automata
 
                 // edges
                 ds >> _edges;
+
+                if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_2)
+                {
+                    ds >> num;
+
+                    _free_nodes.clear();
+                    for (quint32 i = 0; i < num; ++i)
+                    {
+                        quint32 index;
+                        ds >> index;
+
+                        _free_nodes.append(static_cast<TIndex>(index));
+                    }
+                }
             }
-            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
+            else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {
                 int version;
                 ds >> version;
@@ -246,10 +318,6 @@ namespace Automata
                 ds >> this->_directed;
                 ds >> this->_nodes;
                 ds >> this->_edges;
-            }
-            else
-            {
-                throw new FileFormatError();
             }
         }
     };
