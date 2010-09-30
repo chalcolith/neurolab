@@ -55,9 +55,6 @@ namespace GridItems
 
         virtual QString uiName() const { return tr("Test Grid"); }
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
-
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };

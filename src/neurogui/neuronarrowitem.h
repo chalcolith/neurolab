@@ -61,6 +61,8 @@ namespace NeuroGui
 
         virtual QString dataValue() const { return QString::number(outputValue()); }
 
+        QList<NeuroLib::NeuroCell::NeuroIndex> & cellIndices() { return _cellIndices; }
+
         virtual NeuroLib::NeuroCell::NeuroValue outputValue() const;
         virtual void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
 

@@ -52,7 +52,9 @@ namespace NeuroGui
     {
         Q_OBJECT
 
+    protected:
         Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+        Property<NeuroLinkItem, QVariant::Int, int, int> _length_property;
 
     public:
         /// Constructor.
@@ -64,6 +66,9 @@ namespace NeuroGui
 
         NeuroLib::NeuroCell::NeuroValue weight() const;
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
+
+        int length() const { return _cellIndices.size(); }
+        void setLength(const int & value);
 
         /// Adds an incoming item.  Overrides the default to create an edge in the neural network.
         virtual bool addIncoming(NeuroItem *linkItem);
@@ -93,14 +98,14 @@ namespace NeuroGui
         /// Adds the link's shape to the drawing painter path.
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
-
         virtual void setPenProperties(QPen & pen) const;
         virtual void setBrushProperties(QBrush & brush) const;
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+
+        virtual void addNewCell() = 0;
     };
 
 
@@ -121,6 +126,7 @@ namespace NeuroGui
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void addNewCell();
     };
 
 
@@ -139,6 +145,7 @@ namespace NeuroGui
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void addNewCell();
     };
 
 } // namespace NeuroGui

@@ -54,16 +54,6 @@ namespace GridItems
     {
     }
 
-    bool NeuroGridItem::canAttachTo(const QPointF &, NeuroItem *)
-    {
-        return false;
-    }
-
-    bool NeuroGridItem::canBeAttachedBy(const QPointF &, NeuroItem *)
-    {
-        return false;
-    }
-
     void NeuroGridItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroItem::addToShape(drawPath, texts);

@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
+#include "subconnectionitem.h"
 #include "labnetwork.h"
 #include "labscene.h"
 
@@ -63,7 +64,7 @@ namespace NeuroGui
     {
     }
 
-    bool NeuroNodeItemBase::canCreateNewOnMe(const QString &typeName, const QPointF &) const
+    bool NeuroNodeItemBase::canCreateNewOnMe(const QString & typeName, const QPointF &) const
     {
         return typeName.indexOf("LinkItem") >= 0;
     }
@@ -72,6 +73,10 @@ namespace NeuroGui
     {
         // can only be connected to by links
         bool result = dynamic_cast<NeuroLinkItem *>(item) != 0;
+
+        // or a subconnectionitem
+        result = result || dynamic_cast<SubConnectionItem *>(item) != 0;
+
         return result;
     }
 

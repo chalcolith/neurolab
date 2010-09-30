@@ -488,13 +488,12 @@ namespace NeuroGui
 
     bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
-        bool result = !_incoming.contains(item) && !_outgoing.contains(item);
-        return result;
+        return false;
     }
 
     bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        return !_incoming.contains(item) && !_outgoing.contains(item);
+        return false;
     }
 
     QVariant NeuroItem::itemChange(GraphicsItemChange change, const QVariant & value)

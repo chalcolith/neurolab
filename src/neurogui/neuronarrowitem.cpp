@@ -63,13 +63,13 @@ namespace NeuroGui
 
     NeuroCell::NeuroValue NeuroNarrowItem::outputValue() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         return cell ? cell->current().outputValue() : 0.0f;
     }
 
     void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         if (cell)
         {
             cell->current().setOutputValue(value);
@@ -85,8 +85,8 @@ namespace NeuroGui
         NeuroNarrowItem *linkItem = dynamic_cast<NeuroNarrowItem *>(item);
         if (NeuroItem::addIncoming(item) && linkItem)
         {
-            if (_cellIndices.first() != -1 && linkItem->_cellIndices.first() != -1)
-                network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.first());
+            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
+                network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.last());
             return true;
         }
         return false;
@@ -101,8 +101,8 @@ namespace NeuroGui
 
         if (NeuroItem::removeIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
-            if (_cellIndices.first() != -1 && linkItem->_cellIndices.first() != -1)
-                network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.first());
+            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
+                network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.last());
             return true;
         }
 

@@ -1,6 +1,10 @@
 @echo off
 
-if exist makedist.bat cd ..
+set OLDDIR=%CD%
+if "%CD:~-3%"=="ils" cd ..
+if "%CD:~-3%"=="cog" cd src
+if errorlevel 1 goto done
+
 if not exist utils goto wrongdir
 if ERRORLEVEL 1 goto error
 
@@ -12,7 +16,7 @@ goto build
 :help
 echo usage: makedist.bat [-bump]
 echo  -bump: increment version number and tag mercurial repository
-goto :EOF
+goto done
 
 REM ------------------------------------------------------------------
 REM Build settings
@@ -135,6 +139,8 @@ if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM Done
+:done
+cd %OLDDIR%
 goto :EOF
 
 REM ------------------------------------------------------------------
@@ -233,6 +239,7 @@ goto error
 
 :error
 popd
+cd %OLDDIR%
 echo Aborted!
 exit /b 1
 goto :EOF

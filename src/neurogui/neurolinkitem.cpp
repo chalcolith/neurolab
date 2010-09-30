@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurolinkitem.h"
+#include "subconnectionitem.h"
 #include "labnetwork.h"
 #include "labscene.h"
 #include "mainwindow.h"
@@ -61,7 +62,9 @@ namespace NeuroGui
     NeuroLinkItem::NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNarrowItem(network, scenePos, context), MixinArrow(this),
         _weight_property(this, &NeuroLinkItem::weight, &NeuroLinkItem::setWeight,
-                         tr("Weight"), tr("The output weight of the link."))
+                         tr("Weight"), tr("The output weight of the link.")),
+        _length_property(this, &NeuroLinkItem::length, &NeuroLinkItem::setLength,
+                         tr("Length"), tr("The number of timesteps for a signal to propagate through this link."))
     {
         Q_ASSERT(network != 0);
     }
@@ -78,11 +81,82 @@ namespace NeuroGui
 
     void NeuroLinkItem::setWeight(const NeuroLib::NeuroCell::NeuroValue & value)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
-        if (cell)
+        for (int i = 0; i < _cellIndices.size(); ++i)
         {
-            cell->current().setWeight(value);
-            cell->former().setWeight(value);
+            NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
+            if (cell)
+            {
+                if (i == 0)
+                {
+                    cell->current().setWeight(value);
+                    cell->former().setWeight(value);
+                }
+                else
+                {
+                    cell->current().setWeight(1);
+                    cell->former().setWeight(1);
+                }
+            }
+        }
+    }
+
+    void NeuroLinkItem::setLength(const int & value)
+    {
+        if (!network() || !network()->neuronet())
+            return;
+        NeuroLib::NeuroNet *neuronet = network()->neuronet();
+
+        int newLength = value;
+        if (newLength < 1)
+            newLength = 1;
+
+        if (newLength == _cellIndices.size())
+            return;
+
+        // add or delete cells from the automaton as necessary
+        QList<NeuroCell::NeuroIndex> cellsToDelete;
+        NeuroCell::NeuroIndex oldLastIndex = _cellIndices.last();
+
+        if (newLength > _cellIndices.size())
+        {
+            while (_cellIndices.size() < newLength)
+            {
+                NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
+                addNewCell();
+
+                NeuroCell::NeuroIndex newIndex = _cellIndices.last();
+                neuronet->addEdge(newIndex, lastIndex);
+            }
+        }
+        else if (newLength < _cellIndices.size())
+        {
+            while (_cellIndices.size() > newLength)
+            {
+                NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
+                cellsToDelete.append(lastIndex);
+                _cellIndices.removeAt(_cellIndices.size()-1);
+
+                NeuroCell::NeuroIndex newIndex = _cellIndices.last();
+                neuronet->removeEdge(lastIndex, newIndex);
+            }
+        }
+
+        // now adjust the neighbors of our front target to reflect the new last cell
+        NeuroCell::NeuroIndex newLastIndex = _cellIndices.last();
+        NeuroNarrowItem *front = dynamic_cast<NeuroNarrowItem *>(_frontLinkTarget);
+        if (front && newLastIndex != oldLastIndex)
+        {
+            NeuroCell::NeuroIndex frontIndex = front->cellIndices().first();
+
+            // remember, the neighbors of a cell are its inputs
+            neuronet->removeEdge(frontIndex, oldLastIndex);
+            neuronet->addEdge(frontIndex, newLastIndex);
+        }
+
+        // delete the unused cells
+        for (QListIterator<NeuroCell::NeuroIndex> i(cellsToDelete); i.hasNext(); )
+        {
+            neuronet->removeNode(i.next());
         }
     }
 
@@ -120,7 +194,7 @@ namespace NeuroGui
     {
         NeuroNarrowItem::setPenProperties(pen);
 
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         if (cell)
         {
             qreal weight = qBound(0.1f, qAbs(cell->current().weight()), 1.0f);
@@ -152,6 +226,7 @@ namespace NeuroGui
         if (dynamic_cast<NeuroLinkItem *>(item) && !_dragFront)
             return false;
 
+        // don't link to what we're already link to
         if (_dragFront && outgoing().contains(item))
             return false;
         else if (!_dragFront && incoming().contains(item))
@@ -163,7 +238,13 @@ namespace NeuroGui
     bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
         // can only be attached to by an inhibitory link
-        return dynamic_cast<NeuroInhibitoryLinkItem *>(item);
+        bool result = dynamic_cast<NeuroInhibitoryLinkItem *>(item) != 0;
+
+        // or a subconnection that is an inhibitory link
+        SubConnectionItem *sub = dynamic_cast<SubConnectionItem *>(item);
+        result = result || (sub && dynamic_cast<NeuroInhibitoryLinkItem *>(sub->governingItem()));
+
+        return result;
     }
 
     void NeuroLinkItem::attachTo(NeuroItem *item)
@@ -283,9 +364,8 @@ namespace NeuroGui
 
         if (context == CREATE_UI)
         {
-            NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
             _cellIndices.clear();
-            _cellIndices.append(index);
+            addNewCell();
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
@@ -293,6 +373,12 @@ namespace NeuroGui
 
     NeuroExcitoryLinkItem::~NeuroExcitoryLinkItem()
     {
+    }
+
+    void NeuroExcitoryLinkItem::addNewCell()
+    {
+        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        _cellIndices.append(index);
     }
 
     void NeuroExcitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -307,11 +393,6 @@ namespace NeuroGui
 
     bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
     {
-//        // can only attach to narrow items
-//        NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(item);
-//        if (!narrow)
-//            return false;
-
         // cannot attach to a link at all
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
         if (link)
@@ -330,11 +411,12 @@ namespace NeuroGui
     {
         Q_ASSERT(network != 0 && network->neuronet() != 0);
 
+        _weight_property.setEditable(false);
+
         if (context == CREATE_UI)
         {
-            NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -100000000));
             _cellIndices.clear();
-            _cellIndices.append(index);
+            addNewCell();
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
@@ -342,6 +424,12 @@ namespace NeuroGui
 
     NeuroInhibitoryLinkItem::~NeuroInhibitoryLinkItem()
     {
+    }
+
+    void NeuroInhibitoryLinkItem::addNewCell()
+    {
+        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
+        _cellIndices.append(index);
     }
 
     void NeuroInhibitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const

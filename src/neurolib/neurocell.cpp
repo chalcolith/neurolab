@@ -85,8 +85,14 @@ namespace NeuroLib
         }
 
         NeuroValue input_sum = 0;
+        bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
-            input_sum += neighbors[i]._output_value;
+        {
+            if (neighbors[i]._output_value < ZERO)
+                inhibited = true;
+            else
+                input_sum += neighbors[i]._output_value;
+        }
 
         NeuroValue next_value = 0;
         NeuroValue diff, delta;
@@ -96,7 +102,7 @@ namespace NeuroLib
         {
         case NODE:
             // node output
-            if (input_sum > 0)
+            if (!inhibited)
             {
                 NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
                 next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
@@ -172,11 +178,17 @@ namespace NeuroLib
             break;
         case EXCITORY_LINK:
             // we allow the weight to be 1.1 so as to maintain activation
-            next_value = qBound(ZERO, input_sum * prev._weight, MAX_LINK);
+            if (!inhibited)
+                next_value = qBound(ZERO, input_sum * prev._weight, MAX_LINK);
+            else
+                next_value = 0;
             break;
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs
-            next_value = qBound(ZERO, input_sum, ONE) * prev._weight;
+            if (!inhibited)
+                next_value = qBound(ZERO, input_sum, ONE) * prev._weight;
+            else
+                next_value = ZERO;
             break;
         default:
             break;

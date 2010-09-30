@@ -287,7 +287,7 @@ namespace NeuroGui
 
         /// Can be overridden to control whether or not a new item with a given type name can be
         /// created on top of an already selected item.
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return true; }
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
 
         //////////////////////////////////////////////////////////////
 

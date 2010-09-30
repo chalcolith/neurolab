@@ -57,6 +57,7 @@ namespace Automata
 
         QVector<TNode> _nodes;
         QVector< QVector<TIndex> > _edges;
+        QList<TIndex> _free_nodes;
 
         QReadWriteLock _nodes_lock;
         QReadWriteLock _edges_lock;
@@ -84,12 +85,36 @@ namespace Automata
             QWriteLocker nwl(&_nodes_lock);
             QWriteLocker ewl(&_edges_lock);
 
-            TIndex index = _nodes.size();
+            TIndex index;
 
-            _nodes.append(node);
-            _edges.append(QVector<TIndex>());
+            if (_free_nodes.size() > 0)
+            {
+                index = _free_nodes.last();
+                _free_nodes.removeAt(_free_nodes.size() - 1);
+
+                _nodes[index] = node;
+            }
+            else
+            {
+                index = _nodes.size();
+
+                _nodes.append(node);
+                _edges.append(QVector<TIndex>());
+            }
 
             return index;
+        }
+
+        /// Removes a node from the graph.
+        /// \note This can be quite expensive in a large graph.
+        void removeNode(const TIndex & index)
+        {
+            _edges[index].clear();
+            for (TIndex i = 0; i < _nodes.size(); ++i)
+            {
+                _edges[i].remove(index);
+            }
+            _free_nodes.append(index);
         }
 
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
@@ -225,6 +250,16 @@ namespace Automata
 
             // edges
             ds << _edges;
+
+            // free nodes
+            num = static_cast<quint32>(_free_nodes.size());
+            ds << num;
+
+            for (quint32 i = 0; i < num; ++i)
+            {
+                quint32 index = static_cast<quint32>(_free_nodes[i]);
+                ds << index;
+            }
         }
 
         /// Reads the graph's data.  Should be called by derived classes' implementations.
@@ -246,6 +281,20 @@ namespace Automata
 
                 // edges
                 ds >> _edges;
+
+                if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_2)
+                {
+                    ds >> num;
+
+                    _free_nodes.clear();
+                    for (quint32 i = 0; i < num; ++i)
+                    {
+                        quint32 index;
+                        ds >> index;
+
+                        _free_nodes.append(static_cast<TIndex>(index));
+                    }
+                }
             }
             else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {
