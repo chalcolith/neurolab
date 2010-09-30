@@ -84,15 +84,22 @@ namespace NeuroLib
             return;
         }
 
-        NeuroValue input_sum = 0;
+        NeuroValue input_sum = 0, inhibit_sum = 0;
         bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
         {
             if (neighbors[i]._output_value < ZERO)
+            {
                 inhibited = true;
+                inhibit_sum += -neighbors[i]._output_value;
+            }
             else
+            {
                 input_sum += neighbors[i]._output_value;
+            }
         }
+
+        NeuroValue inhibit_factor = ONE - qBound(ZERO, inhibit_sum, ONE);
 
         NeuroValue next_value = 0;
         NeuroValue diff, delta;
@@ -101,41 +108,37 @@ namespace NeuroLib
         switch (prev._kind)
         {
         case NODE:
-            // node output
-            if (!inhibited)
             {
+                // node output
                 NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
                 next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
-            }
-            else
-            {
-                next_value = 0;
-            }
 
-            next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
+                next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
+                next_value *= inhibit_factor;
 
-            // hebbian learning (link learning)
-            num_neighbors = neighbor_indices.size();
-            for (int i = 0; i < num_neighbors; ++i)
-            {
-                const NeuroCell & incoming = neighbors[i];
-
-                if (incoming._kind == EXCITORY_LINK)
+                // hebbian learning (link learning)
+                num_neighbors = neighbor_indices.size();
+                for (int i = 0; i < num_neighbors; ++i)
                 {
-                    NeuroValue delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                    const NeuroCell & incoming = neighbors[i];
 
-                    if (qAbs(delta_weight) > EPSILON)
+                    if (incoming._kind == EXCITORY_LINK)
                     {
-                        NeuroValue new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
-                        network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
+                        NeuroValue delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+
+                        if (qAbs(delta_weight) > EPSILON)
+                        {
+                            NeuroValue new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
+                            network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
+                        }
                     }
                 }
-            }
 
-            // node raising/lowering
-            diff = qBound(ZERO, next_value - prev._running_average, ONE);
-            delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
-            next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+                // node raising/lowering
+                diff = qBound(ZERO, next_value - prev._running_average, ONE);
+                delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
+                next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+            }
 
             break;
         case OSCILLATOR:
@@ -165,30 +168,21 @@ namespace NeuroLib
                     next_value = ZERO;
                 }
 
+                next_value *= inhibit_factor;
+
                 // save new step value
                 next._phase_step[1] = step;
-
-                // inhibit
-                if (input_sum < -EPSILON)
-                {
-                    next_value = qBound(ZERO, next_value + input_sum, next_value);
-                }
             }
 
             break;
         case EXCITORY_LINK:
             // we allow the weight to be 1.1 so as to maintain activation
-            if (!inhibited)
-                next_value = qBound(ZERO, input_sum * prev._weight, MAX_LINK);
-            else
-                next_value = 0;
+            next_value = qBound(ZERO, input_sum * prev._weight, MAX_LINK);
+            next_value *= inhibit_factor;
             break;
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs
-            if (!inhibited)
-                next_value = qBound(ZERO, input_sum, ONE) * prev._weight;
-            else
-                next_value = ZERO;
+            next_value = qBound(ZERO, input_sum, ONE) * inhibit_factor * prev._weight;
             break;
         default:
             break;
