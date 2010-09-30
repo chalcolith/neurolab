@@ -63,7 +63,7 @@ namespace NeuroGui
     const QColor NeuroItem::BACKGROUND_COLOR = Qt::white;
     const QColor NeuroItem::ACTIVE_COLOR = Qt::red;
 
-    const int NeuroItem::NORMAL_LINE_WIDTH = 1;
+    const int NeuroItem::NORMAL_LINE_WIDTH = 0;
     const int NeuroItem::HOVER_LINE_WIDTH = 3;
 
     const int NeuroItem::NODE_WIDTH = 30;

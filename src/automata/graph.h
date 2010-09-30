@@ -109,12 +109,25 @@ namespace Automata
         /// \note This can be quite expensive in a large graph.
         void removeNode(const TIndex & index)
         {
-            _edges[index].clear();
-            for (TIndex i = 0; i < _nodes.size(); ++i)
+            QWriteLocker nwl(&_nodes_lock);
+            QWriteLocker ewl(&_edges_lock);
+
+            if (index < _edges.size())
             {
-                _edges[i].remove(index);
+                _edges[index].clear();
+                for (TIndex i = 0; i < _nodes.size(); ++i)
+                {
+                    int ii = _edges[i].indexOf(index);
+
+                    if (ii != -1)
+                        _edges[i].remove(ii);
+                }
+                _free_nodes.append(index);
             }
-            _free_nodes.append(index);
+            else
+            {
+                throw IndexOverflow();
+            }
         }
 
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.

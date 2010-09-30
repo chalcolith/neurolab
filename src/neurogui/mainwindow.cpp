@@ -869,7 +869,7 @@ namespace NeuroGui
 //            showPrint = true;
 //        }
 
-        _ui->action_Reload_Network->setEnabled(showPrint);
+        _ui->action_Reload_Network->setEnabled(showPrint && _currentNetwork && _currentNetwork->changed() && !_currentNetwork->fname().isEmpty());
         _ui->action_Save->setEnabled(_currentNetwork && _currentNetwork->changed());
         _ui->action_Close->setEnabled(_currentNetwork);
 

@@ -69,11 +69,22 @@ namespace NeuroGui
 
     void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
-        if (cell)
+        for (int i = 0; i < _cellIndices.size(); ++i)
         {
-            cell->current().setOutputValue(value);
-            cell->former().setOutputValue(value);
+            NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
+            if (cell)
+            {
+                if (i == _cellIndices.size() - 1)
+                {
+                    cell->current().setOutputValue(value);
+                    cell->former().setOutputValue(value);
+                }
+                else
+                {
+                    cell->current().setOutputValue(0);
+                    cell->former().setOutputValue(0);
+                }
+            }
         }
     }
 
@@ -82,8 +93,8 @@ namespace NeuroGui
         if (!network() || !network()->neuronet())
             return false;
 
-        NeuroNarrowItem *linkItem = dynamic_cast<NeuroNarrowItem *>(item);
-        if (NeuroItem::addIncoming(item) && linkItem)
+        NeuroNarrowItem *linkItem;
+        if (NeuroItem::addIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
             if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
                 network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.last());
@@ -98,7 +109,6 @@ namespace NeuroGui
             return false;
 
         NeuroNarrowItem *linkItem;
-
         if (NeuroItem::removeIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
         {
             if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
@@ -113,11 +123,10 @@ namespace NeuroGui
     {
         NeuroItem::setPenProperties(pen);
 
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         if (cell)
         {
-            qreal t = qBound(static_cast<qreal>(0), qAbs(static_cast<qreal>(cell->current().outputValue())), static_cast<qreal>(1));
-
+            qreal t = qBound(0.0f, qAbs(cell->current().outputValue()), 1.0f);
             QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
             if (cell->current().frozen())
@@ -152,17 +161,11 @@ namespace NeuroGui
     void NeuroNarrowItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroItem::writeClipboard(ds, id_map);
-
-        //ds.setVersion(QDataStream::Qt_4_6);
-        // cell index is set by derived type constructor
     }
 
     void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroItem::readClipboard(ds, id_map);
-
-        //ds.setVersion(QDataStream::Qt_4_6);
-        // cell index is set by derived type constructor
     }
 
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const

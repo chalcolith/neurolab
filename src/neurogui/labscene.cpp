@@ -85,9 +85,16 @@ namespace NeuroGui
     void LabScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     {
         QGraphicsScene::contextMenuEvent(event);
+        _lastMousePos = event->scenePos();
 
         if (!event->isAccepted())
         {
+            if (_itemUnderMouse)
+            {
+                _itemUnderMouse->setSelected(true);
+                update();
+            }
+
             QMenu menu;
 
             NeuroItem::buildNewMenu(this, itemUnderMouse(), event->scenePos(), menu);
@@ -106,6 +113,8 @@ namespace NeuroGui
                     newItem(typeName, event->scenePos());
                 }
             }
+
+            event->accept();
         }
     }
 
@@ -120,24 +129,24 @@ namespace NeuroGui
         _mouseIsDown = true;
         _lastMousePos = event->scenePos();
 
-        if (event->button() == Qt::RightButton && _itemUnderMouse)
+        if (event->button() == Qt::LeftButton && _itemUnderMouse)
         {
             if ((event->modifiers() & Qt::ControlModifier) != 0)
             {
-                _itemUnderMouse->setSelected(!_itemUnderMouse->isSelected());
-                return;
-            }
-            else
-            {
-                clearSelection();
-                _itemUnderMouse->setSelected(true);
+                if (_itemUnderMouse->isSelected())
+                {
+                    _itemUnderMouse->setSelected(false);
+                    _itemUnderMouse = 0;
+                }
+                else
+                {
+                    _itemUnderMouse->setSelected(true);
+                }
+
+                event->accept();
                 update();
                 return;
             }
-        }
-        else if (event->button() == Qt::LeftButton && !_itemUnderMouse && _network)
-        {
-
         }
 
         QGraphicsScene::mousePressEvent(event);

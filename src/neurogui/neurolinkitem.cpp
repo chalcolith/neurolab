@@ -46,6 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QPainterPathStroker>
 #include <QPolygonF>
 #include <QVector2D>
+#include <QLinearGradient>
 
 #include <QtProperty>
 
@@ -75,7 +76,7 @@ namespace NeuroGui
 
     NeuroCell::NeuroValue NeuroLinkItem::weight() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         return cell ? cell->current().weight() : 0;
     }
 
@@ -86,15 +87,15 @@ namespace NeuroGui
             NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
             if (cell)
             {
-                if (i == 0)
+                if (i == _cellIndices.size() - 1)
                 {
                     cell->current().setWeight(value);
                     cell->former().setWeight(value);
                 }
                 else
                 {
-                    cell->current().setWeight(1);
-                    cell->former().setWeight(1);
+                    cell->current().setWeight(1.1);
+                    cell->former().setWeight(1.1);
                 }
             }
         }
@@ -106,9 +107,13 @@ namespace NeuroGui
             return;
         NeuroLib::NeuroNet *neuronet = network()->neuronet();
 
+        bool updateValue = false;
         int newLength = value;
         if (newLength < 1)
+        {
             newLength = 1;
+            updateValue = true;
+        }
 
         if (newLength == _cellIndices.size())
             return;
@@ -158,6 +163,10 @@ namespace NeuroGui
         {
             neuronet->removeNode(i.next());
         }
+
+        // update property if necessary
+        if (updateValue)
+            _length_property.setValue(QVariant(newLength));
     }
 
     bool NeuroLinkItem::addIncoming(NeuroItem *linkItem)
@@ -193,19 +202,52 @@ namespace NeuroGui
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
         NeuroNarrowItem::setPenProperties(pen);
+        int oldWidth = pen.width();
 
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
-        if (cell)
+        // get weight
+        qreal w = qBound(0.0f, qAbs(weight()), 1.0f);
+
+        // get output values
+        QList<qreal> steps;
+
+        for (int i = 0; i < _cellIndices.size(); ++i)
         {
-            qreal weight = qBound(0.1f, qAbs(cell->current().weight()), 1.0f);
-            pen.setColor(lerp(Qt::lightGray, pen.color(), weight));
+            const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
+            if (cell)
+                steps.append(qBound(0.0f, cell->current().outputValue(), 1.0f));
         }
-    }
 
-    void NeuroLinkItem::setBrushProperties(QBrush & brush) const
-    {
-        NeuroNarrowItem::setBrushProperties(brush);
-        brush.setStyle(Qt::NoBrush);
+        if (steps.size() == 1)
+        {
+            steps.append(steps.last());
+        }
+        else if (steps.size() == 0)
+        {
+            steps.append(0);
+            steps.append(0);
+        }
+
+        // get gradient
+        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
+        bool frozen = cell && cell->current().frozen();
+
+        QLinearGradient gradient(_line.p1(), _line.p2());
+
+        for (int i = 0; i < steps.size(); ++i)
+        {
+            qreal t = i * (1.0f / (steps.size() - 1));
+
+            QColor c = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, steps[i]);
+            c = lerp(Qt::lightGray, c, w);
+
+            if (frozen)
+                c = lerp(c, Qt::gray, 0.5f);
+
+            gradient.setColorAt(t, c);
+        }
+
+        // new pen
+        pen = QPen(gradient, oldWidth);
     }
 
     void NeuroLinkItem::adjustLinks()

@@ -259,7 +259,7 @@ namespace NeuroGui
             NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
-                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.first());
+                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
 
                 if (cell)
                 {
@@ -274,7 +274,7 @@ namespace NeuroGui
                     cell->current().setOutputValue(val);
                     cell->former().setOutputValue(val);
 
-                    item->update();
+                    item->updateProperties();
                 }
             }
         }
@@ -290,7 +290,7 @@ namespace NeuroGui
             NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
             if (item)
             {
-                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.first());
+                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
                 if (cell)
                 {
                     bool val = !cell->current().frozen();
@@ -298,7 +298,7 @@ namespace NeuroGui
                     cell->current().setFrozen(val);
                     cell->former().setFrozen(val);
 
-                    item->update();
+                    item->updateProperties();
                 }
             }
         }
