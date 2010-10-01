@@ -41,7 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labscene.h"
 #include "neuroitem.h"
-#include "labeldialog.h"
 #include "../automata/exception.h"
 
 #include "filedirtydialog.h"

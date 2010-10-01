@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neuronarrowitem.h"
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
-#include "labnetwork.h"
+#include "../labnetwork.h"
 
 #include <QPen>
 #include <QGraphicsScene>

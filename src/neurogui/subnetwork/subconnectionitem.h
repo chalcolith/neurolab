@@ -37,11 +37,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-#include "neuroitem.h"
-#include "mixinarrow.h"
+#include "../neurogui_global.h"
+#include "../neuroitem.h"
+#include "../mixins/mixinarrow.h"
 
-#include "../neurolib/neuronet.h"
+#include "../../neurolib/neuronet.h"
 
 #include <QList>
 

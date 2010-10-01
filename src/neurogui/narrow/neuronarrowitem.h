@@ -37,9 +37,9 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-#include "neuroitem.h"
-#include "../neurolib/neuronet.h"
+#include "../neurogui_global.h"
+#include "../neuroitem.h"
+#include "../../neurolib/neuronet.h"
 
 namespace NeuroGui
 {

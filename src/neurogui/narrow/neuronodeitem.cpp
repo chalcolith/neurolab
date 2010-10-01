@@ -36,9 +36,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuronodeitem.h"
 #include "neurolinkitem.h"
-#include "subconnectionitem.h"
-#include "labnetwork.h"
-#include "labscene.h"
+#include "../subnetwork/subconnectionitem.h"
+#include "../labnetwork.h"
+#include "../labscene.h"
 
 #include <QVector2D>
 #include <QApplication>

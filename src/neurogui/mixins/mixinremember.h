@@ -1,5 +1,5 @@
-#ifndef NEUROTEXTITEM_H
-#define NEUROTEXTITEM_H
+#ifndef MIXINREMEMBER_H
+#define MIXINREMEMBER_H
 
 /*
 Neurocognitive Linguistics Lab
@@ -37,48 +37,32 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-#include "neuroitem.h"
-
-#include <QFont>
+#include "../neurogui_global.h"
+#include "../narrow/neurolinkitem.h"
 
 namespace NeuroGui
 {
 
-    /// Displays a string of text in a particular font.
-    class NEUROGUISHARED_EXPORT NeuroTextItem
-        : public NeuroItem
+    /// Provides functionality for remembering the positions of linked nodes.
+    class NEUROGUISHARED_EXPORT MixinRemember
     {
-        Q_OBJECT
-        NEUROITEM_DECLARE_CREATOR
-
-        QFont _font;
-        QString _text;
-
-        Property<NeuroTextItem, QVariant::Font, QFont, QFont> _font_property;
-        Property<NeuroTextItem, QVariant::String, QString, QString> _text_property;
-
-    public:
-        explicit NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
-        virtual ~NeuroTextItem();
-
-        QFont font() const { return _font; }
-        void setFont(const QFont & f) { _font = f; }
-
-        QString text() const { return _text; }
-        void setText(const QString & t) { _text = t; }
-
-        virtual QString uiName() const { return tr("Text"); }
-
-        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
-        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        NeuroItem *_self;
 
     protected:
-        virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
-        virtual void setPenProperties(QPen &pen) const;
-        virtual void setBrushProperties(QBrush &brush) const;
-    }; // class NeuroTextItem
+        QMap<NeuroLinkItem *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
-}
+    public:
+        MixinRemember(NeuroItem *self);
+        virtual ~MixinRemember();
 
-#endif
+    protected:
+        void onAttachedBy(NeuroLinkItem *link);
+        void adjustLinks();
+
+        virtual void adjustLink(NeuroLinkItem *link, QList<NeuroLinkItem *> & alreadyAdjusted);
+        virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
+    };
+
+} // namespace NeuroGui
+
+#endif // MIXINREMEMBER_H

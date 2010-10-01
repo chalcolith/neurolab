@@ -35,10 +35,10 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "subconnectionitem.h"
-#include "labexception.h"
-#include "labnetwork.h"
-#include "labscene.h"
-#include "neuronarrowitem.h"
+#include "../labexception.h"
+#include "../labnetwork.h"
+#include "../labscene.h"
+#include "../narrow/neuronarrowitem.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>

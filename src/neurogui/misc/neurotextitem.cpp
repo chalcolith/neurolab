@@ -35,8 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurotextitem.h"
-#include "labscene.h"
-#include "labnetwork.h"
+#include "../labscene.h"
+#include "../labnetwork.h"
 
 #include <QFontMetrics>
 

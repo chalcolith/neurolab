@@ -35,11 +35,11 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurolinkitem.h"
-#include "subconnectionitem.h"
-#include "labnetwork.h"
-#include "labscene.h"
-#include "mainwindow.h"
-#include "../neurolib/neuronet.h"
+#include "../subnetwork/subconnectionitem.h"
+#include "../labnetwork.h"
+#include "../labscene.h"
+#include "../mainwindow.h"
+#include "../../neurolib/neuronet.h"
 
 #include <QGraphicsScene>
 #include <QPainter>

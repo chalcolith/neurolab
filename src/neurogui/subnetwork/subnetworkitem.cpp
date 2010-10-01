@@ -35,12 +35,12 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "subnetworkitem.h"
-#include "labexception.h"
-#include "labtree.h"
-#include "labscene.h"
-#include "labnetwork.h"
-#include "mainwindow.h"
-#include "neurolinkitem.h"
+#include "../labexception.h"
+#include "../labtree.h"
+#include "../labscene.h"
+#include "../labnetwork.h"
+#include "../mainwindow.h"
+#include "../narrow/neurolinkitem.h"
 #include "subconnectionitem.h"
 
 namespace NeuroGui

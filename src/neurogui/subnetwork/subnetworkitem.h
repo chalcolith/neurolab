@@ -37,9 +37,9 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-#include "neurolinkitem.h"
-#include "mixinremember.h"
+#include "../neurogui_global.h"
+#include "../narrow/neurolinkitem.h"
+#include "../mixins/mixinremember.h"
 
 #include <QMap>
 #include <QRectF>

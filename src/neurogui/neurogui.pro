@@ -18,50 +18,47 @@ DEFINES += NEUROGUI_LIBRARY
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src
 
 SOURCES += mainwindow.cpp \
+    filedirtydialog.cpp \
+    aboutdialog.cpp \
+    labexception.cpp \
+    labdatafile.cpp \
     labnetwork.cpp \
     labscene.cpp \
     labview.cpp \
     labtree.cpp \
-    neuronodeitem.cpp \
-    neurolinkitem.cpp \
-    neuroitem.cpp \
-    labeldialog.cpp \
     propertyobj.cpp \
-    filedirtydialog.cpp \
-    neuronarrowitem.cpp \
-    neurotextitem.cpp \
-    labdatafile.cpp \
-    aboutdialog.cpp \
-    subnetworkitem.cpp \
-    subconnectionitem.cpp \
-    labexception.cpp \
-    mixinarrow.cpp \
-    mixinremember.cpp
+    neuroitem.cpp \
+    narrow/neuronodeitem.cpp \
+    narrow/neurolinkitem.cpp \
+    narrow/neuronarrowitem.cpp \
+    misc/neurotextitem.cpp \
+    subnetwork/subnetworkitem.cpp \
+    subnetwork/subconnectionitem.cpp \
+    mixins/mixinarrow.cpp \
+    mixins/mixinremember.cpp
 
 HEADERS += neurogui_global.h \
     mainwindow.h \
+    filedirtydialog.h \
+    aboutdialog.h \
+    labexception.h \
+    labdatafile.h \
     labnetwork.h \
     labscene.h \
     labview.h \
     labtree.h \
-    neuronodeitem.h \
-    neurolinkitem.h \
-    neuroitem.h \
-    labeldialog.h \
     propertyobj.h \
-    filedirtydialog.h \
-    neuronarrowitem.h \
-    neurotextitem.h \
-    labdatafile.h \
-    aboutdialog.h \
-    subnetworkitem.h \
-    subconnectionitem.h \
-    labexception.h \
-    mixinarrow.h \
-    mixinremember.h \
+    neuroitem.h \
+    narrow/neuronodeitem.h \
+    narrow/neurolinkitem.h \
+    narrow/neuronarrowitem.h \
+    misc/neurotextitem.h \
+    subnetwork/subnetworkitem.h \
+    subnetwork/subconnectionitem.h \
+    mixins/mixinarrow.h \
+    mixins/mixinremember.h \
 
 FORMS += mainwindow.ui \
-    labeldialog.ui \
     filedirtydialog.ui \
     aboutdialog.ui
 

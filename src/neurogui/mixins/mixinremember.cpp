@@ -35,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mixinremember.h"
-#include "labscene.h"
+#include "../labscene.h"
 
 namespace NeuroGui
 {

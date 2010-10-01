@@ -35,10 +35,10 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mixinarrow.h"
-#include "labexception.h"
-#include "neuroitem.h"
-#include "neurolinkitem.h"
-#include "labscene.h"
+#include "../labexception.h"
+#include "../neuroitem.h"
+#include "../narrow/neurolinkitem.h"
+#include "../labscene.h"
 
 #include <cmath>
 

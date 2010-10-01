@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuroitem.h"
 #include "labexception.h"
-#include "neurolinkitem.h"
+#include "narrow/neurolinkitem.h"
 #include "labscene.h"
 #include "labnetwork.h"
 #include "mainwindow.h"
