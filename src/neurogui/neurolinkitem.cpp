@@ -140,9 +140,6 @@ namespace NeuroGui
                 NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
                 cellsToDelete.append(lastIndex);
                 _cellIndices.removeAt(_cellIndices.size()-1);
-
-                NeuroCell::NeuroIndex newIndex = _cellIndices.last();
-                neuronet->removeEdge(lastIndex, newIndex);
             }
         }
 

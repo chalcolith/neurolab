@@ -59,6 +59,13 @@ namespace NeuroGui
 
     NeuroNarrowItem::~NeuroNarrowItem()
     {
+        if (network() && network()->neuronet())
+        {
+            for (QListIterator<NeuroCell::NeuroIndex> i(_cellIndices); i.hasNext(); )
+            {
+                network()->neuronet()->removeNode(i.next());
+            }
+        }
     }
 
     NeuroCell::NeuroValue NeuroNarrowItem::outputValue() const
