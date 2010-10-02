@@ -84,6 +84,7 @@ namespace NeuroGui
 
         /// If the link is being moved, returns whether or not the front end of the node is being dragged.
         bool dragFront() const { return _dragFront; }
+        void setDragFront(bool df) { _dragFront = df; }
 
         /// The item that the front of the link is currently attached to.
         /// \see line()
@@ -93,7 +94,7 @@ namespace NeuroGui
         /// Sets the item that the front of the link is currently attached to.
         /// \see line()
         /// \see frontLinkTarget()
-        void setFrontLinkTarget(NeuroItem *linkTarget);
+        virtual void setFrontLinkTarget(NeuroItem *linkTarget);
 
         /// The item that the back of the link is currently attached to.
         /// \see line()
@@ -103,7 +104,7 @@ namespace NeuroGui
         /// Sets the item that the back of the link is currently attached to.
         /// \see line()
         /// \see backLinkTarget()
-        void setBackLinkTarget(NeuroItem *linkTarget);
+        virtual void setBackLinkTarget(NeuroItem *linkTarget);
 
     protected:
         /// Draws the arrow's shaft.

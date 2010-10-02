@@ -327,6 +327,7 @@ namespace NeuroGui
                     fv.neurolab_version = ver;
 
                     ln->_tree->readBinary(ds, fv);
+                    ln->_idMap.clear();
                 }
                 else if (cookie == LAB_SCENE_COOKIE_OLD)
                 {

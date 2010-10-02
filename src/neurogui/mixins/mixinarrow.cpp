@@ -215,11 +215,15 @@ namespace NeuroGui
             {
                 if (canDragFront)
                     front = mousePos;
+                else
+                    return value;
             }
             else if (!_dragFront)
             {
                 if (canDragBack)
                     back = mousePos;
+                else
+                    return value;
             }
 
             QVector2D newCenter = (front + back) * 0.5f;
@@ -245,10 +249,8 @@ namespace NeuroGui
 
             return QVariant(_self->scenePos());
         }
-        else
-        {
-            return value;
-        }
+
+        return value;
     }
 
     void MixinArrow::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const

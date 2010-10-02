@@ -245,11 +245,12 @@ namespace NeuroGui
         static void removeItemCreator(const QString & typeName);
 
     signals:
+        void labelChanged(const QString & newLabel);
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
         /// Set the item's label.
-        void setLabel(const QString & s) { emit labelChanged(this, s); _label = s; updateShape(); update(); }
+        void setLabel(const QString & s) { _label = s; emit labelChanged(s); emit labelChanged(this, s); updateShape(); update(); }
 
         virtual void reset() {}
 

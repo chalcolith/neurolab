@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "subconnectionitem.h"
+#include "subnetworkitem.h"
 #include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
@@ -50,23 +51,32 @@ namespace NeuroGui
 
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context), MixinArrow(this),
-          _direction(INCOMING), _governingItem(0),
+          _direction(INCOMING), _parentSubnetworkItem(0), _governingItem(0),
           _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
     {
         setInitialPosAndDir(QVector2D(scenePos), QVector2D(-10, 1));
     }
 
+    SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
+                                         SubNetworkItem *parent, NeuroItem *governing, quint32 direction,
+                                         const QVector2D & initialPos, const QVector2D & initialDir)
+        : NeuroItem(network, scenePos, context), MixinArrow(this),
+         _direction(direction), _parentSubnetworkItem(parent), _governingItem(0),
+         _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
+    {
+        setInitialPosAndDir(initialPos, initialDir);
+        setGoverningItem(governing);
+    }
+
     SubConnectionItem::~SubConnectionItem()
     {
+        setFrontLinkTarget(0);
+        setGoverningItem(0);
     }
 
     NeuroLib::NeuroCell::NeuroValue SubConnectionItem::outputValue() const
     {
-        if ((_direction & INCOMING) && (_direction & OUTGOING))
-        {
-            throw new LabException(tr("You cannot take the value of a bidirectional subconnection node."));
-        }
-        else if (_governingItem)
+        if (_governingItem)
         {
             const NeuroNarrowItem *narrow = dynamic_cast<const NeuroNarrowItem *>(_governingItem);
             return narrow ? narrow->outputValue() : 0;
@@ -77,18 +87,11 @@ namespace NeuroGui
 
     void SubConnectionItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & val)
     {
-        if ((_direction & INCOMING) && (_direction & OUTGOING))
-        {
-            throw new LabException(tr("You cannot set the value of a bidirectional subconnection node."));
-        }
-        else if (_governingItem)
+        if (_governingItem)
         {
             NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(_governingItem);
             if (narrow)
-            {
                 narrow->setOutputValue(val);
-                return;
-            }
         }
     }
 
@@ -101,6 +104,113 @@ namespace NeuroGui
         QPointF front = (_initialPos + _initialDir * 50).toPointF();
 
         setLine(back, front);
+    }
+
+    void SubConnectionItem::setGoverningItem(NeuroItem *item)
+    {
+        NeuroItem *oldFrontLinkTarget = 0, *oldBackLinkTarget = 0;
+
+        // disconnect from old item
+        if (_governingItem)
+        {
+            disconnect(_governingItem, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
+
+            // disconnect network nodes
+            if ((oldFrontLinkTarget = _frontLinkTarget))
+                setFrontLinkTarget(0);
+
+            if ((oldBackLinkTarget = _backLinkTarget))
+                setBackLinkTarget(0);
+        }
+
+        // set new governing item and connect
+        _governingItem = item;
+        if (_governingItem)
+        {
+            setLabel(_governingItem->label());
+            connect(_governingItem, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
+        }
+
+        if (oldFrontLinkTarget)
+            setFrontLinkTarget(oldFrontLinkTarget);
+        if (oldBackLinkTarget)
+            setBackLinkTarget(oldBackLinkTarget);
+    }
+
+    bool SubConnectionItem::canAttachTo(const QPointF &pos, NeuroItem *item)
+    {
+        if (_governingItem)
+        {
+            // set the dragFront flag on any arrows correctly
+            MixinArrow *arrow = dynamic_cast<MixinArrow *>(_governingItem);
+            if (arrow)
+                arrow->setDragFront(arrow->frontLinkTarget() == _parentSubnetworkItem);
+
+            return _governingItem->canAttachTo(pos, item);
+        }
+
+        return false;
+    }
+
+    void SubConnectionItem::attachTo(NeuroItem *item)
+    {
+        setFrontLinkTarget(item);
+    }
+
+    bool SubConnectionItem::handleMove(const QPointF &mousePos, QPointF &movePos)
+    {
+        // break links
+        if (_frontLinkTarget && !_frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePos)))
+        {
+            setFrontLinkTarget(0);
+        }
+
+        // attach
+        return NeuroItem::handleMove(mousePos, movePos);
+    }
+
+    void SubConnectionItem::setFrontLinkTarget(NeuroItem *linkTarget)
+    {
+        if (_direction & INCOMING)
+        {
+            // disconnect old target
+            if (_frontLinkTarget)
+            {
+                if (_governingItem)
+                    _frontLinkTarget->removeIncoming(_governingItem);
+            }
+
+            // set new target and connect
+            _frontLinkTarget = linkTarget;
+            if (_frontLinkTarget)
+            {
+                if (_governingItem)
+                    _frontLinkTarget->addIncoming(_governingItem);
+            }
+        }
+
+        if (_direction & OUTGOING)
+        {
+            // disconnect old target
+            if (_frontLinkTarget)
+            {
+                if (_governingItem)
+                    _frontLinkTarget->removeOutgoing(_governingItem);
+            }
+
+            // set new target and connect
+            _frontLinkTarget = linkTarget;
+            if (_frontLinkTarget)
+            {
+                if (_governingItem)
+                    _frontLinkTarget->addOutgoing(_governingItem);
+            }
+        }
+    }
+
+    void SubConnectionItem::setBackLinkTarget(NeuroItem *linkTarget)
+    {
+        throw new LabException(tr("You cannot set the back link target on a sub-connection item."));
     }
 
     QVariant SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -203,6 +313,16 @@ namespace NeuroGui
         }
     }
 
+    void SubConnectionItem::setPenProperties(QPen &pen) const
+    {
+        if (_governingItem)
+        {
+            NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(_governingItem);
+            if (narrow)
+                narrow->setPenProperties(pen);
+        }
+    }
+
     void SubConnectionItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
         NeuroItem::writeBinary(ds, file_version);
@@ -230,6 +350,9 @@ namespace NeuroGui
 
         NeuroItem::IdType id = _governingItem ? _governingItem->id() : 0;
         ds << id;
+
+        id = _parentSubnetworkItem->id();
+        ds << id;
     }
 
     void SubConnectionItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -243,6 +366,12 @@ namespace NeuroGui
             _governingItem = reinterpret_cast<NeuroItem *>(id);
         else
             _governingItem = 0;
+
+        ds >> id;
+        if (id)
+            _parentSubnetworkItem = reinterpret_cast<SubNetworkItem *>(id);
+        else
+            _parentSubnetworkItem = 0;
     }
 
     void SubConnectionItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
@@ -260,6 +389,18 @@ namespace NeuroGui
         else if (governingId)
         {
             throw new LabException(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
+        }
+
+        NeuroItem::IdType parentId = reinterpret_cast<NeuroItem::IdType>(_parentSubnetworkItem);
+        SubNetworkItem *wanted_parent = dynamic_cast<SubNetworkItem *>(idMap[parentId]);
+
+        if (parentId && wanted_parent)
+        {
+            _parentSubnetworkItem = wanted_parent;
+        }
+        else
+        {
+            throw new LabException(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
         }
     }
 

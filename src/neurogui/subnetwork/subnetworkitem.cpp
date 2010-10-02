@@ -38,10 +38,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../labexception.h"
 #include "../labtree.h"
 #include "../labscene.h"
+#include "../labview.h"
 #include "../labnetwork.h"
 #include "../mainwindow.h"
 #include "../narrow/neurolinkitem.h"
 #include "subconnectionitem.h"
+
+#include <QScrollBar>
 
 namespace NeuroGui
 {
@@ -53,7 +56,10 @@ namespace NeuroGui
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0),
           _rect(-15, -10, 30, 20)
     {
-
+        if (context == NeuroItem::CREATE_UI)
+        {
+            makeSubNetwork();
+        }
     }
 
     SubNetworkItem::~SubNetworkItem()
@@ -115,12 +121,91 @@ namespace NeuroGui
         return false;
     }
 
+    static void clipTo(QVector2D & p, const QRectF & r)
+    {
+        if (p.x() < r.x())
+        {
+            qreal new_x = r.x();
+            qreal new_y = p.y() * new_x / p.x();
+
+            p.setX(new_x);
+            p.setY(new_y);
+        }
+
+        if (p.x() > r.x() + r.width())
+        {
+            qreal new_x = r.x() + r.width();
+            qreal new_y = p.y() * new_x / p.x();
+
+            p.setX(new_x);
+            p.setY(new_y);
+        }
+
+        if (p.y() < r.y())
+        {
+            qreal new_y = r.y();
+            qreal new_x = p.x() * new_y / p.y();
+
+            p.setX(new_x);
+            p.setY(new_y);
+        }
+
+        if (p.y() > r.y() + r.height())
+        {
+            qreal new_y = r.y() + r.height();
+            qreal new_x = p.x() * new_y / p.y();
+
+            p.setX(new_x);
+            p.setY(new_y);
+        }
+    }
+
     void SubNetworkItem::addConnectionItem(NeuroLinkItem *governingLink, bool is_incoming)
     {
+        if (!(network() && network()->scene()))
+            return;
+
+        if (!governingLink)
+            return;
+
+        makeSubNetwork();
+        if (!(_treeNode && _treeNode->scene() && _treeNode->view()))
+            return;
+
+        // get the view's viewport (expanded to the size of ours, if necessary)
+        QRectF vr = network()->treeNode()->view()->viewport()->rect();
+
+        QPointF tl(_treeNode->view()->horizontalScrollBar()->value(), _treeNode->view()->verticalScrollBar()->value());
+        QPointF br = tl + vr.bottomRight();
+        QMatrix mat = _treeNode->view()->matrix().inverted();
+
+        QRectF rect = mat.mapRect(QRectF(tl, br));
+
+        // get a point on the edge of the viewport correspond to the outer position
+        QVector2D gPos(network()->scene()->lastMousePos());
+        QVector2D sDir = gPos - QVector2D(scenePos());
+        sDir.normalize();
+
+        QVector2D rCenter(rect.x() + rect.width()/2, rect.y() + rect.height()/2);
+        QVector2D sPos = rCenter + sDir * (rect.width() + rect.height());
+        clipTo(sPos, rect);
+
+        sPos = rCenter + sDir * (sPos - rCenter).length() * 0.8f;
+
+        // direction is only in/out for now...
+        quint32 direction = is_incoming ? SubConnectionItem::INCOMING : SubConnectionItem::OUTGOING;
+        SubConnectionItem *subItem = new SubConnectionItem(network(), sPos.toPointF(), NeuroItem::CREATE_UI, this, governingLink, direction, sPos, -sDir);
+        _treeNode->scene()->addItem(subItem);
     }
 
     void SubNetworkItem::removeConnectionItem(NeuroLinkItem *governingLink)
     {
+        SubConnectionItem *subItem = _connections[governingLink];
+        if (subItem)
+        {
+            _connections.remove(governingLink);
+            delete subItem;
+        }
     }
 
     bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
@@ -132,7 +217,9 @@ namespace NeuroGui
     {
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
         if (link)
+        {
             MixinRemember::onAttachedBy(link);
+        }
     }
 
     void SubNetworkItem::adjustLinks()
@@ -144,43 +231,7 @@ namespace NeuroGui
     {
         // just extend beyond us and clip
         QVector2D newPos = dirTo * (_rect.width() + _rect.height());
-
-        if (newPos.x() < _rect.x())
-        {
-            qreal new_x = _rect.x();
-            qreal new_y = newPos.y() * new_x / newPos.x();
-
-            newPos.setX(new_x);
-            newPos.setY(new_y);
-        }
-
-        if (newPos.x() > _rect.x() + _rect.width())
-        {
-            qreal new_x = _rect.x() + _rect.width();
-            qreal new_y = newPos.y() * new_x / newPos.x();
-
-            newPos.setX(new_x);
-            newPos.setY(new_y);
-        }
-
-        if (newPos.y() < _rect.y())
-        {
-            qreal new_y = _rect.y();
-            qreal new_x = newPos.x() * new_y / newPos.y();
-
-            newPos.setX(new_x);
-            newPos.setY(new_y);
-        }
-
-        if (newPos.y() > _rect.y() + _rect.height())
-        {
-            qreal new_y = _rect.y() + _rect.height();
-            qreal new_x = newPos.x() * new_y / newPos.y();
-
-            newPos.setX(new_x);
-            newPos.setY(new_y);
-        }
-
+        clipTo(newPos, _rect);
         return newPos;
     }
 

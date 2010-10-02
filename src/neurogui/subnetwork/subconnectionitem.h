@@ -48,6 +48,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroGui
 {
 
+    class SubNetworkItem;
+
     class NEUROGUISHARED_EXPORT SubConnectionItem
         : public NeuroItem, public MixinArrow
     {
@@ -67,11 +69,15 @@ namespace NeuroGui
         quint32 _direction;
         QVector2D _initialPos, _initialDir;
 
+        SubNetworkItem *_parentSubnetworkItem;
         NeuroItem *_governingItem;
         Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
 
     public:
         explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
+                                   SubNetworkItem *parent, NeuroItem *governing, quint32 direction,
+                                   const QVector2D & initialPos, const QVector2D & initialDir);
         virtual ~SubConnectionItem();
 
         virtual QString uiName() const { return tr("Subnetwork Connection"); }
@@ -83,15 +89,24 @@ namespace NeuroGui
         void setDirection(const quint32 & direction) { _direction = direction; }
 
         NeuroItem *governingItem() const { return _governingItem; }
-        void setGoverningItem(NeuroItem *item) { _governingItem = item; }
+        void setGoverningItem(NeuroItem *item);
 
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
     protected:
+        virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual void attachTo(NeuroItem *);
+        virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
+
+        virtual void setFrontLinkTarget(NeuroItem *linkTarget);
+        virtual void setBackLinkTarget(NeuroItem *linkTarget);
+
         virtual bool canCutAndPaste() const { return false; }
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
+        virtual void setPenProperties(QPen &pen) const;
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
