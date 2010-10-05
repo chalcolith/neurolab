@@ -139,7 +139,7 @@ namespace NeuroGui
                 {
                     NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
                     cellsToDelete.append(lastIndex);
-                    _cellIndices.removeAt(_cellIndices.size()-1);
+                    _cellIndices.removeLast();
                 }
             }
 

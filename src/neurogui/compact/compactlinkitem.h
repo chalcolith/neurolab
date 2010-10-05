@@ -67,7 +67,6 @@ namespace NeuroGui
 
     private:
         void addNewCell(bool upwards);
-        void setLengthAux(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const int & value, bool upwards);
         void setWeightAux(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const NeuroLib::NeuroCell::NeuroValue &value);
 
     protected:

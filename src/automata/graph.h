@@ -130,6 +130,22 @@ namespace Automata
             }
         }
 
+        /// Returns true if the graph contains the given edge.
+        bool containsEdge(const TIndex & from, const TIndex & to)
+        {
+            QReadLocker erl(&_edges_lock);
+
+            if (from < _edges.size())
+            {
+                QVector<TIndex> & outgoing = _edges[from];
+                return outgoing.contains(to);
+            }
+            else
+            {
+                throw IndexOverflow();
+            }
+        }
+
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
