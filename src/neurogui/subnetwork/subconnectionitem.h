@@ -103,9 +103,7 @@ namespace NeuroGui
 
         virtual bool canCutAndPaste() const { return false; }
 
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
-
         virtual void setPenProperties(QPen &pen) const;
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;

@@ -79,7 +79,7 @@ namespace NeuroGui
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
         : PropertyObject(network), QGraphicsItem(),
         _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
-        _ui_delete(false),
+        _setting_pos(false), _ui_delete(false),
         _network(network), _id(NEXT_ID++)
     {
         setPos(scenePos);
@@ -100,10 +100,11 @@ namespace NeuroGui
     {
         if (_ui_delete)
         {
-            while (_incoming.size() > 0)
-                removeIncoming(_incoming.first());
-            while (_outgoing.size() > 0)
-                removeOutgoing(_outgoing.first());
+            for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+                removeIncoming(i.next());
+
+            for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
+                removeOutgoing(i.next());
         }
     }
 
@@ -311,7 +312,7 @@ namespace NeuroGui
     {
         if (linkItem && !_incoming.contains(linkItem))
         {
-            _incoming.append(linkItem);
+            _incoming.insert(linkItem);
             linkItem->addOutgoing(this);
             return true;
         }
@@ -322,7 +323,7 @@ namespace NeuroGui
     {
         if (linkItem && _incoming.contains(linkItem))
         {
-            _incoming.removeAll(linkItem);
+            _incoming.remove(linkItem);
             linkItem->removeOutgoing(this);
             return true;
         }
@@ -333,7 +334,7 @@ namespace NeuroGui
     {
         if (linkItem && !_outgoing.contains(linkItem))
         {
-            _outgoing.append(linkItem);
+            _outgoing.insert(linkItem);
             linkItem->addIncoming(this);
             return true;
         }
@@ -344,7 +345,7 @@ namespace NeuroGui
     {
         if (linkItem && _outgoing.contains(linkItem))
         {
-            _outgoing.removeAll(linkItem);
+            _outgoing.remove(linkItem);
             linkItem->removeIncoming(this);
             return true;
         }
@@ -507,15 +508,24 @@ namespace NeuroGui
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if ((labScene = dynamic_cast<LabScene *>(scene())) && labScene->selectedItems().size() <= 1)
+            if (!_setting_pos
+                && (labScene = dynamic_cast<LabScene *>(scene()))
+                && labScene->selectedItems().size() <= 1
+                && labScene->itemUnderMouse() == this)
             {
+                _setting_pos = true;
+
                 QPointF movePos(value.toPointF());
 
                 if (handleMove(labScene->lastMousePos(), movePos))
                 {
                     updateShape();
+                    _setting_pos = false;
+
                     return QVariant(movePos);
                 }
+
+                _setting_pos = false;
             }
             break;
         default:
@@ -551,13 +561,12 @@ namespace NeuroGui
         }
 
         // attach, if possible
-        if (itemAtPos)
+        if (itemAtPos && !_incoming.contains(itemAtPos) && !_outgoing.contains(itemAtPos))
         {
             if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
             {
-                onAttachTo(itemAtPos);
+                this->onAttachTo(itemAtPos);
                 itemAtPos->onAttachedBy(this);
-
                 movePos = scenePos();
             }
         }
@@ -576,13 +585,13 @@ namespace NeuroGui
 
         // incoming
         ds << static_cast<quint32>(_incoming.size());
-        for (int i = 0; i < _incoming.size(); ++i)
-            ds << static_cast<qint32>(id_map[_incoming[i]->id()]);
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+            ds << static_cast<qint32>(id_map[i.next()->id()]);
 
         // outgoing
         ds << static_cast<quint32>(_outgoing.size());
-        for (int i = 0; i < _outgoing.size(); ++i)
-            ds << static_cast<qint32>(id_map[_outgoing[i]->id()]);
+        for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
+            ds << static_cast<qint32>(id_map[i.next()->id()]);
     }
 
     void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
@@ -656,10 +665,11 @@ namespace NeuroGui
         qint32 n = _incoming.size();
         ds << n;
 
-        for (qint32 i = 0; i < n; ++i)
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
         {
-            if (_incoming[i])
-                ds << static_cast<IdType>(_incoming[i]->_id);
+            NeuroItem *item = i.next();
+            if (item)
+                ds << static_cast<IdType>(item->_id);
             else
                 ds << static_cast<IdType>(0);
         }
@@ -667,10 +677,11 @@ namespace NeuroGui
         n = _outgoing.size();
         ds << n;
 
-        for (qint32 i = 0; i < n; ++i)
+        for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
         {
-            if (_outgoing[i])
-                ds << static_cast<IdType>(_outgoing[i]->_id);
+            NeuroItem *item = i.next();
+            if (item)
+                ds << static_cast<IdType>(item->_id);
             else
                 ds << static_cast<IdType>(0);
         }
@@ -691,7 +702,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
+                    _incoming.insert(reinterpret_cast<NeuroLinkItem *>(id));
                 }
             }
 
@@ -704,7 +715,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
+                    _outgoing.insert(reinterpret_cast<NeuroLinkItem *>(id));
                 }
             }
         }
@@ -722,7 +733,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _incoming.append(reinterpret_cast<NeuroLinkItem *>(id));
+                    _incoming.insert(reinterpret_cast<NeuroLinkItem *>(id));
                 }
             }
 
@@ -736,7 +747,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _outgoing.append(reinterpret_cast<NeuroLinkItem *>(id));
+                    _outgoing.insert(reinterpret_cast<NeuroLinkItem *>(id));
                 }
             }
         }
@@ -748,22 +759,23 @@ namespace NeuroGui
         idsToPointersAux(_outgoing, idMap);
     }
 
-    void NeuroItem::idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
+    void NeuroItem::idsToPointersAux(QSet<NeuroItem *> & items, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        for (QMutableListIterator<NeuroItem *> in(list); in.hasNext(); in.next())
+        QSet<NeuroItem *> itemsToAdd;
+
+        for (QSetIterator<NeuroItem *> i(items); i.hasNext(); )
         {
-            IdType wanted_id = reinterpret_cast<IdType>(in.peekNext());
+            IdType wanted_id = reinterpret_cast<IdType>(i.next());
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)
-            {
-                in.peekNext() = wanted_item;
-            }
+                itemsToAdd.insert(wanted_item);
             else
-            {
                 throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
-            }
         }
+
+        items.clear();
+        items = itemsToAdd;
     }
 
 } // namespace NeuroGui

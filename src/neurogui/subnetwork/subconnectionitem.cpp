@@ -70,8 +70,11 @@ namespace NeuroGui
 
     SubConnectionItem::~SubConnectionItem()
     {
-        setFrontLinkTarget(0);
-        setGoverningItem(0);
+        if (_ui_delete)
+        {
+            setFrontLinkTarget(0);
+            setGoverningItem(0);
+        }
     }
 
     NeuroLib::NeuroCell::NeuroValue SubConnectionItem::outputValue() const
@@ -159,6 +162,14 @@ namespace NeuroGui
 
     bool SubConnectionItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
+        // handle moving the link
+        LabScene *labScene;
+        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
+            && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
+        {
+            movePos = MixinArrow::changePos(labScene, movePos, true, false);
+        }
+
         // break links
         if (_frontLinkTarget && !_frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePos)))
         {
@@ -176,6 +187,8 @@ namespace NeuroGui
             // disconnect old target
             if (_frontLinkTarget)
             {
+                _frontLinkTarget->removeIncoming(this);
+
                 if (_governingItem)
                     _frontLinkTarget->removeIncoming(_governingItem);
             }
@@ -184,7 +197,8 @@ namespace NeuroGui
             _frontLinkTarget = linkTarget;
             if (_frontLinkTarget)
             {
-                addOutgoing(_frontLinkTarget);
+                _frontLinkTarget->addIncoming(this);
+
                 if (_governingItem)
                     _frontLinkTarget->addIncoming(_governingItem);
             }
@@ -195,6 +209,8 @@ namespace NeuroGui
             // disconnect old target
             if (_frontLinkTarget)
             {
+                _frontLinkTarget->removeOutgoing(this);
+
                 if (_governingItem)
                     _frontLinkTarget->removeOutgoing(_governingItem);
             }
@@ -203,7 +219,8 @@ namespace NeuroGui
             _frontLinkTarget = linkTarget;
             if (_frontLinkTarget)
             {
-                addIncoming(_frontLinkTarget);
+                _frontLinkTarget->addOutgoing(this);
+
                 if (_governingItem)
                     _frontLinkTarget->addOutgoing(_governingItem);
             }
@@ -216,23 +233,6 @@ namespace NeuroGui
             throw new LabException(tr("You cannot set the back link target on a sub-connection item."));
         else
             _backLinkTarget = linkTarget;
-    }
-
-    QVariant SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
-    {
-        LabScene *labScene = dynamic_cast<LabScene *>(scene());
-
-        switch (change)
-        {
-        case QGraphicsItem::ItemPositionChange:
-            if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
-                return changePos(labScene, value, true, false);
-
-        default:
-            break;
-        }
-
-        return _settingLine ? value : NeuroItem::itemChange(change, value);
     }
 
     void SubConnectionItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const

@@ -54,8 +54,6 @@ namespace NeuroGui
 
     MixinArrow::~MixinArrow()
     {
-        _frontLinkTarget = 0;
-        _backLinkTarget = 0;
     }
 
     QLineF MixinArrow::line() const
@@ -192,7 +190,7 @@ namespace NeuroGui
         drawPath.lineTo((QVector2D(pos) + barb2).toPointF());
     }
 
-    QVariant MixinArrow::changePos(LabScene *labScene, const QVariant & value, bool canDragFront, bool canDragBack)
+    QPointF MixinArrow::changePos(LabScene *labScene, const QPointF & value, bool canDragFront, bool canDragBack)
     {
         if (!_settingLine && labScene
             && labScene->selectedItems().size() <= 1
@@ -201,29 +199,39 @@ namespace NeuroGui
             _self->prepGeomChange();
 
             // adjust position
-            QVector2D oldCenter(_self->scenePos());
+            QPointF oldPos(_self->scenePos());
+            QVector2D oldCenter(oldPos);
 
             QVector2D front = QVector2D(_line.p2()) + oldCenter;
             QVector2D back = QVector2D(_line.p1()) + oldCenter;
-            QVector2D mousePos(labScene->lastMousePos());
 
-            qreal distFront = (mousePos - front).lengthSquared();
-            qreal distBack = (mousePos - back).lengthSquared();
+            QPointF mousePt(labScene->lastMousePos());
+            QVector2D mousePos(mousePt);
 
-            _dragFront = distFront < distBack;
+            // only change the drag end if we're actually touching
+            if (_self->contains(_self->mapFromScene(mousePt)))
+            {
+                qreal distFront = (mousePos - front).lengthSquared();
+                qreal distBack = (mousePos - back).lengthSquared();
+
+                _dragFront = distFront < distBack;
+            }
+
             if (_dragFront)
             {
+                if (_frontLinkTarget && _frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePt)))
+                    return oldPos;
+
                 if (canDragFront)
                     front = mousePos;
-                else
-                    return value;
             }
-            else if (!_dragFront)
+            else
             {
+                if (_backLinkTarget && _backLinkTarget->contains(_backLinkTarget->mapFromScene(mousePt)))
+                    return oldPos;
+
                 if (canDragBack)
                     back = mousePos;
-                else
-                    return value;
             }
 
             QVector2D newCenter = (front + back) * 0.5f;
@@ -234,20 +242,11 @@ namespace NeuroGui
             _self->setPos(newCenter.toPointF());
             _settingLine = false;
 
-            // adjust if we're linked
-            if (_frontLinkTarget && _dragFront)
-                _frontLinkTarget->adjustLinks();
-            if (_backLinkTarget && !_dragFront)
-                _backLinkTarget->adjustLinks();
-
             // handle move
-            QPointF movePos(_self->scenePos());
-            _self->handleMove(mousePos.toPointF(), movePos);
-
             _self->adjustLinks();
             _self->updateShape();
 
-            return QVariant(_self->scenePos());
+            return _self->scenePos();
         }
 
         return value;

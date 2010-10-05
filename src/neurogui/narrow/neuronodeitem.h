@@ -82,7 +82,7 @@ namespace NeuroGui
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
 
     private:
-        virtual void adjustLink(MixinArrow *, QList<MixinArrow *> & alreadyAdjusted);
+        virtual void adjustLink(MixinArrow *, QSet<MixinArrow *> & alreadyAdjusted);
         virtual QVector2D getAttachPos(const QVector2D & dirTo);
     };
 

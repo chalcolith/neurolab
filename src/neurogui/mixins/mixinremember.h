@@ -58,10 +58,12 @@ namespace NeuroGui
         virtual ~MixinRemember();
 
     protected:
+        void rememberItems(const QSet<NeuroItem *> & items, const QVector2D & center, bool incoming);
+
         void onAttachedBy(MixinArrow *link);
         void adjustLinks();
 
-        virtual void adjustLink(MixinArrow *link, QList<MixinArrow *> & alreadyAdjusted);
+        virtual void adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted);
         virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
     };
 

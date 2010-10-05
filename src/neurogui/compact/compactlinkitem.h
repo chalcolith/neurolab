@@ -84,8 +84,6 @@ namespace NeuroGui
         virtual void setPenProperties(QPen &pen) const;
         virtual void setBrushProperties(QBrush &brush) const;
 
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
         virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;

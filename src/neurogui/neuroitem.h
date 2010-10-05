@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QColor>
 #include <QList>
 #include <QMap>
+#include <QSet>
 #include <QPair>
 #include <typeinfo>
 
@@ -81,14 +82,15 @@ namespace NeuroGui
 
         Property<NeuroItem, QVariant::String, QString, QString> _label_property;
 
+        bool _setting_pos; ///< Whether or not our position is being set.
         bool _ui_delete; ///< Whether or not an item is being deleted from the UI, or else by program shutdown.
 
     private:
         LabNetwork *_network; ///< The network this item is a part of.
 
         IdType _id; ///< Used to remember links when saving and loading.
-        QList<NeuroItem *> _incoming; ///< Incoming links.
-        QList<NeuroItem *> _outgoing; ///< Outgoing links.
+        QSet<NeuroItem *> _incoming; ///< Incoming links.
+        QSet<NeuroItem *> _outgoing; ///< Outgoing links.
 
         mutable QPainterPath _drawPath; ///< Painter path used to draw the item.
         mutable QPainterPath _shapePath; ///< Painter path used for collision detection.
@@ -139,10 +141,10 @@ namespace NeuroGui
         int id() const { return _id; }
 
         /// \return Incoming links.
-        const QList<NeuroItem *> & incoming() const { return _incoming; }
+        const QSet<NeuroItem *> & incoming() const { return _incoming; }
 
         /// \return Outgoing links.
-        const QList<NeuroItem *> & outgoing() const { return _outgoing; }
+        const QSet<NeuroItem *> & outgoing() const { return _outgoing; }
 
         virtual void setChanged(bool changed = true);
         virtual void updateProperties();
@@ -282,7 +284,7 @@ namespace NeuroGui
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
         /// Handles transforming ids to actual pointers.
-        virtual void idsToPointersAux(QList<NeuroItem *> & list, const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+        virtual void idsToPointersAux(QSet<NeuroItem *> & items, const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Linear interpolation for colors.
         /// \return A color that is \c t of the way between \c a and \c b.

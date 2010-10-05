@@ -257,7 +257,7 @@ namespace NeuroGui
     {
         QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
 
-        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(incoming()); i.hasNext(); )
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
             if (link)
@@ -300,8 +300,25 @@ namespace NeuroGui
             setBackLinkTarget(item);
     }
 
+    void NeuroLinkItem::onAttachedBy(NeuroItem *item)
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+        {
+            adjustLinks();
+        }
+    }
+
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
+        // move one end or the other of the link
+        LabScene *labScene;
+        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
+            && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
+        {
+            movePos = MixinArrow::changePos(labScene, movePos);
+        }
+
         // break links
         NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
         if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
@@ -314,23 +331,6 @@ namespace NeuroGui
 
         // attach
         return NeuroNarrowItem::handleMove(mousePos, movePos);
-    }
-
-    QVariant NeuroLinkItem::itemChange(GraphicsItemChange change, const QVariant & value)
-    {
-        LabScene *labScene = dynamic_cast<LabScene *>(scene());
-
-        switch (change)
-        {
-        case QGraphicsItem::ItemPositionChange:
-            if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
-                return MixinArrow::changePos(labScene, value);
-
-        default:
-            break;
-        }
-
-        return _settingLine ? value : NeuroNarrowItem::itemChange(change, value);
     }
 
     void NeuroLinkItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const

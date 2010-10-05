@@ -207,6 +207,8 @@ namespace NeuroGui
         if (subItem)
         {
             _connections.remove(governingLink);
+
+            subItem->setUIDelete();
             delete subItem;
         }
     }
@@ -311,19 +313,8 @@ namespace NeuroGui
     {
         QVector2D center(scenePos());
 
-        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
-            if (link)
-                _incomingAttachments[link] = QVector2D(link->line().p2()) - center;
-        }
-
-        for (QListIterator<NeuroItem *> i(outgoing()); i.hasNext(); )
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
-            if (link)
-                _outgoingAttachments[link] = QVector2D(link->line().p1()) - center;
-        }
+        rememberItems(incoming(), center, true);
+        rememberItems(outgoing(), center, true);
     }
 
     void SubNetworkItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const

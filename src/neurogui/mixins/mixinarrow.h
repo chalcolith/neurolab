@@ -114,7 +114,7 @@ namespace NeuroGui
         void addPoint(QPainterPath & drawPath, const QPointF & pos, const QVector2D & dir, const qreal & len) const;
 
         /// Handles dragging one end of the arrow.
-        QVariant changePos(LabScene *labScene, const QVariant & value, bool canDragFront = true, bool canDragBack = true);
+        QPointF changePos(LabScene *labScene, const QPointF & value, bool canDragFront = true, bool canDragBack = true);
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);

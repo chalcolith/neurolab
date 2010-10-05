@@ -35,9 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuronodeitem.h"
-#include "neurolinkitem.h"
-#include "../subnetwork/subconnectionitem.h"
-#include "../compact/compactlinkitem.h"
+#include "../mixins/mixinarrow.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 
@@ -77,7 +75,7 @@ namespace NeuroGui
 
     void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
     {
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
         {
             MixinRemember::onAttachedBy(link);
@@ -91,7 +89,7 @@ namespace NeuroGui
         MixinRemember::adjustLinks();
     }
 
-    void NeuroNodeItemBase::adjustLink(MixinArrow *link, QList<MixinArrow *> & alreadyAdjusted)
+    void NeuroNodeItemBase::adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted)
     {
         MixinRemember::adjustLink(link, alreadyAdjusted);
     }
@@ -105,19 +103,8 @@ namespace NeuroGui
     {
         QVector2D center(scenePos());
 
-        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
-            if (link)
-                _incomingAttachments[link] = QVector2D(link->line().p2()) - center;
-        }
-
-        for (QListIterator<NeuroItem *> i(outgoing()); i.hasNext(); )
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
-            if (link)
-                _outgoingAttachments[link] = QVector2D(link->line().p1()) - center;
-        }
+        rememberItems(incoming(), center, true);
+        rememberItems(outgoing(), center, false);
     }
 
     void NeuroNodeItemBase::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const

@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mixinremember.h"
+#include "mixinarrow.h"
 #include "../labscene.h"
 
 namespace NeuroGui
@@ -49,6 +50,21 @@ namespace NeuroGui
     {
     }
 
+    void MixinRemember::rememberItems(const QSet<NeuroItem *> &items, const QVector2D &center, bool incoming)
+    {
+        for (QSetIterator<NeuroItem *> i(items); i.hasNext(); )
+        {
+            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
+            if (link)
+            {
+                if (incoming)
+                    _incomingAttachments[link] = QVector2D(link->line().p2()) - center;
+                else
+                    _outgoingAttachments[link] = QVector2D(link->line().p1()) - center;
+            }
+        }
+    }
+
     void MixinRemember::onAttachedBy(MixinArrow *link)
     {
         if (link->frontLinkTarget() == _self && link->dragFront())
@@ -58,7 +74,7 @@ namespace NeuroGui
             _outgoingAttachments.remove(link);
 
         // snap to node
-        QList<MixinArrow *> already;
+        QSet<MixinArrow *> already;
         adjustLink(link, already);
 
         // get new pos and remember
@@ -75,16 +91,16 @@ namespace NeuroGui
 
     void MixinRemember::adjustLinks()
     {
-        QList<MixinArrow *> alreadyAdjusted;
+        QSet<MixinArrow *> alreadyAdjusted;
 
-        for (QListIterator<NeuroItem *> i(_self->incoming()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(_self->incoming()); i.hasNext(); )
         {
             MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link && !alreadyAdjusted.contains(link))
                 adjustLink(link, alreadyAdjusted);
         }
 
-        for (QListIterator<NeuroItem *> i(_self->outgoing()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(_self->outgoing()); i.hasNext(); )
         {
             MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link && !alreadyAdjusted.contains(link))
@@ -92,7 +108,7 @@ namespace NeuroGui
         }
     }
 
-    void MixinRemember::adjustLink(MixinArrow *link, QList<MixinArrow *> & alreadyAdjusted)
+    void MixinRemember::adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted)
     {
         LabScene *lab_scene = dynamic_cast<LabScene *>(_self->scene());
         if (!lab_scene)
@@ -152,7 +168,7 @@ namespace NeuroGui
             link->setLine((back + center).toPointF(), (front + center).toPointF());
         }
 
-        alreadyAdjusted.append(link);
+        alreadyAdjusted.insert(link);
     }
 
 } // namespace NeuroGui

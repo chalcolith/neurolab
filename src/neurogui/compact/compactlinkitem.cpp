@@ -245,6 +245,14 @@ namespace NeuroGui
 
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
+        // move line
+        LabScene *labScene;
+        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
+            && dynamic_cast<CompactLinkItem *>(labScene->itemUnderMouse()) == this)
+        {
+            movePos = MixinArrow::changePos(labScene, movePos);
+        }
+
         // break links
         NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
         if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
@@ -462,24 +470,6 @@ namespace NeuroGui
     void CompactLinkItem::setBrushProperties(QBrush &brush) const
     {
         brush.setStyle(Qt::NoBrush);
-    }
-
-    QVariant CompactLinkItem::itemChange(GraphicsItemChange change, const QVariant &value)
-    {
-        switch (change)
-        {
-        case QGraphicsItem::ItemPositionChange:
-            {
-                LabScene *labScene = dynamic_cast<LabScene *>(scene());
-                if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<CompactLinkItem *>(labScene->itemUnderMouse()) == this)
-                    return MixinArrow::changePos(labScene, value);
-            }
-
-        default:
-            break;
-        }
-
-        return _settingLine ? value : CompactItem::itemChange(change, value);
     }
 
     void CompactLinkItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
