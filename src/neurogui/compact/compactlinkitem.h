@@ -71,6 +71,7 @@ namespace NeuroGui
 
     protected:
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
+
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual void onAttachTo(NeuroItem *);
 

@@ -184,6 +184,7 @@ namespace NeuroGui
             _frontLinkTarget = linkTarget;
             if (_frontLinkTarget)
             {
+                addOutgoing(_frontLinkTarget);
                 if (_governingItem)
                     _frontLinkTarget->addIncoming(_governingItem);
             }
@@ -202,6 +203,7 @@ namespace NeuroGui
             _frontLinkTarget = linkTarget;
             if (_frontLinkTarget)
             {
+                addIncoming(_frontLinkTarget);
                 if (_governingItem)
                     _frontLinkTarget->addOutgoing(_governingItem);
             }
@@ -210,7 +212,10 @@ namespace NeuroGui
 
     void SubConnectionItem::setBackLinkTarget(NeuroItem *linkTarget)
     {
-        throw new LabException(tr("You cannot set the back link target on a sub-connection item."));
+        if (linkTarget)
+            throw new LabException(tr("You cannot set the back link target on a sub-connection item."));
+        else
+            _backLinkTarget = linkTarget;
     }
 
     QVariant SubConnectionItem::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -220,7 +225,7 @@ namespace NeuroGui
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if (!_settingLine && labScene && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
+            if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
                 return changePos(labScene, value, true, false);
 
         default:
@@ -317,9 +322,12 @@ namespace NeuroGui
     {
         if (_governingItem)
         {
-            NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(_governingItem);
-            if (narrow)
-                narrow->setPenProperties(pen);
+            _governingItem->setPenProperties(pen);
+
+            if (shouldHighlight())
+                pen.setWidth(NeuroItem::HOVER_LINE_WIDTH);
+            else
+                pen.setWidth(NeuroItem::NORMAL_LINE_WIDTH);
         }
     }
 

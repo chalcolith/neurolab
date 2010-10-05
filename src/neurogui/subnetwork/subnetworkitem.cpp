@@ -79,46 +79,46 @@ namespace NeuroGui
 
     bool SubNetworkItem::addIncoming(NeuroItem *linkItem)
     {
+        NeuroItem::addIncoming(linkItem);
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (NeuroItem::addIncoming(linkItem) && link)
+        if (link)
         {
             addConnectionItem(link, true);
-            return true;
         }
-        return false;
+        return true;
     }
 
     bool SubNetworkItem::removeIncoming(NeuroItem *linkItem)
     {
+        NeuroItem::removeIncoming(linkItem);
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (NeuroItem::removeIncoming(linkItem) && link)
+        if (link)
         {
             removeConnectionItem(link);
-            return true;
         }
-        return false;
+        return true;
     }
 
     bool SubNetworkItem::addOutgoing(NeuroItem *linkItem)
     {
+        NeuroItem::addOutgoing(linkItem);
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (NeuroItem::addOutgoing(linkItem) && link)
+        if (link)
         {
             addConnectionItem(link, false);
-            return true;
         }
-        return false;
+        return true;
     }
 
     bool SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
     {
+        NeuroItem::removeOutgoing(linkItem);
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (NeuroItem::removeOutgoing(linkItem) && link)
+        if (link)
         {
             removeConnectionItem(link);
-            return true;
         }
-        return false;
+        return true;
     }
 
     static void clipTo(QVector2D & p, const QRectF & r)
@@ -190,12 +190,15 @@ namespace NeuroGui
         QVector2D sPos = rCenter + sDir * (rect.width() + rect.height());
         clipTo(sPos, rect);
 
-        sPos = rCenter + sDir * (sPos - rCenter).length() * 0.8f;
+        sPos = rCenter + sDir * (sPos - rCenter).length() * 0.5f;
 
         // direction is only in/out for now...
         quint32 direction = is_incoming ? SubConnectionItem::INCOMING : SubConnectionItem::OUTGOING;
         SubConnectionItem *subItem = new SubConnectionItem(network(), sPos.toPointF(), NeuroItem::CREATE_UI, this, governingLink, direction, sPos, -sDir);
         _treeNode->scene()->addItem(subItem);
+
+        // record connection
+        _connections[governingLink] = subItem;
     }
 
     void SubNetworkItem::removeConnectionItem(NeuroLinkItem *governingLink)
@@ -206,6 +209,11 @@ namespace NeuroGui
             _connections.remove(governingLink);
             delete subItem;
         }
+    }
+
+    bool SubNetworkItem::canCreateNewOnMe(const QString & typeName, const QPointF &) const
+    {
+        return typeName.indexOf("LinkItem") >= 0;
     }
 
     bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
@@ -296,6 +304,25 @@ namespace NeuroGui
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
         {
             ds >> _treeNodeIdNeeded;
+        }
+    }
+
+    void SubNetworkItem::postLoad()
+    {
+        QVector2D center(scenePos());
+
+        for (QListIterator<NeuroItem *> i(incoming()); i.hasNext(); )
+        {
+            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
+            if (link)
+                _incomingAttachments[link] = QVector2D(link->line().p2()) - center;
+        }
+
+        for (QListIterator<NeuroItem *> i(outgoing()); i.hasNext(); )
+        {
+            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
+            if (link)
+                _outgoingAttachments[link] = QVector2D(link->line().p1()) - center;
         }
     }
 

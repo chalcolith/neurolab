@@ -58,6 +58,7 @@ namespace NeuroGui
         NeuroItem *_itemUnderMouse;
 
         bool _mouseIsDown;
+        bool _moveOnly;
         QPointF _lastMousePos;
 
     public:
@@ -70,6 +71,7 @@ namespace NeuroGui
         LabNetwork *network() { return _network; }
 
         bool mouseIsDown() const { return _mouseIsDown; }
+        bool moveOnly() const { return _moveOnly; }
 
         /// \return The position of the mouse (in scene coordinates).
         const QPointF & lastMousePos() const { return _lastMousePos; }

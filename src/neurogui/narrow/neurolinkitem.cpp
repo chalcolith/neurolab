@@ -212,7 +212,7 @@ namespace NeuroGui
         {
             const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices[i]);
             if (cell)
-                steps.append(qBound(0.0f, cell->current().outputValue(), 1.0f));
+                steps.append(qBound(0.0f, qAbs(cell->current().outputValue()), 1.0f));
         }
 
         if (steps.size() == 1)
@@ -323,7 +323,7 @@ namespace NeuroGui
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
-            if (!_settingLine && labScene && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
+            if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
                 return MixinArrow::changePos(labScene, value);
 
         default:

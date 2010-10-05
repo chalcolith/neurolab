@@ -82,6 +82,9 @@ namespace NeuroGui
         virtual bool addOutgoing(NeuroItem *linkItem);
         virtual bool removeOutgoing(NeuroItem *linkItem);
 
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
+
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void onAttachedBy(NeuroItem *);
         virtual void adjustLinks();
@@ -92,6 +95,7 @@ namespace NeuroGui
 
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
+        virtual void postLoad();
 
         virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);

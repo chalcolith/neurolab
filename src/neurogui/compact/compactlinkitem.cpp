@@ -261,9 +261,7 @@ namespace NeuroGui
 
     bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
-        bool result = dynamic_cast<NeuroNodeItem *>(item) != 0;
-
-        return result;
+        return true;
     }
 
     void CompactLinkItem::onAttachTo(NeuroItem *item)
@@ -418,12 +416,12 @@ namespace NeuroGui
             // get upward value
             const NeuroNet::ASYNC_STATE *cell = getCell(_upward_cells[i]);
             if (cell)
-                up = cell->current().outputValue();
+                up = qAbs(cell->current().outputValue());
 
             // get downward value
             cell = getCell(_downward_cells[(_downward_cells.size()-1) - i]);
             if (cell)
-                down = cell->current().outputValue();
+                down = qAbs(cell->current().outputValue());
 
             steps.append(qBound(0.0, qMax(up, down), 1.0));
         }
@@ -473,7 +471,7 @@ namespace NeuroGui
         case QGraphicsItem::ItemPositionChange:
             {
                 LabScene *labScene = dynamic_cast<LabScene *>(scene());
-                if (!_settingLine && labScene && dynamic_cast<CompactLinkItem *>(labScene->itemUnderMouse()) == this)
+                if (!_settingLine && labScene && !labScene->moveOnly() && dynamic_cast<CompactLinkItem *>(labScene->itemUnderMouse()) == this)
                     return MixinArrow::changePos(labScene, value);
             }
 

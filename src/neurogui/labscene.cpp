@@ -51,7 +51,7 @@ namespace NeuroGui
 {
 
     LabScene::LabScene(LabNetwork *_network)
-        : QGraphicsScene(_network), _network(_network), _itemUnderMouse(0), _mouseIsDown(false)
+        : QGraphicsScene(_network), _network(_network), _itemUnderMouse(0), _mouseIsDown(false), _moveOnly(false)
     {
         connect(this, SIGNAL(selectionChanged()), _network, SLOT(selectionChanged()), Qt::UniqueConnection);
         connect(this, SIGNAL(itemCreated(NeuroItem*)), MainWindow::instance(), SLOT(createdItem(NeuroItem*)), Qt::UniqueConnection);
@@ -147,6 +147,11 @@ namespace NeuroGui
                 update();
                 return;
             }
+
+            if ((event->modifiers() & Qt::AltModifier) != 0)
+            {
+                _moveOnly = true;
+            }
         }
 
         QGraphicsScene::mousePressEvent(event);
@@ -155,6 +160,7 @@ namespace NeuroGui
     void LabScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
         _mouseIsDown = false;
+        _moveOnly = false;
         _lastMousePos = event->scenePos();
         QGraphicsScene::mouseReleaseEvent(event);
     }

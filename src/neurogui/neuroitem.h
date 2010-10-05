@@ -197,6 +197,15 @@ namespace NeuroGui
         /// Paints the item and draws any text records associated with it.
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+        /// Should be overridden to add to the drawing painter path.
+        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
+        /// Should be overridden if the item needs special properties for drawing.
+        virtual void setPenProperties(QPen & pen) const;
+
+        /// Should be overridden if the item needs special properties for drawing.
+        virtual void setBrushProperties(QBrush & brush) const;
+
         /// Brings the item to the front of the z-order.
         void bringToFront();
 
@@ -260,15 +269,6 @@ namespace NeuroGui
         virtual void reset() {}
 
     protected:
-        /// Should be overridden to add to the drawing painter path.
-        virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
-
-        /// Should be overridden if the item needs special properties for drawing.
-        virtual void setPenProperties(QPen & pen) const;
-
-        /// Should be overridden if the item needs special properties for drawing.
-        virtual void setBrushProperties(QBrush & brush) const;
-
         /// Whether or not to highlight the item.
         /// The default implementation highlights an item if it is selected or if the mouse is over it.
         virtual bool shouldHighlight() const;

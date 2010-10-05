@@ -72,14 +72,7 @@ namespace NeuroGui
 
     bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        // can only be connected to by links
-        bool result = dynamic_cast<NeuroLinkItem *>(item) != 0;
-        result = result || dynamic_cast<CompactLinkItem *>(item) != 0;
-
-        // or a subconnectionitem
-        result = result || dynamic_cast<SubConnectionItem *>(item) != 0;
-
-        return result;
+        return true;
     }
 
     void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
