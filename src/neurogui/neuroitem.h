@@ -81,6 +81,8 @@ namespace NeuroGui
 
         Property<NeuroItem, QVariant::String, QString, QString> _label_property;
 
+        bool _ui_delete; ///< Whether or not an item is being deleted from the UI, or else by program shutdown.
+
     private:
         LabNetwork *_network; ///< The network this item is a part of.
 
@@ -122,6 +124,9 @@ namespace NeuroGui
 
         /// Creates an item of the correct type, given an RTTI type name that has been registered.
         static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos, const CreateContext & context);
+
+        /// Set whether or not the item will be deleted from the UI, or as a result of program shutdown.
+        void setUIDelete(bool ui_delete = true) { _ui_delete = ui_delete; }
 
         const LabNetwork *network() const { return _network; }
         LabNetwork *network() { return _network; }
@@ -165,7 +170,7 @@ namespace NeuroGui
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         /// Called when a moving item is attached to a stationary one.
-        virtual void attachTo(NeuroItem *) { }
+        virtual void onAttachTo(NeuroItem *) { }
 
         /// Called when a stationary item has been attached to by a moving one.
         virtual void onAttachedBy(NeuroItem *) { }

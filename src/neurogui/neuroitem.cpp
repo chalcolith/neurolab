@@ -79,6 +79,7 @@ namespace NeuroGui
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
         : PropertyObject(network), QGraphicsItem(),
         _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
+        _ui_delete(false),
         _network(network), _id(NEXT_ID++)
     {
         setPos(scenePos);
@@ -97,10 +98,13 @@ namespace NeuroGui
 
     NeuroItem::~NeuroItem()
     {
-        while (_incoming.size() > 0)
-            removeIncoming(_incoming.front());
-        while (_outgoing.size() > 0)
-            removeOutgoing(_outgoing.front());
+        if (_ui_delete)
+        {
+            while (_incoming.size() > 0)
+                removeIncoming(_incoming.first());
+            while (_outgoing.size() > 0)
+                removeOutgoing(_outgoing.first());
+        }
     }
 
     void NeuroItem::registerTypeName(const QString & mangledName, const QString & friendlyName)
@@ -551,7 +555,7 @@ namespace NeuroGui
         {
             if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
             {
-                attachTo(itemAtPos);
+                onAttachTo(itemAtPos);
                 itemAtPos->onAttachedBy(this);
 
                 movePos = scenePos();

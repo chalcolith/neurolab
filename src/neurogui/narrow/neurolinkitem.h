@@ -81,7 +81,7 @@ namespace NeuroGui
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
-        virtual void attachTo(NeuroItem *);
+        virtual void onAttachTo(NeuroItem *);
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();
 
@@ -99,6 +99,7 @@ namespace NeuroGui
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
         virtual void setPenProperties(QPen & pen) const;
+        virtual void setBrushProperties(QBrush &brush) const;
 
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 

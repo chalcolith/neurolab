@@ -35,7 +35,11 @@ SOURCES += mainwindow.cpp \
     subnetwork/subnetworkitem.cpp \
     subnetwork/subconnectionitem.cpp \
     mixins/mixinarrow.cpp \
-    mixins/mixinremember.cpp
+    mixins/mixinremember.cpp \
+    compact/compactitem.cpp \
+    compact/compactoritem.cpp \
+    compact/compactanditem.cpp \
+    compact/compactlinkitem.cpp
 
 HEADERS += neurogui_global.h \
     mainwindow.h \
@@ -57,6 +61,10 @@ HEADERS += neurogui_global.h \
     subnetwork/subconnectionitem.h \
     mixins/mixinarrow.h \
     mixins/mixinremember.h \
+    compact/compactitem.h \
+    compact/compactoritem.h \
+    compact/compactanditem.h \
+    compact/compactlinkitem.h
 
 FORMS += mainwindow.ui \
     filedirtydialog.ui \

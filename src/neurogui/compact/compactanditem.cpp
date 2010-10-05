@@ -1,6 +1,3 @@
-#ifndef MIXINREMEMBER_H
-#define MIXINREMEMBER_H
-
 /*
 Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
@@ -37,34 +34,3 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "../neurogui_global.h"
-#include "../narrow/neurolinkitem.h"
-
-namespace NeuroGui
-{
-
-    class MixinArrow;
-
-    /// Provides functionality for remembering the positions of linked nodes.
-    class NEUROGUISHARED_EXPORT MixinRemember
-    {
-        NeuroItem *_self;
-
-    protected:
-        QMap<MixinArrow *, QVector2D> _incomingAttachments, _outgoingAttachments;
-
-    public:
-        MixinRemember(NeuroItem *self);
-        virtual ~MixinRemember();
-
-    protected:
-        void onAttachedBy(MixinArrow *link);
-        void adjustLinks();
-
-        virtual void adjustLink(MixinArrow *link, QList<MixinArrow *> & alreadyAdjusted);
-        virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
-    };
-
-} // namespace NeuroGui
-
-#endif // MIXINREMEMBER_H

@@ -59,7 +59,7 @@ namespace NeuroGui
 
     NeuroNarrowItem::~NeuroNarrowItem()
     {
-        if (network() && network()->neuronet())
+        if (_ui_delete && network() && network()->neuronet())
         {
             for (QListIterator<NeuroCell::NeuroIndex> i(_cellIndices); i.hasNext(); )
             {
@@ -145,16 +145,16 @@ namespace NeuroGui
 
     const NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const
     {
-        if (!network() || !network()->neuronet())
-            return 0;
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
 
         return index != -1 ? &((*network()->neuronet())[index]) : 0;
     }
 
     NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index)
     {
-        if (!network() || !network()->neuronet())
-            return 0;
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
 
         return index != -1 ? &((*network()->neuronet())[index]) : 0;
     }

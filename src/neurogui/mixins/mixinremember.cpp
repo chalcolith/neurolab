@@ -49,7 +49,7 @@ namespace NeuroGui
     {
     }
 
-    void MixinRemember::onAttachedBy(NeuroLinkItem *link)
+    void MixinRemember::onAttachedBy(MixinArrow *link)
     {
         if (link->frontLinkTarget() == _self && link->dragFront())
             _incomingAttachments.remove(link);
@@ -58,7 +58,7 @@ namespace NeuroGui
             _outgoingAttachments.remove(link);
 
         // snap to node
-        QList<NeuroLinkItem *> already;
+        QList<MixinArrow *> already;
         adjustLink(link, already);
 
         // get new pos and remember
@@ -75,24 +75,24 @@ namespace NeuroGui
 
     void MixinRemember::adjustLinks()
     {
-        QList<NeuroLinkItem *> alreadyAdjusted;
+        QList<MixinArrow *> alreadyAdjusted;
 
         for (QListIterator<NeuroItem *> i(_self->incoming()); i.hasNext(); )
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
+            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link && !alreadyAdjusted.contains(link))
                 adjustLink(link, alreadyAdjusted);
         }
 
         for (QListIterator<NeuroItem *> i(_self->outgoing()); i.hasNext(); )
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
+            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link && !alreadyAdjusted.contains(link))
                 adjustLink(link, alreadyAdjusted);
         }
     }
 
-    void MixinRemember::adjustLink(NeuroLinkItem *link, QList<NeuroLinkItem *> & alreadyAdjusted)
+    void MixinRemember::adjustLink(MixinArrow *link, QList<MixinArrow *> & alreadyAdjusted)
     {
         LabScene *lab_scene = dynamic_cast<LabScene *>(_self->scene());
         if (!lab_scene)

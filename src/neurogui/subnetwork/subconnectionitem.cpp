@@ -152,7 +152,7 @@ namespace NeuroGui
         return false;
     }
 
-    void SubConnectionItem::attachTo(NeuroItem *item)
+    void SubConnectionItem::onAttachTo(NeuroItem *item)
     {
         setFrontLinkTarget(item);
     }
