@@ -1,0 +1,21 @@
+Neurocognitive Linguistics Laboratory User Manual
+=================================================
+Gordon Tisher <gordon@balafon.net>
+1.1.0: Initial Version
+:toc:
+:icons:
+
+Neurocognitive Linguistics is an approach to linguistics developed by
+http://www.ruf.rice.edu/~lamb[Sydney Lamb] which uses relational
+networks to model what the brain actually does when it handles
+language. You can read more about it at the
+http://www.ruf.rice.edu/~lngbrain/main.htm[LangBrain] web site and the
+http://www.glottopedia.de/index.php/Neurocognitive_linguistics[Glottopedia] wiki.
+
+Introduction
+============
+
+Neurocognitive Linguistics Lab (``NeuroLab'' for short) is a program that allows you to experiment with relational networks using a convenient GUI, and record the results of your experiments in tabular form.
+
+The Neurocognitive Linguistics Lab is Copyright (C) 2010 Gordon Tisher, and available under the terms of the BSD License.
+
