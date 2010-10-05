@@ -55,12 +55,14 @@ namespace NeuroLib
     public:
         /// As the update operation does not allow for polymorphism, we need to know what kind of
         /// cell we're dealing with.
+        /// Don't add kinds in the middle!
         enum KindOfCell
         {
             NODE = 0,
             EXCITORY_LINK,
             INHIBITORY_LINK,
             OSCILLATOR,
+            THRESHOLD_INHIBITORY_LINK,
             NUM_KINDS
         };
 
@@ -149,7 +151,7 @@ namespace NeuroLib
         void removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index);
 
         /// Update function.
-        void update(NEURONET_BASE *neuronet, const NeuroIndex & index, NeuroCell & next, 
+        void update(NEURONET_BASE *neuronet, const NeuroIndex & index, NeuroCell & next,
                     const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const;
 
         /// Write to a data stream.

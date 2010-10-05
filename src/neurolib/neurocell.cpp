@@ -70,6 +70,14 @@ namespace NeuroLib
     static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.000001f);
     static const NeuroCell::NeuroValue MAX_LINK = static_cast<NeuroCell::NeuroValue>(1.1f);
 
+    static NeuroCell::NeuroValue sigmoid(const NeuroCell::NeuroValue & threshold, const NeuroCell::NeuroValue & run, const NeuroCell::NeuroValue & input)
+    {
+        NeuroCell::NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / run;
+        NeuroCell::NeuroValue output = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input - (threshold - run))));
+        return output;
+    }
+
+
     void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next,
                            const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
     {
@@ -110,8 +118,9 @@ namespace NeuroLib
         case NODE:
             {
                 // node output
-                NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
-                next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
+                //NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
+                //next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
+                next_value = sigmoid(prev._weight, prev._run, input_sum);
 
                 next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
                 next_value *= inhibit_factor;
@@ -183,6 +192,9 @@ namespace NeuroLib
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs
             next_value = qBound(ZERO, input_sum, ONE) * inhibit_factor * prev._weight;
+            break;
+        case THRESHOLD_INHIBITORY_LINK:
+            next_value = qBound(ZERO, sigmoid(prev._run, 0.1f, input_sum), ONE) * inhibit_factor * prev._weight;
             break;
         default:
             break;

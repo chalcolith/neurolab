@@ -476,7 +476,7 @@ namespace NeuroGui
 
     void NeuroInhibitoryLinkItem::addNewCell()
     {
-        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1));
+        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1, 1));
         _cellIndices.append(index);
     }
 
