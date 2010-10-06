@@ -40,6 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui_global.h"
 #include "../narrow/neurolinkitem.h"
 #include "../mixins/mixinremember.h"
+#include "subconnectionitem.h"
 
 #include <QMap>
 #include <QRectF>
@@ -48,7 +49,6 @@ namespace NeuroGui
 {
 
     class LabTreeNode;
-    class SubConnectionItem;
 
     class NEUROGUISHARED_EXPORT SubNetworkItem
         : public NeuroItem, public MixinRemember
@@ -70,12 +70,13 @@ namespace NeuroGui
 
         virtual QString uiName() const { return tr("Sub-Network"); }
 
+    signals:
+        void subnetworkDeleted(LabTreeNode *treeNode);
+
     public slots:
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
-        virtual bool canCutAndPaste() const { return false; }
-
         virtual bool addIncoming(NeuroItem *linkItem);
         virtual bool removeIncoming(NeuroItem *linkItem);
 
@@ -104,8 +105,8 @@ namespace NeuroGui
     private:
         void makeSubNetwork();
 
-        void addConnectionItem(NeuroLinkItem *governingLink, bool is_incoming);
-        void removeConnectionItem(NeuroLinkItem *governingLink);
+        void addConnectionItem(NeuroItem *governingLink, const SubConnectionItem::Directions & direction);
+        void removeConnectionItem(NeuroItem *governingLink);
     };
 
 } // namespace NeuroGui

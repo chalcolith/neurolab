@@ -321,7 +321,7 @@ namespace NeuroGui
 
         // break links
         NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
-        if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
+        if (linkedItem && !linkedItem->containsMousePos(mousePos))
         {
             if (_dragFront)
                 setFrontLinkTarget(0);

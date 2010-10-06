@@ -44,6 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../../neurolib/neuronet.h"
 
 #include <QList>
+#include <QFlags>
 
 namespace NeuroGui
 {
@@ -65,8 +66,10 @@ namespace NeuroGui
             BOTH     = INCOMING | OUTGOING
         };
 
+        Q_DECLARE_FLAGS(Directions, Direction)
+
     private:
-        quint32 _direction;
+        Directions _direction;
         QVector2D _initialPos, _initialDir;
 
         SubNetworkItem *_parentSubnetworkItem;
@@ -76,7 +79,7 @@ namespace NeuroGui
     public:
         explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
-                                   SubNetworkItem *parent, NeuroItem *governing, quint32 direction,
+                                   SubNetworkItem *parent, NeuroItem *governing, const Directions & direction,
                                    const QVector2D & initialPos, const QVector2D & initialDir);
         virtual ~SubConnectionItem();
 
@@ -85,8 +88,8 @@ namespace NeuroGui
         NeuroLib::NeuroCell::NeuroValue outputValue() const;
         void setOutputValue(const NeuroLib::NeuroCell::NeuroValue &);
 
-        const quint32 & direction() const { return _direction; }
-        void setDirection(const quint32 & direction) { _direction = direction; }
+        const Directions & direction() const { return _direction; }
+        void setDirection(const Directions & direction) { _direction = direction; }
 
         NeuroItem *governingItem() const { return _governingItem; }
         void setGoverningItem(NeuroItem *item);
@@ -101,8 +104,6 @@ namespace NeuroGui
         virtual void setFrontLinkTarget(NeuroItem *linkTarget);
         virtual void setBackLinkTarget(NeuroItem *linkTarget);
 
-        virtual bool canCutAndPaste() const { return false; }
-
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void setPenProperties(QPen &pen) const;
 
@@ -116,6 +117,8 @@ namespace NeuroGui
     private:
         void drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b, const qreal & angle1, const qreal & angle2) const;
     };
+
+    Q_DECLARE_OPERATORS_FOR_FLAGS(SubConnectionItem::Directions)
 
 } // namespace NeuroGui
 

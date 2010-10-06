@@ -56,6 +56,8 @@ namespace NeuroGui
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0),
           _rect(-15, -10, 30, 20)
     {
+        connect(this, SIGNAL(subnetworkDeleted(LabTreeNode*)), MainWindow::instance(), SLOT(treeNodeDeleted(LabTreeNode*)));
+
         if (context == NeuroItem::CREATE_UI)
         {
             makeSubNetwork();
@@ -64,7 +66,13 @@ namespace NeuroGui
 
     SubNetworkItem::~SubNetworkItem()
     {
-        // the tree node will be deleted by the tree itself, so we don't need to delete it
+        if (_ui_delete && _treeNode)
+        {
+            emit subnetworkDeleted(_treeNode);
+
+            _treeNode->setUIDelete();
+            delete _treeNode;
+        }
     }
 
     void SubNetworkItem::propertyValueChanged(QtProperty *p, const QVariant & val)
@@ -79,11 +87,11 @@ namespace NeuroGui
 
     bool SubNetworkItem::addIncoming(NeuroItem *linkItem)
     {
-        NeuroItem::addIncoming(linkItem);
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (link)
+        if (NeuroItem::addIncoming(linkItem) && !_connections.contains(linkItem))
         {
-            addConnectionItem(link, true);
+            MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
+            if (link)
+                addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::INCOMING);
         }
         return true;
     }
@@ -91,21 +99,17 @@ namespace NeuroGui
     bool SubNetworkItem::removeIncoming(NeuroItem *linkItem)
     {
         NeuroItem::removeIncoming(linkItem);
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (link)
-        {
-            removeConnectionItem(link);
-        }
+        removeConnectionItem(linkItem);
         return true;
     }
 
     bool SubNetworkItem::addOutgoing(NeuroItem *linkItem)
     {
-        NeuroItem::addOutgoing(linkItem);
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (link)
+        if (NeuroItem::addOutgoing(linkItem) && !_connections.contains(linkItem))
         {
-            addConnectionItem(link, false);
+            MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
+            if (link)
+                addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::OUTGOING);
         }
         return true;
     }
@@ -113,11 +117,7 @@ namespace NeuroGui
     bool SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
     {
         NeuroItem::removeOutgoing(linkItem);
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(linkItem);
-        if (link)
-        {
-            removeConnectionItem(link);
-        }
+        removeConnectionItem(linkItem);
         return true;
     }
 
@@ -160,7 +160,7 @@ namespace NeuroGui
         }
     }
 
-    void SubNetworkItem::addConnectionItem(NeuroLinkItem *governingLink, bool is_incoming)
+    void SubNetworkItem::addConnectionItem(NeuroItem *governingLink, const SubConnectionItem::Directions & direction)
     {
         if (!(network() && network()->scene()))
             return;
@@ -171,6 +171,8 @@ namespace NeuroGui
         makeSubNetwork();
         if (!(_treeNode && _treeNode->scene() && _treeNode->view()))
             return;
+
+        qDebug("adding connection item");
 
         // get the view's viewport (expanded to the size of ours, if necessary)
         QRectF vr = network()->treeNode()->view()->viewport()->rect();
@@ -193,7 +195,6 @@ namespace NeuroGui
         sPos = rCenter + sDir * (sPos - rCenter).length() * 0.5f;
 
         // direction is only in/out for now...
-        quint32 direction = is_incoming ? SubConnectionItem::INCOMING : SubConnectionItem::OUTGOING;
         SubConnectionItem *subItem = new SubConnectionItem(network(), sPos.toPointF(), NeuroItem::CREATE_UI, this, governingLink, direction, sPos, -sDir);
         _treeNode->scene()->addItem(subItem);
 
@@ -201,15 +202,21 @@ namespace NeuroGui
         _connections[governingLink] = subItem;
     }
 
-    void SubNetworkItem::removeConnectionItem(NeuroLinkItem *governingLink)
+    void SubNetworkItem::removeConnectionItem(NeuroItem *governingLink)
     {
         SubConnectionItem *subItem = _connections[governingLink];
         if (subItem)
         {
+            qDebug("removing connection item");
+
             _connections.remove(governingLink);
 
             subItem->setUIDelete();
             delete subItem;
+        }
+        else
+        {
+            qDebug("NOT removing connection item");
         }
     }
 
@@ -220,12 +227,12 @@ namespace NeuroGui
 
     bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
     {
-        return dynamic_cast<NeuroLinkItem *>(item) != 0;
+        return dynamic_cast<MixinArrow *>(item) != 0;
     }
 
     void SubNetworkItem::onAttachedBy(NeuroItem *item)
     {
-        NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
         {
             MixinRemember::onAttachedBy(link);

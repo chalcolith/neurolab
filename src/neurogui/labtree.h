@@ -75,6 +75,7 @@ namespace NeuroGui
         QList<LabTreeNode *> _children;
 
         QAction *_currentAction;
+        bool _ui_delete;
 
     public:
         /// Constructor.
@@ -96,6 +97,8 @@ namespace NeuroGui
 
         QAction *currentAction() { return _currentAction; }
         void setCurrentAction(QAction *action);
+
+        void setUIDelete(bool ui_delete = true) { _ui_delete = ui_delete; }
 
         /// Creates a new child node in the network.
         LabTreeNode *createChild(const QString & label = QString());

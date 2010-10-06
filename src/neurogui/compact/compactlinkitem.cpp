@@ -255,7 +255,7 @@ namespace NeuroGui
 
         // break links
         NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
-        if (linkedItem && !linkedItem->contains(linkedItem->mapFromScene(mousePos)))
+        if (linkedItem && !linkedItem->containsMousePos(mousePos))
         {
             if (_dragFront)
                 setFrontLinkTarget(0);
@@ -286,28 +286,29 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        if (incoming().contains(linkItem))
-            return false;
-
-        // the nodes will handle all compact stuff; this is only for narrow nodes
-        NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
-        if (node)
+        if (CompactItem::addIncoming(linkItem))
         {
-            // the node is the back link target, so link to the beginning of the upward chain, and the end of the downward chain
-            NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-            NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
+            // the nodes will handle all compact stuff; this is only for narrow nodes
+            NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
+            if (node)
+            {
+                // the node is the back link target, so link to the beginning of the upward chain, and the end of the downward chain
+                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
+                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-            NeuroCell::NeuroIndex myIncomingIndex = _upward_cells.first();
-            NeuroCell::NeuroIndex myOutgoingIndex = _downward_cells.last();
+                NeuroCell::NeuroIndex myIncomingIndex = _upward_cells.first();
+                NeuroCell::NeuroIndex myOutgoingIndex = _downward_cells.last();
 
-            if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
-            if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
+                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
+                    network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
+                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
+                    network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
+            }
+
+            return true;
         }
 
-        CompactItem::addIncoming(linkItem);
-        return true;
+        return false;
     }
 
     bool CompactLinkItem::removeIncoming(NeuroItem *linkItem)
@@ -315,6 +316,8 @@ namespace NeuroGui
         Q_ASSERT(linkItem);
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
+
+        CompactItem::removeIncoming(linkItem);
 
         // nodes handle all compact stuff; this is only for narrow nodes
         NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
@@ -338,7 +341,6 @@ namespace NeuroGui
         if (_backLinkTarget && linkItem == _backLinkTarget)
             setBackLinkTarget(0);
 
-        CompactItem::removeIncoming(linkItem);
         return true;
     }
 
@@ -348,28 +350,30 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        if (outgoing().contains(linkItem))
-            return false;
-
-        // nodes handle all compact stuff; this is only for narrow nodes
-        NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
-        if (node)
+        if (CompactItem::addOutgoing(linkItem))
         {
-            // the node is the FRONT link target, so link to the end of the upward chain, and the beginning of the downward chain
-            NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-            NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-            NeuroCell::NeuroIndex myIncomingIndex = _downward_cells.first();
-            NeuroCell::NeuroIndex myOutgoingIndex = _upward_cells.last();
+            // nodes handle all compact stuff; this is only for narrow nodes
+            NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
+            if (node)
+            {
+                // the node is the FRONT link target, so link to the end of the upward chain, and the beginning of the downward chain
+                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
+                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-            if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
-            if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
+                NeuroCell::NeuroIndex myIncomingIndex = _downward_cells.first();
+                NeuroCell::NeuroIndex myOutgoingIndex = _upward_cells.last();
+
+                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
+                    network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
+                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
+                    network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
+            }
+
+            return true;
         }
 
-        CompactItem::addOutgoing(linkItem);
-        return true;
+        return false;
     }
 
     bool CompactLinkItem::removeOutgoing(NeuroItem *linkItem)
@@ -377,6 +381,8 @@ namespace NeuroGui
         Q_ASSERT(linkItem);
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
+
+        CompactItem::removeOutgoing(linkItem);
 
         // nodes handle all compact stuff; this is only for narrow nodes
         NeuroNodeItem *node = dynamic_cast<NeuroNodeItem *>(linkItem);
@@ -399,7 +405,6 @@ namespace NeuroGui
         if (_frontLinkTarget && linkItem == _frontLinkTarget)
             setFrontLinkTarget(0);
 
-        CompactItem::removeOutgoing(linkItem);
         return true;
     }
 

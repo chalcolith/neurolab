@@ -691,12 +691,25 @@ namespace NeuroGui
         treeNode->updateItemProperties();
         setPropertyObject(_currentNetwork);
 
+        updateBreadcrumbs();
+    }
+
+    void MainWindow::treeNodeDeleted(LabTreeNode *treeNode)
+    {
+        _breadCrumbs.removeAll(treeNode);
+        updateBreadcrumbs();
+    }
+
+    void MainWindow::updateBreadcrumbs()
+    {
+        _breadCrumbBar->clear();
+
         // create breadcrumbs
-        if (_breadCrumbBar)
+        if (_breadCrumbBar && _currentNetwork)
         {
             // get new breadcrumbs for this network
             QList<LabTreeNode *> newBreadCrumbs;
-            LabTreeNode *newNode = treeNode;
+            LabTreeNode *newNode = _currentNetwork->treeNode();
             while (newNode)
             {
                 newBreadCrumbs.insert(0, newNode);
@@ -718,8 +731,6 @@ namespace NeuroGui
             // set the new breadcrumbs
             _breadCrumbs = newBreadCrumbs;
             num = _breadCrumbs.size();
-
-            _breadCrumbBar->clear();
             for (int i = 0; i < num; ++i)
             {
                 if (_breadCrumbs[i]->currentAction())
@@ -735,7 +746,7 @@ namespace NeuroGui
                     _breadCrumbs[i]->setCurrentAction(action);
                 }
 
-                _breadCrumbs[i]->currentAction()->setChecked(_breadCrumbs[i] == treeNode);
+                _breadCrumbs[i]->currentAction()->setChecked(_breadCrumbs[i] == _currentNetwork->treeNode());
             }
         }
     }

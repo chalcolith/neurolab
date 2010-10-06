@@ -147,6 +147,8 @@ namespace NeuroGui
 
         /// Sets the active subnetwork node.
         void setSubNetwork(LabTreeNode *treeNode);
+        void treeNodeDeleted(LabTreeNode *treeNode);
+        void updateBreadcrumbs();
 
         /// Sets the objects whose properties are displayed in the property widget.
         void setPropertyObjects(const QList<PropertyObject *> & property_objects);

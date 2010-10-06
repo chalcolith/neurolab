@@ -58,7 +58,7 @@ namespace NeuroGui
     }
 
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
-                                         SubNetworkItem *parent, NeuroItem *governing, quint32 direction,
+                                         SubNetworkItem *parent, NeuroItem *governing, const Directions & direction,
                                          const QVector2D & initialPos, const QVector2D & initialDir)
         : NeuroItem(network, scenePos, context), MixinArrow(this),
          _direction(direction), _parentSubnetworkItem(parent), _governingItem(0),
@@ -182,7 +182,7 @@ namespace NeuroGui
 
     void SubConnectionItem::setFrontLinkTarget(NeuroItem *linkTarget)
     {
-        if (_direction & INCOMING)
+        if (_direction.testFlag(INCOMING))
         {
             // disconnect old target
             if (_frontLinkTarget)
@@ -204,7 +204,7 @@ namespace NeuroGui
             }
         }
 
-        if (_direction & OUTGOING)
+        if (_direction.testFlag(OUTGOING))
         {
             // disconnect old target
             if (_frontLinkTarget)
@@ -271,12 +271,12 @@ namespace NeuroGui
         drawWavyLine(drawPath, a, b, back_angle - M_PI/4, back_angle + M_PI/4);
 
         // draw arrow in front or back depending on direction
-        if (_direction & INCOMING)
+        if (_direction.testFlag(INCOMING))
         {
             addPoint(drawPath, front, (myFront - c2).normalized(), ELLIPSE_WIDTH);
         }
 
-        if (_direction & OUTGOING)
+        if (_direction.testFlag(OUTGOING))
         {
             addPoint(drawPath, back, (myBack - c1).normalized(), ELLIPSE_WIDTH);
         }
@@ -336,7 +336,7 @@ namespace NeuroGui
         NeuroItem::writeBinary(ds, file_version);
         MixinArrow::writeBinary(ds, file_version);
 
-        ds << _direction;
+        ds << static_cast<qint32>(_direction);
         ds << _initialPos;
         ds << _initialDir;
     }
@@ -346,7 +346,8 @@ namespace NeuroGui
         NeuroItem::readBinary(ds, file_version);
         MixinArrow::readBinary(ds, file_version);
 
-        ds >> _direction;
+        qint32 flag;
+        ds >> flag; _direction = Directions(flag);
         ds >> _initialPos;
         ds >> _initialDir;
     }

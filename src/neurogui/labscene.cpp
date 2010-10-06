@@ -131,7 +131,7 @@ namespace NeuroGui
 
         if (event->button() == Qt::LeftButton && _itemUnderMouse)
         {
-            if ((event->modifiers() & Qt::ControlModifier) != 0)
+            if (event->modifiers().testFlag(Qt::ControlModifier))
             {
                 if (_itemUnderMouse->isSelected())
                 {
@@ -147,10 +147,13 @@ namespace NeuroGui
                 update();
                 return;
             }
-
-            if ((event->modifiers() & Qt::AltModifier) != 0)
+            else if (event->modifiers().testFlag(Qt::AltModifier))
             {
                 _moveOnly = true;
+            }
+            else
+            {
+                _itemUnderMouse->setSelected(true);
             }
         }
 

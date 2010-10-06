@@ -66,6 +66,8 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::NeuroValue outputValue() const;
         virtual void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
 
+        virtual bool canCutAndPaste() const { return true; }
+
         virtual bool addIncoming(NeuroItem *linkItem);
         virtual bool removeIncoming(NeuroItem *linkItem);
 

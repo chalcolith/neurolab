@@ -152,6 +152,9 @@ namespace NeuroGui
         /// Used to write data values to the data file.
         virtual QString dataValue() const { return QString(); }
 
+        /// Whether or not the item is bidirectional.
+        virtual bool isBidirectional() const { return false; }
+
         /// Add an incoming link.  Derived classes may override this to provide custom behavior.
         /// \see NeuroNarrowItem::addIncoming()
         virtual bool addIncoming(NeuroItem *linkItem);
@@ -179,6 +182,8 @@ namespace NeuroGui
 
         /// Called when an item moves, so it can adjust the position or shape of any incoming or outgoing items.
         virtual void adjustLinks() { }
+
+        bool containsMousePos(const QPointF & mousePos);
 
         /// Called when an item moves.
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
@@ -224,7 +229,7 @@ namespace NeuroGui
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
         /// Whether or not the item can be cut and pasted.
-        virtual bool canCutAndPaste() const { return true; }
+        virtual bool canCutAndPaste() const { return false; }
 
         /// Writes the item's data to a clipboard data stream.
         /// \param ds The data stream.

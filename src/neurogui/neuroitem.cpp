@@ -87,6 +87,7 @@ namespace NeuroGui
         setFlag(QGraphicsItem::ItemIsSelectable, true);
         setFlag(QGraphicsItem::ItemIsMovable, true);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+        setFlag(QGraphicsItem::ItemIsFocusable, false);
 
         setAcceptHoverEvents(true);
 
@@ -535,9 +536,18 @@ namespace NeuroGui
         return QGraphicsItem::itemChange(change, value);
     }
 
+    bool NeuroItem::containsMousePos(const QPointF & mousePos)
+    {
+        QPointF localPos = mapFromScene(mousePos);
+        QRectF mouseRect(localPos.x() - 2, localPos.y() - 2, 4, 4);
+        return shape().intersects(mouseRect);
+    }
+
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
-        Q_ASSERT(_network != 0 && _network->scene() != 0);
+        Q_ASSERT(_network != 0);
+        Q_ASSERT(_network->scene() != 0);
+
         _network->setChanged();
 
         // get topmost item at mouse position that is not the item itself

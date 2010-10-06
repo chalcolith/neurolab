@@ -49,7 +49,7 @@ namespace NeuroGui
     // LabTreeNode
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
-        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0), _ui_delete(false)
     {
         _scene = new LabScene(_tree->network());
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
@@ -73,6 +73,15 @@ namespace NeuroGui
             delete i.next();
         }
         _children.clear();
+
+        if (_ui_delete && _scene)
+        {
+            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+            {
+                NeuroItem *ni = dynamic_cast<NeuroItem *>(i.next());
+                ni->setUIDelete(_ui_delete);
+            }
+        }
 
         delete _currentAction;
         _currentAction = 0;

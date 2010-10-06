@@ -61,6 +61,8 @@ namespace NeuroGui
         CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~CompactItem();
 
+        virtual bool isBidirectional() const { return true; }
+
         QList<NeuroLib::NeuroCell::NeuroIndex> upwardCells() { return _upward_cells; }
         QList<NeuroLib::NeuroCell::NeuroIndex> downwardCells() { return _downward_cells; }
 
