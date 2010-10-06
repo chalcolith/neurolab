@@ -89,6 +89,9 @@ namespace NeuroGui
         virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
+
+    private:
+        void getMyIndices(NeuroItem *linkItem, NeuroLib::NeuroCell::NeuroIndex & myIncomingIndex, NeuroLib::NeuroCell::NeuroIndex & myOutgoingIndex);
     }; // class CompactLinkItem
 
 } // namespace NeuroGui

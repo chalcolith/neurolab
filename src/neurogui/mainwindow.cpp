@@ -658,7 +658,7 @@ namespace NeuroGui
         if (!_currentNetwork || !treeNode)
             return;
         if (treeNode->tree()->network() != _currentNetwork)
-            throw new LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
+            throw LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
 
         // remove the current network's view
         if (_currentNetwork->scene())

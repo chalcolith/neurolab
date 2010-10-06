@@ -222,7 +222,7 @@ namespace NeuroGui
     void SubConnectionItem::setBackLinkTarget(NeuroItem *linkTarget)
     {
         if (linkTarget)
-            throw new LabException(tr("You cannot set the back link target on a sub-connection item."));
+            throw LabException(tr("You cannot set the back link target on a sub-connection item."));
         else
             _backLinkTarget = linkTarget;
     }
@@ -389,7 +389,7 @@ namespace NeuroGui
         }
         else if (governingId)
         {
-            throw new LabException(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
+            throw LabException(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
         }
 
         NeuroItem::IdType parentId = reinterpret_cast<NeuroItem::IdType>(_parentSubnetworkItem);
@@ -401,7 +401,7 @@ namespace NeuroGui
         }
         else
         {
-            throw new LabException(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
+            throw LabException(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
         }
     }
 

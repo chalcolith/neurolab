@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../narrow/neuronodeitem.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
+#include "../labexception.h"
 
 using namespace NeuroLib;
 
@@ -268,6 +269,20 @@ namespace NeuroGui
             setBackLinkTarget(item);
     }
 
+    void CompactLinkItem::getMyIndices(NeuroItem *linkItem, NeuroLib::NeuroCell::NeuroIndex &myIncomingIndex, NeuroLib::NeuroCell::NeuroIndex &myOutgoingIndex)
+    {
+        if (_dragFront)
+        {
+            myIncomingIndex = _downward_cells.first();
+            myOutgoingIndex = _upward_cells.last();
+        }
+        else
+        {
+            myIncomingIndex = _upward_cells.first();
+            myOutgoingIndex = _downward_cells.last();
+        }
+    }
+
     bool CompactLinkItem::addIncoming(NeuroItem *linkItem)
     {
         Q_ASSERT(linkItem);
@@ -280,12 +295,11 @@ namespace NeuroGui
             NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
             if (node)
             {
-                // the node is the back link target, so link to the beginning of the upward chain, and the end of the downward chain
                 NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
                 NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-                NeuroCell::NeuroIndex myIncomingIndex = _upward_cells.first();
-                NeuroCell::NeuroIndex myOutgoingIndex = _downward_cells.last();
+                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
+                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
 
                 if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
                     network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
@@ -311,21 +325,22 @@ namespace NeuroGui
         NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
         if (node)
         {
-            // the node is the back link target, so link to the beginning of the upward chain, and the end of the downward chain
             NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
             NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-            NeuroCell::NeuroIndex myIncomingIndex = _upward_cells.first();
-            NeuroCell::NeuroIndex myOutgoingIndex = _downward_cells.last();
+            NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
+            getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
 
             if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
                 network()->neuronet()->removeEdge(myIncomingIndex, nodeOutgoingIndex);
             if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
                 network()->neuronet()->removeEdge(nodeIncomingIndex, myOutgoingIndex);
-
         }
 
-        // remove the back link target
+        // remove the appropriate target
+        if (_frontLinkTarget && linkItem == _frontLinkTarget)
+            setFrontLinkTarget(0);
+
         if (_backLinkTarget && linkItem == _backLinkTarget)
             setBackLinkTarget(0);
 
@@ -340,17 +355,15 @@ namespace NeuroGui
 
         if (CompactItem::addOutgoing(linkItem))
         {
-
             // nodes handle all compact stuff; this is only for narrow nodes
             NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
             if (node)
             {
-                // the node is the FRONT link target, so link to the end of the upward chain, and the beginning of the downward chain
                 NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
                 NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-                NeuroCell::NeuroIndex myIncomingIndex = _downward_cells.first();
-                NeuroCell::NeuroIndex myOutgoingIndex = _upward_cells.last();
+                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
+                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
 
                 if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
                     network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
@@ -376,12 +389,11 @@ namespace NeuroGui
         NeuroNodeItem *node = dynamic_cast<NeuroNodeItem *>(linkItem);
         if (node)
         {
-            // the node is the FRONT link target, so link to the end of the upward chain, and the beginning of the downward chain
             NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
             NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
 
-            NeuroCell::NeuroIndex myIncomingIndex = _downward_cells.first();
-            NeuroCell::NeuroIndex myOutgoingIndex = _upward_cells.last();
+            NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
+            getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
 
             if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
                 network()->neuronet()->removeEdge(myIncomingIndex, nodeOutgoingIndex);
@@ -389,9 +401,12 @@ namespace NeuroGui
                 network()->neuronet()->removeEdge(nodeIncomingIndex, myOutgoingIndex);
         }
 
-        // remove the front link target
+        // remove the appropriate target if necessary
         if (_frontLinkTarget && linkItem == _frontLinkTarget)
             setFrontLinkTarget(0);
+
+        if (_backLinkTarget && linkItem == _backLinkTarget)
+            setBackLinkTarget(0);
 
         return true;
     }

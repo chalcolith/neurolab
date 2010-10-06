@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QDir>
 
 #include "../automata/exception.h"
+#include "../neurogui/labexception.h"
 #include "../neurogui/mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
     try
     {
         return application.exec();
+    }
+    catch (NeuroGui::LabException & le)
+    {
+        QMessageBox::critical(0, "Critical Error", le.message());
     }
     catch (Automata::Exception & ne)
     {

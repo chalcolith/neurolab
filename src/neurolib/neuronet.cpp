@@ -140,7 +140,7 @@ namespace NeuroLib
         }
         else
         {
-            throw new Automata::FileFormatError();
+            throw Automata::FileFormatError();
         }
     }
 

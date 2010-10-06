@@ -92,8 +92,9 @@ namespace NeuroGui
             MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
             if (link)
                 addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::INCOMING);
+            return true;
         }
-        return true;
+        return false;
     }
 
     bool SubNetworkItem::removeIncoming(NeuroItem *linkItem)
@@ -110,8 +111,9 @@ namespace NeuroGui
             MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
             if (link)
                 addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::OUTGOING);
+            return true;
         }
-        return true;
+        return false;
     }
 
     bool SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
@@ -390,7 +392,7 @@ namespace NeuroGui
             }
             else
             {
-                throw new LabException(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
+                throw LabException(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
             }
         }
 

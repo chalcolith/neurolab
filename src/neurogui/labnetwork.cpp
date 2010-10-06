@@ -894,7 +894,7 @@ namespace NeuroGui
                 if (image.save(fname))
                     MainWindow::instance()->setStatus(tr("Exported to PNG: %1").arg(fname));
                 else
-                    throw new LabException(tr("Unable to save image %1").arg(fname));
+                    throw LabException(tr("Unable to save image %1").arg(fname));
             }
         }
     }

@@ -198,16 +198,12 @@ namespace NeuroGui
             && (labScene = dynamic_cast<LabScene *>(_self->scene()))
             && !labScene->moveOnly()
             && labScene->mouseIsDown()
-            && labScene->itemUnderMouse() == _self
-            && !(_dragFront && _frontLinkTarget)
-            && !(!_dragFront && _backLinkTarget))
+            && (labScene->itemUnderMouse() == _self))
         {
-            _self->prepGeomChange();
-
-            // adjust position
             QPointF oldPos(_self->scenePos());
             QVector2D oldCenter(oldPos);
 
+            // adjust position
             QVector2D front = QVector2D(_line.p2()) + oldCenter;
             QVector2D back = QVector2D(_line.p1()) + oldCenter;
 
@@ -223,42 +219,51 @@ namespace NeuroGui
                 _dragFront = distFront < distBack;
             }
 
-            if (_dragFront)
+            if (!(_dragFront && _frontLinkTarget) && !(!_dragFront && _backLinkTarget))
             {
-                if (_frontLinkTarget && _frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePt)))
+                _self->prepGeomChange();
+
+                if (_dragFront)
                 {
-                    movePos = oldPos;
-                    return;
+                    if (_frontLinkTarget && _frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePt)))
+                    {
+                        movePos = oldPos;
+                        return;
+                    }
+
+                    if (canDragFront)
+                        front = mousePos;
+                }
+                else
+                {
+                    if (_backLinkTarget && _backLinkTarget->contains(_backLinkTarget->mapFromScene(mousePt)))
+                    {
+                        movePos = oldPos;
+                        return;
+                    }
+
+                    if (canDragBack)
+                        back = mousePos;
                 }
 
-                if (canDragFront)
-                    front = mousePos;
+                QVector2D newCenter = (front + back) * 0.5f;
+
+                // set new position and line
+                _settingLine = true;
+                _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
+                _self->setPos(newCenter.toPointF());
+                _settingLine = false;
+
+                // handle move
+                _self->adjustLinks();
+                _self->updateShape();
+
+                movePos = _self->scenePos();
             }
             else
             {
-                if (_backLinkTarget && _backLinkTarget->contains(_backLinkTarget->mapFromScene(mousePt)))
-                {
-                    movePos = oldPos;
-                    return;
-                }
-
-                if (canDragBack)
-                    back = mousePos;
+                movePos = oldPos;
             }
-
-            QVector2D newCenter = (front + back) * 0.5f;
-
-            // set new position and line
-            _settingLine = true;
-            _line = QLineF((back - newCenter).toPointF(), (front - newCenter).toPointF());
-            _self->setPos(newCenter.toPointF());
-            _settingLine = false;
-
-            // handle move
-            _self->adjustLinks();
-            _self->updateShape();
-
-            movePos = _self->scenePos();
         }
     }
 

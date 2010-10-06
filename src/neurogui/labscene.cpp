@@ -168,6 +168,7 @@ namespace NeuroGui
             }
             else
             {
+                clearSelection();
                 _itemUnderMouse->setSelected(true);
             }
         }
