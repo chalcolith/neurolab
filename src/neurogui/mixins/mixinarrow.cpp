@@ -190,11 +190,17 @@ namespace NeuroGui
         drawPath.lineTo((QVector2D(pos) + barb2).toPointF());
     }
 
-    QPointF MixinArrow::changePos(LabScene *labScene, const QPointF & value, bool canDragFront, bool canDragBack)
+    void MixinArrow::changePos(QPointF & movePos, bool canDragFront, bool canDragBack)
     {
-        if (!_settingLine && labScene
-            && labScene->selectedItems().size() <= 1
-            && labScene->mouseIsDown())
+        LabScene *labScene;
+
+        if (!_settingLine
+            && (labScene = dynamic_cast<LabScene *>(_self->scene()))
+            && !labScene->moveOnly()
+            && labScene->mouseIsDown()
+            && labScene->itemUnderMouse() == _self
+            && !(_dragFront && _frontLinkTarget)
+            && !(!_dragFront && _backLinkTarget))
         {
             _self->prepGeomChange();
 
@@ -220,7 +226,10 @@ namespace NeuroGui
             if (_dragFront)
             {
                 if (_frontLinkTarget && _frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePt)))
-                    return oldPos;
+                {
+                    movePos = oldPos;
+                    return;
+                }
 
                 if (canDragFront)
                     front = mousePos;
@@ -228,7 +237,10 @@ namespace NeuroGui
             else
             {
                 if (_backLinkTarget && _backLinkTarget->contains(_backLinkTarget->mapFromScene(mousePt)))
-                    return oldPos;
+                {
+                    movePos = oldPos;
+                    return;
+                }
 
                 if (canDragBack)
                     back = mousePos;
@@ -246,10 +258,23 @@ namespace NeuroGui
             _self->adjustLinks();
             _self->updateShape();
 
-            return _self->scenePos();
+            movePos = _self->scenePos();
         }
+    }
 
-        return value;
+    void MixinArrow::breakLinks(const QPointF & mousePos)
+    {
+        if (!_settingLine)
+        {
+            NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
+            if (linkedItem && !linkedItem->containsScenePos(mousePos))
+            {
+                if (_dragFront)
+                    setFrontLinkTarget(0);
+                else
+                    setBackLinkTarget(0);
+            }
+        }
     }
 
     void MixinArrow::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const

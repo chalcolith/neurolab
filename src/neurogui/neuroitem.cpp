@@ -536,7 +536,7 @@ namespace NeuroGui
         return QGraphicsItem::itemChange(change, value);
     }
 
-    bool NeuroItem::containsMousePos(const QPointF & mousePos)
+    bool NeuroItem::containsScenePos(const QPointF & mousePos)
     {
         QPointF localPos = mapFromScene(mousePos);
         QRectF mouseRect(localPos.x() - 2, localPos.y() - 2, 4, 4);

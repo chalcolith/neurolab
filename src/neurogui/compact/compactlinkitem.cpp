@@ -246,22 +246,10 @@ namespace NeuroGui
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
         // move line
-        LabScene *labScene;
-        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
-            && dynamic_cast<CompactLinkItem *>(labScene->itemUnderMouse()) == this)
-        {
-            movePos = MixinArrow::changePos(labScene, movePos);
-        }
+        MixinArrow::changePos(movePos);
 
         // break links
-        NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
-        if (linkedItem && !linkedItem->containsMousePos(mousePos))
-        {
-            if (_dragFront)
-                setFrontLinkTarget(0);
-            else
-                setBackLinkTarget(0);
-        }
+        MixinArrow::breakLinks(mousePos);
 
         // attach
         return CompactItem::handleMove(mousePos, movePos);

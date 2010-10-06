@@ -162,19 +162,11 @@ namespace NeuroGui
 
     bool SubConnectionItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
-        // handle moving the link
-        LabScene *labScene;
-        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
-            && dynamic_cast<SubConnectionItem *>(labScene->itemUnderMouse()) == this)
-        {
-            movePos = MixinArrow::changePos(labScene, movePos, true, false);
-        }
+        // move the line
+        MixinArrow::changePos(movePos, true, false);
 
         // break links
-        if (_frontLinkTarget && !_frontLinkTarget->contains(_frontLinkTarget->mapFromScene(mousePos)))
-        {
-            setFrontLinkTarget(0);
-        }
+        MixinArrow::breakLinks(mousePos);
 
         // attach
         return NeuroItem::handleMove(mousePos, movePos);

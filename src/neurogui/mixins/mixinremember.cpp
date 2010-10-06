@@ -77,16 +77,16 @@ namespace NeuroGui
         QSet<MixinArrow *> already;
         adjustLink(link, already);
 
-        // get new pos and remember
-        QLineF l = link->line();
-        QVector2D front(l.p2());
-        QVector2D back(l.p1());
-        QVector2D center(_self->scenePos());
+//        // get new pos and remember
+//        QLineF l = link->line();
+//        QVector2D front(l.p2());
+//        QVector2D back(l.p1());
+//        QVector2D center(_self->scenePos());
 
-        if (link->frontLinkTarget() == _self)
-            _incomingAttachments[link] = front - center;
-        if (link->backLinkTarget() == _self)
-            _outgoingAttachments[link] = back - center;
+//        if (link->frontLinkTarget() == _self)
+//            _incomingAttachments[link] = front - center;
+//        if (link->backLinkTarget() == _self)
+//            _outgoingAttachments[link] = back - center;
     }
 
     void MixinRemember::adjustLinks()
@@ -111,8 +111,7 @@ namespace NeuroGui
     void MixinRemember::adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted)
     {
         LabScene *lab_scene = dynamic_cast<LabScene *>(_self->scene());
-        if (!lab_scene)
-            return;
+        Q_ASSERT(lab_scene);
 
         QVector2D center(_self->scenePos()); // in the scene
 

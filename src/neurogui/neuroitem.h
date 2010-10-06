@@ -183,7 +183,8 @@ namespace NeuroGui
         /// Called when an item moves, so it can adjust the position or shape of any incoming or outgoing items.
         virtual void adjustLinks() { }
 
-        bool containsMousePos(const QPointF & mousePos);
+        /// Returns true if the item collides with the given scene pos (with a margin of error the same as used to attach).
+        bool containsScenePos(const QPointF & scenePos);
 
         /// Called when an item moves.
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);

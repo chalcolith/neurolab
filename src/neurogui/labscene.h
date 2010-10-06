@@ -93,6 +93,7 @@ namespace NeuroGui
         void itemCreated(NeuroItem *item);
 
     protected:
+        virtual void keyReleaseEvent(QKeyEvent *event);
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);

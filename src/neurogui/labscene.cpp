@@ -44,6 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QGraphicsSceneMouseEvent>
 #include <QVector2D>
+#include <QKeyEvent>
 
 using namespace NeuroLib;
 
@@ -79,6 +80,20 @@ namespace NeuroGui
 
             _network->setChanged(true);
             emit itemCreated(item);
+        }
+    }
+
+    void LabScene::keyReleaseEvent(QKeyEvent *event)
+    {
+        Q_ASSERT(network());
+
+        if ((event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) && this->selectedItems().size() > 0)
+        {
+            network()->deleteSelected();
+        }
+        else
+        {
+            QGraphicsScene::keyReleaseEvent(event);
         }
     }
 

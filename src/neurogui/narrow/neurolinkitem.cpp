@@ -311,23 +311,11 @@ namespace NeuroGui
 
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
-        // move one end or the other of the link
-        LabScene *labScene;
-        if (!_settingLine && (labScene = dynamic_cast<LabScene *>(scene())) && !labScene->moveOnly()
-            && dynamic_cast<NeuroLinkItem *>(labScene->itemUnderMouse()) == this)
-        {
-            movePos = MixinArrow::changePos(labScene, movePos);
-        }
+        // move line
+        MixinArrow::changePos(movePos);
 
         // break links
-        NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
-        if (linkedItem && !linkedItem->containsMousePos(mousePos))
-        {
-            if (_dragFront)
-                setFrontLinkTarget(0);
-            else
-                setBackLinkTarget(0);
-        }
+        MixinArrow::breakLinks(mousePos);
 
         // attach
         return NeuroNarrowItem::handleMove(mousePos, movePos);
