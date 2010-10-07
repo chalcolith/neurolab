@@ -320,15 +320,13 @@ namespace NeuroGui
         return false;
     }
 
-    bool NeuroItem::removeIncoming(NeuroItem *linkItem)
+    void NeuroItem::removeIncoming(NeuroItem *linkItem)
     {
         if (linkItem && _incoming.contains(linkItem))
         {
             _incoming.remove(linkItem);
             linkItem->removeOutgoing(this);
-            return true;
         }
-        return false;
     }
 
     bool NeuroItem::addOutgoing(NeuroItem *linkItem)
@@ -342,15 +340,13 @@ namespace NeuroGui
         return false;
     }
 
-    bool NeuroItem::removeOutgoing(NeuroItem *linkItem)
+    void NeuroItem::removeOutgoing(NeuroItem *linkItem)
     {
         if (linkItem && _outgoing.contains(linkItem))
         {
             _outgoing.remove(linkItem);
             linkItem->removeIncoming(this);
-            return true;
         }
-        return false;
     }
 
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
@@ -571,13 +567,16 @@ namespace NeuroGui
         }
 
         // attach, if possible
-        if (itemAtPos && !_incoming.contains(itemAtPos) && !_outgoing.contains(itemAtPos))
+        if (itemAtPos)
         {
-            if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+            if (!_incoming.contains(itemAtPos) && !_outgoing.contains(itemAtPos))
             {
-                this->onAttachTo(itemAtPos);
-                itemAtPos->onAttachedBy(this);
-                movePos = scenePos();
+                if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+                {
+                    this->onAttachTo(itemAtPos);
+                    itemAtPos->onAttachedBy(this);
+                    movePos = scenePos();
+                }
             }
         }
 

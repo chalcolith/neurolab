@@ -73,9 +73,9 @@ namespace NeuroGui
         void setDownwardOutputValue(const NeuroLib::NeuroCell::NeuroValue & value) { setOutputValue(_downward_cells, value); }
 
         virtual bool addIncoming(NeuroItem *linkItem);
-        virtual bool removeIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
         virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual bool removeOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
 
     private:
         NeuroLib::NeuroCell::NeuroValue outputValue(const QList<NeuroLib::NeuroCell::NeuroIndex> & cells) const;

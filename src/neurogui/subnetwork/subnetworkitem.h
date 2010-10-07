@@ -78,10 +78,10 @@ namespace NeuroGui
 
     protected:
         virtual bool addIncoming(NeuroItem *linkItem);
-        virtual bool removeIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
 
         virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual bool removeOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
 
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
 

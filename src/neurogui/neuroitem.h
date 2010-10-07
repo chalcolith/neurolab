@@ -160,13 +160,13 @@ namespace NeuroGui
         virtual bool addIncoming(NeuroItem *linkItem);
 
         /// Remove an incoming link.
-        virtual bool removeIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
 
         /// Add an outgoing link.
         virtual bool addOutgoing(NeuroItem *linkItem);
 
         /// Remove an outgoing link.
-        virtual bool removeOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
 
         /// Used to decide when a moving item can attach to another item it collides with.
         virtual bool canAttachTo(const QPointF &, NeuroItem *);

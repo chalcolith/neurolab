@@ -110,20 +110,22 @@ namespace NeuroGui
         return false;
     }
 
-    bool NeuroNarrowItem::removeIncoming(NeuroItem *item)
+    void NeuroNarrowItem::removeIncoming(NeuroItem *item)
     {
-        if (!network() || !network()->neuronet())
-            return false;
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
 
-        NeuroNarrowItem *linkItem;
-        if (NeuroItem::removeIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
+        if (item && incoming().contains(item))
         {
-            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
-                network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.last());
-            return true;
-        }
+            NeuroNarrowItem *linkItem = dynamic_cast<NeuroNarrowItem *>(item);
+            if (linkItem)
+            {
+                if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
+                    network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.last());
+            }
 
-        return false;
+            NeuroItem::removeIncoming(item);
+        }
     }
 
     void NeuroNarrowItem::setPenProperties(QPen & pen) const

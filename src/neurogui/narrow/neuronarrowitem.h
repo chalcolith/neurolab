@@ -69,7 +69,7 @@ namespace NeuroGui
         virtual bool canCutAndPaste() const { return true; }
 
         virtual bool addIncoming(NeuroItem *linkItem);
-        virtual bool removeIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
 
         virtual void setPenProperties(QPen & pen) const;
 

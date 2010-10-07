@@ -76,9 +76,9 @@ namespace NeuroGui
         virtual void onAttachTo(NeuroItem *);
 
         virtual bool addIncoming(NeuroItem *linkItem);
-        virtual bool removeIncoming(NeuroItem *linkItem);
+        virtual void removeIncoming(NeuroItem *linkItem);
         virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual bool removeOutgoing(NeuroItem *linkItem);
+        virtual void removeOutgoing(NeuroItem *linkItem);
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void setPenProperties(QPen &pen) const;

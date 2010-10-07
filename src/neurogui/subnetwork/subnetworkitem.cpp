@@ -97,11 +97,13 @@ namespace NeuroGui
         return false;
     }
 
-    bool SubNetworkItem::removeIncoming(NeuroItem *linkItem)
+    void SubNetworkItem::removeIncoming(NeuroItem *linkItem)
     {
-        NeuroItem::removeIncoming(linkItem);
-        removeConnectionItem(linkItem);
-        return true;
+        if (linkItem && incoming().contains(linkItem))
+        {
+            removeConnectionItem(linkItem);
+            NeuroItem::removeIncoming(linkItem);
+        }
     }
 
     bool SubNetworkItem::addOutgoing(NeuroItem *linkItem)
@@ -116,11 +118,13 @@ namespace NeuroGui
         return false;
     }
 
-    bool SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
+    void SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
     {
-        NeuroItem::removeOutgoing(linkItem);
-        removeConnectionItem(linkItem);
-        return true;
+        if (linkItem && outgoing().contains(linkItem))
+        {
+            removeConnectionItem(linkItem);
+            NeuroItem::removeOutgoing(linkItem);
+        }
     }
 
     static void clipTo(QVector2D & p, const QRectF & r)
@@ -206,11 +210,11 @@ namespace NeuroGui
 
     void SubNetworkItem::removeConnectionItem(NeuroItem *governingLink)
     {
-        SubConnectionItem *subItem = _connections[governingLink];
-        if (subItem)
+        if (_connections.contains(governingLink))
         {
             qDebug("removing connection item");
 
+            SubConnectionItem *subItem = _connections[governingLink];
             _connections.remove(governingLink);
 
             subItem->setUIDelete();

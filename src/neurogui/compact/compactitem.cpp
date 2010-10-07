@@ -95,9 +95,13 @@ namespace NeuroGui
         return NeuroItem::addIncoming(linkItem) && NeuroItem::addOutgoing(linkItem);
     }
 
-    bool CompactItem::removeIncoming(NeuroItem *linkItem)
+    void CompactItem::removeIncoming(NeuroItem *linkItem)
     {
-        return NeuroItem::removeIncoming(linkItem) && NeuroItem::removeOutgoing(linkItem);
+        if (linkItem && incoming().contains(linkItem))
+        {
+            NeuroItem::removeIncoming(linkItem);
+            NeuroItem::removeOutgoing(linkItem);
+        }
     }
 
     bool CompactItem::addOutgoing(NeuroItem *linkItem)
@@ -105,9 +109,13 @@ namespace NeuroGui
         return NeuroItem::addOutgoing(linkItem) && NeuroItem::addIncoming(linkItem);
     }
 
-    bool CompactItem::removeOutgoing(NeuroItem *linkItem)
+    void CompactItem::removeOutgoing(NeuroItem *linkItem)
     {
-        return NeuroItem::removeOutgoing(linkItem) && NeuroItem::removeIncoming(linkItem);
+        if (linkItem && outgoing().contains(linkItem))
+        {
+            NeuroItem::removeOutgoing(linkItem);
+            NeuroItem::removeIncoming(linkItem);
+        }
     }
 
     const NeuroNet::ASYNC_STATE *CompactItem::getCell(const NeuroLib::NeuroCell::NeuroIndex &index) const

@@ -70,14 +70,6 @@ namespace NeuroGui
         int length() const { return _cellIndices.size(); }
         void setLength(const int & value);
 
-        /// Adds an incoming item.  Overrides the default to create an edge in the neural network.
-        virtual bool addIncoming(NeuroItem *linkItem);
-        /// Removes an incoming item.  Overrides the default to remove an edge in the neural network.
-        virtual bool removeIncoming(NeuroItem *linkItem);
-
-        virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual bool removeOutgoing(NeuroItem *linkItem);
-
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 

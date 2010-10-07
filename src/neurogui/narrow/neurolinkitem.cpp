@@ -167,30 +167,6 @@ namespace NeuroGui
             _length_property.setValue(QVariant(newLength));
     }
 
-    bool NeuroLinkItem::addIncoming(NeuroItem *linkItem)
-    {
-        return NeuroNarrowItem::addIncoming(linkItem);
-    }
-
-    bool NeuroLinkItem::removeIncoming(NeuroItem *linkItem)
-    {
-        if (linkItem && linkItem == _backLinkTarget)
-            setBackLinkTarget(0);
-        return NeuroNarrowItem::removeIncoming(linkItem);
-    }
-
-    bool NeuroLinkItem::addOutgoing(NeuroItem *linkItem)
-    {
-        return NeuroNarrowItem::addOutgoing(linkItem);
-    }
-
-    bool NeuroLinkItem::removeOutgoing(NeuroItem *linkItem)
-    {
-        if (linkItem && linkItem == _frontLinkTarget)
-            setFrontLinkTarget(0);
-        return NeuroNarrowItem::removeOutgoing(linkItem);
-    }
-
     void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
