@@ -39,6 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../labnetwork.h"
 #include "../labscene.h"
 #include "../labexception.h"
+#include "../subnetwork/subconnectionitem.h"
+#include "../subnetwork/subnetworkitem.h"
 
 using namespace NeuroLib;
 
@@ -271,15 +273,71 @@ namespace NeuroGui
 
     void CompactLinkItem::getMyIndices(NeuroItem *linkItem, NeuroLib::NeuroCell::NeuroIndex &myIncomingIndex, NeuroLib::NeuroCell::NeuroIndex &myOutgoingIndex)
     {
-        if ()
+        Q_ASSERT(linkItem);
+
+        bool isFront = false;
+        bool isBack = false;
+
+        if (_frontLinkTarget && _frontLinkTarget == linkItem)
+        {
+            isFront = true;
+        }
+        else if (_backLinkTarget && _backLinkTarget == linkItem)
+        {
+            isBack = true;
+        }
+        else // special case for subconnection items
+        {
+            // check the link item's other connections; if one is a subconnection
+            // item, check which end the subconnection item's parent is attached to
+            for (QSetIterator<NeuroItem *> i(linkItem->incoming()); i.hasNext(); )
+            {
+                SubConnectionItem *subItem = dynamic_cast<SubConnectionItem *>(i.next());
+                if (subItem && subItem->parentSubnetwork() == _frontLinkTarget)
+                {
+                    isFront = true;
+                    break;
+                }
+                else if (subItem && subItem->parentSubnetwork() == _backLinkTarget)
+                {
+                    isBack = true;
+                    break;
+                }
+            }
+
+            if (!isFront && !isBack)
+            {
+                for (QSetIterator<NeuroItem *> i(linkItem->outgoing()); i.hasNext(); )
+                {
+                    SubConnectionItem *subItem = dynamic_cast<SubConnectionItem *>(i.next());
+                    if (subItem && subItem->parentSubnetwork() == _frontLinkTarget)
+                    {
+                        isFront = true;
+                        break;
+                    }
+                    else if (subItem && subItem->parentSubnetwork() == _backLinkTarget)
+                    {
+                        isBack = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // get the appropriate indices for connecting or disconnecting
+        if (isFront)
         {
             myIncomingIndex = _downward_cells.first();
             myOutgoingIndex = _upward_cells.last();
         }
-        else
+        else if (isBack)
         {
             myIncomingIndex = _upward_cells.first();
             myOutgoingIndex = _downward_cells.last();
+        }
+        else
+        {
+            throw LabException(tr("CompactLinkItem trying to get indices for unknown link connection."));
         }
     }
 

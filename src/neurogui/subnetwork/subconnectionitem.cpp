@@ -174,49 +174,48 @@ namespace NeuroGui
 
     void SubConnectionItem::setFrontLinkTarget(NeuroItem *linkTarget)
     {
-        if (_direction.testFlag(INCOMING))
+        // disconnect old target
+        if (_frontLinkTarget)
         {
-            // disconnect old target
-            if (_frontLinkTarget)
+            if (_direction.testFlag(INCOMING))
             {
-                _frontLinkTarget->removeIncoming(this);
+                removeOutgoing(_frontLinkTarget);
 
                 if (_governingItem)
-                    _frontLinkTarget->removeIncoming(_governingItem);
+                    _governingItem->removeOutgoing(_frontLinkTarget);
             }
 
-            // set new target and connect
-            _frontLinkTarget = linkTarget;
-            if (_frontLinkTarget)
+            if (_direction.testFlag(OUTGOING))
             {
-                _frontLinkTarget->addIncoming(this);
+                removeIncoming(_frontLinkTarget);
 
                 if (_governingItem)
-                    _frontLinkTarget->addIncoming(_governingItem);
+                    _governingItem->removeIncoming(_frontLinkTarget);
             }
         }
 
-        if (_direction.testFlag(OUTGOING))
+        // set new target and connect
+        _frontLinkTarget = linkTarget;
+        if (_frontLinkTarget)
         {
-            // disconnect old target
-            if (_frontLinkTarget)
+            if (_direction.testFlag(INCOMING))
             {
-                _frontLinkTarget->removeOutgoing(this);
+                addOutgoing(_frontLinkTarget);
 
                 if (_governingItem)
-                    _frontLinkTarget->removeOutgoing(_governingItem);
+                    _governingItem->addOutgoing(_frontLinkTarget);
             }
 
-            // set new target and connect
-            _frontLinkTarget = linkTarget;
-            if (_frontLinkTarget)
+            if (_direction.testFlag(OUTGOING))
             {
-                _frontLinkTarget->addOutgoing(this);
+                addIncoming(_frontLinkTarget);
 
                 if (_governingItem)
-                    _frontLinkTarget->addOutgoing(_governingItem);
+                    _governingItem->addIncoming(_frontLinkTarget);
             }
         }
+
+        updateShape();
     }
 
     void SubConnectionItem::setBackLinkTarget(NeuroItem *linkTarget)

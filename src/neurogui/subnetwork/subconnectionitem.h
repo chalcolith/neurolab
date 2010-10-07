@@ -91,6 +91,8 @@ namespace NeuroGui
         const Directions & direction() const { return _direction; }
         void setDirection(const Directions & direction) { _direction = direction; }
 
+        SubNetworkItem *parentSubnetwork() const { return _parentSubnetworkItem; }
+
         NeuroItem *governingItem() const { return _governingItem; }
         void setGoverningItem(NeuroItem *item);
 

@@ -532,10 +532,12 @@ namespace NeuroGui
         return QGraphicsItem::itemChange(change, value);
     }
 
+    static int TOUCH_LEN = 1;
+
     bool NeuroItem::containsScenePos(const QPointF & mousePos)
     {
         QPointF localPos = mapFromScene(mousePos);
-        QRectF mouseRect(localPos.x() - 2, localPos.y() - 2, 4, 4);
+        QRectF mouseRect(localPos.x() - TOUCH_LEN, localPos.y() - TOUCH_LEN, TOUCH_LEN*2, TOUCH_LEN*2);
         return shape().intersects(mouseRect);
     }
 
@@ -547,7 +549,7 @@ namespace NeuroGui
         _network->setChanged();
 
         // get topmost item at mouse position that is not the item itself
-        QRectF mouseRect(mousePos.x() - 2, mousePos.y() - 2, 4, 4);
+        QRectF mouseRect(mousePos.x() - TOUCH_LEN, mousePos.y() - TOUCH_LEN, TOUCH_LEN*2, TOUCH_LEN*2);
         NeuroItem *itemAtPos = 0;
 
         for (QListIterator<QGraphicsItem *> i(_network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); )

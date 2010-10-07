@@ -90,6 +90,12 @@ namespace NeuroGui
         }
     }
 
+    void CompactItem::reset()
+    {
+        setUpwardOutputValue(0);
+        setDownwardOutputValue(0);
+    }
+
     bool CompactItem::addIncoming(NeuroItem *linkItem)
     {
         return NeuroItem::addIncoming(linkItem) && NeuroItem::addOutgoing(linkItem);

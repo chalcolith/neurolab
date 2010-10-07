@@ -77,6 +77,9 @@ namespace NeuroGui
         virtual bool addOutgoing(NeuroItem *linkItem);
         virtual void removeOutgoing(NeuroItem *linkItem);
 
+    public slots:
+        virtual void reset();
+
     private:
         NeuroLib::NeuroCell::NeuroValue outputValue(const QList<NeuroLib::NeuroCell::NeuroIndex> & cells) const;
         void setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const NeuroLib::NeuroCell::NeuroValue & value);

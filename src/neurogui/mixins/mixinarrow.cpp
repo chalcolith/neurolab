@@ -95,32 +95,26 @@ namespace NeuroGui
 
     void MixinArrow::setFrontLinkTarget(NeuroItem *linkTarget)
     {
-        NeuroItem *frontTarget = _frontLinkTarget;
-        _frontLinkTarget = 0;
+        if (_frontLinkTarget)
+            _self->removeOutgoing(_frontLinkTarget);
 
-        if (frontTarget)
-            _self->removeOutgoing(frontTarget);
+        _frontLinkTarget = linkTarget;
 
         if (linkTarget)
             _self->addOutgoing(linkTarget);
-
-        _frontLinkTarget = linkTarget;
 
         _self->updateShape();
     }
 
     void MixinArrow::setBackLinkTarget(NeuroItem *linkTarget)
     {
-        NeuroItem *backTarget = _backLinkTarget;
-        _backLinkTarget = 0;
+        if (_backLinkTarget)
+            _self->removeIncoming(_backLinkTarget);
 
-        if (backTarget)
-            _self->removeIncoming(backTarget);
+        _backLinkTarget = linkTarget;
 
         if (linkTarget)
             _self->addIncoming(linkTarget);
-
-        _backLinkTarget = linkTarget;
 
         _self->updateShape();
     }
