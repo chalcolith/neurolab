@@ -65,8 +65,11 @@ namespace NeuroGui
         bool _dragFront, _settingLine;
 
     public:
+        /// Constructor.
         /// You must call this in derived classes' initialization, in order to correctly set the self pointer.
         explicit MixinArrow(NeuroItem *self);
+
+        /// Destructor.
         virtual ~MixinArrow();
 
         /// The link's back (\c p1) and front (\c p2) position, in scene coordinates.
@@ -83,7 +86,11 @@ namespace NeuroGui
         void setLine(const QPointF & p1, const QPointF & p2);
 
         /// If the link is being moved, returns whether or not the front end of the node is being dragged.
+        /// \see MixinArrow::setDragFront()
         bool dragFront() const { return _dragFront; }
+
+        /// Sets whether or not the link is being dragged by the front or back.
+        /// \see MixinArrow::dragFront()
         void setDragFront(bool df) { _dragFront = df; }
 
         /// The item that the front of the link is currently attached to.
@@ -115,13 +122,26 @@ namespace NeuroGui
 
         /// Handles dragging one end of the arrow.
         void changePos(QPointF & value, bool canDragFront = true, bool canDragBack = true);
+
+        /// Handles breaking a link when it is moved away from its target.
         void breakLinks(const QPointF & mousePos);
 
+        /// Write to a data stream.
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+
+        /// Read from a data stream.
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        /// Write pointer Ids.
+        /// \see NeuroItem::writePointerIds()
         void writePointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
+
+        /// Read pointer Ids.
+        /// \see NeuroItem::readPointerIds()
         void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
+
+        /// Convert pointer Ids that were read from a file into pointers to the loaded items.
+        /// \see NeuroItem::idsToPointers()
         void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
     }; // class MixinArrow
 

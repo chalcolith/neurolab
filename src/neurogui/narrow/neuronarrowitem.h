@@ -56,14 +56,22 @@ namespace NeuroGui
         QList<NeuroLib::NeuroCell::NeuroIndex> _cellIndices; ///< The indexes of the neural network cells that underlie this item.
 
     public:
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNarrowItem();
 
         virtual QString dataValue() const { return QString::number(outputValue()); }
 
+        /// The indices of the automaton cells that are controlled by this item.
         QList<NeuroLib::NeuroCell::NeuroIndex> & cellIndices() { return _cellIndices; }
 
+        /// The output value of the item.
+        /// \see NeuroNarrowItem::setOutputValue()
         virtual NeuroLib::NeuroCell::NeuroValue outputValue() const;
+
+        /// Set the output value of the item.
+        /// \see NeuroNarrowItem::outputValue()
         virtual void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
 
         virtual bool canCutAndPaste() const { return true; }
@@ -80,7 +88,6 @@ namespace NeuroGui
         virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map);
 
     public slots:
-        /// Resets the item.  If it is not frozen, sets the output value to zero.
         virtual void reset();
 
     protected:

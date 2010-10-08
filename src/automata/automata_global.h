@@ -49,12 +49,14 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace Automata
 {
 
+    /// Used to keep track of file versions for automata files.
     struct AUTOMATASHARED_EXPORT AutomataFileVersion
     {
-        quint16 automata_version;
-        quint16 client_version;
+        quint16 automata_version; ///< The version of the \ref Automata::Automaton code.
+        quint16 client_version;   ///< Used by subclasses to store version info.
     };
 
+    /// Version number for writing automata.
     enum AutomataVersionNumber
     {
         AUTOMATA_FILE_VERSION_OLD = 0,

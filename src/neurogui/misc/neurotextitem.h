@@ -59,13 +59,27 @@ namespace NeuroGui
         Property<NeuroTextItem, QVariant::String, QString, QString> _text_property;
 
     public:
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+
+        /// Destructor.
         virtual ~NeuroTextItem();
 
+        /// The font to use when drawing the text.
+        /// \see NeuroTextItem::setFont()
         QFont font() const { return _font; }
+
+        /// Set the font to use when drawing the text.
+        /// \see NeuroTextItem::font()
         void setFont(const QFont & f) { _font = f; }
 
+        /// The text to draw.
+        /// \see NeuroTextItem::setText()
         QString text() const { return _text; }
+
+        /// Set the text to draw.
+        /// \see NeuroTextItem::text()
         void setText(const QString & t) { _text = t; }
 
         virtual QString uiName() const { return tr("Text"); }

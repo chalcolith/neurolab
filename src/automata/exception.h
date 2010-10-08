@@ -52,11 +52,13 @@ namespace Automata
         QString _message;
 
     public:
+        /// Constructor.
+        /// \param message A messsage to display.
         Exception(const QString & message) : _message(message) { qDebug() << "threw: " << message; }
         const QString & message() const { return _message; }
     };
 
-    /// Index overflow exceptions.
+    /// Index overflow exception.
     class AUTOMATASHARED_EXPORT IndexOverflow
         : public Exception
     {
@@ -64,7 +66,7 @@ namespace Automata
         IndexOverflow() : Exception(QObject::tr("Index overflow")) {}
     };
 
-    /// IO Exceptions
+    /// IO Exception.
     class AUTOMATASHARED_EXPORT IOError
         : public Exception
     {
@@ -73,6 +75,7 @@ namespace Automata
         IOError(const QString & message) : Exception(message) {}
     };
 
+    /// File format exception.
     class AUTOMATASHARED_EXPORT FileFormatError
         : public IOError
     {

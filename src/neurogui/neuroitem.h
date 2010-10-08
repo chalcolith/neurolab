@@ -112,6 +112,7 @@ namespace NeuroGui
         static const int NODE_WIDTH;
         static const int ELLIPSE_WIDTH;
 
+        /// Context in which a new item object is created.
         enum CreateContext
         {
             CREATE_NONE = 0,     ///< No create context
@@ -121,6 +122,9 @@ namespace NeuroGui
         };
 
         /// Constructor.
+        /// \param network The network that this item is a part of.
+        /// \param scenePos The position in the current scene at which to create the item.
+        /// \param context Context in which to create the item.
         explicit NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
 
@@ -146,7 +150,8 @@ namespace NeuroGui
         /// \return Outgoing links.
         const QSet<NeuroItem *> & outgoing() const { return _outgoing; }
 
-        virtual void setChanged(bool changed = true);
+        /// Updates the UI properties based on the values of the cell.
+        /// \note Forces a redraw of the scene.
         virtual void updateProperties();
 
         /// Used to write data values to the data file.
@@ -257,23 +262,33 @@ namespace NeuroGui
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 
+        /// Gets a friendly type name from the mangled name.
         static QString getTypeName(const QString & mangledName);
+
+        /// Registers a mangled/friendly typename pair.
         static void registerTypeName(const QString & mangledName, const QString & friendlyName);
 
-        /// Function type for static item creators.
+        /// Function type for static item creator objects.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos, const CreateContext & context);
 
+        /// Registers an item type creator with the global item broker.
         static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
+
+        /// Unregisters an item type creator from the global item broker.
         static void removeItemCreator(const QString & typeName);
 
     signals:
+        /// Emitted when the item's label changes.
         void labelChanged(const QString & newLabel);
+
+        /// Emitted when the item's label changes.
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
         /// Set the item's label.
         void setLabel(const QString & s) { _label = s; emit labelChanged(s); emit labelChanged(this, s); updateShape(); update(); }
 
+        /// Resets the item.  This is implemented variously by derived classes to do the right thing.
         virtual void reset() {}
 
     protected:
@@ -337,12 +352,12 @@ namespace NeuroGui
         }
     };
 
-    /// Use this macro in the header file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
+    /// Use this macro in the header file for a class derived from \ref NeuroGui::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DECLARE_CREATOR \
     static NeuroGui::NeuroItem *_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
     static NeuroGui::NeuroItemRegistrator _static_registrator;
 
-    /// Use this macro in the source file for a class derived from \ref NeuroLab::NeuroItem in order to have it show up in the context menu.
+    /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem in order to have it show up in the context menu.
     #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
     NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \

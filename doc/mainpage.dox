@@ -12,7 +12,8 @@ The Neurocognitive Linguistics Laboratory program consists of the following modu
    relational network structures can be built.  It is implemented as a separate library so that simulations do not need the full
    gui; simulations can run in non-interactive batch-type programs, or in a server, or otherwise.  The data from the raw neural network
    is stored in a separate file from that of the GUI display.
- - \ref NeuroLab - The main GUI.  Described below:
+ - \ref NeuroGui - The main Gui.  This is implemented as a separate library so that plugins can link to it.
+ - \ref NeuroLab - A small wrapper for the program.
 
 \section gui_sec The NeuroLab Program
 
@@ -20,30 +21,28 @@ NeuroLab is implemented in a library (this allows plugins to be linked against t
 
 The main parts of the library are:
 
- - \ref NeuroLab::LabNetwork - this stores a user's network simulation; it is the primary "file" that a user works with.
+ - \ref NeuroGui::LabNetwork - this stores a user's network simulation; it is the primary "file" that a user works with.
    It has several aspects:
-   - \ref NeuroLab::LabTree - this is a tree of lab scenes.  The idea is that you wouldn't want your entire network in one view
-     at one time.  The eventual intent is to be able to abstract sub-networks into graphics items that, when clicked on, will
-     drill down into a sub-scene.
-     Currently this functionality is NOT implemented; you can only have one scene.
-     - \ref NeuroLab::LabScene - a subclass of QGraphicsScene; controls the display of part of a network.
-     - \ref NeuroLab::LabView - a view into the scene; currently there is one view per scene.
-     - \ref NeuroLab::NeuroItem - a subclass of QGraphicsItem, and the base class for items that are visible in your network
+   - \ref NeuroGui::LabTree - this is a tree of lab scenes.  The idea is that you wouldn't want your entire network in one view
+     at one time.  You can create items (\ref NeuroGui::SubNetworkItem) that when double-clicked on drill down into a new scene.
+     - \ref NeuroGui::LabScene - a subclass of QGraphicsScene; controls the display of part of a network.
+     - \ref NeuroGui::LabView - a view into the scene; currently there is one view per scene.
+     - \ref NeuroGui::NeuroItem - a subclass of QGraphicsItem, and the base class for items that are visible in your network
        (e.g. nodes and links of the relational network notation).  When you subclass a property item, you can define the item's
-       appearance and collision information (using \ref NeuroLab::NeuroItem::shape()), as well as how it interacts with other items
-       (using \ref NeuroLab::NeuroItem::canAttachTo(), etc.).  Item types can also add menu items to the context menu
-       (using \ref NeuroLab::NeuroItem::buildNewMenu() and \ref NeuroLab::NeuroItem::buildActionMenu()).
-   - \ref NeuroLab::LabDataFile - data can also be collected for a network simulation; a data file is separate from but dependent on
+       appearance and collision information (using \ref NeuroGui::NeuroItem::shape()), as well as how it interacts with other items
+       (using \ref NeuroGui::NeuroItem::canAttachTo(), etc.).  Item types can also add menu items to the context menu
+       (using \ref NeuroGui::NeuroItem::buildNewMenu() and \ref NeuroGui::NeuroItem::buildActionMenu()).
+   - \ref NeuroGui::LabDataFile - data can also be collected for a network simulation; a data file is separate from but dependent on
      the current network.
- - \ref NeuroLab::PropertyObject - subclasses of \ref NeuroLab::PropertyObject can define editable properties simply and easily by
-   defining members using the \ref NeuroLab::PropertyObject::Property template.  These then can be edited in the property editing control in the sidebar.
- - Plugins: A plugin is just a DLL or shared library that contains subclasses of \ref NeuroLab::NeuroItem that use the \ref NEUROITEM_DECLARE_CREATOR
+ - \ref NeuroGui::PropertyObject - subclasses of \ref NeuroGui::PropertyObject can define editable properties simply and easily by
+   defining members using the \ref NeuroGui::PropertyObject::Property template.  These then can be edited in the property editing control in the sidebar.
+ - Plugins: A plugin is just a DLL or shared library that contains subclasses of \ref NeuroGui::NeuroItem that use the \ref NEUROITEM_DECLARE_CREATOR
    and \ref NEUROITEM_DEFINE_CREATOR macros to hook into the item creation system.  Currently the program will look in a "plugins" directory under where
    the executable is located.  (Plugins are currently not working on the Mac build.)
 
 \section building_sec Building
 
-The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator 2.0</a> IDE.
+The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creator</a> IDE.
 
 Due to limitations in the Qt Creator build system, you will need to clone your copy of the NeuroLab repository to a directory that does
 not have spaces in its path.
@@ -52,7 +51,7 @@ Once you have installed the Qt SDK, open the file <tt>src/neurolab_all.pro</tt> 
 
 In order to be able to debug and run the program from
 within Qt Creator, you will need to go to the Projects pane, and in the Run Settings create a custom executable that points to the
-actual executable in <tt>neurolab_all-build-desktop/debug</tt> as opposed to <tt>neurolab_all-build-desktop/neurolab/debug</tt>, as Qt Creator 2.0
+actual executable in <tt>neurolab_all-build-desktop/debug</tt> as opposed to <tt>neurolab_all-build-desktop/neurolab/debug</tt>, as Qt Creator 2
 doesn't parse the <tt>.pro</tt> file correctly.
 
 \subsection building_osx Building on Mac OS X

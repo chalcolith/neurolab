@@ -54,16 +54,31 @@ namespace NeuroGui
         QMap<MixinArrow *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
     public:
-        MixinRemember(NeuroItem *self);
+        /// Constructor.
+        /// You must call this in derived classes' initialization in order to correctly set the <tt>self</tt> pointer.
+        explicit MixinRemember(NeuroItem *self);
         virtual ~MixinRemember();
 
     protected:
+        /// Remembers the positions of items relative to the center of this node.
         void rememberItems(const QSet<NeuroItem *> & items, const QVector2D & center, bool incoming);
 
+        /// Called when attached by a link.
+        /// \see NeuroItem::onAttachedBy()
         void onAttachedBy(MixinArrow *link);
+
+        /// Called to adjust the positions of attached items.
+        /// \see MixinRemember::adjustLink()
+        /// \see MixinRemember::getAttachPos()
+        /// \see NeuroItem::adjustLinks()
         void adjustLinks();
 
+        /// Called to adjust a link's position.
+        /// \see MixinRemember::adjustLink()
+        /// \see MixinRemember::getAttachPos()
         virtual void adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted);
+
+        /// Get the appropriate relative position for an attached item.
         virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
     };
 

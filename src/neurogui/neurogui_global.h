@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #  define NEUROGUISHARED_EXPORT Q_DECL_IMPORT
 #endif
 
+/// The main user interface.
 namespace NeuroGui
 {
 

@@ -58,16 +58,27 @@ namespace NeuroGui
 
     public:
         /// Constructor.
-        /// \param network The network this item is a part of.
-        /// \param scenePos The scene position at which to create the item.
-        /// \param context The context in which the item is being created.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+
+        /// Destructor.
         virtual ~NeuroLinkItem();
 
+        /// The weight of the link.
+        /// This value is multiplied with the link's input to produce its output value.
+        /// \see NeuroLinkItem::setWeight()
         NeuroLib::NeuroCell::NeuroValue weight() const;
+
+        /// Set the weight of the link.
+        /// \see NeuroLinkItem::weight()
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
 
+        /// The length of the link (i.e. how many time steps it takes for the link to transmit its activation).
+        /// \see NeuroLinkItem::setLength()
         int length() const { return _cellIndices.size(); }
+
+        /// Set the length of the link.
+        /// \see NeuroLinkItem::length()
         void setLength(const int & value);
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
@@ -89,7 +100,6 @@ namespace NeuroGui
         virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
     protected:
-        /// Adds the link's shape to the drawing painter path.
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
         virtual void setPenProperties(QPen & pen) const;
@@ -97,6 +107,7 @@ namespace NeuroGui
 
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
+        /// Add a new automaton cell.
         virtual void addNewCell() = 0;
     };
 
@@ -109,12 +120,12 @@ namespace NeuroGui
         NEUROITEM_DECLARE_CREATOR
 
     public:
+        /// Constructor.
         explicit NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroExcitoryLinkItem();
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
-
         virtual QString uiName() const { return tr("Excitory Link"); }
+        virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
@@ -130,6 +141,8 @@ namespace NeuroGui
         NEUROITEM_DECLARE_CREATOR
 
     public:
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroInhibitoryLinkItem();
 

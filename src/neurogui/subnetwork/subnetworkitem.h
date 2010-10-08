@@ -50,6 +50,7 @@ namespace NeuroGui
 
     class LabTreeNode;
 
+    /// An item that represents a sub-network that can be opened.
     class NEUROGUISHARED_EXPORT SubNetworkItem
         : public NeuroItem, public MixinRemember
     {
@@ -65,15 +66,19 @@ namespace NeuroGui
         QMap<NeuroItem *, SubConnectionItem *> _connections;
 
     public:
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
 
         virtual QString uiName() const { return tr("Sub-Network"); }
 
     signals:
+        /// Emitted when the subnetwork item is deleted.
         void subnetworkDeleted(LabTreeNode *treeNode);
 
     public slots:
+        /// Synchronize the item's data with the property editor.
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
@@ -92,6 +97,8 @@ namespace NeuroGui
         virtual QVector2D getAttachPos(const QVector2D &dirTo);
 
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
+        /// Handles double-clicks to open the sub-network.
         virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;

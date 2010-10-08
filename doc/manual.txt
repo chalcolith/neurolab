@@ -19,3 +19,20 @@ Neurocognitive Linguistics Lab (``NeuroLab'' for short) is a program that allows
 
 The Neurocognitive Linguistics Lab is Copyright (C) 2010 Gordon Tisher, and available under the terms of the BSD License.
 
+
+Getting Started
+===============
+
+Download and Install
+--------------------
+
+
+
+
+[appendix]
+Mathematical Details
+====================
+
+[appendix]
+License
+=======

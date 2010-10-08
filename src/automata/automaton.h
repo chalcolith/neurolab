@@ -62,7 +62,7 @@ namespace Automata
         Pool< QVector<TState> > _temp_neighbor_pool;
         mutable QReadWriteLock _network_lock;
 
-        /// \internal Used in the call to QtConcurrent::mapped()
+        /// \internal Used in the call to <tt>QtConcurrent::mapped()</tt>.
         struct MapFunctor
         {
             Automaton<TState, TIndex> & automaton;
@@ -83,6 +83,7 @@ namespace Automata
         MapFunctor _functor;
 
     public:
+        /// The node type for the graph.
         typedef AsyncState<TState, TIndex> ASYNC_STATE;
 
         /// Constructor.
@@ -93,6 +94,7 @@ namespace Automata
         {
         }
 
+        /// Destructor.
         virtual ~Automaton()
         {
         }
@@ -104,7 +106,7 @@ namespace Automata
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
-        /// Calling code must wait for the future to be finished as appropriate.
+        /// Calling code must wait for the future to be finished.
         inline QFuture<void> stepAsync()
         {
             MapFunctor functor(*this);
@@ -119,6 +121,7 @@ namespace Automata
             return result;
         }
 
+        /// The ready state of a cell in the automaton.  Used to track asynchronous updates.
         /// \note This is not thread-safe; use only for imprecise visualization.
         /// \return The asynchronous ready state of a cell in the automaton.
         int readyState(const TIndex & index) const
@@ -132,7 +135,6 @@ namespace Automata
     protected:
         typedef Automaton<TState, TIndex> BASE;
 
-        //@{
         /// Implements the asynchronous update operation on a cell in the automaton.
         inline void update(ASYNC_STATE & state)
         {
@@ -146,31 +148,31 @@ namespace Automata
                     // temporary neighbor array
                     typename Pool< QVector<TState> >::Item tni(_temp_neighbor_pool);
                     QVector<TState> *temp_neighbors = tni.data;
-                    
+
                     const QVector<TIndex> & neighbors = this->_edges[index];
                     if (neighbors.size() > temp_neighbors->size())
                         temp_neighbors->resize(neighbors.size());
                     TState *const temp_ptr = temp_neighbors->data();
-                    
+
                     {
                         QReadLocker read_lock(&_network_lock);
-                        
+
                         // get appropriate states of neighbors
                         for (int i = 0; i < neighbors.size(); ++i)
                         {
                             const ASYNC_STATE & neighbor = this->_nodes[neighbors[i]];
-                            
+
                             if (neighbor.r == 0)
                                 temp_ptr[i] = neighbor.q0;
                             else if (neighbor.r == 1)
                                 temp_ptr[i] = neighbor.q1;
                         }
                     }
-                    
+
                     // update
                     {
                         QWriteLocker write_lock(&_network_lock);
-                        
+
                         state.q1 = state.q0;
                         state.q1.update(this, index, state.q0, neighbors, temp_ptr);
                         state.r = 1;
@@ -182,15 +184,15 @@ namespace Automata
                 state.r = (state.r+1) % 3;
             }
         }
-        //@}
 
+        /// Used for asynchronous updates.
         /// \return Whether or not a given cell is ready to be updated.
         inline bool isReady(const TIndex & index, const int & r) const
         {
             if (index < this->_nodes.size())
             {
                 QReadLocker read_lock(&_network_lock);
-                
+
                 const QVector<TIndex> & neighbors = this->_edges[index];
 
                 for (int i = 0; i < neighbors.size(); ++i)

@@ -74,11 +74,13 @@ namespace Automata
             _edges.reserve(initialCapacity);
         }
 
+        /// Destructor.
         virtual ~Graph()
         {
         }
 
         /// Adds a node to the graph.
+        /// \note Makes a copy of the node.
         /// \return The index of the newly-created node.
         TIndex addNode(const TNode & node)
         {
@@ -130,7 +132,8 @@ namespace Automata
             }
         }
 
-        /// Returns true if the graph contains the given edge.
+        /// Whether or not the graph contains an edge.
+        /// \return True if the graph contains an edge.
         bool containsEdge(const TIndex & from, const TIndex & to)
         {
             QReadLocker erl(&_edges_lock);
@@ -149,7 +152,7 @@ namespace Automata
         /// Adds an edge to the graph.  If the graph is NOT directed, will also add a reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
-        /// \see Graph::removeEdge()
+        /// \see NeuroLib::Graph::removeEdge()
         void addEdge(const TIndex & from, const TIndex & to)
         {
             QWriteLocker ewl(&_edges_lock);
@@ -185,7 +188,7 @@ namespace Automata
         /// Removes an edge from the graph.  If the graph is NOT directed, will also remove the reciprocal edge.
         /// \param from The index of the source node.
         /// \param to The index of the destination node.
-        /// \see Graph::addEdge()
+        /// \see NeuroLib::Graph::addEdge()
         void removeEdge(const TIndex & from, const TIndex & to)
         {
             QWriteLocker eql(&_edges_lock);
@@ -224,6 +227,7 @@ namespace Automata
             }
         }
 
+        /// Access a node in the graph.
         /// \returns A const reference to a node in the graph.
         /// \param index The index of the node.
         const TNode & operator[] (const TIndex & index) const
@@ -234,6 +238,7 @@ namespace Automata
                 throw IndexOverflow();
         }
 
+        /// Access a node in the graph.
         /// \returns A reference to a node in the graph.
         /// \param index The index of the node.
         TNode & operator[] (const TIndex & index)

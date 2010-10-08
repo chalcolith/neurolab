@@ -58,26 +58,42 @@ namespace NeuroGui
         Property<CompactItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _downward_output_property;
 
     public:
-        CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
+        explicit CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+
+        /// Destructor.
         virtual ~CompactItem();
 
+        /// Compact/Abstract items are all bidirectional.
         virtual bool isBidirectional() const { return true; }
 
+        /// Chain of automaton cells that make up the item's upward direction.
         QList<NeuroLib::NeuroCell::NeuroIndex> upwardCells() { return _upward_cells; }
+
+        /// Chain of automaton cells that make up the item's downward direction.
         QList<NeuroLib::NeuroCell::NeuroIndex> downwardCells() { return _downward_cells; }
 
+        /// Output value of the upward chain.
+        /// \see CompactItem::upwardCells()
         NeuroLib::NeuroCell::NeuroValue upwardOutputValue() const { return outputValue(_upward_cells); }
+
+        /// Set the output value of the upward chain.
+        /// \note Sets the output value of the last cell in the chain to <tt>value</tt>, and the rest to 1.
+        /// \see CompactItem::upwardCells()
         void setUpwardOutputValue(const NeuroLib::NeuroCell::NeuroValue & value) { setOutputValue(_upward_cells, value); }
 
+        /// Output value of the downward chain.
+        /// \see CompactItem::downwardCells()
         NeuroLib::NeuroCell::NeuroValue downwardOutputValue() const { return outputValue(_downward_cells); }
+
+        /// Set the output value of the downward chain.
+        /// \note Sets the output value of the last cell in the chain to <tt>value</tt>, and the rest to 1.
+        /// \see CompactItem::downwardCells()
         void setDownwardOutputValue(const NeuroLib::NeuroCell::NeuroValue & value) { setOutputValue(_downward_cells, value); }
 
-        virtual bool addIncoming(NeuroItem *linkItem);
-        virtual void removeIncoming(NeuroItem *linkItem);
-        virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual void removeOutgoing(NeuroItem *linkItem);
-
     public slots:
+        /// Resets the item's output values to 0.
         virtual void reset();
 
     private:
@@ -85,7 +101,26 @@ namespace NeuroGui
         void setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const NeuroLib::NeuroCell::NeuroValue & value);
 
     protected:
+        /// Adds an incoming link.
+        /// \note For Compact/Abstract items this will also add an outgoing link.
+        virtual bool addIncoming(NeuroItem *linkItem);
+
+        /// Remove an incoming link.
+        /// \note For Compact/Abstract items this will also remove the corresponding outgoing link.
+        virtual void removeIncoming(NeuroItem *linkItem);
+
+        /// Add an outgoing link.
+        /// \note For Compact/Abstract items this will also add an incoming link.
+        virtual bool addOutgoing(NeuroItem *linkItem);
+
+        /// Remove an outgoing link.
+        /// \note For Compact/Abstract items this will also remove the corresponding incoming link.
+        virtual void removeOutgoing(NeuroItem *linkItem);
+
+        /// Utility function for getting the actual automaton cell.
         const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const;
+
+        /// Utility function for getting the actual automaton cell.
         NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index);
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;

@@ -44,6 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroGui
 {
 
+    /// A Compact/Abstract bidirectional link.
     class NEUROGUISHARED_EXPORT CompactLinkItem
         : public CompactItem, public MixinArrow
     {
@@ -54,15 +55,29 @@ namespace NeuroGui
         Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
 
     public:
-        CompactLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        /// Constructor.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
+        explicit CompactLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+
+        /// Destructor.
         virtual ~CompactLinkItem();
 
         virtual QString uiName() const { return tr("Abstract Link"); }
 
+        /// The length of the link (i.e. how many time steps it takes to transmit its activation).
+        /// \see CompactLinkItem::setLength()
         int length() const { return _upward_cells.size(); }
+
+        /// Set the length of the link.
+        /// \see CompactLinkItem::length()
         void setLength(const int & value);
 
+        /// The weight of the link (multiplied by its input activation to produce its output value).
+        /// \see CompactLinkItem::setWeight()
         NeuroLib::NeuroCell::NeuroValue weight() const;
+
+        /// Set the weight of the link.
+        /// \see CompactLinkItem::weight()
         void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
 
     private:

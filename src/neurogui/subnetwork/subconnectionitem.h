@@ -51,6 +51,7 @@ namespace NeuroGui
 
     class SubNetworkItem;
 
+    /// An item that transfers activation from links in an outer network into a subnetwork.
     class NEUROGUISHARED_EXPORT SubConnectionItem
         : public NeuroItem, public MixinArrow
     {
@@ -58,14 +59,23 @@ namespace NeuroGui
         NEUROITEM_DECLARE_CREATOR
 
     public:
+        /// Which direction activation can be transferred to or from the outer network.
         enum Direction
         {
+            /// The item does not transfer activation.
             NONE     = 0,
+
+            /// The item transfers activation from the outer network to the inner one.
             INCOMING = 1 << 0,
+
+            /// The item transfers activation from the inner network to the outer one.
             OUTGOING = 1 << 1,
+
+            /// The item is bidirectional.
             BOTH     = INCOMING | OUTGOING
         };
 
+        /// Type-safe flag type for directions.
         Q_DECLARE_FLAGS(Directions, Direction)
 
     private:
@@ -77,7 +87,19 @@ namespace NeuroGui
         Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
 
     public:
+        /// Creator.
+        /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+
+        /// Creator
+        /// \param network The network this item is part of.
+        /// \param scenePos The position in the current scene at which to create the item.
+        /// \param context The context in which the item is being created.
+        /// \param parent The subnetwork this item is part of.
+        /// \param governing The item in the outer network that corresponds to this item.
+        /// \param direction Direction to transfer activation.
+        /// \param initialPos The initial position of the link.
+        /// \param initialDir The initial direction the link should point.
         explicit SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
                                    SubNetworkItem *parent, NeuroItem *governing, const Directions & direction,
                                    const QVector2D & initialPos, const QVector2D & initialDir);
@@ -85,17 +107,36 @@ namespace NeuroGui
 
         virtual QString uiName() const { return tr("Subnetwork Connection"); }
 
+        /// The output value of the governing item.
+        /// \see SubConnectionItem::setOutputValue()
+        /// \see SubConnectionItem::governingItem()
         NeuroLib::NeuroCell::NeuroValue outputValue() const;
+
+        /// Set the output value of the governing item.
+        /// \see SubConnectionItem::outputValue()
+        /// \see SubConnectionItem::governingItem()
         void setOutputValue(const NeuroLib::NeuroCell::NeuroValue &);
 
+        /// The directions the item can transfer activation in.
+        /// \see SubConnectionItem::setDirection()
         const Directions & direction() const { return _direction; }
+
+        /// Set the directions the item can transfer activation in.
+        /// \see SubConnectionItem::direction()
         void setDirection(const Directions & direction) { _direction = direction; }
 
+        /// The subnetwork this node is in.
         SubNetworkItem *parentSubnetwork() const { return _parentSubnetworkItem; }
 
+        /// The item in the outer network that this item corresponds to.
+        /// \see SubConnectionItem::setGoverningItem()
         NeuroItem *governingItem() const { return _governingItem; }
+
+        /// Set the item in the outer network that this item corresponds to.
+        /// \see SubConnectionItem::governingItem()
         void setGoverningItem(NeuroItem *item);
 
+        /// Set the initial position and direction for the item.
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
     protected:
