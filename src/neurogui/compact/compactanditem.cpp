@@ -34,3 +34,21 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "compactanditem.h"
+
+namespace NeuroGui
+{
+
+    CompactAndItem::CompactAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : CompactNodeItem(network, scenePos, context),
+        _sequence(false),
+        _sequence_property(this, &CompactAndItem::sequence, &CompactAndItem::setSequence,
+                           tr("Sequenced"), tr("Whether or not the node will sequence its inputs/outputs in time."))
+    {
+    }
+
+    CompactAndItem::~CompactAndItem()
+    {
+    }
+
+} // namespace NeuroGui

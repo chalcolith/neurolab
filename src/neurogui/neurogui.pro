@@ -37,6 +37,7 @@ SOURCES += mainwindow.cpp \
     mixins/mixinarrow.cpp \
     mixins/mixinremember.cpp \
     compact/compactitem.cpp \
+    compact/compactnodeitem.cpp \
     compact/compactoritem.cpp \
     compact/compactanditem.cpp \
     compact/compactlinkitem.cpp
@@ -62,6 +63,7 @@ HEADERS += neurogui_global.h \
     mixins/mixinarrow.h \
     mixins/mixinremember.h \
     compact/compactitem.h \
+    compact/compactnodeitem.h \
     compact/compactoritem.h \
     compact/compactanditem.h \
     compact/compactlinkitem.h

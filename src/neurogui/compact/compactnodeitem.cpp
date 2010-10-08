@@ -1,6 +1,3 @@
-#ifndef COMAPCTANDITEM_H
-#define COMPACTANDITEM_H
-
 /*
 Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
@@ -37,34 +34,24 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "../neurogui_global.h"
 #include "compactnodeitem.h"
 
 namespace NeuroGui
 {
 
-    /// Compact/Abstract AND nodes.
-    class NEUROGUISHARED_EXPORT CompactAndItem
-        : public CompactNodeItem
+    CompactNodeItem::CompactNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : CompactItem(network, scenePos, context),
+        _direction_property(this, &CompactNodeItem::direction, &CompactNodeItem::setDirection,
+                            tr("Direction"), tr("The direction in which the multiple-link side of the node is facing."))
     {
-        Q_OBJECT
+    }
 
-    protected:
-        bool _sequence;
-
-        Property<CompactAndItem, QVariant::Bool, bool, bool> _sequence_property;
-
-    public:
-        /// Constructor.
-        /// \see NeuroGui::NeuroItem::NeuroItem()
-        explicit CompactAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
-        virtual ~CompactAndItem();
-
-        bool sequence() const { return _sequence; }
-        void setSequence(const bool & seq) { _sequence = seq; }
-
-    }; // class CompactAndItem
+    CompactNodeItem::~CompactNodeItem()
+    {
+        if (_ui_delete)
+        {
+            // TODO: delete automaton nodes
+        }
+    }
 
 } // namespace NeuroGui
-
-#endif

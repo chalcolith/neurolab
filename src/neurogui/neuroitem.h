@@ -285,6 +285,8 @@ namespace NeuroGui
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
+        void setChanged(bool changed = true);
+
         /// Set the item's label.
         void setLabel(const QString & s) { _label = s; emit labelChanged(s); emit labelChanged(this, s); updateShape(); update(); }
 

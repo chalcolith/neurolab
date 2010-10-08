@@ -52,13 +52,12 @@ namespace NeuroGui
     CompactLinkItem::CompactLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactItem(network, scenePos, context), MixinArrow(this),
         _length_property(this, &CompactLinkItem::length, &CompactLinkItem::setLength, tr("Length")),
-        _weight_property(this, &CompactLinkItem::weight, &CompactLinkItem::setWeight, tr("Weight"))
+        _weight_property(this, &CompactLinkItem::weight, &CompactLinkItem::setWeight, tr("Weight")),
+        _upward_output_property(this, &CompactLinkItem::upwardOutputValue, &CompactLinkItem::setUpwardOutputValue, tr("Output Value A")),
+        _downward_output_property(this, &CompactLinkItem::downwardOutputValue, &CompactLinkItem::setDownwardOutputValue, tr("Output Value B"))
     {
         Q_ASSERT(network != 0);
         Q_ASSERT(network->neuronet() != 0);
-
-        _upward_output_property.setName(tr("Output Value A"));
-        _downward_output_property.setName(tr("Output Value B"));
 
         if (context == CREATE_UI)
         {
@@ -68,12 +67,25 @@ namespace NeuroGui
             _downward_cells.clear();
             addNewCell(false);
         }
+        else
+        {
+            _upward_cells.append(-1);
+            _downward_cells.append(-1);
+        }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x() + NeuroItem::NODE_WIDTH * 2, scenePos.y() - NeuroItem::NODE_WIDTH * 2);
     }
 
     CompactLinkItem::~CompactLinkItem()
     {
+        if (_ui_delete && network() && network()->neuronet())
+        {
+            for (QListIterator<NeuroCell::NeuroIndex> i(_upward_cells); i.hasNext(); )
+                network()->neuronet()->removeNode(i.next());
+
+            for (QListIterator<NeuroCell::NeuroIndex> i(_downward_cells); i.hasNext(); )
+                network()->neuronet()->removeNode(i.next());
+        }
     }
 
     void CompactLinkItem::addNewCell(bool upwards)
@@ -246,6 +258,45 @@ namespace NeuroGui
         }
     }
 
+    QString CompactLinkItem::dataValue() const
+    {
+        NeuroCell::NeuroValue v = qMax(upwardOutputValue(), downwardOutputValue());
+        return QString::number(v);
+    }
+
+    NeuroCell::NeuroValue CompactLinkItem::outputValue(const QList<NeuroCell::NeuroIndex> & cells) const
+    {
+        const NeuroNet::ASYNC_STATE *cell = getCell(cells.last());
+        return cell ? cell->current().outputValue() : 0;
+    }
+
+    void CompactLinkItem::setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> &cells, const NeuroLib::NeuroCell::NeuroValue &value)
+    {
+        for (int i = 0; i < cells.size(); ++i)
+        {
+            NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
+            if (cell)
+            {
+                if (i == cells.size() - 1)
+                {
+                    cell->current().setOutputValue(value);
+                    cell->former().setOutputValue(value);
+                }
+                else
+                {
+                    cell->current().setOutputValue(0);
+                    cell->former().setOutputValue(0);
+                }
+            }
+        }
+    }
+
+    void CompactLinkItem::reset()
+    {
+        setUpwardOutputValue(0);
+        setDownwardOutputValue(0);
+    }
+
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
         // move line
@@ -271,7 +322,9 @@ namespace NeuroGui
             setBackLinkTarget(item);
     }
 
-    void CompactLinkItem::getMyIndices(NeuroItem *linkItem, NeuroLib::NeuroCell::NeuroIndex &myIncomingIndex, NeuroLib::NeuroCell::NeuroIndex &myOutgoingIndex)
+    void CompactLinkItem::getMyIndices(NeuroItem *linkItem,
+                                       NeuroLib::NeuroCell::NeuroIndex &myIncomingIndex,
+                                       NeuroLib::NeuroCell::NeuroIndex &myOutgoingIndex)
     {
         Q_ASSERT(linkItem);
 
@@ -527,12 +580,50 @@ namespace NeuroGui
     void CompactLinkItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
         CompactItem::writeBinary(ds, file_version);
+
+        quint32 num = _upward_cells.size();
+        ds << num;
+        for (quint32 i = 0; i < num; ++i)
+        {
+            quint32 index = _upward_cells[i];
+            ds << index;
+        }
+
+        num = _downward_cells.size();
+        ds << num;
+        for (quint32 i = 0; i < num; ++i)
+        {
+            quint32 index = _downward_cells[i];
+            ds << index;
+        }
+
         MixinArrow::writeBinary(ds, file_version);
     }
 
     void CompactLinkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
         CompactItem::readBinary(ds, file_version);
+
+        quint32 num;
+
+        ds >> num;
+        _upward_cells.clear();
+        for (quint32 i = 0; i < num; ++i)
+        {
+            quint32 index;
+            ds >> index;
+            _upward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
+        }
+
+        ds >> num;
+        _downward_cells.clear();
+        for (quint32 i = 0; i < num; ++i)
+        {
+            quint32 index;
+            ds >> index;
+            _downward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
+        }
+
         MixinArrow::readBinary(ds, file_version);
     }
 

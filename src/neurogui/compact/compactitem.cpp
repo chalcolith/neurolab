@@ -43,57 +43,12 @@ namespace NeuroGui
 {
 
     CompactItem::CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroItem(network, scenePos, context),
-        _upward_output_property(this, &CompactItem::upwardOutputValue, &CompactItem::setUpwardOutputValue, tr("Upward Output Value")),
-        _downward_output_property(this, &CompactItem::downwardOutputValue, &CompactItem::setDownwardOutputValue, tr("Downward Output Value"))
+        : NeuroItem(network, scenePos, context)
     {
-        _upward_cells.append(-1);
-        _downward_cells.append(-1);
     }
 
     CompactItem::~CompactItem()
     {
-        if (_ui_delete && network() && network()->neuronet())
-        {
-            for (QListIterator<NeuroCell::NeuroIndex> i(_upward_cells); i.hasNext(); )
-                network()->neuronet()->removeNode(i.next());
-
-            for (QListIterator<NeuroCell::NeuroIndex> i(_downward_cells); i.hasNext(); )
-                network()->neuronet()->removeNode(i.next());
-        }
-    }
-
-    NeuroCell::NeuroValue CompactItem::outputValue(const QList<NeuroCell::NeuroIndex> & cells) const
-    {
-        const NeuroNet::ASYNC_STATE *cell = getCell(cells.last());
-        return cell ? cell->current().outputValue() : 0;
-    }
-
-    void CompactItem::setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> &cells, const NeuroLib::NeuroCell::NeuroValue &value)
-    {
-        for (int i = 0; i < cells.size(); ++i)
-        {
-            NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
-            if (cell)
-            {
-                if (i == cells.size() - 1)
-                {
-                    cell->current().setOutputValue(value);
-                    cell->former().setOutputValue(value);
-                }
-                else
-                {
-                    cell->current().setOutputValue(0);
-                    cell->former().setOutputValue(0);
-                }
-            }
-        }
-    }
-
-    void CompactItem::reset()
-    {
-        setUpwardOutputValue(0);
-        setDownwardOutputValue(0);
     }
 
     bool CompactItem::addIncoming(NeuroItem *linkItem)
@@ -138,52 +93,6 @@ namespace NeuroGui
         Q_ASSERT(network()->neuronet());
 
         return index != -1 ? &((*network()->neuronet())[index]) : 0;
-    }
-
-    void CompactItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
-    {
-        NeuroItem::writeBinary(ds, file_version);
-
-        quint32 num = _upward_cells.size();
-        ds << num;
-        for (quint32 i = 0; i < num; ++i)
-        {
-            quint32 index = _upward_cells[i];
-            ds << index;
-        }
-
-        num = _downward_cells.size();
-        ds << num;
-        for (quint32 i = 0; i < num; ++i)
-        {
-            quint32 index = _downward_cells[i];
-            ds << index;
-        }
-    }
-
-    void CompactItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
-    {
-        NeuroItem::readBinary(ds, file_version);
-
-        quint32 num;
-
-        ds >> num;
-        _upward_cells.clear();
-        for (quint32 i = 0; i < num; ++i)
-        {
-            quint32 index;
-            ds >> index;
-            _upward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
-        }
-
-        ds >> num;
-        _downward_cells.clear();
-        for (quint32 i = 0; i < num; ++i)
-        {
-            quint32 index;
-            ds >> index;
-            _downward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
-        }
     }
 
 } // namespace NeuroGuid

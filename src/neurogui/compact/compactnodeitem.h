@@ -1,5 +1,4 @@
-#ifndef COMAPCTANDITEM_H
-#define COMPACTANDITEM_H
+#ifndef COMPACTNODEITEM_H
 
 /*
 Neurocognitive Linguistics Lab
@@ -38,32 +37,46 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
-#include "compactnodeitem.h"
+#include "compactitem.h"
 
 namespace NeuroGui
 {
 
-    /// Compact/Abstract AND nodes.
-    class NEUROGUISHARED_EXPORT CompactAndItem
-        : public CompactNodeItem
+    /// Base class for Compact/Abstract AND and OR nodes.
+    class NEUROGUISHARED_EXPORT CompactNodeItem
+        : public CompactItem
     {
         Q_OBJECT
 
-    protected:
-        bool _sequence;
+    public:
+        enum Direction
+        {
+            UPWARD = 0,
+            DOWNWARD = 1
+        };
 
-        Property<CompactAndItem, QVariant::Bool, bool, bool> _sequence_property;
+    protected:
+        Direction _direction;
+
+        Property<CompactNodeItem, QVariant::Int, int, Direction> _direction_property;
 
     public:
         /// Constructor.
         /// \see NeuroGui::NeuroItem::NeuroItem()
-        explicit CompactAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
-        virtual ~CompactAndItem();
+        explicit CompactNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
 
-        bool sequence() const { return _sequence; }
-        void setSequence(const bool & seq) { _sequence = seq; }
+        /// Destructor.
+        virtual ~CompactNodeItem();
 
-    }; // class CompactAndItem
+        /// What direction the multiple-link side of the node is facing.
+        /// \see CompactNodeItem::setDirection()
+        Direction direction() const { return _direction; }
+
+        /// Set the direction of the node.
+        /// \see CompactNodeItem::direction()
+        void setDirection(const Direction & dir) { _direction = dir; }
+
+    }; // class CompactNodeItem
 
 } // namespace NeuroGui
 
