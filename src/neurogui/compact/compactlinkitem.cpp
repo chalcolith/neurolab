@@ -156,6 +156,7 @@ namespace NeuroGui
             NeuroCell::NeuroIndex newUpwardLast = _upward_cells.last();
             NeuroCell::NeuroIndex newDownwardLast = _downward_cells.last();
 
+#if 0 // this is broken
             CompactItem *compactFront = dynamic_cast<CompactItem *>(_frontLinkTarget);
             if (compactFront && newUpwardLast != oldUpwardLast)
             {
@@ -191,6 +192,7 @@ namespace NeuroGui
                     neuronet->addEdge(target, newDownwardLast);
                 }
             }
+#endif
 
             NeuroNarrowItem *narrowFront = dynamic_cast<NeuroNarrowItem *>(_frontLinkTarget);
             if (narrowFront && newUpwardLast != oldUpwardLast)
