@@ -145,61 +145,61 @@ namespace NeuroGui
             _tree->current()->setLabel(label);
     }
 
-    NeuroCell::NeuroValue LabNetwork::decay() const
+    NeuroCell::Value LabNetwork::decay() const
     {
         Q_ASSERT(_neuronet != 0);
         return _neuronet->decay();
     }
 
-    void LabNetwork::setDecay(const NeuroLib::NeuroCell::NeuroValue & decay)
+    void LabNetwork::setDecay(const NeuroLib::NeuroCell::Value & decay)
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setDecay(decay);
     }
 
-    NeuroCell::NeuroValue LabNetwork::linkLearnRate() const
+    NeuroCell::Value LabNetwork::linkLearnRate() const
     {
         Q_ASSERT(_neuronet != 0);
         return _neuronet->linkLearnRate();
     }
 
-    void LabNetwork::setLinkLearnRate(const NeuroLib::NeuroCell::NeuroValue & learnRate)
+    void LabNetwork::setLinkLearnRate(const NeuroLib::NeuroCell::Value & learnRate)
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setLinkLearnRate(learnRate);
     }
 
-    NeuroCell::NeuroValue LabNetwork::nodeLearnRate() const
+    NeuroCell::Value LabNetwork::nodeLearnRate() const
     {
         Q_ASSERT(_neuronet != 0);
         return _neuronet->nodeLearnRate();
     }
 
-    void LabNetwork::setNodeLearnRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+    void LabNetwork::setNodeLearnRate(const NeuroLib::NeuroCell::Value & rate)
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setNodeLearnRate(rate);
     }
 
-    NeuroCell::NeuroValue LabNetwork::nodeForgetRate() const
+    NeuroCell::Value LabNetwork::nodeForgetRate() const
     {
         Q_ASSERT(_neuronet != 0);
         return _neuronet->nodeForgetRate();
     }
 
-    void LabNetwork::setNodeForgetRate(const NeuroLib::NeuroCell::NeuroValue & rate)
+    void LabNetwork::setNodeForgetRate(const NeuroLib::NeuroCell::Value & rate)
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setNodeForgetRate(rate);
     }
 
-    NeuroCell::NeuroValue LabNetwork::learnTime() const
+    NeuroCell::Value LabNetwork::learnTime() const
     {
         Q_ASSERT(_neuronet != 0);
         return _neuronet->learnTime();
     }
 
-    void LabNetwork::setLearnTime(const NeuroLib::NeuroCell::NeuroValue & learnTime)
+    void LabNetwork::setLearnTime(const NeuroLib::NeuroCell::Value & learnTime)
     {
         Q_ASSERT(_neuronet != 0);
         _neuronet->setLearnTime(learnTime);

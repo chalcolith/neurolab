@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labdatafile.h"
 #include "labnetwork.h"
-#include "neuroitem.h"
+#include "neuronetworkitem.h"
 #include "labexception.h"
 
 #include <QTableWidget>
@@ -71,6 +71,10 @@ namespace NeuroGui
         Q_ASSERT(item != 0);
         Q_ASSERT(_network != 0);
         Q_ASSERT(_table != 0);
+
+        // only record network items
+        if (dynamic_cast<NeuroNetworkItem *>(item) == 0)
+            return;
 
         // get column index
         int columnIndex = -1;

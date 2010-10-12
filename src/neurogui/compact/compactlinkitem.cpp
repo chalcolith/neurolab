@@ -53,24 +53,26 @@ namespace NeuroGui
         : CompactItem(network, scenePos, context), MixinArrow(this),
         _length_property(this, &CompactLinkItem::length, &CompactLinkItem::setLength, tr("Length")),
         _weight_property(this, &CompactLinkItem::weight, &CompactLinkItem::setWeight, tr("Weight")),
-        _upward_output_property(this, &CompactLinkItem::upwardOutputValue, &CompactLinkItem::setUpwardOutputValue, tr("Output Value A")),
-        _downward_output_property(this, &CompactLinkItem::downwardOutputValue, &CompactLinkItem::setDownwardOutputValue, tr("Output Value B"))
+        _frontward_output_property(this, &CompactLinkItem::frontwardOutputValue, &CompactLinkItem::setFrontwardOutputValue,
+                                   tr("Frontward Output Value")),
+        _backward_output_property(this, &CompactLinkItem::backwardOutputValue, &CompactLinkItem::setBackwardOutputValue,
+                                  tr("Backward Output Value"))
     {
         Q_ASSERT(network != 0);
         Q_ASSERT(network->neuronet() != 0);
 
         if (context == CREATE_UI)
         {
-            _upward_cells.clear();
+            _frontward_cells.clear();
             addNewCell(true);
 
-            _downward_cells.clear();
+            _backward_cells.clear();
             addNewCell(false);
         }
         else
         {
-            _upward_cells.append(-1);
-            _downward_cells.append(-1);
+            _frontward_cells.append(-1);
+            _backward_cells.append(-1);
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x() + NeuroItem::NODE_WIDTH * 2, scenePos.y() - NeuroItem::NODE_WIDTH * 2);
@@ -80,10 +82,10 @@ namespace NeuroGui
     {
         if (_ui_delete && network() && network()->neuronet())
         {
-            for (QListIterator<NeuroCell::NeuroIndex> i(_upward_cells); i.hasNext(); )
+            for (QListIterator<NeuroCell::Index> i(_frontward_cells); i.hasNext(); )
                 network()->neuronet()->removeNode(i.next());
 
-            for (QListIterator<NeuroCell::NeuroIndex> i(_downward_cells); i.hasNext(); )
+            for (QListIterator<NeuroCell::Index> i(_backward_cells); i.hasNext(); )
                 network()->neuronet()->removeNode(i.next());
         }
     }
@@ -93,11 +95,11 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
         if (upwards)
-            _upward_cells.append(index);
+            _frontward_cells.append(index);
         else
-            _downward_cells.append(index);
+            _backward_cells.append(index);
     }
 
     void CompactLinkItem::setLength(const int &value)
@@ -117,24 +119,25 @@ namespace NeuroGui
 
         if (newLength != length())
         {
-            QList<NeuroCell::NeuroIndex> cellsToDelete;
-            NeuroCell::NeuroIndex oldUpwardLast = _upward_cells.last();
-            NeuroCell::NeuroIndex oldDownwardLast = _downward_cells.last();
+            // adjust the internal cell links
+            QList<NeuroCell::Index> cellsToDelete;
+            NeuroCell::Index oldUpwardLast = _frontward_cells.last();
+            NeuroCell::Index oldDownwardLast = _backward_cells.last();
 
             if (newLength > length())
             {
-                NeuroCell::NeuroIndex oldUp, newUp, oldDown, newDown;
+                NeuroCell::Index oldUp, newUp, oldDown, newDown;
 
                 while (length() < newLength)
                 {
-                    oldUp = _upward_cells.last();
+                    oldUp = _frontward_cells.last();
                     addNewCell(true);
-                    newUp = _upward_cells.last();
+                    newUp = _frontward_cells.last();
                     neuronet->addEdge(newUp, oldUp);
 
-                    oldDown = _downward_cells.last();
+                    oldDown = _backward_cells.last();
                     addNewCell(false);
-                    newDown = _downward_cells.last();
+                    newDown = _backward_cells.last();
                     neuronet->addEdge(newDown, oldDown);
                 }
             }
@@ -142,82 +145,46 @@ namespace NeuroGui
             {
                 while (length() > newLength)
                 {
-                    NeuroCell::NeuroIndex index = _upward_cells.last();
+                    NeuroCell::Index index = _frontward_cells.last();
                     cellsToDelete.append(index);
-                    _upward_cells.removeLast();
+                    _frontward_cells.removeLast();
 
-                    index = _downward_cells.last();
+                    index = _backward_cells.last();
                     cellsToDelete.append(index);
-                    _downward_cells.removeLast();
+                    _backward_cells.removeLast();
                 }
             }
 
             // adjust the neighbors of our targets to reflect the new last cell
-            NeuroCell::NeuroIndex newUpwardLast = _upward_cells.last();
-            NeuroCell::NeuroIndex newDownwardLast = _downward_cells.last();
+            NeuroCell::Index newUpwardLast = _frontward_cells.last();
+            NeuroCell::Index newDownwardLast = _backward_cells.last();
 
-#if 0 // this is broken
-            CompactItem *compactFront = dynamic_cast<CompactItem *>(_frontLinkTarget);
-            if (compactFront && newUpwardLast != oldUpwardLast)
+            NeuroNetworkItem *frontTarget = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
+            if (frontTarget && newUpwardLast != oldUpwardLast)
             {
-                NeuroCell::NeuroIndex target = compactFront->upwardCells().first();
-                if (neuronet->containsEdge(target, oldUpwardLast))
+                NeuroCell::Index target = frontTarget->getIncomingCellFor(this);
+                if (target != -1)
                 {
-                    neuronet->removeEdge(target, oldUpwardLast);
-                    neuronet->addEdge(target, newUpwardLast);
-                }
-
-                target = compactFront->downwardCells().first();
-                if (neuronet->containsEdge(target, oldUpwardLast))
-                {
-                    neuronet->removeEdge(target, oldUpwardLast);
+                    if (neuronet->containsEdge(target, oldUpwardLast))
+                        neuronet->removeEdge(target, oldUpwardLast);
                     neuronet->addEdge(target, newUpwardLast);
                 }
             }
 
-            CompactItem *compactBack = dynamic_cast<CompactItem *>(_backLinkTarget);
-            if (compactBack && newDownwardLast != oldDownwardLast)
+            NeuroNetworkItem *backTarget = dynamic_cast<NeuroNetworkItem *>(_backLinkTarget);
+            if (backTarget && newDownwardLast != oldDownwardLast)
             {
-                NeuroCell::NeuroIndex target = compactBack->upwardCells().first();
-                if (neuronet->containsEdge(target, oldDownwardLast))
+                NeuroCell::Index target = backTarget->getIncomingCellFor(this);
+                if (target != -1)
                 {
-                    neuronet->removeEdge(target, oldDownwardLast);
-                    neuronet->addEdge(target, newDownwardLast);
-                }
-
-                target = compactBack->downwardCells().first();
-                if (neuronet->containsEdge(target, oldDownwardLast))
-                {
-                    neuronet->removeEdge(target, oldDownwardLast);
-                    neuronet->addEdge(target, newDownwardLast);
-                }
-            }
-#endif
-
-            NeuroNarrowItem *narrowFront = dynamic_cast<NeuroNarrowItem *>(_frontLinkTarget);
-            if (narrowFront && newUpwardLast != oldUpwardLast)
-            {
-                NeuroCell::NeuroIndex target = narrowFront->cellIndices().first();
-                if (neuronet->containsEdge(target, oldUpwardLast))
-                {
-                    neuronet->removeEdge(target, oldUpwardLast);
-                    neuronet->addEdge(target, newUpwardLast);
-                }
-            }
-
-            NeuroNarrowItem *narrowBack = dynamic_cast<NeuroNarrowItem *>(_backLinkTarget);
-            if (narrowBack && newDownwardLast != oldDownwardLast)
-            {
-                NeuroCell::NeuroIndex target = narrowBack->cellIndices().first();
-                if (neuronet->containsEdge(target, oldDownwardLast))
-                {
-                    neuronet->removeEdge(target, oldDownwardLast);
+                    if (neuronet->containsEdge(target, oldDownwardLast))
+                        neuronet->removeEdge(target, oldDownwardLast);
                     neuronet->addEdge(target, newDownwardLast);
                 }
             }
 
             // delete the unused cells
-            for (QListIterator<NeuroCell::NeuroIndex> i(cellsToDelete); i.hasNext(); )
+            for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
             {
                 neuronet->removeNode(i.next());
             }
@@ -227,19 +194,19 @@ namespace NeuroGui
             _length_property.setValue(QVariant(newLength));
     }
 
-    NeuroCell::NeuroValue CompactLinkItem::weight() const
+    NeuroCell::Value CompactLinkItem::weight() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_upward_cells.last());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_frontward_cells.last());
         return cell ? cell->current().weight() : 0;
     }
 
-    void CompactLinkItem::setWeight(const NeuroLib::NeuroCell::NeuroValue &value)
+    void CompactLinkItem::setWeight(const NeuroLib::NeuroCell::Value &value)
     {
-        setWeightAux(_upward_cells, value);
-        setWeightAux(_downward_cells, value);
+        setWeightAux(_frontward_cells, value);
+        setWeightAux(_backward_cells, value);
     }
 
-    void CompactLinkItem::setWeightAux(QList<NeuroLib::NeuroCell::NeuroIndex> &cells, const NeuroLib::NeuroCell::NeuroValue &value)
+    void CompactLinkItem::setWeightAux(QList<NeuroLib::NeuroCell::Index> &cells, const NeuroLib::NeuroCell::Value &value)
     {
         for (int i = 0; i < cells.size(); ++i)
         {
@@ -260,19 +227,13 @@ namespace NeuroGui
         }
     }
 
-    QString CompactLinkItem::dataValue() const
-    {
-        NeuroCell::NeuroValue v = qMax(upwardOutputValue(), downwardOutputValue());
-        return QString::number(v);
-    }
-
-    NeuroCell::NeuroValue CompactLinkItem::outputValue(const QList<NeuroCell::NeuroIndex> & cells) const
+    NeuroCell::Value CompactLinkItem::outputValueAux(const QList<NeuroCell::Index> & cells) const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(cells.last());
         return cell ? cell->current().outputValue() : 0;
     }
 
-    void CompactLinkItem::setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> &cells, const NeuroLib::NeuroCell::NeuroValue &value)
+    void CompactLinkItem::setOutputValueAux(QList<NeuroLib::NeuroCell::Index> &cells, const NeuroLib::NeuroCell::Value &value)
     {
         for (int i = 0; i < cells.size(); ++i)
         {
@@ -293,10 +254,28 @@ namespace NeuroGui
         }
     }
 
+    NeuroCell::Index CompactLinkItem::getIncomingCellFor(const NeuroItem *item) const
+    {
+        if (item == _frontLinkTarget)
+            return _backward_cells.first();
+        else if (item == _backLinkTarget)
+            return _frontward_cells.first();
+        return -1;
+    }
+
+    NeuroCell::Index CompactLinkItem::getOutgoingCellFor(const NeuroItem *item) const
+    {
+        if (item == _frontLinkTarget)
+            return _frontward_cells.last();
+        else if (item == _backLinkTarget)
+            return _backward_cells.last();
+        return -1;
+    }
+
     void CompactLinkItem::reset()
     {
-        setUpwardOutputValue(0);
-        setDownwardOutputValue(0);
+        setFrontwardOutputValue(0);
+        setBackwardOutputValue(0);
     }
 
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
@@ -322,192 +301,18 @@ namespace NeuroGui
             setFrontLinkTarget(item);
         else
             setBackLinkTarget(item);
+
+        CompactItem::onAttachTo(item);
     }
 
-    void CompactLinkItem::getMyIndices(NeuroItem *linkItem,
-                                       NeuroLib::NeuroCell::NeuroIndex &myIncomingIndex,
-                                       NeuroLib::NeuroCell::NeuroIndex &myOutgoingIndex)
+    void CompactLinkItem::onDetach(NeuroItem *item)
     {
-        Q_ASSERT(linkItem);
+        if (_dragFront && item == _frontLinkTarget)
+            setFrontLinkTarget(0);
+        else if (!_dragFront && item == _backLinkTarget)
+            setBackLinkTarget(0);
 
-        bool isFront = false;
-        bool isBack = false;
-
-        if (_frontLinkTarget && _frontLinkTarget == linkItem)
-        {
-            isFront = true;
-        }
-        else if (_backLinkTarget && _backLinkTarget == linkItem)
-        {
-            isBack = true;
-        }
-        else // special case for subconnection items
-        {
-            // check the link item's other connections; if one is a subconnection
-            // item, check which end the subconnection item's parent is attached to
-            for (QSetIterator<NeuroItem *> i(linkItem->incoming()); i.hasNext(); )
-            {
-                SubConnectionItem *subItem = dynamic_cast<SubConnectionItem *>(i.next());
-                if (subItem && subItem->parentSubnetwork() == _frontLinkTarget)
-                {
-                    isFront = true;
-                    break;
-                }
-                else if (subItem && subItem->parentSubnetwork() == _backLinkTarget)
-                {
-                    isBack = true;
-                    break;
-                }
-            }
-
-            if (!isFront && !isBack)
-            {
-                for (QSetIterator<NeuroItem *> i(linkItem->outgoing()); i.hasNext(); )
-                {
-                    SubConnectionItem *subItem = dynamic_cast<SubConnectionItem *>(i.next());
-                    if (subItem && subItem->parentSubnetwork() == _frontLinkTarget)
-                    {
-                        isFront = true;
-                        break;
-                    }
-                    else if (subItem && subItem->parentSubnetwork() == _backLinkTarget)
-                    {
-                        isBack = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // get the appropriate indices for connecting or disconnecting
-        if (isFront)
-        {
-            myIncomingIndex = _downward_cells.first();
-            myOutgoingIndex = _upward_cells.last();
-        }
-        else if (isBack)
-        {
-            myIncomingIndex = _upward_cells.first();
-            myOutgoingIndex = _downward_cells.last();
-        }
-        else
-        {
-            throw LabException(tr("CompactLinkItem trying to get indices for unknown link connection."));
-        }
-    }
-
-    bool CompactLinkItem::addIncoming(NeuroItem *linkItem)
-    {
-        Q_ASSERT(linkItem);
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        if (CompactItem::addIncoming(linkItem))
-        {
-            // the nodes will handle all compact stuff; this is only for narrow nodes
-            NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
-            if (node)
-            {
-                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
-
-                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
-                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
-
-                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                    network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
-                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                    network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    void CompactLinkItem::removeIncoming(NeuroItem *linkItem)
-    {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        if (linkItem && incoming().contains(linkItem))
-        {
-            // nodes handle all compact stuff; this is only for narrow nodes
-            NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
-            if (node)
-            {
-                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
-
-                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
-                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
-
-                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                    network()->neuronet()->removeEdge(myIncomingIndex, nodeOutgoingIndex);
-                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                    network()->neuronet()->removeEdge(nodeIncomingIndex, myOutgoingIndex);
-            }
-
-            CompactItem::removeIncoming(linkItem);
-        }
-    }
-
-    bool CompactLinkItem::addOutgoing(NeuroItem *linkItem)
-    {
-        Q_ASSERT(linkItem);
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        if (CompactItem::addOutgoing(linkItem))
-        {
-            // nodes handle all compact stuff; this is only for narrow nodes
-            NeuroNarrowItem *node = dynamic_cast<NeuroNarrowItem *>(linkItem);
-            if (node)
-            {
-                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
-
-                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
-                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
-
-                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                    network()->neuronet()->addEdge(myIncomingIndex, nodeOutgoingIndex);
-                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                    network()->neuronet()->addEdge(nodeIncomingIndex, myOutgoingIndex);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    void CompactLinkItem::removeOutgoing(NeuroItem *linkItem)
-    {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        if (linkItem && outgoing().contains(linkItem))
-        {
-            // nodes handle all compact stuff; this is only for narrow nodes
-            NeuroNodeItem *node = dynamic_cast<NeuroNodeItem *>(linkItem);
-            if (node)
-            {
-                NeuroCell::NeuroIndex nodeOutgoingIndex = node->cellIndices().last();
-                NeuroCell::NeuroIndex nodeIncomingIndex = node->cellIndices().first();
-
-                NeuroCell::NeuroIndex myIncomingIndex, myOutgoingIndex;
-                getMyIndices(linkItem, myIncomingIndex, myOutgoingIndex);
-
-                if (nodeOutgoingIndex != -1 && myIncomingIndex != -1)
-                    network()->neuronet()->removeEdge(myIncomingIndex, nodeOutgoingIndex);
-                if (nodeIncomingIndex != -1 && myOutgoingIndex != -1)
-                    network()->neuronet()->removeEdge(nodeIncomingIndex, myOutgoingIndex);
-            }
-
-            CompactItem::removeOutgoing(linkItem);
-        }
+        CompactItem::onDetach(item);
     }
 
     void CompactLinkItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
@@ -524,17 +329,17 @@ namespace NeuroGui
         // get output values
         QList<qreal> steps;
 
-        for (int i = 0; i < _upward_cells.size(); ++i)
+        for (int i = 0; i < _frontward_cells.size(); ++i)
         {
             qreal up = 0, down = 0;
 
             // get upward value
-            const NeuroNet::ASYNC_STATE *cell = getCell(_upward_cells[i]);
+            const NeuroNet::ASYNC_STATE *cell = getCell(_frontward_cells[i]);
             if (cell)
                 up = qAbs(cell->current().outputValue());
 
             // get downward value
-            cell = getCell(_downward_cells[(_downward_cells.size()-1) - i]);
+            cell = getCell(_backward_cells[(_backward_cells.size()-1) - i]);
             if (cell)
                 down = qAbs(cell->current().outputValue());
 
@@ -552,7 +357,7 @@ namespace NeuroGui
         }
 
         // get gradient
-        const NeuroNet::ASYNC_STATE *cell = getCell(_upward_cells.last());
+        const NeuroNet::ASYNC_STATE *cell = getCell(_frontward_cells.last());
         bool frozen = cell && cell->current().frozen();
 
         QLinearGradient gradient(_line.p1(), _line.p2());
@@ -583,19 +388,19 @@ namespace NeuroGui
     {
         CompactItem::writeBinary(ds, file_version);
 
-        quint32 num = _upward_cells.size();
+        quint32 num = _frontward_cells.size();
         ds << num;
         for (quint32 i = 0; i < num; ++i)
         {
-            quint32 index = _upward_cells[i];
+            quint32 index = _frontward_cells[i];
             ds << index;
         }
 
-        num = _downward_cells.size();
+        num = _backward_cells.size();
         ds << num;
         for (quint32 i = 0; i < num; ++i)
         {
-            quint32 index = _downward_cells[i];
+            quint32 index = _backward_cells[i];
             ds << index;
         }
 
@@ -609,21 +414,21 @@ namespace NeuroGui
         quint32 num;
 
         ds >> num;
-        _upward_cells.clear();
+        _frontward_cells.clear();
         for (quint32 i = 0; i < num; ++i)
         {
             quint32 index;
             ds >> index;
-            _upward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
+            _frontward_cells.append(static_cast<NeuroCell::Index>(index));
         }
 
         ds >> num;
-        _downward_cells.clear();
+        _backward_cells.clear();
         for (quint32 i = 0; i < num; ++i)
         {
             quint32 index;
             ds >> index;
-            _downward_cells.append(static_cast<NeuroCell::NeuroIndex>(index));
+            _backward_cells.append(static_cast<NeuroCell::Index>(index));
         }
 
         MixinArrow::readBinary(ds, file_version);

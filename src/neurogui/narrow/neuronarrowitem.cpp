@@ -50,9 +50,7 @@ namespace NeuroGui
 {
 
     NeuroNarrowItem::NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroItem(network, scenePos, context),
-        _value_property(this, &NeuroNarrowItem::outputValue, &NeuroNarrowItem::setOutputValue,
-                        tr("Output Value"), tr("The output value of the node or link, calculated from the values of its inputs in the previous step."))
+        : NeuroNetworkItem(network, scenePos, context)
     {
         _cellIndices.append(-1);
     }
@@ -61,20 +59,20 @@ namespace NeuroGui
     {
         if (_ui_delete && network() && network()->neuronet())
         {
-            for (QListIterator<NeuroCell::NeuroIndex> i(_cellIndices); i.hasNext(); )
+            for (QListIterator<NeuroCell::Index> i(_cellIndices); i.hasNext(); )
             {
                 network()->neuronet()->removeNode(i.next());
             }
         }
     }
 
-    NeuroCell::NeuroValue NeuroNarrowItem::outputValue() const
+    NeuroCell::Value NeuroNarrowItem::outputValue() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         return cell ? cell->current().outputValue() : 0.0f;
     }
 
-    void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value)
+    void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::Value & value)
     {
         for (int i = 0; i < _cellIndices.size(); ++i)
         {
@@ -95,42 +93,9 @@ namespace NeuroGui
         }
     }
 
-    bool NeuroNarrowItem::addIncoming(NeuroItem *item)
-    {
-        if (!network() || !network()->neuronet())
-            return false;
-
-        NeuroNarrowItem *linkItem;
-        if (NeuroItem::addIncoming(item) && (linkItem = dynamic_cast<NeuroNarrowItem *>(item)))
-        {
-            if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
-                network()->neuronet()->addEdge(_cellIndices.first(), linkItem->_cellIndices.last());
-            return true;
-        }
-        return false;
-    }
-
-    void NeuroNarrowItem::removeIncoming(NeuroItem *item)
-    {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        if (item && incoming().contains(item))
-        {
-            NeuroNarrowItem *linkItem = dynamic_cast<NeuroNarrowItem *>(item);
-            if (linkItem)
-            {
-                if (_cellIndices.first() != -1 && linkItem->_cellIndices.last() != -1)
-                    network()->neuronet()->removeEdge(_cellIndices.first(), linkItem->_cellIndices.last());
-            }
-
-            NeuroItem::removeIncoming(item);
-        }
-    }
-
     void NeuroNarrowItem::setPenProperties(QPen & pen) const
     {
-        NeuroItem::setPenProperties(pen);
+        NeuroNetworkItem::setPenProperties(pen);
 
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         if (cell)
@@ -145,22 +110,6 @@ namespace NeuroGui
         }
     }
 
-    const NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const
-    {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        return index != -1 ? &((*network()->neuronet())[index]) : 0;
-    }
-
-    NeuroNet::ASYNC_STATE *NeuroNarrowItem::getCell(const NeuroLib::NeuroCell::NeuroIndex & index)
-    {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
-        return index != -1 ? &((*network()->neuronet())[index]) : 0;
-    }
-
     void NeuroNarrowItem::reset()
     {
         setOutputValue(0);
@@ -169,17 +118,17 @@ namespace NeuroGui
 
     void NeuroNarrowItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
-        NeuroItem::writeClipboard(ds, id_map);
+        NeuroNetworkItem::writeClipboard(ds, id_map);
     }
 
     void NeuroNarrowItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
-        NeuroItem::readClipboard(ds, id_map);
+        NeuroNetworkItem::readClipboard(ds, id_map);
     }
 
     void NeuroNarrowItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        NeuroItem::writeBinary(ds, file_version);
+        NeuroNetworkItem::writeBinary(ds, file_version);
 
         quint16 num_indices = static_cast<quint16>(_cellIndices.size());
         ds << num_indices;
@@ -191,7 +140,7 @@ namespace NeuroGui
 
     void NeuroNarrowItem::readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        NeuroItem::readBinary(ds, file_version);
+        NeuroNetworkItem::readBinary(ds, file_version);
 
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_4)
         {
@@ -205,7 +154,7 @@ namespace NeuroGui
                 {
                     qint32 n;
                     ds >> n;
-                    _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
+                    _cellIndices.append(static_cast<NeuroCell::Index>(n));
                 }
             }
             else
@@ -219,7 +168,7 @@ namespace NeuroGui
             ds >> n;
 
             _cellIndices.clear();
-            _cellIndices.append(static_cast<NeuroCell::NeuroIndex>(n));
+            _cellIndices.append(static_cast<NeuroCell::Index>(n));
         }
     }
 

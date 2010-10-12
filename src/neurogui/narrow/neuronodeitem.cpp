@@ -75,23 +75,66 @@ namespace NeuroGui
 
     void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
     {
-        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-        if (link)
-        {
-            MixinRemember::onAttachedBy(link);
-        }
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
 
         NeuroNarrowItem::onAttachedBy(item);
+
+        // remember
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onAttachedBy(link);
+
+        // connect automaton
+        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+        if (netItem)
+        {
+            NeuroCell::Index myIncoming = getIncomingCellFor(item);
+            NeuroCell::Index itemOutgoing = netItem->getOutgoingCellFor(this);
+
+            if (myIncoming != -1 && itemOutgoing != -1)
+                network()->neuronet()->addEdge(myIncoming, itemOutgoing);
+
+            NeuroCell::Index myOutgoing = getOutgoingCellFor(item);
+            NeuroCell::Index itemIncoming = netItem->getIncomingCellFor(this);
+
+            if (myOutgoing != -1 && itemIncoming != -1)
+                network()->neuronet()->addEdge(itemIncoming, myOutgoing);
+        }
+    }
+
+    void NeuroNodeItemBase::onDetach(NeuroItem *item)
+    {
+        // disconnect automaton
+        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+        if (netItem)
+        {
+            NeuroCell::Index myIncoming = getIncomingCellFor(item);
+            NeuroCell::Index itemOutgoing = netItem->getOutgoingCellFor(this);
+
+            if (myIncoming != -1 && itemOutgoing != -1)
+                network()->neuronet()->removeEdge(myIncoming, itemOutgoing);
+
+            NeuroCell::Index myOutgoing = getOutgoingCellFor(item);
+            NeuroCell::Index itemIncoming = netItem->getIncomingCellFor(this);
+
+            if (myOutgoing != -1 && itemIncoming != -1)
+                network()->neuronet()->removeEdge(itemIncoming, myOutgoing);
+        }
+
+        // disremember
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onDetach(link);
+
+        // special case for self-links
+        if (!link || (link->frontLinkTarget() != this && link->backLinkTarget() != this))
+            NeuroNarrowItem::onDetach(item);
     }
 
     void NeuroNodeItemBase::adjustLinks()
     {
         MixinRemember::adjustLinks();
-    }
-
-    void NeuroNodeItemBase::adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted)
-    {
-        MixinRemember::adjustLink(link, alreadyAdjusted);
     }
 
     QVector2D NeuroNodeItemBase::getAttachPos(const QVector2D & dirTo)
@@ -102,9 +145,7 @@ namespace NeuroGui
     void NeuroNodeItemBase::postLoad()
     {
         QVector2D center(scenePos());
-
-        rememberItems(incoming(), center, true);
-        rememberItems(outgoing(), center, false);
+        rememberItems(connections(), center);
     }
 
     void NeuroNodeItemBase::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
@@ -150,7 +191,7 @@ namespace NeuroGui
     {
         if (context == CREATE_UI)
         {
-            NeuroCell::NeuroIndex index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+            NeuroCell::Index index = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
             _cellIndices.clear();
             _cellIndices.append(index);
         }
@@ -176,13 +217,13 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::NeuroValue NeuroNodeItem::inputs() const
+    NeuroCell::Value NeuroNodeItem::inputs() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().weight() : 0;
     }
 
-    void NeuroNodeItem::setInputs(const NeuroLib::NeuroCell::NeuroValue & inputs)
+    void NeuroNodeItem::setInputs(const NeuroLib::NeuroCell::Value & inputs)
     {
         NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
@@ -192,13 +233,13 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::NeuroValue NeuroNodeItem::run() const
+    NeuroCell::Value NeuroNodeItem::run() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().run() : 0;
     }
 
-    void NeuroNodeItem::setRun(const NeuroLib::NeuroCell::NeuroValue & run)
+    void NeuroNodeItem::setRun(const NeuroLib::NeuroCell::Value & run)
     {
         NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
@@ -245,7 +286,7 @@ namespace NeuroGui
 
                 if (cell)
                 {
-                    NeuroCell::NeuroValue val = 0;
+                    NeuroCell::Value val = 0;
 
                     if (qAbs(cell->current().outputValue()) < 0.1f)
                         val = 1;
@@ -311,7 +352,7 @@ namespace NeuroGui
 
         if (context == CREATE_UI)
         {
-            NeuroCell::NeuroIndex index = network->neuronet()->addNode(cell);
+            NeuroCell::Index index = network->neuronet()->addNode(cell);
             _cellIndices.clear();
             _cellIndices.append(index);
         }
@@ -321,13 +362,13 @@ namespace NeuroGui
     {
     }
 
-    NeuroCell::NeuroStep NeuroOscillatorItem::phase() const
+    NeuroCell::Step NeuroOscillatorItem::phase() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().phase() : 0;
     }
 
-    void NeuroOscillatorItem::setPhase(const NeuroLib::NeuroCell::NeuroStep & phase)
+    void NeuroOscillatorItem::setPhase(const NeuroLib::NeuroCell::Step & phase)
     {
         NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
@@ -339,13 +380,13 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::NeuroStep NeuroOscillatorItem::peak() const
+    NeuroCell::Step NeuroOscillatorItem::peak() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().peak() : 0;
     }
 
-    void NeuroOscillatorItem::setPeak(const NeuroLib::NeuroCell::NeuroStep & peak)
+    void NeuroOscillatorItem::setPeak(const NeuroLib::NeuroCell::Step & peak)
     {
         NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)
@@ -357,13 +398,13 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::NeuroStep NeuroOscillatorItem::gap() const
+    NeuroCell::Step NeuroOscillatorItem::gap() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         return cell ? cell->current().gap() : 0;
     }
 
-    void NeuroOscillatorItem::setGap(const NeuroLib::NeuroCell::NeuroStep & gap)
+    void NeuroOscillatorItem::setGap(const NeuroLib::NeuroCell::Step & gap)
     {
         NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
         if (cell)

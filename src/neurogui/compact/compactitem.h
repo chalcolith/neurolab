@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
-#include "../neuroitem.h"
+#include "../neuronetworkitem.h"
 #include "../../neurolib/neurocell.h"
 #include "../../neurolib/neuronet.h"
 
@@ -47,7 +47,7 @@ namespace NeuroGui
 
     /// Base class for Compact/Abstract items.
     class NEUROGUISHARED_EXPORT CompactItem
-        : public NeuroItem
+        : public NeuroNetworkItem
     {
         Q_OBJECT
 
@@ -61,29 +61,6 @@ namespace NeuroGui
 
         /// Compact/Abstract items are all bidirectional.
         virtual bool isBidirectional() const { return true; }
-
-    protected:
-        /// Adds an incoming link.
-        /// \note For Compact/Abstract items this will also add an outgoing link.
-        virtual bool addIncoming(NeuroItem *linkItem);
-
-        /// Remove an incoming link.
-        /// \note For Compact/Abstract items this will also remove the corresponding outgoing link.
-        virtual void removeIncoming(NeuroItem *linkItem);
-
-        /// Add an outgoing link.
-        /// \note For Compact/Abstract items this will also add an incoming link.
-        virtual bool addOutgoing(NeuroItem *linkItem);
-
-        /// Remove an outgoing link.
-        /// \note For Compact/Abstract items this will also remove the corresponding incoming link.
-        virtual void removeOutgoing(NeuroItem *linkItem);
-
-        /// Utility function for getting the actual automaton cell.
-        const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const;
-
-        /// Utility function for getting the actual automaton cell.
-        NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index);
     }; // class CompactItem
 
 } // namespace NeuroGui

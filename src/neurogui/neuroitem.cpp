@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuroitem.h"
 #include "labexception.h"
-#include "narrow/neurolinkitem.h"
 #include "labscene.h"
 #include "labnetwork.h"
 #include "mainwindow.h"
@@ -101,11 +100,12 @@ namespace NeuroGui
     {
         if (_ui_delete)
         {
-            for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
-                removeIncoming(i.next());
-
-            for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
-                removeOutgoing(i.next());
+            for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
+            {
+                NeuroItem *item = i.next();
+                item->onDetach(this);
+                this->onDetach(item);
+            }
         }
     }
 
@@ -114,7 +114,8 @@ namespace NeuroGui
         if (!_typeNames)
             _typeNames = new QMap<QString, QString>();
 
-        if (!mangledName.isNull() && !mangledName.isEmpty() && !friendlyName.isNull() && !friendlyName.isEmpty() && !_typeNames->contains(mangledName))
+        if (!mangledName.isNull() && !mangledName.isEmpty()
+            && !friendlyName.isNull() && !friendlyName.isEmpty() && !_typeNames->contains(mangledName))
         {
             (*_typeNames)[mangledName] = friendlyName;
         }
@@ -307,46 +308,6 @@ namespace NeuroGui
 
         if (highest_z > this->zValue())
             this->setZValue(highest_z + 0.1);
-    }
-
-    bool NeuroItem::addIncoming(NeuroItem *linkItem)
-    {
-        if (linkItem && !_incoming.contains(linkItem))
-        {
-            _incoming.insert(linkItem);
-            linkItem->addOutgoing(this);
-            return true;
-        }
-        return false;
-    }
-
-    void NeuroItem::removeIncoming(NeuroItem *linkItem)
-    {
-        if (linkItem && _incoming.contains(linkItem))
-        {
-            _incoming.remove(linkItem);
-            linkItem->removeOutgoing(this);
-        }
-    }
-
-    bool NeuroItem::addOutgoing(NeuroItem *linkItem)
-    {
-        if (linkItem && !_outgoing.contains(linkItem))
-        {
-            _outgoing.insert(linkItem);
-            linkItem->addIncoming(this);
-            return true;
-        }
-        return false;
-    }
-
-    void NeuroItem::removeOutgoing(NeuroItem *linkItem)
-    {
-        if (linkItem && _outgoing.contains(linkItem))
-        {
-            _outgoing.remove(linkItem);
-            linkItem->removeIncoming(this);
-        }
     }
 
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
@@ -571,14 +532,11 @@ namespace NeuroGui
         // attach, if possible
         if (itemAtPos)
         {
-            if (!_incoming.contains(itemAtPos) && !_outgoing.contains(itemAtPos))
+            if (!_connections.contains(itemAtPos) && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
             {
-                if (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
-                {
-                    this->onAttachTo(itemAtPos);
-                    itemAtPos->onAttachedBy(this);
-                    movePos = scenePos();
-                }
+                this->onAttachTo(itemAtPos);
+                itemAtPos->onAttachedBy(this);
+                movePos = scenePos();
             }
         }
 
@@ -594,14 +552,9 @@ namespace NeuroGui
         PropertyObject::writeClipboard(ds);
         ds << _label;
 
-        // incoming
-        ds << static_cast<quint32>(_incoming.size());
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
-            ds << static_cast<qint32>(id_map[i.next()->id()]);
-
-        // outgoing
-        ds << static_cast<quint32>(_outgoing.size());
-        for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
+        // connections
+        ds << static_cast<quint32>(_connections.size());
+        for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
             ds << static_cast<qint32>(id_map[i.next()->id()]);
     }
 
@@ -613,24 +566,14 @@ namespace NeuroGui
         quint32 size;
         qint32 id;
 
-        // incoming
+        // connections
         ds >> size;
         for (quint32 i = 0; i < size; ++i)
         {
             ds >> id;
 
             if (id_map[id])
-                addIncoming(id_map[i]);
-        }
-
-        // outgoing
-        ds >> size;
-        for (quint32 i = 0; i < size; ++i)
-        {
-            ds >> id;
-
-            if (id_map[id])
-                addOutgoing(id_map[i]);
+                _connections.insert(id_map[id]);
         }
     }
 
@@ -673,10 +616,11 @@ namespace NeuroGui
     /// Writes ids of incoming and outgoing pointers.
     void NeuroItem::writePointerIds(QDataStream & ds, const NeuroLabFileVersion &) const
     {
-        qint32 n = _incoming.size();
+        // connections
+        qint32 n = _connections.size();
         ds << n;
 
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
         {
             NeuroItem *item = i.next();
             if (item)
@@ -685,26 +629,30 @@ namespace NeuroGui
                 ds << static_cast<IdType>(0);
         }
 
-        n = _outgoing.size();
-        ds << n;
-
-        for (QSetIterator<NeuroItem *> i(_outgoing); i.hasNext(); )
-        {
-            NeuroItem *item = i.next();
-            if (item)
-                ds << static_cast<IdType>(item->_id);
-            else
-                ds << static_cast<IdType>(0);
-        }
     }
 
     void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
-        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_6)
         {
             qint32 n;
 
-            _incoming.clear();
+            _connections.clear();
+            ds >> n;
+            for (qint32 i = 0; i < n; ++i)
+            {
+                IdType id;
+                ds >> id;
+
+                if (id)
+                    _connections.insert(reinterpret_cast<NeuroItem *>(id));
+            }
+        }
+        else if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_1)
+        {
+            qint32 n;
+
+            _connections.clear();
             ds >> n;
             for (qint32 i = 0; i < n; ++i)
             {
@@ -713,11 +661,10 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _incoming.insert(reinterpret_cast<NeuroLinkItem *>(id));
+                    _connections.insert(reinterpret_cast<NeuroItem *>(id));
                 }
             }
 
-            _outgoing.clear();
             ds >> n;
             for (qint32 i = 0; i < n; ++i)
             {
@@ -726,7 +673,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _outgoing.insert(reinterpret_cast<NeuroLinkItem *>(id));
+                    _connections.insert(reinterpret_cast<NeuroItem *>(id));
                 }
             }
         }
@@ -734,7 +681,7 @@ namespace NeuroGui
         {
             qint32 n;
 
-            _incoming.clear();
+            _connections.clear();
             ds >> n;
             for (qint32 i = 0; i < n; ++i)
             {
@@ -744,11 +691,10 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _incoming.insert(reinterpret_cast<NeuroLinkItem *>(id));
+                    _connections.insert(reinterpret_cast<NeuroItem *>(id));
                 }
             }
 
-            _outgoing.clear();
             ds >> n;
             for (qint32 i = 0; i < n; ++i)
             {
@@ -758,7 +704,7 @@ namespace NeuroGui
 
                 if (id)
                 {
-                    _outgoing.insert(reinterpret_cast<NeuroLinkItem *>(id));
+                    _connections.insert(reinterpret_cast<NeuroItem *>(id));
                 }
             }
         }
@@ -766,8 +712,7 @@ namespace NeuroGui
 
     void NeuroItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        idsToPointersAux(_incoming, idMap);
-        idsToPointersAux(_outgoing, idMap);
+        idsToPointersAux(_connections, idMap);
     }
 
     void NeuroItem::idsToPointersAux(QSet<NeuroItem *> & items, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)

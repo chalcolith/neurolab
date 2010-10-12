@@ -61,11 +61,14 @@ namespace NeuroGui
 
     protected:
         /// Remembers the positions of items relative to the center of this node.
-        void rememberItems(const QSet<NeuroItem *> & items, const QVector2D & center, bool incoming);
+        void rememberItems(const QSet<NeuroItem *> & items, const QVector2D & center);
 
         /// Called when attached by a link.
         /// \see NeuroItem::onAttachedBy()
         void onAttachedBy(MixinArrow *link);
+
+        /// Called when detached from a link.
+        void onDetach(MixinArrow *link);
 
         /// Called to adjust the positions of attached items.
         /// \see MixinRemember::adjustLink()
@@ -79,6 +82,7 @@ namespace NeuroGui
         virtual void adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted);
 
         /// Get the appropriate relative position for an attached item.
+        /// \param dirTo The original position (in this item's frame).
         virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
     };
 

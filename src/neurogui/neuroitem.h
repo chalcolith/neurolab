@@ -89,8 +89,7 @@ namespace NeuroGui
         LabNetwork *_network; ///< The network this item is a part of.
 
         IdType _id; ///< Used to remember links when saving and loading.
-        QSet<NeuroItem *> _incoming; ///< Incoming links.
-        QSet<NeuroItem *> _outgoing; ///< Outgoing links.
+        QSet<NeuroItem *> _connections;
 
         mutable QPainterPath _drawPath; ///< Painter path used to draw the item.
         mutable QPainterPath _shapePath; ///< Painter path used for collision detection.
@@ -144,11 +143,8 @@ namespace NeuroGui
         /// \return The node's ID, for use when saving and loading.
         int id() const { return _id; }
 
-        /// \return Incoming links.
-        const QSet<NeuroItem *> & incoming() const { return _incoming; }
-
-        /// \return Outgoing links.
-        const QSet<NeuroItem *> & outgoing() const { return _outgoing; }
+        /// The node's connections.
+        const QSet<NeuroItem *> & connections() const { return _connections; }
 
         /// Updates the UI properties based on the values of the cell.
         /// \note Forces a redraw of the scene.
@@ -160,19 +156,6 @@ namespace NeuroGui
         /// Whether or not the item is bidirectional.
         virtual bool isBidirectional() const { return false; }
 
-        /// Add an incoming link.  Derived classes may override this to provide custom behavior.
-        /// \see NeuroNarrowItem::addIncoming()
-        virtual bool addIncoming(NeuroItem *linkItem);
-
-        /// Remove an incoming link.
-        virtual void removeIncoming(NeuroItem *linkItem);
-
-        /// Add an outgoing link.
-        virtual bool addOutgoing(NeuroItem *linkItem);
-
-        /// Remove an outgoing link.
-        virtual void removeOutgoing(NeuroItem *linkItem);
-
         /// Used to decide when a moving item can attach to another item it collides with.
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
@@ -180,10 +163,13 @@ namespace NeuroGui
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         /// Called when a moving item is attached to a stationary one.
-        virtual void onAttachTo(NeuroItem *) { }
+        virtual void onAttachTo(NeuroItem *item) { _connections.insert(item); }
 
         /// Called when a stationary item has been attached to by a moving one.
-        virtual void onAttachedBy(NeuroItem *) { }
+        virtual void onAttachedBy(NeuroItem *item) { _connections.insert(item); adjustLinks(); }
+
+        /// Called when two nodes are detached.
+        virtual void onDetach(NeuroItem *item) { _connections.remove(item); }
 
         /// Called when an item moves, so it can adjust the position or shape of any incoming or outgoing items.
         virtual void adjustLinks() { }

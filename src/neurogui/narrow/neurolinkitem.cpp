@@ -74,13 +74,13 @@ namespace NeuroGui
     {
     }
 
-    NeuroCell::NeuroValue NeuroLinkItem::weight() const
+    NeuroCell::Value NeuroLinkItem::weight() const
     {
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         return cell ? cell->current().weight() : 0;
     }
 
-    void NeuroLinkItem::setWeight(const NeuroLib::NeuroCell::NeuroValue & value)
+    void NeuroLinkItem::setWeight(const NeuroLib::NeuroCell::Value & value)
     {
         for (int i = 0; i < _cellIndices.size(); ++i)
         {
@@ -119,17 +119,17 @@ namespace NeuroGui
         if (newLength != _cellIndices.size())
         {
             // add or delete cells from the automaton as necessary
-            QList<NeuroCell::NeuroIndex> cellsToDelete;
-            NeuroCell::NeuroIndex oldLastIndex = _cellIndices.last();
+            QList<NeuroCell::Index> cellsToDelete;
+            NeuroCell::Index oldLastIndex = _cellIndices.last();
 
             if (newLength > _cellIndices.size())
             {
                 while (_cellIndices.size() < newLength)
                 {
-                    NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
+                    NeuroCell::Index lastIndex = _cellIndices.last();
                     addNewCell();
 
-                    NeuroCell::NeuroIndex newIndex = _cellIndices.last();
+                    NeuroCell::Index newIndex = _cellIndices.last();
                     neuronet->addEdge(newIndex, lastIndex);
                 }
             }
@@ -137,18 +137,18 @@ namespace NeuroGui
             {
                 while (_cellIndices.size() > newLength)
                 {
-                    NeuroCell::NeuroIndex lastIndex = _cellIndices.last();
+                    NeuroCell::Index lastIndex = _cellIndices.last();
                     cellsToDelete.append(lastIndex);
                     _cellIndices.removeLast();
                 }
             }
 
             // now adjust the neighbors of our front target to reflect the new last cell
-            NeuroCell::NeuroIndex newLastIndex = _cellIndices.last();
+            NeuroCell::Index newLastIndex = _cellIndices.last();
             NeuroNarrowItem *front = dynamic_cast<NeuroNarrowItem *>(_frontLinkTarget);
             if (front && newLastIndex != oldLastIndex)
             {
-                NeuroCell::NeuroIndex frontIndex = front->cellIndices().first();
+                NeuroCell::Index frontIndex = front->cellIndices().first();
 
                 // remember, the neighbors of a cell are its inputs
                 neuronet->removeEdge(frontIndex, oldLastIndex);
@@ -156,7 +156,7 @@ namespace NeuroGui
             }
 
             // delete the unused cells
-            for (QListIterator<NeuroCell::NeuroIndex> i(cellsToDelete); i.hasNext(); )
+            for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
             {
                 neuronet->removeNode(i.next());
             }
@@ -233,12 +233,22 @@ namespace NeuroGui
     {
         QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
 
-        for (QSetIterator<NeuroItem *> i(incoming()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
             if (link)
                 link->setLine(link->line().p1(), center.toPointF());
         }
+    }
+
+    NeuroCell::Index NeuroLinkItem::getIncomingCellFor(const NeuroItem *item) const
+    {
+        return item == _backLinkTarget ? _cellIndices.first() : -1;
+    }
+
+    NeuroCell::Index NeuroLinkItem::getOutgoingCellFor(const NeuroItem *item) const
+    {
+        return item == _frontLinkTarget ? _cellIndices.last() : -1;
     }
 
     bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
@@ -247,10 +257,10 @@ namespace NeuroGui
         if (dynamic_cast<NeuroLinkItem *>(item) && !_dragFront)
             return false;
 
-        // don't link to what we're already link to
-        if (_dragFront && outgoing().contains(item))
+        // don't link to what we're already linked to
+        if (_dragFront && _frontLinkTarget == item)
             return false;
-        else if (!_dragFront && incoming().contains(item))
+        if (!_dragFront && _backLinkTarget == item)
             return false;
 
         return true;
@@ -274,15 +284,18 @@ namespace NeuroGui
             setFrontLinkTarget(item);
         else
             setBackLinkTarget(item);
+
+        NeuroNarrowItem::onAttachTo(item);
     }
 
-    void NeuroLinkItem::onAttachedBy(NeuroItem *item)
+    void NeuroLinkItem::onDetach(NeuroItem *item)
     {
-        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-        if (link)
-        {
-            adjustLinks();
-        }
+        if (_dragFront && item == _frontLinkTarget)
+            setFrontLinkTarget(0);
+        else if (!_dragFront && item == _backLinkTarget)
+            setBackLinkTarget(0);
+
+        NeuroNarrowItem::onDetach(item);
     }
 
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
@@ -389,7 +402,7 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
         _cellIndices.append(index);
     }
 
@@ -440,7 +453,7 @@ namespace NeuroGui
 
     void NeuroInhibitoryLinkItem::addNewCell()
     {
-        NeuroCell::NeuroIndex index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1, 1));
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1, 1));
         _cellIndices.append(index);
     }
 

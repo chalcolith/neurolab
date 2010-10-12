@@ -53,7 +53,7 @@ namespace NeuroGui
         Q_OBJECT
 
     protected:
-        Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+        Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _weight_property;
         Property<NeuroLinkItem, QVariant::Int, int, int> _length_property;
 
     public:
@@ -67,11 +67,11 @@ namespace NeuroGui
         /// The weight of the link.
         /// This value is multiplied with the link's input to produce its output value.
         /// \see NeuroLinkItem::setWeight()
-        NeuroLib::NeuroCell::NeuroValue weight() const;
+        NeuroLib::NeuroCell::Value weight() const;
 
         /// Set the weight of the link.
         /// \see NeuroLinkItem::weight()
-        void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
+        void setWeight(const NeuroLib::NeuroCell::Value & value);
 
         /// The length of the link (i.e. how many time steps it takes for the link to transmit its activation).
         /// \see NeuroLinkItem::setLength()
@@ -85,7 +85,7 @@ namespace NeuroGui
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void onAttachTo(NeuroItem *);
-        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *item);
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();
@@ -106,6 +106,9 @@ namespace NeuroGui
         virtual void setBrushProperties(QBrush &brush) const;
 
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *item) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *item) const;
 
         /// Add a new automaton cell.
         virtual void addNewCell() = 0;

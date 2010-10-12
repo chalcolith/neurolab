@@ -28,6 +28,7 @@ SOURCES += mainwindow.cpp \
     labtree.cpp \
     propertyobj.cpp \
     neuroitem.cpp \
+    neuronetworkitem.cpp \
     narrow/neuronodeitem.cpp \
     narrow/neurolinkitem.cpp \
     narrow/neuronarrowitem.cpp \
@@ -54,6 +55,7 @@ HEADERS += neurogui_global.h \
     labtree.h \
     propertyobj.h \
     neuroitem.h \
+    neuronetworkitem.h \
     narrow/neuronodeitem.h \
     narrow/neurolinkitem.h \
     narrow/neuronarrowitem.h \

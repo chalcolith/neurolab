@@ -38,13 +38,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../neurogui_global.h"
 #include "compactitem.h"
+#include "../mixins/mixinremember.h"
 
 namespace NeuroGui
 {
 
     /// Base class for Compact/Abstract AND and OR nodes.
     class NEUROGUISHARED_EXPORT CompactNodeItem
-        : public CompactItem
+        : public CompactItem, public MixinRemember
     {
         Q_OBJECT
 
@@ -56,8 +57,12 @@ namespace NeuroGui
         };
 
     protected:
-        Direction _direction;
+        NeuroItem *_tipLinkItem;
+        QSet<NeuroItem *> _baseItems;
 
+        NeuroLib::NeuroCell::Index _frontwardTipCell, _backwardTipCell;
+
+        Direction _direction;
         Property<CompactNodeItem, QVariant::Int, int, Direction> _direction_property;
 
     public:
@@ -76,6 +81,21 @@ namespace NeuroGui
         /// \see CompactNodeItem::direction()
         void setDirection(const Direction & dir) { _direction = dir; }
 
+        virtual NeuroLib::NeuroCell::Value outputValue() const;
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value &);
+
+    protected:
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
+        virtual void adjustLinks();
+
+        virtual void setPenProperties(QPen &pen) const;
+        virtual void setBrushProperties(QBrush &brush) const;
+
+        virtual void postLoad();
+
+        bool posOnTip(const QPointF & p) const;
+        bool scenePosOnTip(const QPointF & p) const;
     }; // class CompactNodeItem
 
 } // namespace NeuroGui

@@ -52,11 +52,11 @@ namespace NeuroLib
     class NEUROLIBSHARED_EXPORT NeuroNet
         : public NeuroCell::NEURONET_BASE
     {
-        NeuroCell::NeuroValue _decay;
-        NeuroCell::NeuroValue _link_learn_rate;
-        NeuroCell::NeuroValue _node_learn_rate;
-        NeuroCell::NeuroValue _node_forget_rate;
-        NeuroCell::NeuroValue _learn_time;
+        NeuroCell::Value _decay;
+        NeuroCell::Value _link_learn_rate;
+        NeuroCell::Value _node_learn_rate;
+        NeuroCell::Value _node_forget_rate;
+        NeuroCell::Value _learn_time;
 
     public:
         /// Constructor.
@@ -64,40 +64,40 @@ namespace NeuroLib
 
         /// The decay rate of nodes in the network per timestep.
         /// \see NeuroNet::setDecay()
-        NeuroCell::NeuroValue decay() const { return _decay; }
+        NeuroCell::Value decay() const { return _decay; }
 
         /// Sets the decay rate of nodes in the network.
         /// \see NeuroNet::decay()
-        void setDecay(const NeuroCell::NeuroValue & decay) { _decay = decay; }
+        void setDecay(const NeuroCell::Value & decay) { _decay = decay; }
 
         /// The learn rate of links in the network.  This is the maximum amount a link's weight will increase via Hebbian learning each timestep.
         /// \see NeuroNet::setLearn()
-        NeuroCell::NeuroValue linkLearnRate() const { return _link_learn_rate; }
+        NeuroCell::Value linkLearnRate() const { return _link_learn_rate; }
 
         /// Sets the learn rate of links in the network.
         /// \see NeuroNet::learn()
-        void setLinkLearnRate(const NeuroCell::NeuroValue & learn) { _link_learn_rate = learn; }
+        void setLinkLearnRate(const NeuroCell::Value & learn) { _link_learn_rate = learn; }
 
-        NeuroCell::NeuroValue nodeLearnRate() const { return _node_learn_rate; }
-        void setNodeLearnRate(const NeuroCell::NeuroValue & rate) { _node_learn_rate = rate; }
+        NeuroCell::Value nodeLearnRate() const { return _node_learn_rate; }
+        void setNodeLearnRate(const NeuroCell::Value & rate) { _node_learn_rate = rate; }
 
-        NeuroCell::NeuroValue nodeForgetRate() const { return _node_forget_rate; }
-        void setNodeForgetRate(const NeuroCell::NeuroValue & rate) { _node_forget_rate = rate; }
+        NeuroCell::Value nodeForgetRate() const { return _node_forget_rate; }
+        void setNodeForgetRate(const NeuroCell::Value & rate) { _node_forget_rate = rate; }
 
         /// This is the number of timesteps for which a cell's running average is calculated, for the purposes of Hebbian learning.
         /// \see NeuroNet::setLearnTime()
-        NeuroCell::NeuroValue learnTime() const { return _learn_time; }
+        NeuroCell::Value learnTime() const { return _learn_time; }
 
         /// Sets the number of timesteps for which a cell's running average is calculated.
         /// \see NeuroNet::learnTime()
-        void setLearnTime(const NeuroCell::NeuroValue & learnTime) { _learn_time = learnTime; }
+        void setLearnTime(const NeuroCell::Value & learnTime) { _learn_time = learnTime; }
 
         struct PostUpdateRec
         {
-            NeuroCell::NeuroIndex _index;
-            NeuroCell::NeuroValue _weight;
+            NeuroCell::Index _index;
+            NeuroCell::Value _weight;
 
-            PostUpdateRec(const NeuroCell::NeuroIndex & index, const NeuroCell::NeuroValue & weight)
+            PostUpdateRec(const NeuroCell::Index & index, const NeuroCell::Value & weight)
                 : _index(index), _weight(weight)
             {
             }

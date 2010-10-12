@@ -35,23 +35,124 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "compactnodeitem.h"
+#include "../labnetwork.h"
+
+using namespace NeuroLib;
 
 namespace NeuroGui
 {
 
     CompactNodeItem::CompactNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : CompactItem(network, scenePos, context),
+        : CompactItem(network, scenePos, context), MixinRemember(this),
+        _tipLinkItem(0), _frontwardTipCell(-1), _backwardTipCell(-1),
         _direction_property(this, &CompactNodeItem::direction, &CompactNodeItem::setDirection,
                             tr("Direction"), tr("The direction in which the multiple-link side of the node is facing."))
     {
+        this->_value_property.setEditable(false);
+
+        Q_ASSERT(network);
+        Q_ASSERT(network->neuronet());
+
+        if (context == NeuroItem::CREATE_UI)
+        {
+            _frontwardTipCell = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+            _backwardTipCell = network->neuronet()->addNode(NeuroCell(NeuroCell::NODE));
+        }
     }
 
     CompactNodeItem::~CompactNodeItem()
     {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
         if (_ui_delete)
         {
-            // TODO: delete automaton nodes
+            if (_frontwardTipCell != -1)
+                network()->neuronet()->removeNode(_frontwardTipCell);
+            if (_backwardTipCell != -1)
+                network()->neuronet()->removeNode(_backwardTipCell);
         }
+    }
+
+    NeuroCell::Value CompactNodeItem::outputValue() const
+    {
+        const NeuroNet::ASYNC_STATE *frontwardCell = getCell(_frontwardTipCell);
+        const NeuroNet::ASYNC_STATE *backwardCell = getCell(_backwardTipCell);
+
+        if (frontwardCell && backwardCell)
+            return qMax(frontwardCell->current().outputValue(), backwardCell->current().outputValue());
+        return 0;
+    }
+
+    void CompactNodeItem::setOutputValue(const NeuroLib::NeuroCell::Value & val)
+    {
+        NeuroNet::ASYNC_STATE *frontwardCell = getCell(_frontwardTipCell);
+        if (frontwardCell)
+        {
+            frontwardCell->current().setOutputValue(val);
+            frontwardCell->former().setOutputValue(val);
+        }
+
+        NeuroNet::ASYNC_STATE *backwardCell = getCell(_backwardTipCell);
+        if (backwardCell)
+        {
+            backwardCell->current().setOutputValue(val);
+            backwardCell->former().setOutputValue(val);
+        }
+    }
+
+    bool CompactNodeItem::posOnTip(const QPointF &p) const
+    {
+        if (_direction == UPWARD)
+            return p.y() <= 0;
+        else
+            return p.y() > 0;
+    }
+
+    bool CompactNodeItem::scenePosOnTip(const QPointF &p) const
+    {
+        return posOnTip(mapFromScene(p));
+    }
+
+    void CompactNodeItem::onAttachedBy(NeuroItem *item)
+    {
+        CompactItem::onAttachedBy(item);
+
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onAttachedBy(link);
+    }
+
+    void CompactNodeItem::onDetach(NeuroItem *item)
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onDetach(link);
+
+        CompactItem::onDetach(item);
+    }
+
+    void CompactNodeItem::adjustLinks()
+    {
+        MixinRemember::adjustLinks();
+    }
+
+    void CompactNodeItem::setPenProperties(QPen &pen) const
+    {
+        CompactItem::setPenProperties(pen);
+        pen.setWidth(pen.width() * 2);
+    }
+
+    void CompactNodeItem::setBrushProperties(QBrush &brush) const
+    {
+        CompactItem::setBrushProperties(brush);
+        brush.setStyle(Qt::NoBrush);
+    }
+
+    void CompactNodeItem::postLoad()
+    {
+        QVector2D center(scenePos());
+        rememberItems(connections(), center);
     }
 
 } // namespace NeuroGui

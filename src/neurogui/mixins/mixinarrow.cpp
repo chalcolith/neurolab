@@ -95,28 +95,12 @@ namespace NeuroGui
 
     void MixinArrow::setFrontLinkTarget(NeuroItem *linkTarget)
     {
-        if (_frontLinkTarget)
-            _self->removeOutgoing(_frontLinkTarget);
-
         _frontLinkTarget = linkTarget;
-
-        if (linkTarget)
-            _self->addOutgoing(linkTarget);
-
-        _self->updateShape();
     }
 
     void MixinArrow::setBackLinkTarget(NeuroItem *linkTarget)
     {
-        if (_backLinkTarget)
-            _self->removeIncoming(_backLinkTarget);
-
         _backLinkTarget = linkTarget;
-
-        if (linkTarget)
-            _self->addIncoming(linkTarget);
-
-        _self->updateShape();
     }
 
     void MixinArrow::addLine(QPainterPath & drawPath) const
@@ -268,6 +252,9 @@ namespace NeuroGui
             NeuroItem *linkedItem = _dragFront ? _frontLinkTarget : _backLinkTarget;
             if (linkedItem && !linkedItem->containsScenePos(mousePos))
             {
+                linkedItem->onDetach(_self); // this should go first
+                _self->onDetach(linkedItem);
+
                 if (_dragFront)
                     setFrontLinkTarget(0);
                 else

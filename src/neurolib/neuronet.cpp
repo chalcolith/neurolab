@@ -108,9 +108,9 @@ namespace NeuroLib
             fv.client_version = NeuroLib::NEUROLIB_FILE_VERSION_OLD;
 
             float n;
-            ds >> n; _decay = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _link_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _learn_time = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _decay = static_cast<NeuroCell::Value>(n);
+            ds >> n; _link_learn_rate = static_cast<NeuroCell::Value>(n);
+            ds >> n; _learn_time = static_cast<NeuroCell::Value>(n);
 
             BASE::readBinary(ds, fv);
         }
@@ -121,20 +121,20 @@ namespace NeuroLib
             ds >> ver; fv.client_version = ver;
 
             float n;
-            ds >> n; _decay = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _link_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _decay = static_cast<NeuroCell::Value>(n);
+            ds >> n; _link_learn_rate = static_cast<NeuroCell::Value>(n);
 
             if (fv.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_2)
             {
-                ds >> n; _node_learn_rate = static_cast<NeuroCell::NeuroValue>(n);
+                ds >> n; _node_learn_rate = static_cast<NeuroCell::Value>(n);
             }
 
             if (fv.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_3)
             {
-                ds >> n; _node_forget_rate = static_cast<NeuroCell::NeuroValue>(n);
+                ds >> n; _node_forget_rate = static_cast<NeuroCell::Value>(n);
             }
 
-            ds >> n; _learn_time = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _learn_time = static_cast<NeuroCell::Value>(n);
 
             BASE::readBinary(ds, fv);
         }

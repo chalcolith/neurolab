@@ -39,20 +39,20 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
-#include "../narrow/neuronarrowitem.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+using namespace NeuroLib;
+
 namespace NeuroGui
 {
 
-    NEUROITEM_DEFINE_CREATOR(SubConnectionItem, QObject::tr("Debug|Subnetwork Connection"));
-
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroItem(network, scenePos, context), MixinArrow(this),
+        : NeuroNetworkItem(network, scenePos, context), MixinArrow(this),
           _direction(INCOMING), _parentSubnetworkItem(0), _governingItem(0),
-          _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
+          _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue,
+                          tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
     {
         setInitialPosAndDir(QVector2D(scenePos), QVector2D(-10, 1));
     }
@@ -60,9 +60,10 @@ namespace NeuroGui
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context,
                                          SubNetworkItem *parent, NeuroItem *governing, const Directions & direction,
                                          const QVector2D & initialPos, const QVector2D & initialDir)
-        : NeuroItem(network, scenePos, context), MixinArrow(this),
+        : NeuroNetworkItem(network, scenePos, context), MixinArrow(this),
          _direction(direction), _parentSubnetworkItem(parent), _governingItem(0),
-         _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue, tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
+         _value_property(this, &SubConnectionItem::outputValue, &SubConnectionItem::setOutputValue,
+                         tr("Output Value"), tr("The output value of the corresponding item in the outer network."), false)
     {
         setInitialPosAndDir(initialPos, initialDir);
         setGoverningItem(governing);
@@ -72,30 +73,22 @@ namespace NeuroGui
     {
         if (_ui_delete)
         {
-            setFrontLinkTarget(0);
             setGoverningItem(0);
         }
     }
 
-    NeuroLib::NeuroCell::NeuroValue SubConnectionItem::outputValue() const
+    NeuroLib::NeuroCell::Value SubConnectionItem::outputValue() const
     {
-        if (_governingItem)
-        {
-            const NeuroNarrowItem *narrow = dynamic_cast<const NeuroNarrowItem *>(_governingItem);
-            return narrow ? narrow->outputValue() : 0;
-        }
-
-        return 0;
+        Q_ASSERT(_governingItem);
+        const NeuroNetworkItem *item = dynamic_cast<NeuroNetworkItem *>(_governingItem);
+        return item ? item->outputValue() : 0;
     }
 
-    void SubConnectionItem::setOutputValue(const NeuroLib::NeuroCell::NeuroValue & val)
+    void SubConnectionItem::setOutputValue(const NeuroLib::NeuroCell::Value & val)
     {
-        if (_governingItem)
-        {
-            NeuroNarrowItem *narrow = dynamic_cast<NeuroNarrowItem *>(_governingItem);
-            if (narrow)
-                narrow->setOutputValue(val);
-        }
+        Q_ASSERT(_governingItem);
+        NeuroNetworkItem *item = dynamic_cast<NeuroNetworkItem *>(_governingItem);
+        if (item) item->setOutputValue(val);
     }
 
     void SubConnectionItem::setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir)
@@ -111,19 +104,17 @@ namespace NeuroGui
 
     void SubConnectionItem::setGoverningItem(NeuroItem *item)
     {
-        NeuroItem *oldFrontLinkTarget = 0, *oldBackLinkTarget = 0;
-
         // disconnect from old item
         if (_governingItem)
         {
             disconnect(_governingItem, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
 
             // disconnect network nodes
-            if ((oldFrontLinkTarget = _frontLinkTarget))
-                setFrontLinkTarget(0);
+            if (_frontLinkTarget)
+                _frontLinkTarget->onDetach(this);
 
-            if ((oldBackLinkTarget = _backLinkTarget))
-                setBackLinkTarget(0);
+            if (_backLinkTarget)
+                _backLinkTarget->onDetach(this);
         }
 
         // set new governing item and connect
@@ -134,10 +125,10 @@ namespace NeuroGui
             connect(_governingItem, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
         }
 
-        if (oldFrontLinkTarget)
-            setFrontLinkTarget(oldFrontLinkTarget);
-        if (oldBackLinkTarget)
-            setBackLinkTarget(oldBackLinkTarget);
+        if (_frontLinkTarget)
+            _frontLinkTarget->onAttachedBy(this);
+        if (_backLinkTarget)
+            _backLinkTarget->onAttachedBy(this);
     }
 
     bool SubConnectionItem::canAttachTo(const QPointF &pos, NeuroItem *item)
@@ -155,9 +146,36 @@ namespace NeuroGui
         return false;
     }
 
-    void SubConnectionItem::onAttachTo(NeuroItem *item)
+    NeuroCell::Index SubConnectionItem::getIncomingCellFor(const NeuroItem *item) const
     {
-        setFrontLinkTarget(item);
+        Q_ASSERT(_governingItem);
+
+        if (item == _parentSubnetworkItem)
+        {
+            NeuroNetworkItem *netFront = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
+            return netFront ? netFront->getIncomingCellFor(this) : -1;
+        }
+        else
+        {
+            NeuroNetworkItem *netGov = dynamic_cast<NeuroNetworkItem *>(_governingItem);
+            return netGov ? netGov->getIncomingCellFor(_parentSubnetworkItem) : -1;
+        }
+    }
+
+    NeuroCell::Index SubConnectionItem::getOutgoingCellFor(const NeuroItem *item) const
+    {
+        Q_ASSERT(_governingItem);
+
+        if (item == _parentSubnetworkItem)
+        {
+            NeuroNetworkItem *netFront = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
+            return netFront ? netFront->getOutgoingCellFor(this) : -1;
+        }
+        else
+        {
+            NeuroNetworkItem *netGov = dynamic_cast<NeuroNetworkItem *>(_governingItem);
+            return netGov ? netGov->getOutgoingCellFor(_parentSubnetworkItem) : -1;
+        }
     }
 
     bool SubConnectionItem::handleMove(const QPointF &mousePos, QPointF &movePos)
@@ -169,66 +187,12 @@ namespace NeuroGui
         MixinArrow::breakLinks(mousePos);
 
         // attach
-        return NeuroItem::handleMove(mousePos, movePos);
-    }
-
-    void SubConnectionItem::setFrontLinkTarget(NeuroItem *linkTarget)
-    {
-        // disconnect old target
-        if (_frontLinkTarget)
-        {
-            if (_direction.testFlag(INCOMING))
-            {
-                removeOutgoing(_frontLinkTarget);
-
-                if (_governingItem)
-                    _governingItem->removeOutgoing(_frontLinkTarget);
-            }
-
-            if (_direction.testFlag(OUTGOING))
-            {
-                removeIncoming(_frontLinkTarget);
-
-                if (_governingItem)
-                    _governingItem->removeIncoming(_frontLinkTarget);
-            }
-        }
-
-        // set new target and connect
-        _frontLinkTarget = linkTarget;
-        if (_frontLinkTarget)
-        {
-            if (_direction.testFlag(INCOMING))
-            {
-                addOutgoing(_frontLinkTarget);
-
-                if (_governingItem)
-                    _governingItem->addOutgoing(_frontLinkTarget);
-            }
-
-            if (_direction.testFlag(OUTGOING))
-            {
-                addIncoming(_frontLinkTarget);
-
-                if (_governingItem)
-                    _governingItem->addIncoming(_frontLinkTarget);
-            }
-        }
-
-        updateShape();
-    }
-
-    void SubConnectionItem::setBackLinkTarget(NeuroItem *linkTarget)
-    {
-        if (linkTarget)
-            throw LabException(tr("You cannot set the back link target on a sub-connection item."));
-        else
-            _backLinkTarget = linkTarget;
+        return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
 
     void SubConnectionItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroItem::addToShape(drawPath, texts);
+        NeuroNetworkItem::addToShape(drawPath, texts);
 
         // calculate line
         QVector2D myPos(scenePos());   // in scene
@@ -275,7 +239,9 @@ namespace NeuroGui
 
     static const int NUM_STEPS = 6;
 
-    void SubConnectionItem::drawWavyLine(QPainterPath & drawPath, const QVector2D & a, const QVector2D & b, const qreal & angle1, const qreal & angle2) const
+    void SubConnectionItem::drawWavyLine(QPainterPath & drawPath,
+                                         const QVector2D & a, const QVector2D & b,
+                                         const qreal & angle1, const qreal & angle2) const
     {
         QVector2D a2b = b - a;
         qreal len = a2b.length() / NUM_STEPS;
@@ -324,7 +290,7 @@ namespace NeuroGui
 
     void SubConnectionItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
-        NeuroItem::writeBinary(ds, file_version);
+        NeuroNetworkItem::writeBinary(ds, file_version);
         MixinArrow::writeBinary(ds, file_version);
 
         ds << static_cast<qint32>(_direction);
@@ -334,7 +300,7 @@ namespace NeuroGui
 
     void SubConnectionItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroItem::readBinary(ds, file_version);
+        NeuroNetworkItem::readBinary(ds, file_version);
         MixinArrow::readBinary(ds, file_version);
 
         qint32 flag;
@@ -345,10 +311,10 @@ namespace NeuroGui
 
     void SubConnectionItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
-        NeuroItem::writePointerIds(ds, file_version);
+        NeuroNetworkItem::writePointerIds(ds, file_version);
         MixinArrow::writePointerIds(ds, file_version);
 
-        NeuroItem::IdType id = _governingItem ? _governingItem->id() : 0;
+        NeuroNetworkItem::IdType id = _governingItem ? _governingItem->id() : 0;
         ds << id;
 
         id = _parentSubnetworkItem->id();
@@ -357,7 +323,7 @@ namespace NeuroGui
 
     void SubConnectionItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroItem::readPointerIds(ds, file_version);
+        NeuroNetworkItem::readPointerIds(ds, file_version);
         MixinArrow::readPointerIds(ds, file_version);
 
         NeuroItem::IdType id;
@@ -376,7 +342,7 @@ namespace NeuroGui
 
     void SubConnectionItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        NeuroItem::idsToPointers(idMap);
+        NeuroNetworkItem::idsToPointers(idMap);
         MixinArrow::idsToPointers(idMap);
 
         NeuroItem::IdType governingId = reinterpret_cast<NeuroItem::IdType>(_governingItem);

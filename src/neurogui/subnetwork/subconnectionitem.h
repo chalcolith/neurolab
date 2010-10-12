@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
-#include "../neuroitem.h"
+#include "../neuronetworkitem.h"
 #include "../mixins/mixinarrow.h"
 
 #include "../../neurolib/neuronet.h"
@@ -53,10 +53,9 @@ namespace NeuroGui
 
     /// An item that transfers activation from links in an outer network into a subnetwork.
     class NEUROGUISHARED_EXPORT SubConnectionItem
-        : public NeuroItem, public MixinArrow
+        : public NeuroNetworkItem, public MixinArrow
     {
         Q_OBJECT
-        NEUROITEM_DECLARE_CREATOR
 
     public:
         /// Which direction activation can be transferred to or from the outer network.
@@ -84,7 +83,7 @@ namespace NeuroGui
 
         SubNetworkItem *_parentSubnetworkItem;
         NeuroItem *_governingItem;
-        Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
+        Property<SubConnectionItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _value_property;
 
     public:
         /// Creator.
@@ -110,12 +109,12 @@ namespace NeuroGui
         /// The output value of the governing item.
         /// \see SubConnectionItem::setOutputValue()
         /// \see SubConnectionItem::governingItem()
-        NeuroLib::NeuroCell::NeuroValue outputValue() const;
+        virtual NeuroLib::NeuroCell::Value outputValue() const;
 
         /// Set the output value of the governing item.
         /// \see SubConnectionItem::outputValue()
         /// \see SubConnectionItem::governingItem()
-        void setOutputValue(const NeuroLib::NeuroCell::NeuroValue &);
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value &);
 
         /// The directions the item can transfer activation in.
         /// \see SubConnectionItem::setDirection()
@@ -139,13 +138,12 @@ namespace NeuroGui
         /// Set the initial position and direction for the item.
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+
     protected:
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
-        virtual void onAttachTo(NeuroItem *);
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
-
-        virtual void setFrontLinkTarget(NeuroItem *linkTarget);
-        virtual void setBackLinkTarget(NeuroItem *linkTarget);
 
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void setPenProperties(QPen &pen) const;

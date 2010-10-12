@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
-#include "../narrow/neurolinkitem.h"
+#include "../neuronetworkitem.h"
 #include "../mixins/mixinremember.h"
 #include "subconnectionitem.h"
 
@@ -52,7 +52,7 @@ namespace NeuroGui
 
     /// An item that represents a sub-network that can be opened.
     class NEUROGUISHARED_EXPORT SubNetworkItem
-        : public NeuroItem, public MixinRemember
+        : public NeuroNetworkItem, public MixinRemember
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
@@ -63,7 +63,7 @@ namespace NeuroGui
         QRectF _rect;
 
         /// Maps from inputs in the outer network to connection items in the inner network.
-        QMap<NeuroItem *, SubConnectionItem *> _connections;
+        QMap<const NeuroItem *, SubConnectionItem *> _subconnections;
 
     public:
         /// Constructor.
@@ -72,6 +72,12 @@ namespace NeuroGui
         virtual ~SubNetworkItem();
 
         virtual QString uiName() const { return tr("Sub-Network"); }
+
+        virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) { }
+
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
 
     signals:
         /// Emitted when the subnetwork item is deleted.
@@ -82,17 +88,14 @@ namespace NeuroGui
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
-        virtual bool addIncoming(NeuroItem *linkItem);
-        virtual void removeIncoming(NeuroItem *linkItem);
-
-        virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual void removeOutgoing(NeuroItem *linkItem);
-
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+
         virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
+
         virtual void adjustLinks();
         virtual QVector2D getAttachPos(const QVector2D &dirTo);
 

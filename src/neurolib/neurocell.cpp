@@ -43,9 +43,9 @@ namespace NeuroLib
 {
 
     NeuroCell::NeuroCell(const KindOfCell & k,
-                         const NeuroValue & weight,
-                         const NeuroValue & run,
-                         const NeuroValue & current_value)
+                         const Value & weight,
+                         const Value & run,
+                         const Value & current_value)
         : _kind(k), _frozen(false),
         _weight(weight), _run(run),
         _output_value(current_value),
@@ -53,32 +53,32 @@ namespace NeuroLib
     {
     }
 
-    void NeuroCell::addInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index)
+    void NeuroCell::addInput(NeuroNet *network, const Index & my_index, const Index & input_index)
     {
         network->addEdge(my_index, input_index);
     }
 
-    void NeuroCell::removeInput(NeuroNet *network, const NeuroIndex & my_index, const NeuroIndex & input_index)
+    void NeuroCell::removeInput(NeuroNet *network, const Index & my_index, const Index & input_index)
     {
         network->removeEdge(my_index, input_index);
     }
 
-    static const NeuroCell::NeuroValue ZERO = static_cast<NeuroCell::NeuroValue>(0);
-    static const NeuroCell::NeuroValue ONE = static_cast<NeuroCell::NeuroValue>(1.0f);
-    static const NeuroCell::NeuroValue SLOPE_Y = static_cast<NeuroCell::NeuroValue>(0.99f);
-    static const NeuroCell::NeuroValue SLOPE_OFFSET = static_cast<NeuroCell::NeuroValue>(6.0f);
-    static const NeuroCell::NeuroValue EPSILON = static_cast<NeuroCell::NeuroValue>(0.000001f);
-    static const NeuroCell::NeuroValue MAX_LINK = static_cast<NeuroCell::NeuroValue>(1.1f);
+    static const NeuroCell::Value ZERO = static_cast<NeuroCell::Value>(0);
+    static const NeuroCell::Value ONE = static_cast<NeuroCell::Value>(1.0f);
+    static const NeuroCell::Value SLOPE_Y = static_cast<NeuroCell::Value>(0.99f);
+    static const NeuroCell::Value SLOPE_OFFSET = static_cast<NeuroCell::Value>(6.0f);
+    static const NeuroCell::Value EPSILON = static_cast<NeuroCell::Value>(0.000001f);
+    static const NeuroCell::Value MAX_LINK = static_cast<NeuroCell::Value>(1.1f);
 
-    static NeuroCell::NeuroValue sigmoid(const NeuroCell::NeuroValue & threshold, const NeuroCell::NeuroValue & run, const NeuroCell::NeuroValue & input)
+    static NeuroCell::Value sigmoid(const NeuroCell::Value & threshold, const NeuroCell::Value & run, const NeuroCell::Value & input)
     {
-        NeuroCell::NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / run;
-        NeuroCell::NeuroValue output = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input - (threshold - run))));
+        NeuroCell::Value slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / run;
+        NeuroCell::Value output = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input - (threshold - run))));
         return output;
     }
 
 
-    void NeuroCell::update(NEURONET_BASE *neuronet, const NeuroIndex &, NeuroCell & next,
+    void NeuroCell::update(NEURONET_BASE *neuronet, const Index &, NeuroCell & next,
                            const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
     {
         const NeuroCell & prev = *this;
@@ -92,7 +92,7 @@ namespace NeuroLib
             return;
         }
 
-        NeuroValue input_sum = 0, inhibit_sum = 0;
+        Value input_sum = 0, inhibit_sum = 0;
         bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
         {
@@ -107,10 +107,10 @@ namespace NeuroLib
             }
         }
 
-        NeuroValue inhibit_factor = ONE - qBound(ZERO, inhibit_sum, ONE);
+        Value inhibit_factor = ONE - qBound(ZERO, inhibit_sum, ONE);
 
-        NeuroValue next_value = 0;
-        NeuroValue diff, delta;
+        Value next_value = 0;
+        Value diff, delta;
         int num_neighbors;
 
         switch (prev._kind)
@@ -133,11 +133,11 @@ namespace NeuroLib
 
                     if (incoming._kind == EXCITORY_LINK)
                     {
-                        NeuroValue delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                        Value delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
 
                         if (qAbs(delta_weight) > EPSILON)
                         {
-                            NeuroValue new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
+                            Value new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
                             network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
                         }
                     }
@@ -152,14 +152,14 @@ namespace NeuroLib
             break;
         case OSCILLATOR:
             {
-                NeuroStep phase = prev._phase_step[0];
-                NeuroStep step = prev._phase_step[1];
+                Step phase = prev._phase_step[0];
+                Step step = prev._phase_step[1];
 
-                NeuroStep gap = prev._gap_peak[0];
-                NeuroStep peak = prev._gap_peak[1];
+                Step gap = prev._gap_peak[0];
+                Step peak = prev._gap_peak[1];
 
                 // increment step
-                NeuroStep max = static_cast<NeuroStep>(-1);
+                Step max = static_cast<Step>(-1);
                 while ((max - (step+1)) < phase)
                     step += gap + peak; // make step overflow, and inc it beyond phase, so it doesn't pause
                 step += 1;
@@ -248,21 +248,21 @@ namespace NeuroLib
             case NeuroCell::NODE:
             case NeuroCell::EXCITORY_LINK:
             case NeuroCell::INHIBITORY_LINK:
-                ds >> n; _weight = static_cast<NeuroCell::NeuroValue>(n);
-                ds >> n; _run = static_cast<NeuroCell::NeuroValue>(n);
+                ds >> n; _weight = static_cast<NeuroCell::Value>(n);
+                ds >> n; _run = static_cast<NeuroCell::Value>(n);
                 break;
             case NeuroCell::OSCILLATOR:
-                ds >> s; _gap_peak[0] = static_cast<NeuroCell::NeuroStep>(s);
-                ds >> s; _gap_peak[1] = static_cast<NeuroCell::NeuroStep>(s);
-                ds >> s; _phase_step[0] = static_cast<NeuroCell::NeuroStep>(s);
-                ds >> s; _phase_step[1] = static_cast<NeuroCell::NeuroStep>(s);
+                ds >> s; _gap_peak[0] = static_cast<NeuroCell::Step>(s);
+                ds >> s; _gap_peak[1] = static_cast<NeuroCell::Step>(s);
+                ds >> s; _phase_step[0] = static_cast<NeuroCell::Step>(s);
+                ds >> s; _phase_step[1] = static_cast<NeuroCell::Step>(s);
                 break;
             default:
                 break;
             }
 
-            ds >> n; _output_value = static_cast<NeuroCell::NeuroValue>(n);
-            ds >> n; _running_average = static_cast<NeuroCell::NeuroValue>(n);
+            ds >> n; _output_value = static_cast<NeuroCell::Value>(n);
+            ds >> n; _running_average = static_cast<NeuroCell::Value>(n);
         }
     }
 

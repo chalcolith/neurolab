@@ -35,6 +35,11 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "compactanditem.h"
+#include "../mixins/mixinarrow.h"
+#include "../labnetwork.h"
+#include "../labscene.h"
+
+using namespace NeuroLib;
 
 namespace NeuroGui
 {
@@ -50,5 +55,150 @@ namespace NeuroGui
     CompactAndItem::~CompactAndItem()
     {
     }
+
+    NeuroCell::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
+    {
+        // TODO: get delay cells
+
+        if (item == _tipLinkItem)
+            return _backwardTipCell;
+        else
+            return _frontwardTipCell;
+    }
+
+    NeuroCell::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
+    {
+        // TODO: get delay cells
+
+        if (item == _tipLinkItem)
+            return _frontwardTipCell;
+        else
+            return _backwardTipCell;
+    }
+
+    bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
+    {
+        if (dynamic_cast<MixinArrow *>(item) != 0)
+        {
+            if (posOnTip(pos))
+                return _tipLinkItem == 0;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    void CompactAndItem::onAttachedBy(NeuroItem *item)
+    {
+        // get the position
+        bool onTip = false;
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+        {
+            if (link->dragFront() && link->frontLinkTarget() == this)
+                onTip = scenePosOnTip(link->line().p2());
+            else if (!link->dragFront() && link->backLinkTarget() == this)
+                onTip = scenePosOnTip(link->line().p1());
+        }
+        else
+        {
+            onTip = scenePosOnTip(item->scenePos());
+        }
+
+        // if it's attached to the tip, connect in and out
+        if (onTip)
+        {
+
+        }
+
+        // if it's attached to the base, connect in and out; adjust node threshold
+        else
+        {
+        }
+
+        // TODO: add delay lines for sequence node
+    }
+
+    void CompactAndItem::onDetach(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+
+        if (netItem)
+        {
+            if (item == _tipLinkItem)
+            {
+                NeuroCell::Index myOut = _frontwardTipCell;
+                NeuroCell::Index netIn = netItem->getIncomingCellFor(this);
+
+                if (myOut != -1 && netIn != -1)
+                    network()->neuronet()->removeEdge(netIn, myOut);
+
+                NeuroCell::Index myIn = _backwardTipCell;
+                NeuroCell::Index netOut = netItem->getOutgoingCellFor(this);
+
+                if (myIn != -1 && netOut != -1)
+                    network()->neuronet()->removeEdge(myIn, netOut);
+            }
+            else
+            {
+                // TODO: handle delay lines
+                NeuroCell::Index myOut = _backwardTipCell;
+                NeuroCell::Index netIn = netItem->getIncomingCellFor(this);
+
+                if (myOut != -1 && netIn != -1)
+                    network()->neuronet()->removeEdge(netIn, myOut);
+
+                NeuroCell::Index myIn = _frontwardTipCell;
+                NeuroCell::Index netOut = netItem->getOutgoingCellFor(this);
+
+                if (myIn != -1 && netOut != -1)
+                    network()->neuronet()->removeEdge(myIn, netOut);
+            }
+        }
+
+        // adjust node threshold
+        _baseItems.remove(item);
+        NeuroNet::ASYNC_STATE *frontwardCell = getCell(_frontwardTipCell);
+        if (frontwardCell)
+        {
+            frontwardCell->current().setWeight(_baseItems.size());
+            frontwardCell->former().setWeight(_baseItems.size());
+        }
+
+        //
+        CompactItem::onDetach(item);
+    }
+
+    void CompactAndItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
+    {
+        qreal radius = getRadius();
+        qreal to_tip = getTip();
+
+        drawPath.moveTo(-radius, -to_tip);
+        drawPath.lineTo(0, to_tip);
+        drawPath.lineTo(radius, -to_tip);
+        drawPath.lineTo(-radius, -to_tip);
+    }
+
+    QVector2D CompactAndItem::getAttachPos(const QVector2D &dirTo)
+    {
+        if (dirTo.y() <= 0)
+        {
+            return _direction == DOWNWARD ? QVector2D(0, getTip()) : QVector2D(0, -getTip());
+        }
+        else
+        {
+            return _direction == DOWNWARD ? QVector2D(0, -getTip()) : QVector2D(0, getTip());
+        }
+    }
+
+    //
+
+    NEUROITEM_DEFINE_CREATOR(CompactUpwardAndItem, QObject::tr("Abstract|AND Node (Upward)"));
+    NEUROITEM_DEFINE_CREATOR(CompactDownwardAndItem, QObject::tr("Abstract|AND Node (Downward)"));
 
 } // namespace NeuroGui

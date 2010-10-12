@@ -34,21 +34,38 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "compactitem.h"
-#include "../labnetwork.h"
-
-using namespace NeuroLib;
+#include "neuronetworkitem.h"
+#include "labnetwork.h"
 
 namespace NeuroGui
 {
 
-    CompactItem::CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNetworkItem(network, scenePos, context)
+    NeuroNetworkItem::NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroItem(network, scenePos, context),
+        _value_property(this, &NeuroNetworkItem::outputValue, &NeuroNetworkItem::setOutputValue,
+                        tr("Output Value"),
+                        tr("The output value of the node or link, calculated from the values of its inputs in the previous step."))
     {
     }
 
-    CompactItem::~CompactItem()
+    NeuroNetworkItem::~NeuroNetworkItem()
     {
     }
 
-} // namespace NeuroGuid
+    const NeuroLib::NeuroNet::ASYNC_STATE *NeuroNetworkItem::getCell(const NeuroLib::NeuroCell::Index & index) const
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        return index != -1 ? &((*network()->neuronet())[index]) : 0;
+    }
+
+    NeuroLib::NeuroNet::ASYNC_STATE *NeuroNetworkItem::getCell(const NeuroLib::NeuroCell::Index & index)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        return index != -1 ? &((*network()->neuronet())[index]) : 0;
+    }
+
+} // namespace NeuroGui

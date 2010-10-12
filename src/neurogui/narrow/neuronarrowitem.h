@@ -38,22 +38,19 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
-#include "../neuroitem.h"
-#include "../../neurolib/neuronet.h"
+#include "../neuronetworkitem.h"
 
 namespace NeuroGui
 {
 
     /// Base class for items in Narrow notation.  These include nodes and one-directional links.
     class NEUROGUISHARED_EXPORT NeuroNarrowItem
-        : public NeuroItem
+        : public NeuroNetworkItem
     {
         Q_OBJECT
 
-        Property<NeuroNarrowItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _value_property;
-
     protected:
-        QList<NeuroLib::NeuroCell::NeuroIndex> _cellIndices; ///< The indexes of the neural network cells that underlie this item.
+        QList<NeuroLib::NeuroCell::Index> _cellIndices;
 
     public:
         /// Constructor.
@@ -61,24 +58,19 @@ namespace NeuroGui
         explicit NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNarrowItem();
 
-        virtual QString dataValue() const { return QString::number(outputValue()); }
-
         /// The indices of the automaton cells that are controlled by this item.
-        QList<NeuroLib::NeuroCell::NeuroIndex> & cellIndices() { return _cellIndices; }
+        /// For narrow items, which are unidirectional, the first index is the incoming, and the last is the outgoing.
+        QList<NeuroLib::NeuroCell::Index> & cellIndices() { return _cellIndices; }
 
         /// The output value of the item.
         /// \see NeuroNarrowItem::setOutputValue()
-        virtual NeuroLib::NeuroCell::NeuroValue outputValue() const;
+        virtual NeuroLib::NeuroCell::Value outputValue() const;
 
         /// Set the output value of the item.
         /// \see NeuroNarrowItem::outputValue()
-        virtual void setOutputValue(const NeuroLib::NeuroCell::NeuroValue & value);
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value & value);
 
         virtual bool canCutAndPaste() const { return true; }
-
-        virtual bool addIncoming(NeuroItem *linkItem);
-        virtual void removeIncoming(NeuroItem *linkItem);
-
         virtual void setPenProperties(QPen & pen) const;
 
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
@@ -89,13 +81,6 @@ namespace NeuroGui
 
     public slots:
         virtual void reset();
-
-    protected:
-        /// \return A pointer to the neural network cell's previous and current state.
-        const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index) const;
-
-        /// \return A pointer to the neural network cell's previous and current state.
-        NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::NeuroIndex & index);
     };
 
 }

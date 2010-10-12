@@ -76,11 +76,11 @@ namespace NeuroGui
 
         Property<LabNetwork, QVariant::String, QString, QString> _filename_property;
         Property<LabNetwork, QVariant::String, QString, QString> _label_property;
-        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _decay_property;
-        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _link_learn_property;
-        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_learn_property;
-        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _node_forget_property;
-        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _learn_time_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _decay_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _link_learn_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _node_learn_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _node_forget_property;
+        Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _learn_time_property;
 
         quint32 _current_step, _max_steps;
         QFutureWatcher<void> _future_watcher;
@@ -132,20 +132,20 @@ namespace NeuroGui
         QString subNetworkLabel() const;
         void setSubNetworkLabel(const QString & label);
 
-        NeuroLib::NeuroCell::NeuroValue decay() const;
-        void setDecay(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value decay() const;
+        void setDecay(const NeuroLib::NeuroCell::Value &);
 
-        NeuroLib::NeuroCell::NeuroValue linkLearnRate() const;
-        void setLinkLearnRate(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value linkLearnRate() const;
+        void setLinkLearnRate(const NeuroLib::NeuroCell::Value &);
 
-        NeuroLib::NeuroCell::NeuroValue nodeLearnRate() const;
-        void setNodeLearnRate(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value nodeLearnRate() const;
+        void setNodeLearnRate(const NeuroLib::NeuroCell::Value &);
 
-        NeuroLib::NeuroCell::NeuroValue nodeForgetRate() const;
-        void setNodeForgetRate(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value nodeForgetRate() const;
+        void setNodeForgetRate(const NeuroLib::NeuroCell::Value &);
 
-        NeuroLib::NeuroCell::NeuroValue learnTime() const;
-        void setLearnTime(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value learnTime() const;
+        void setLearnTime(const NeuroLib::NeuroCell::Value &);
 
         static LabNetwork *open(const QString & fname = QString());
 

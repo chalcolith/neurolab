@@ -50,16 +50,16 @@ namespace NeuroGui
     {
     }
 
-    void MixinRemember::rememberItems(const QSet<NeuroItem *> &items, const QVector2D &center, bool incoming)
+    void MixinRemember::rememberItems(const QSet<NeuroItem *> &items, const QVector2D &center)
     {
         for (QSetIterator<NeuroItem *> i(items); i.hasNext(); )
         {
             MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link)
             {
-                if (incoming)
+                if (link->frontLinkTarget() == _self)
                     _incomingAttachments[link] = QVector2D(link->line().p2()) - center;
-                else
+                if (link->backLinkTarget() == _self)
                     _outgoingAttachments[link] = QVector2D(link->line().p1()) - center;
             }
         }
@@ -76,31 +76,22 @@ namespace NeuroGui
         // snap to node
         QSet<MixinArrow *> already;
         adjustLink(link, already);
+    }
 
-//        // get new pos and remember
-//        QLineF l = link->line();
-//        QVector2D front(l.p2());
-//        QVector2D back(l.p1());
-//        QVector2D center(_self->scenePos());
+    void MixinRemember::onDetach(MixinArrow *link)
+    {
+        if (link->frontLinkTarget() == _self && link->dragFront())
+            _incomingAttachments.remove(link);
 
-//        if (link->frontLinkTarget() == _self)
-//            _incomingAttachments[link] = front - center;
-//        if (link->backLinkTarget() == _self)
-//            _outgoingAttachments[link] = back - center;
+        if (link->backLinkTarget() == _self && !link->dragFront())
+            _outgoingAttachments.remove(link);
     }
 
     void MixinRemember::adjustLinks()
     {
         QSet<MixinArrow *> alreadyAdjusted;
 
-        for (QSetIterator<NeuroItem *> i(_self->incoming()); i.hasNext(); )
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
-            if (link && !alreadyAdjusted.contains(link))
-                adjustLink(link, alreadyAdjusted);
-        }
-
-        for (QSetIterator<NeuroItem *> i(_self->outgoing()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(_self->connections()); i.hasNext(); )
         {
             MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
             if (link && !alreadyAdjusted.contains(link))
@@ -126,7 +117,7 @@ namespace NeuroGui
         QVector2D back(link_line.p1()); back -= center; // link's back in my frame
 
         QVector2D mouse_pos(lab_scene->lastMousePos()); // in the scene
-        QVector2D toPos = (mouse_pos - center).normalized();
+        QVector2D toPos = (mouse_pos - center).normalized(); // in my frame
 
         if (frontLink)
         {

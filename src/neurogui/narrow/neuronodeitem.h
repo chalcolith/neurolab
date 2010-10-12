@@ -68,6 +68,7 @@ namespace NeuroGui
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
 
         virtual void adjustLinks();
         virtual void postLoad();
@@ -80,9 +81,9 @@ namespace NeuroGui
 
     protected:
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return _cellIndices.first(); }
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.last(); }
 
-    private:
-        virtual void adjustLink(MixinArrow *, QSet<MixinArrow *> & alreadyAdjusted);
         virtual QVector2D getAttachPos(const QVector2D & dirTo);
     };
 
@@ -95,8 +96,8 @@ namespace NeuroGui
         NEUROITEM_DECLARE_CREATOR
 
         Property<NeuroNodeItem, QVariant::Bool, bool, bool> _frozen_property;
-        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _inputs_property;
-        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _run_property;
+        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _inputs_property;
+        Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _run_property;
 
     public:
         explicit NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -107,11 +108,11 @@ namespace NeuroGui
         bool frozen() const;
         void setFrozen(const bool & f);
 
-        NeuroLib::NeuroCell::NeuroValue inputs() const;
-        void setInputs(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value inputs() const;
+        void setInputs(const NeuroLib::NeuroCell::Value &);
 
-        NeuroLib::NeuroCell::NeuroValue run() const;
-        void setRun(const NeuroLib::NeuroCell::NeuroValue &);
+        NeuroLib::NeuroCell::Value run() const;
+        void setRun(const NeuroLib::NeuroCell::Value &);
 
     public slots:
         virtual void reset();
@@ -135,9 +136,9 @@ namespace NeuroGui
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
-        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _phase_property;
-        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _peak_property;
-        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::NeuroStep> _gap_property;
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::Step> _phase_property;
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::Step> _peak_property;
+        Property<NeuroOscillatorItem, QVariant::Int, int, NeuroLib::NeuroCell::Step> _gap_property;
 
     public:
         explicit NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -145,14 +146,14 @@ namespace NeuroGui
 
         virtual QString uiName() const { return tr("Oscillator"); }
 
-        NeuroLib::NeuroCell::NeuroStep phase() const;
-        void setPhase(const NeuroLib::NeuroCell::NeuroStep &);
+        NeuroLib::NeuroCell::Step phase() const;
+        void setPhase(const NeuroLib::NeuroCell::Step &);
 
-        NeuroLib::NeuroCell::NeuroStep peak() const;
-        void setPeak(const NeuroLib::NeuroCell::NeuroStep &);
+        NeuroLib::NeuroCell::Step peak() const;
+        void setPeak(const NeuroLib::NeuroCell::Step &);
 
-        NeuroLib::NeuroCell::NeuroStep gap() const;
-        void setGap(const NeuroLib::NeuroCell::NeuroStep &);
+        NeuroLib::NeuroCell::Step gap() const;
+        void setGap(const NeuroLib::NeuroCell::Step &);
 
     public slots:
         virtual void reset();

@@ -46,13 +46,15 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QScrollBar>
 
+using namespace NeuroLib;
+
 namespace NeuroGui
 {
 
     NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc|Sub-Network"));
 
     SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroItem(network, scenePos, context), MixinRemember(this),
+        : NeuroNetworkItem(network, scenePos, context), MixinRemember(this),
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0),
           _rect(-15, -10, 30, 20)
     {
@@ -82,49 +84,7 @@ namespace NeuroGui
             _treeNode->setLabel(val.toString());
         }
 
-        NeuroItem::propertyValueChanged(p, val);
-    }
-
-    bool SubNetworkItem::addIncoming(NeuroItem *linkItem)
-    {
-        if (NeuroItem::addIncoming(linkItem) && !_connections.contains(linkItem))
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
-            if (link)
-                addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::INCOMING);
-            return true;
-        }
-        return false;
-    }
-
-    void SubNetworkItem::removeIncoming(NeuroItem *linkItem)
-    {
-        if (linkItem && incoming().contains(linkItem))
-        {
-            removeConnectionItem(linkItem);
-            NeuroItem::removeIncoming(linkItem);
-        }
-    }
-
-    bool SubNetworkItem::addOutgoing(NeuroItem *linkItem)
-    {
-        if (NeuroItem::addOutgoing(linkItem) && !_connections.contains(linkItem))
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(linkItem);
-            if (link)
-                addConnectionItem(linkItem, linkItem->isBidirectional() ? SubConnectionItem::BOTH : SubConnectionItem::OUTGOING);
-            return true;
-        }
-        return false;
-    }
-
-    void SubNetworkItem::removeOutgoing(NeuroItem *linkItem)
-    {
-        if (linkItem && outgoing().contains(linkItem))
-        {
-            removeConnectionItem(linkItem);
-            NeuroItem::removeOutgoing(linkItem);
-        }
+        NeuroNetworkItem::propertyValueChanged(p, val);
     }
 
     static void clipTo(QVector2D & p, const QRectF & r)
@@ -201,34 +161,43 @@ namespace NeuroGui
         sPos = rCenter + sDir * (sPos - rCenter).length() * 0.5f;
 
         // direction is only in/out for now...
-        SubConnectionItem *subItem = new SubConnectionItem(network(), sPos.toPointF(), NeuroItem::CREATE_UI, this, governingLink, direction, sPos, -sDir);
+        SubConnectionItem *subItem = new SubConnectionItem(network(), sPos.toPointF(), NeuroItem::CREATE_UI,
+                                                           this, governingLink, direction, sPos, -sDir);
         _treeNode->scene()->addItem(subItem);
 
         // record connection
-        _connections[governingLink] = subItem;
+        _subconnections[governingLink] = subItem;
     }
 
     void SubNetworkItem::removeConnectionItem(NeuroItem *governingLink)
     {
-        if (_connections.contains(governingLink))
+        if (_subconnections.contains(governingLink))
         {
-            qDebug("removing connection item");
-
-            SubConnectionItem *subItem = _connections[governingLink];
-            _connections.remove(governingLink);
+            SubConnectionItem *subItem = _subconnections[governingLink];
+            _subconnections.remove(governingLink);
 
             subItem->setUIDelete();
             delete subItem;
-        }
-        else
-        {
-            qDebug("NOT removing connection item");
         }
     }
 
     bool SubNetworkItem::canCreateNewOnMe(const QString & typeName, const QPointF &) const
     {
         return typeName.indexOf("LinkItem") >= 0;
+    }
+
+    NeuroCell::Index SubNetworkItem::getIncomingCellFor(const NeuroItem *item) const
+    {
+        if (_subconnections.contains(item))
+            return _subconnections[item]->getIncomingCellFor(this);
+        return -1;
+    }
+
+    NeuroCell::Index SubNetworkItem::getOutgoingCellFor(const NeuroItem *item) const
+    {
+        if (_subconnections.contains(item))
+            return _subconnections[item]->getOutgoingCellFor(this);
+        return -1;
     }
 
     bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
@@ -238,11 +207,40 @@ namespace NeuroGui
 
     void SubNetworkItem::onAttachedBy(NeuroItem *item)
     {
+        NeuroNetworkItem::onAttachedBy(item);
+
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
         {
             MixinRemember::onAttachedBy(link);
+
+            SubConnectionItem::Directions dirs(0);
+            if (item->isBidirectional())
+            {
+                dirs |= SubConnectionItem::BOTH;
+            }
+            else
+            {
+                if (link->frontLinkTarget() == this)
+                    dirs |= SubConnectionItem::INCOMING;
+                if (link->backLinkTarget() == this)
+                    dirs |= SubConnectionItem::OUTGOING;
+            }
+
+            addConnectionItem(item, dirs);
         }
+    }
+
+    void SubNetworkItem::onDetach(NeuroItem *item)
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+        {
+            removeConnectionItem(item);
+            MixinRemember::onDetach(link);
+        }
+
+        NeuroNetworkItem::onDetach(item);
     }
 
     void SubNetworkItem::adjustLinks()
@@ -260,7 +258,7 @@ namespace NeuroGui
 
     void SubNetworkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroItem::addToShape(drawPath, texts);
+        NeuroNetworkItem::addToShape(drawPath, texts);
 
         drawPath.addRect(_rect);
     }
@@ -306,7 +304,7 @@ namespace NeuroGui
 
     void SubNetworkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
     {
-        NeuroItem::writeBinary(ds, file_version);
+        NeuroNetworkItem::writeBinary(ds, file_version);
 
         quint32 id_to_write = _treeNode ? _treeNode->id() : static_cast<quint32>(-1);
         ds << id_to_write;
@@ -314,7 +312,7 @@ namespace NeuroGui
 
     void SubNetworkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroItem::readBinary(ds, file_version);
+        NeuroNetworkItem::readBinary(ds, file_version);
 
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
         {
@@ -325,34 +323,32 @@ namespace NeuroGui
     void SubNetworkItem::postLoad()
     {
         QVector2D center(scenePos());
-
-        rememberItems(incoming(), center, true);
-        rememberItems(outgoing(), center, true);
+        rememberItems(connections(), center);
     }
 
     void SubNetworkItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
-        NeuroItem::writePointerIds(ds, file_version);
+        NeuroNetworkItem::writePointerIds(ds, file_version);
 
-        QList<NeuroItem *> keys = _connections.keys();
+        QList<const NeuroItem *> keys = _subconnections.keys();
         quint32 n = keys.size();
         ds << n;
 
         for (quint32 i = 0; i < n; ++i)
         {
-            NeuroItem::IdType id = keys[i]->id();
+            NeuroNetworkItem::IdType id = keys[i]->id();
             ds << id;
 
-            id = _connections[keys[i]]->id();
+            id = _subconnections[keys[i]]->id();
             ds << id;
         }
     }
 
     void SubNetworkItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroItem::readPointerIds(ds, file_version);
+        NeuroNetworkItem::readPointerIds(ds, file_version);
 
-        _connections.clear();
+        _subconnections.clear();
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_5)
         {
             quint32 num;
@@ -367,22 +363,22 @@ namespace NeuroGui
                 NeuroItem *key_ptr = reinterpret_cast<NeuroItem *>(key);
                 SubConnectionItem *val_ptr = reinterpret_cast<SubConnectionItem *>(value);
 
-                _connections[key_ptr] = val_ptr;
+                _subconnections[key_ptr] = val_ptr;
             }
         }
     }
 
     void SubNetworkItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap)
     {
-        NeuroItem::idsToPointers(idMap);
+        NeuroNetworkItem::idsToPointers(idMap);
 
-        QMap<NeuroItem *, SubConnectionItem *> newConnections;
-        QList<NeuroItem *> keys = _connections.keys();
+        QMap<const NeuroItem *, SubConnectionItem *> newConnections;
+        QList<const NeuroItem *> keys = _subconnections.keys();
 
-        for (QListIterator<NeuroItem *> i(keys); i.hasNext(); )
+        for (QListIterator<const NeuroItem *> i(keys); i.hasNext(); )
         {
-            NeuroItem *key_ptr = i.next();
-            SubConnectionItem *val_ptr = _connections[key_ptr];
+            const NeuroItem *key_ptr = i.next();
+            SubConnectionItem *val_ptr = _subconnections[key_ptr];
 
             NeuroItem::IdType key_id = reinterpret_cast<NeuroItem::IdType>(key_ptr);
             NeuroItem::IdType val_id = reinterpret_cast<NeuroItem::IdType>(val_ptr);
@@ -400,7 +396,7 @@ namespace NeuroGui
             }
         }
 
-        _connections = newConnections;
+        _subconnections = newConnections;
     }
 
 } // namespace NeuroGui

@@ -1,3 +1,6 @@
+#ifndef NEURONETWORKITEM_H
+#define NEURONETWORKITEM_H
+
 /*
 Neurocognitive Linguistics Lab
 Copyright (c) 2010, Gordon Tisher
@@ -34,21 +37,40 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "compactitem.h"
-#include "../labnetwork.h"
-
-using namespace NeuroLib;
+#include "neurogui_global.h"
+#include "neuroitem.h"
+#include "../neurolib/neuronet.h"
 
 namespace NeuroGui
 {
 
-    CompactItem::CompactItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNetworkItem(network, scenePos, context)
+    /// Base class for items that deal with underlying network automaton cells.
+    class NEUROGUISHARED_EXPORT NeuroNetworkItem
+        : public NeuroItem
     {
-    }
+    protected:
+        Property<NeuroNetworkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _value_property;
 
-    CompactItem::~CompactItem()
-    {
-    }
+    public:
+        explicit NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        virtual ~NeuroNetworkItem();
 
-} // namespace NeuroGuid
+        virtual QString dataValue() const { return QString::number(outputValue()); }
+
+        virtual NeuroLib::NeuroCell::Value outputValue() const = 0;
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) = 0;
+
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const = 0;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const = 0;
+
+    protected:
+        /// \return A pointer to the neural network cell's previous and current state.
+        const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::Index & index) const;
+
+        /// \return A pointer to the neural network cell's previous and current state.
+        NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::Index & index);
+    };
+
+} // namespace NeuroGui
+
+#endif

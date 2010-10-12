@@ -51,13 +51,14 @@ namespace NeuroGui
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
-        QList<NeuroLib::NeuroCell::NeuroIndex> _upward_cells, _downward_cells;
+        QList<NeuroLib::NeuroCell::Index> _frontward_cells; ///< These go out the front.
+        QList<NeuroLib::NeuroCell::Index> _backward_cells; ///< These go out the back.
 
         Property<CompactLinkItem, QVariant::Int, int, int> _length_property;
-        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _weight_property;
+        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _weight_property;
 
-        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _upward_output_property;
-        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::NeuroValue> _downward_output_property;
+        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _frontward_output_property;
+        Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _backward_output_property;
 
     public:
         /// Constructor.
@@ -71,7 +72,7 @@ namespace NeuroGui
 
         /// The length of the link (i.e. how many time steps it takes to transmit its activation).
         /// \see CompactLinkItem::setLength()
-        int length() const { return _upward_cells.size(); }
+        int length() const { return _frontward_cells.size(); }
 
         /// Set the length of the link.
         /// \see CompactLinkItem::length()
@@ -79,32 +80,35 @@ namespace NeuroGui
 
         /// The weight of the link (multiplied by its input activation to produce its output value).
         /// \see CompactLinkItem::setWeight()
-        NeuroLib::NeuroCell::NeuroValue weight() const;
+        NeuroLib::NeuroCell::Value weight() const;
 
         /// Set the weight of the link.
         /// \see CompactLinkItem::weight()
-        void setWeight(const NeuroLib::NeuroCell::NeuroValue & value);
+        void setWeight(const NeuroLib::NeuroCell::Value & value);
 
-        /// A string to record in the lab data file.
-        virtual QString dataValue() const;
+        virtual NeuroLib::NeuroCell::Value outputValue() const { return qMax(frontwardOutputValue(), backwardOutputValue()); }
+        virtual void setOutputValue(const NeuroLib::NeuroCell::Value & val) { setFrontwardOutputValue(val); setBackwardOutputValue(val); }
 
-        /// Output value of the upward chain.
+        /// Output value of the frontward chain.
         /// \see CompactItem::upwardCells()
-        NeuroLib::NeuroCell::NeuroValue upwardOutputValue() const { return outputValue(_upward_cells); }
+        NeuroLib::NeuroCell::Value frontwardOutputValue() const { return outputValueAux(_frontward_cells); }
 
-        /// Set the output value of the upward chain.
+        /// Set the output value of the frontward chain.
         /// \note Sets the output value of the last cell in the chain to <tt>value</tt>, and the rest to 1.
         /// \see CompactItem::upwardCells()
-        void setUpwardOutputValue(const NeuroLib::NeuroCell::NeuroValue & value) { setOutputValue(_upward_cells, value); }
+        void setFrontwardOutputValue(const NeuroLib::NeuroCell::Value & value) { setOutputValueAux(_frontward_cells, value); }
 
-        /// Output value of the downward chain.
+        /// Output value of the backward chain.
         /// \see CompactItem::downwardCells()
-        NeuroLib::NeuroCell::NeuroValue downwardOutputValue() const { return outputValue(_downward_cells); }
+        NeuroLib::NeuroCell::Value backwardOutputValue() const { return outputValueAux(_backward_cells); }
 
-        /// Set the output value of the downward chain.
+        /// Set the output value of the backward chain.
         /// \note Sets the output value of the last cell in the chain to <tt>value</tt>, and the rest to 1.
         /// \see CompactItem::downwardCells()
-        void setDownwardOutputValue(const NeuroLib::NeuroCell::NeuroValue & value) { setOutputValue(_downward_cells, value); }
+        void setBackwardOutputValue(const NeuroLib::NeuroCell::Value & value) { setOutputValueAux(_backward_cells, value); }
+
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
 
     public slots:
         virtual void reset();
@@ -114,11 +118,7 @@ namespace NeuroGui
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
         virtual void onAttachTo(NeuroItem *);
-
-        virtual bool addIncoming(NeuroItem *linkItem);
-        virtual void removeIncoming(NeuroItem *linkItem);
-        virtual bool addOutgoing(NeuroItem *linkItem);
-        virtual void removeOutgoing(NeuroItem *linkItem);
+        virtual void onDetach(NeuroItem *);
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void setPenProperties(QPen &pen) const;
@@ -132,13 +132,10 @@ namespace NeuroGui
 
     private:
         void addNewCell(bool upwards);
-        void setWeightAux(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const NeuroLib::NeuroCell::NeuroValue &value);
+        void setWeightAux(QList<NeuroLib::NeuroCell::Index> & cells, const NeuroLib::NeuroCell::Value &value);
 
-        NeuroLib::NeuroCell::NeuroValue outputValue(const QList<NeuroLib::NeuroCell::NeuroIndex> & cells) const;
-        void setOutputValue(QList<NeuroLib::NeuroCell::NeuroIndex> & cells, const NeuroLib::NeuroCell::NeuroValue & value);
-
-        void getMyIndices(NeuroItem *linkItem,
-                          NeuroLib::NeuroCell::NeuroIndex & myIncomingIndex, NeuroLib::NeuroCell::NeuroIndex & myOutgoingIndex);
+        NeuroLib::NeuroCell::Value outputValueAux(const QList<NeuroLib::NeuroCell::Index> & cells) const;
+        void setOutputValueAux(QList<NeuroLib::NeuroCell::Index> & cells, const NeuroLib::NeuroCell::Value & value);
     }; // class CompactLinkItem
 
 } // namespace NeuroGui

@@ -63,7 +63,57 @@ namespace NeuroGui
         bool sequence() const { return _sequence; }
         void setSequence(const bool & seq) { _sequence = seq; }
 
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+
+    protected:
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual QVector2D getAttachPos(const QVector2D &dirTo);
+
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *item);
+
+        virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+
+    private:
+        qreal getRadius() const { return NeuroItem::NODE_WIDTH; }
+        qreal getTip() const { return (getRadius() / 3.0f) * (_direction == DOWNWARD ? -1 : 1); }
     }; // class CompactAndItem
+
+
+    //
+
+    class NEUROGUISHARED_EXPORT CompactUpwardAndItem
+        : public CompactAndItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+    public:
+        explicit CompactUpwardAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+            : CompactAndItem(network, scenePos, context)
+        {
+            setDirection(UPWARD);
+        }
+
+        virtual ~CompactUpwardAndItem() {}
+    }; // class CompactUpwardAndItem
+
+    class NEUROGUISHARED_EXPORT CompactDownwardAndItem
+        : public CompactAndItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+    public:
+        explicit CompactDownwardAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+            : CompactAndItem(network, scenePos, context)
+        {
+            setDirection(DOWNWARD);
+        }
+
+        virtual ~CompactDownwardAndItem() {}
+    }; // class CompactDownwardAndItem
 
 } // namespace NeuroGui
 
