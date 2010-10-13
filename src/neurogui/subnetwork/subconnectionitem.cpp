@@ -133,7 +133,7 @@ namespace NeuroGui
 
     bool SubConnectionItem::canAttachTo(const QPointF &pos, NeuroItem *item)
     {
-        if (_governingItem)
+        if (_dragFront && _governingItem)
         {
             // set the dragFront flag on any arrows correctly
             MixinArrow *arrow = dynamic_cast<MixinArrow *>(_governingItem);
@@ -144,6 +144,12 @@ namespace NeuroGui
         }
 
         return false;
+    }
+
+    void SubConnectionItem::onAttachTo(NeuroItem *item)
+    {
+        setFrontLinkTarget(item);
+        NeuroNetworkItem::onAttachTo(item);
     }
 
     NeuroCell::Index SubConnectionItem::getIncomingCellFor(const NeuroItem *item) const

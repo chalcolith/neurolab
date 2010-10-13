@@ -125,6 +125,15 @@ namespace NeuroGui
 
     void CompactNodeItem::onDetach(NeuroItem *item)
     {
+        if (item == _tipLinkItem)
+        {
+            _tipLinkItem = 0;
+        }
+        else if (_baseLinkItems.contains(item))
+        {
+            _baseLinkItems.remove(item);
+        }
+
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
             MixinRemember::onDetach(link);

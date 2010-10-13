@@ -78,6 +78,8 @@ namespace NeuroGui
     private:
         qreal getRadius() const { return NeuroItem::NODE_WIDTH; }
         qreal getTip() const { return (getRadius() / 3.0f) * (_direction == DOWNWARD ? -1 : 1); }
+
+        void adjustNodeThreshold();
     }; // class CompactAndItem
 
 

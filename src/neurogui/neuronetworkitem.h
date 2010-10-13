@@ -64,6 +64,9 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const = 0;
 
     protected:
+        void addEdges(NeuroItem *);
+        void removeEdges(NeuroItem *);
+
         /// \return A pointer to the neural network cell's previous and current state.
         const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::Index & index) const;
 

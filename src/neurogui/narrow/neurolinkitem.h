@@ -52,6 +52,8 @@ namespace NeuroGui
     {
         Q_OBJECT
 
+        QSet<NeuroItem *> _incoming;
+
     protected:
         Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _weight_property;
         Property<NeuroLinkItem, QVariant::Int, int, int> _length_property;
@@ -85,6 +87,8 @@ namespace NeuroGui
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void onAttachTo(NeuroItem *);
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();

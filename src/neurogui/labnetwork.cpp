@@ -466,36 +466,34 @@ namespace NeuroGui
             NeuroItem *underMouse = sc->itemUnderMouse();
             if (underMouse)
             {
-                emit itemDeleted(underMouse);
-                setChanged();
                 sc->setItemUnderMouse(0);
-                sc->removeItem(underMouse);
 
                 underMouse->setUIDelete();
+                emit itemDeleted(underMouse);
+                sc->removeItem(underMouse);
                 delete underMouse;
             }
 
-            for (QListIterator<QGraphicsItem *> i(sc->selectedItems()); i.hasNext(); )
+            QList<QGraphicsItem *> selected = sc->selectedItems();
+            sc->clearSelection();
+
+            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
             {
                 QGraphicsItem *gi = i.next();
-                if (!gi)
-                    continue;
 
                 NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
                 if (item)
                 {
                     item->setUIDelete();
                     emit itemDeleted(item);
-
-                    setChanged();
-
-                    if (sc->itemUnderMouse() == item)
-                        sc->setItemUnderMouse(0);
                 }
 
                 sc->removeItem(gi);
                 delete gi;
             }
+
+            sc->setItemUnderMouse(0);
+            setChanged();
         }
     }
 

@@ -59,7 +59,6 @@ namespace NeuroGui
     NeuroCell::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
     {
         // TODO: get delay cells
-
         if (item == _tipLinkItem)
             return _backwardTipCell;
         else
@@ -69,7 +68,6 @@ namespace NeuroGui
     NeuroCell::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
     {
         // TODO: get delay cells
-
         if (item == _tipLinkItem)
             return _frontwardTipCell;
         else
@@ -78,12 +76,9 @@ namespace NeuroGui
 
     bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
     {
-        if (dynamic_cast<MixinArrow *>(item) != 0)
+        if (dynamic_cast<MixinArrow *>(item) != 0 && item != _tipLinkItem)
         {
-            if (posOnTip(pos))
-                return _tipLinkItem == 0;
-
-            return true;
+            return !posOnTip(pos) || _tipLinkItem == 0;
         }
 
         return false;
@@ -91,86 +86,67 @@ namespace NeuroGui
 
     void CompactAndItem::onAttachedBy(NeuroItem *item)
     {
-        // get the position
-        bool onTip = false;
-        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-        if (link)
-        {
-            if (link->dragFront() && link->frontLinkTarget() == this)
-                onTip = scenePosOnTip(link->line().p2());
-            else if (!link->dragFront() && link->backLinkTarget() == this)
-                onTip = scenePosOnTip(link->line().p1());
-        }
-        else
-        {
-            onTip = scenePosOnTip(item->scenePos());
-        }
+        CompactNodeItem::onAttachedBy(item);
 
-        // if it's attached to the tip, connect in and out
-        if (onTip)
-        {
+            // get the position
+            bool onTip = false;
+            MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+            if (link)
+            {
+                if (link->dragFront() && link->frontLinkTarget() == this)
+                    onTip = scenePosOnTip(link->line().p2());
+                else if (!link->dragFront() && link->backLinkTarget() == this)
+                    onTip = scenePosOnTip(link->line().p1());
+            }
+            else
+            {
+                onTip = scenePosOnTip(item->scenePos());
+            }
 
-        }
+            // if it's attached to the tip, connect in and out
+            if (onTip)
+            {
+                _tipLinkItem = item;
+                addEdges(item);
+            }
 
-        // if it's attached to the base, connect in and out; adjust node threshold
-        else
-        {
-        }
+            // if it's attached to the base, connect in and out; adjust node threshold
+            else
+            {
+                _baseLinkItems.insert(item);
+                addEdges(item);
+            }
 
-        // TODO: add delay lines for sequence node
+            // TODO: add delay lines for sequence node
     }
 
     void CompactAndItem::onDetach(NeuroItem *item)
     {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
+        // disconnect
+        removeEdges(item);
 
-        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+        // TODO: remove delay line
 
-        if (netItem)
-        {
-            if (item == _tipLinkItem)
-            {
-                NeuroCell::Index myOut = _frontwardTipCell;
-                NeuroCell::Index netIn = netItem->getIncomingCellFor(this);
-
-                if (myOut != -1 && netIn != -1)
-                    network()->neuronet()->removeEdge(netIn, myOut);
-
-                NeuroCell::Index myIn = _backwardTipCell;
-                NeuroCell::Index netOut = netItem->getOutgoingCellFor(this);
-
-                if (myIn != -1 && netOut != -1)
-                    network()->neuronet()->removeEdge(myIn, netOut);
-            }
-            else
-            {
-                // TODO: handle delay lines
-                NeuroCell::Index myOut = _backwardTipCell;
-                NeuroCell::Index netIn = netItem->getIncomingCellFor(this);
-
-                if (myOut != -1 && netIn != -1)
-                    network()->neuronet()->removeEdge(netIn, myOut);
-
-                NeuroCell::Index myIn = _frontwardTipCell;
-                NeuroCell::Index netOut = netItem->getOutgoingCellFor(this);
-
-                if (myIn != -1 && netOut != -1)
-                    network()->neuronet()->removeEdge(myIn, netOut);
-            }
-        }
+        if (item == _tipLinkItem)
+            _tipLinkItem = 0;
+        else if (_baseLinkItems.contains(item))
+            _baseLinkItems.remove(item);
 
         // adjust node threshold
-        _baseItems.remove(item);
+        _baseLinkItems.remove(item);
+
+        //
+        CompactNodeItem::onDetach(item);
+    }
+
+    void CompactAndItem::adjustNodeThreshold()
+    {
         NeuroNet::ASYNC_STATE *frontwardCell = getCell(_frontwardTipCell);
         if (frontwardCell)
         {
-            frontwardCell->current().setWeight(_baseItems.size());
-            frontwardCell->former().setWeight(_baseItems.size());
+            frontwardCell->current().setWeight(_baseLinkItems.size());
+            frontwardCell->former().setWeight(_baseLinkItems.size());
         }
-
-        //
-        CompactItem::onDetach(item);
     }
 
     void CompactAndItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const

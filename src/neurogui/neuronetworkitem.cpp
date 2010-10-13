@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neuronetworkitem.h"
 #include "labnetwork.h"
 
+using namespace NeuroLib;
+
 namespace NeuroGui
 {
 
@@ -50,6 +52,50 @@ namespace NeuroGui
 
     NeuroNetworkItem::~NeuroNetworkItem()
     {
+    }
+
+    void NeuroNetworkItem::addEdges(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+        if (netItem)
+        {
+            NeuroCell::Index myIn = this->getIncomingCellFor(item);
+            NeuroCell::Index itemOut = netItem->getOutgoingCellFor(this);
+
+            if (myIn != -1 && itemOut != -1)
+                network()->neuronet()->addEdge(myIn, itemOut);
+
+            NeuroCell::Index myOut = this->getOutgoingCellFor(item);
+            NeuroCell::Index itemIn = netItem->getIncomingCellFor(this);
+
+            if (myOut != -1 && itemIn != -1)
+                network()->neuronet()->addEdge(itemIn, myOut);
+        }
+    }
+
+    void NeuroNetworkItem::removeEdges(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+        if (netItem)
+        {
+            NeuroCell::Index myIn = this->getIncomingCellFor(item);
+            NeuroCell::Index itemOut = netItem->getOutgoingCellFor(this);
+
+            if (myIn != -1 && itemOut != -1)
+                network()->neuronet()->removeEdge(myIn, itemOut);
+
+            NeuroCell::Index myOut = this->getOutgoingCellFor(item);
+            NeuroCell::Index itemIn = netItem->getIncomingCellFor(this);
+
+            if (myOut != -1 && itemIn != -1)
+                network()->neuronet()->removeEdge(itemIn, myOut);
+        }
     }
 
     const NeuroLib::NeuroNet::ASYNC_STATE *NeuroNetworkItem::getCell(const NeuroLib::NeuroCell::Index & index) const

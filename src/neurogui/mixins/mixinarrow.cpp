@@ -127,7 +127,7 @@ namespace NeuroGui
 
             if (_backLinkTarget)
             {
-                QVector2D center(_backLinkTarget->pos());
+                QVector2D center(_backLinkTarget->scenePos());
                 QVector2D toBack = QVector2D(line().p1()) - center;
                 c1 = (center + toBack * 3) - myPos;
             }

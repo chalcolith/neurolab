@@ -58,7 +58,7 @@ namespace NeuroGui
 
     protected:
         NeuroItem *_tipLinkItem;
-        QSet<NeuroItem *> _baseItems;
+        QSet<NeuroItem *> _baseLinkItems;
 
         NeuroLib::NeuroCell::Index _frontwardTipCell, _backwardTipCell;
 

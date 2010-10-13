@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurolinkitem.h"
 #include "../subnetwork/subconnectionitem.h"
+#include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 #include "../mainwindow.h"
@@ -233,7 +234,7 @@ namespace NeuroGui
     {
         QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
 
-        for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
         {
             NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
             if (link)
@@ -288,6 +289,18 @@ namespace NeuroGui
         NeuroNarrowItem::onAttachTo(item);
     }
 
+    void NeuroLinkItem::onAttachedBy(NeuroItem *item)
+    {
+        _incoming.insert(item);
+        NeuroNarrowItem::onAttachedBy(item);
+    }
+
+    void NeuroLinkItem::onDetach(NeuroItem *item)
+    {
+        _incoming.remove(item);
+        NeuroNarrowItem::onDetach(item);
+    }
+
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         // move line
@@ -305,15 +318,26 @@ namespace NeuroGui
         NeuroNarrowItem::writeClipboard(ds, id_map);
         ds << _line;
 
-        if (_frontLinkTarget && id_map[_frontLinkTarget->id()])
+        if (_frontLinkTarget && id_map.contains(_frontLinkTarget->id()))
             ds << static_cast<qint32>(id_map[_frontLinkTarget->id()]);
         else
             ds << static_cast<qint32>(0);
 
-        if (_backLinkTarget && id_map[_backLinkTarget->id()])
+        if (_backLinkTarget && id_map.contains(_backLinkTarget->id()))
             ds << static_cast<qint32>(id_map[_backLinkTarget->id()]);
         else
             ds << static_cast<qint32>(0);
+
+        ds << _incoming.size();
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        {
+            qint32 id = static_cast<qint32>(i.next()->id());
+
+            if (id_map.contains(id))
+                ds << static_cast<qint32>(id_map[id]);
+            else
+                ds << static_cast<qint32>(0);
+        }
     }
 
     void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
@@ -325,13 +349,25 @@ namespace NeuroGui
 
         // front link target
         ds >> id;
-        if (id && id_map[id])
+        if (id && id_map.contains(id))
             setFrontLinkTarget(id_map[id]);
 
         // back link target
         ds >> id;
         if (id && id_map[id])
             setBackLinkTarget(id_map[id]);
+
+        // incoming
+        _incoming.clear();
+        qint32 num;
+        ds >> num;
+
+        for (qint32 i = 0; i < num; ++i)
+        {
+            ds >> id;
+            if (id && id_map.contains(id))
+                _incoming.insert(id_map[id]);
+        }
     }
 
     void NeuroLinkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
@@ -350,18 +386,64 @@ namespace NeuroGui
     {
         NeuroNarrowItem::writePointerIds(ds, file_version);
         MixinArrow::writePointerIds(ds, file_version);
+
+        // incoming
+        qint32 num = static_cast<qint32>(_incoming.size());
+        ds << num;
+
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        {
+            NeuroItem *item = i.next();
+            if (item)
+                ds << static_cast<IdType>(item->id());
+            else
+                ds << static_cast<IdType>(0);
+        }
     }
 
     void NeuroLinkItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
     {
         NeuroNarrowItem::readPointerIds(ds, file_version);
         MixinArrow::readPointerIds(ds, file_version);
+
+        // incoming5
+        if (file_version.neurolab_version >= NEUROLAB_FILE_VERSION_7)
+        {
+            qint32 num;
+            ds >> num;
+
+            _incoming.clear();
+            for (qint32 i = 0; i < num; ++i)
+            {
+                IdType id;
+                ds >> id;
+
+                if (id)
+                    _incoming.insert(reinterpret_cast<NeuroItem *>(id));
+            }
+        }
     }
 
     void NeuroLinkItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
         NeuroNarrowItem::idsToPointers(idMap);
         MixinArrow::idsToPointers(idMap);
+
+        // incoming
+        QSet<NeuroItem *> itemsToAdd;
+
+        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        {
+            IdType wanted_id = reinterpret_cast<IdType>(i.next());
+            NeuroItem *wanted_item = idMap[wanted_id];
+
+            if (wanted_item)
+                itemsToAdd.insert(wanted_item);
+            else
+                throw LabException(tr("Dangling node id in link incoming: %1").arg(wanted_id));
+        }
+
+        _incoming = itemsToAdd;
     }
 
 

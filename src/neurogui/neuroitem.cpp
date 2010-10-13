@@ -555,7 +555,14 @@ namespace NeuroGui
         // connections
         ds << static_cast<quint32>(_connections.size());
         for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
-            ds << static_cast<qint32>(id_map[i.next()->id()]);
+        {
+            qint32 id = static_cast<qint32>(i.next()->id());
+
+            if (id && id_map.contains(id))
+                ds << static_cast<qint32>(id_map[id]);
+            else
+                ds << static_cast<qint32>(0);
+        }
     }
 
     void NeuroItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
@@ -572,7 +579,7 @@ namespace NeuroGui
         {
             ds >> id;
 
-            if (id_map[id])
+            if (id_map.contains(id))
                 _connections.insert(id_map[id]);
         }
     }

@@ -75,9 +75,6 @@ namespace NeuroGui
 
     void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
     {
-        Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
-
         NeuroNarrowItem::onAttachedBy(item);
 
         // remember
@@ -85,42 +82,14 @@ namespace NeuroGui
         if (link)
             MixinRemember::onAttachedBy(link);
 
-        // connect automaton
-        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
-        if (netItem)
-        {
-            NeuroCell::Index myIncoming = getIncomingCellFor(item);
-            NeuroCell::Index itemOutgoing = netItem->getOutgoingCellFor(this);
-
-            if (myIncoming != -1 && itemOutgoing != -1)
-                network()->neuronet()->addEdge(myIncoming, itemOutgoing);
-
-            NeuroCell::Index myOutgoing = getOutgoingCellFor(item);
-            NeuroCell::Index itemIncoming = netItem->getIncomingCellFor(this);
-
-            if (myOutgoing != -1 && itemIncoming != -1)
-                network()->neuronet()->addEdge(itemIncoming, myOutgoing);
-        }
+        // connect
+        addEdges(item);
     }
 
     void NeuroNodeItemBase::onDetach(NeuroItem *item)
     {
         // disconnect automaton
-        NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
-        if (netItem)
-        {
-            NeuroCell::Index myIncoming = getIncomingCellFor(item);
-            NeuroCell::Index itemOutgoing = netItem->getOutgoingCellFor(this);
-
-            if (myIncoming != -1 && itemOutgoing != -1)
-                network()->neuronet()->removeEdge(myIncoming, itemOutgoing);
-
-            NeuroCell::Index myOutgoing = getOutgoingCellFor(item);
-            NeuroCell::Index itemIncoming = netItem->getIncomingCellFor(this);
-
-            if (myOutgoing != -1 && itemIncoming != -1)
-                network()->neuronet()->removeEdge(itemIncoming, myOutgoing);
-        }
+        removeEdges(item);
 
         // disremember
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);

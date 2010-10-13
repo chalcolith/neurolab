@@ -166,7 +166,7 @@ namespace NeuroGui
         virtual void onAttachTo(NeuroItem *item) { _connections.insert(item); }
 
         /// Called when a stationary item has been attached to by a moving one.
-        virtual void onAttachedBy(NeuroItem *item) { _connections.insert(item); adjustLinks(); }
+        virtual void onAttachedBy(NeuroItem *item) { _connections.insert(item); }
 
         /// Called when two nodes are detached.
         virtual void onDetach(NeuroItem *item) { _connections.remove(item); }
