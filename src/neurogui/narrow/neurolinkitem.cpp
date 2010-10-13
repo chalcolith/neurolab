@@ -288,16 +288,6 @@ namespace NeuroGui
         NeuroNarrowItem::onAttachTo(item);
     }
 
-    void NeuroLinkItem::onDetach(NeuroItem *item)
-    {
-        if (_dragFront && item == _frontLinkTarget)
-            setFrontLinkTarget(0);
-        else if (!_dragFront && item == _backLinkTarget)
-            setBackLinkTarget(0);
-
-        NeuroNarrowItem::onDetach(item);
-    }
-
     bool NeuroLinkItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         // move line

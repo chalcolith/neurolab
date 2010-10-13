@@ -128,7 +128,7 @@ namespace NeuroGui
             MixinRemember::onDetach(link);
 
         // special case for self-links
-        if (!link || (link->frontLinkTarget() != this && link->backLinkTarget() != this))
+        if (!link || !(link->frontLinkTarget() == this && link->backLinkTarget() == this))
             NeuroNarrowItem::onDetach(item);
     }
 

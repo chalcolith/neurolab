@@ -85,7 +85,6 @@ namespace NeuroGui
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void onAttachTo(NeuroItem *);
-        virtual void onDetach(NeuroItem *item);
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();
