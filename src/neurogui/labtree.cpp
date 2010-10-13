@@ -68,17 +68,17 @@ namespace NeuroGui
         }
 
         QList<LabTreeNode *> childrenCopy = _children; // deleting the children will remove them from our list
-        for (QListIterator<LabTreeNode *> i(childrenCopy); i.hasNext(); )
+        foreach (LabTreeNode *node, childrenCopy)
         {
-            delete i.next();
+            delete node;
         }
         _children.clear();
 
         if (_ui_delete && _scene)
         {
-            for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+            foreach (QGraphicsItem *gi, _scene->items())
             {
-                NeuroItem *ni = dynamic_cast<NeuroItem *>(i.next());
+                NeuroItem *ni = dynamic_cast<NeuroItem *>(gi);
                 ni->setUIDelete(_ui_delete);
             }
         }
@@ -154,9 +154,9 @@ namespace NeuroGui
 
     void LabTreeNode::reset()
     {
-        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _scene->items())
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->reset();
         }
@@ -283,31 +283,29 @@ namespace NeuroGui
     void LabTreeNode::postLoad()
     {
         // do this depth-first, since subnetwork items, for instance, need to have id maps for children
-        for (QListIterator<LabTreeNode *> i(_children); i.hasNext(); )
-        {
-            i.next()->postLoad();
-        }
+        foreach (LabTreeNode *node, _children)
+            node->postLoad();
 
         // turn ids into pointers
-        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _scene->items())
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->idsToPointers(_tree->network()->idMap());
         }
 
         // do further processing if necessary
-        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _scene->items())
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->postLoad();
         }
 
         // build shapes for first draw
-        for (QListIterator<QGraphicsItem *> i(_scene->items()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _scene->items())
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->updateShape();
         }
@@ -344,8 +342,8 @@ namespace NeuroGui
 
         QList<QGraphicsItem *> results = n->scene()->items();
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
-            results.append(items(i.next()));
+        foreach (LabTreeNode *child, n->children())
+            results.append(items(child));
 
         return results;
     }
@@ -359,8 +357,8 @@ namespace NeuroGui
 
         n->reset();
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
-            reset(i.next());
+        foreach (LabTreeNode *child, n->children())
+            reset(child);
     }
 
     void LabTree::updateItemProperties(LabTreeNode *n, bool all)
@@ -372,8 +370,8 @@ namespace NeuroGui
 
         if (all)
         {
-            for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
-                updateItemProperties(i.next());
+            foreach (LabTreeNode *child, n->children())
+                updateItemProperties(child, all);
         }
 
         n->updateItemProperties();
@@ -384,9 +382,9 @@ namespace NeuroGui
         if (n->id() == id)
             return n;
 
-        for (QListIterator<LabTreeNode *> i(n->children()); i.hasNext(); )
+        foreach (LabTreeNode *child, n->children())
         {
-            LabTreeNode *c = find_current(i.next(), id);
+            LabTreeNode *c = find_current(child, id);
             if (c)
                 return c;
         }

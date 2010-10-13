@@ -100,9 +100,8 @@ namespace NeuroGui
     {
         if (_ui_delete)
         {
-            for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
+            foreach (NeuroItem *item, _connections)
             {
-                NeuroItem *item = i.next();
                 item->onDetach(this);
                 this->onDetach(item);
             }
@@ -201,10 +200,8 @@ namespace NeuroGui
         QList<QString> keys = _itemCreators->keys();
         qSort(keys.begin(), keys.end(), ItemTypeLessThan(*_itemCreators));
 
-        for (QListIterator<QString> i(keys); i.hasNext(); )
+        foreach (QString typeName, keys)
         {
-            const QString & typeName = i.next();
-
             // kludge to get rid of mangled names
             const QString friendlyName = getTypeName(typeName);
             if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
@@ -241,9 +238,8 @@ namespace NeuroGui
                 {
                     // find the submenu
                     bool found = false;
-                    for (QListIterator<QAction *> k(subMenu->actions()); k.hasNext(); )
+                    foreach (QAction *action, subMenu->actions())
                     {
-                        QAction *action = k.next();
                         if (action->text() == menuPath[j] && action->menu())
                         {
                             subMenu = action->menu();
@@ -303,9 +299,9 @@ namespace NeuroGui
     void NeuroItem::bringToFront()
     {
         qreal highest_z = this->zValue();
-        for (QListIterator<QGraphicsItem *> i(this->collidingItems()); i.hasNext(); )
+
+        foreach (QGraphicsItem *item, this->collidingItems())
         {
-            QGraphicsItem *item = i.next();
             if (!item)
                 continue;
 
@@ -360,11 +356,8 @@ namespace NeuroGui
         if (!_label.isNull() && !_label.isEmpty())
             _texts.append(TextPathRec(QPointF(NeuroItem::NODE_WIDTH + 4, -1), _label));
 
-        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
-        {
-            const TextPathRec & rec = i.next();
+        foreach (const TextPathRec & rec, _texts)
             _shapePath.addText(rec.pos, rec.font, rec.text);
-        }
 
         _shapePath = _drawPath.united(_shapePath);
     }
@@ -447,9 +440,8 @@ namespace NeuroGui
         textPen.setWidth(NORMAL_LINE_WIDTH);
         painter->setPen(textPen);
 
-        for (QListIterator<TextPathRec> i(_texts); i.hasNext(); )
+        foreach (const TextPathRec & rec, _texts)
         {
-            const TextPathRec & rec = i.next();
             painter->setFont(rec.font);
             painter->setPen(rec.pen);
             painter->drawText(rec.pos, rec.text);
@@ -520,9 +512,9 @@ namespace NeuroGui
         QRectF mouseRect(mousePos.x() - TOUCH_LEN, mousePos.y() - TOUCH_LEN, TOUCH_LEN*2, TOUCH_LEN*2);
         NeuroItem *itemAtPos = 0;
 
-        for (QListIterator<QGraphicsItem *> i(_network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder)); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder))
         {
-            if ((itemAtPos = dynamic_cast<NeuroItem *>(i.next())))
+            if ((itemAtPos = dynamic_cast<NeuroItem *>(gi)))
             {
                 if (itemAtPos == this)
                 {
@@ -561,9 +553,9 @@ namespace NeuroGui
 
         // connections
         ds << static_cast<quint32>(_connections.size());
-        for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
+        foreach (NeuroItem *ni, _connections)
         {
-            qint32 id = static_cast<qint32>(i.next()->id());
+            qint32 id = static_cast<qint32>(ni->id());
 
             if (id && id_map.contains(id))
                 ds << static_cast<qint32>(id_map[id]);
@@ -634,9 +626,8 @@ namespace NeuroGui
         qint32 n = _connections.size();
         ds << n;
 
-        for (QSetIterator<NeuroItem *> i(_connections); i.hasNext(); )
+        foreach (NeuroItem *item, _connections)
         {
-            NeuroItem *item = i.next();
             if (item)
                 ds << static_cast<IdType>(item->_id);
             else
@@ -733,9 +724,9 @@ namespace NeuroGui
     {
         QSet<NeuroItem *> itemsToAdd;
 
-        for (QSetIterator<NeuroItem *> i(items); i.hasNext(); )
+        foreach (NeuroItem *ni, items)
         {
-            IdType wanted_id = reinterpret_cast<IdType>(i.next());
+            IdType wanted_id = reinterpret_cast<IdType>(ni);
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)

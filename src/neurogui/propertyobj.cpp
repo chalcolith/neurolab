@@ -55,9 +55,8 @@ namespace NeuroGui
 
     void PropertyObject::setPropertyValue(const QString &propertyName, const QVariant &value)
     {
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
+        foreach (PropertyBase *p, _properties)
         {
-            PropertyBase *p = i.next();
             if (p->_property && p->_property->propertyName() == propertyName)
             {
                 p->_property->setValue(value);
@@ -71,10 +70,8 @@ namespace NeuroGui
         Q_ASSERT(topProperty != 0);
         topProperty->setPropertyName(uiName());
 
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
+        foreach (PropertyBase *p, _properties)
         {
-            PropertyBase *p = i.next();
-
             p->create(manager);
 
             if (p->visible())
@@ -86,9 +83,8 @@ namespace NeuroGui
 
     void PropertyObject::updateProperties()
     {
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
+        foreach (PropertyBase *p, _properties)
         {
-            PropertyBase *p = i.next();
             if (p->_property)
                 p->update();
         }
@@ -102,9 +98,8 @@ namespace NeuroGui
 
         bool changed;
 
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
+        foreach (PropertyBase *p, _properties)
         {
-            PropertyBase *p = i.next();
             if (p->_property == vprop)
             {
                 changed = true;
@@ -116,10 +111,9 @@ namespace NeuroGui
     void PropertyObject::writeClipboard(QDataStream & ds) const
     {
         ds << static_cast<qint32>(_properties.size());
-        for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
-        {
-            const PropertyBase *p = i.next();
 
+        foreach (const PropertyBase *p, _properties)
+        {
             ds << p->name();
             ds << p->tooltip();
             ds << p->editable();
@@ -143,9 +137,8 @@ namespace NeuroGui
             ds >> enabled;
             ds >> value;
 
-            for (QListIterator<PropertyBase *> i(_properties); i.hasNext(); )
+            foreach (PropertyBase *p, _properties)
             {
-                PropertyBase *p = const_cast<PropertyBase *>(i.next());
                 if (p->name() == name)
                 {
                     p->setTooltip(tooltip);
@@ -189,16 +182,12 @@ namespace NeuroGui
     {
         QList<QList<QString> > property_name_sets;
 
-        for (QListIterator<PropertyObject *> obj_i(commonObjects); obj_i.hasNext(); )
+        foreach (PropertyObject *po, commonObjects)
         {
-            const PropertyObject *po = obj_i.next();
-
             QList<QString> names;
 
-            for (QListIterator<PropertyObject::PropertyBase *> prop_i(po->properties()); prop_i.hasNext(); )
+            foreach (PropertyObject::PropertyBase *prop, po->properties())
             {
-                const PropertyObject::PropertyBase *prop = prop_i.next();
-
                 QString format("%1|%2|%3|%4");
                 QString name = format.arg(prop->name(), prop->tooltip(), prop->editable() ? "1" : 0).arg(prop->type());
 
@@ -223,10 +212,8 @@ namespace NeuroGui
             {
                 QList<QString> intersection;
 
-                for (QListIterator<QString> name_i(common_property_names); name_i.hasNext(); )
+                foreach (QString name, common_property_names)
                 {
-                    QString name = name_i.next();
-
                     if (property_name_sets[i].contains(name))
                         intersection.append(name);
                 }
@@ -247,9 +234,9 @@ namespace NeuroGui
         QList<QString> common_property_names = get_common_names(property_name_sets);
 
         // create a property for each name, and build lists of properties to update for each one
-        for (QListIterator<QString> name_i(common_property_names); name_i.hasNext(); )
+        foreach (QString name_i, common_property_names)
         {
-            QList<QString> params = name_i.next().split("|");
+            QList<QString> params = name_i.split("|");
             QString name = params[0];
             QString tooltip = params[1];
             bool enabled = (bool) params[2].toInt();
@@ -259,12 +246,10 @@ namespace NeuroGui
             _properties.append(common);
 
             // find matching properties and add them
-            for (QListIterator<PropertyObject *> obj_i(commonObjects); obj_i.hasNext(); )
+            foreach (PropertyObject *po, commonObjects)
             {
-                for (QListIterator<PropertyBase *> prop_i(obj_i.next()->properties()); prop_i.hasNext(); )
+                foreach (PropertyBase *obj_prop, po->properties())
                 {
-                    const PropertyBase *obj_prop = prop_i.next();
-
                     if (obj_prop->name() == name
                         && obj_prop->tooltip() == tooltip
                         && obj_prop->editable() == enabled
@@ -279,10 +264,8 @@ namespace NeuroGui
 
     void CommonPropertyObject::cleanup()
     {
-        for (QListIterator<PropertyBase *> p(_properties); p.hasNext(); )
-        {
-            delete p.next();
-        }
+        foreach (PropertyBase *p, _properties)
+            delete p;
 
         _properties.clear();
     }
@@ -307,8 +290,8 @@ namespace NeuroGui
     {
         QList<QVariant> all_values;
 
-        for (QListIterator<PropertyBase *> prop(_shared_properties); prop.hasNext(); )
-            all_values.append(prop.next()->value());
+        foreach (PropertyBase *prop, _shared_properties)
+            all_values.append(prop->value());
 
         bool values_are_equal = true;
         for (int i = 1; values_are_equal && i < all_values.size(); ++i)
@@ -320,8 +303,8 @@ namespace NeuroGui
 
     void CommonPropertyObject::CommonProperty::valueChanged(const QVariant &value)
     {
-        for (QListIterator<PropertyBase *> p(_shared_properties); p.hasNext(); )
-            p.next()->valueChanged(value);
+        foreach (PropertyBase *p, _shared_properties)
+            p->valueChanged(value);
     }
 
 } // namespace NeuroGui

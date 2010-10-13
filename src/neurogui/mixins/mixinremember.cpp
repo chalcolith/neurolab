@@ -52,9 +52,9 @@ namespace NeuroGui
 
     void MixinRemember::rememberItems(const QSet<NeuroItem *> &items, const QVector2D &center)
     {
-        for (QSetIterator<NeuroItem *> i(items); i.hasNext(); )
+        foreach (NeuroItem *ni, items)
         {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
             if (link)
             {
                 if (link->frontLinkTarget() == _self)
@@ -91,9 +91,9 @@ namespace NeuroGui
     {
         QSet<MixinArrow *> alreadyAdjusted;
 
-        for (QSetIterator<NeuroItem *> i(_self->connections()); i.hasNext(); )
+        foreach (NeuroItem *ni, _self->connections())
         {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(i.next());
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
             if (link && !alreadyAdjusted.contains(link))
                 adjustLink(link, alreadyAdjusted);
         }

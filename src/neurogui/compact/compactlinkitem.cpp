@@ -80,13 +80,16 @@ namespace NeuroGui
 
     CompactLinkItem::~CompactLinkItem()
     {
-        if (_ui_delete && network() && network()->neuronet())
+        if (_ui_delete)
         {
-            for (QListIterator<NeuroCell::Index> i(_frontward_cells); i.hasNext(); )
-                network()->neuronet()->removeNode(i.next());
+            Q_ASSERT(network());
+            Q_ASSERT(network()->neuronet());
 
-            for (QListIterator<NeuroCell::Index> i(_backward_cells); i.hasNext(); )
-                network()->neuronet()->removeNode(i.next());
+            foreach (NeuroCell::Index i, _frontward_cells)
+                network()->neuronet()->removeNode(i);
+
+            foreach (NeuroCell::Index i, _backward_cells)
+                network()->neuronet()->removeNode(i);
         }
     }
 
@@ -158,10 +161,8 @@ namespace NeuroGui
             }
 
             // delete the unused cells
-            for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
-            {
-                neuronet->removeNode(i.next());
-            }
+            foreach (NeuroCell::Index i, cellsToDelete)
+                neuronet->removeNode(i);
 
             // re-connect
             foreach (NeuroItem *item, connections())

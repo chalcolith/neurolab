@@ -63,11 +63,8 @@ namespace NeuroLib
 
     void NeuroNet::postUpdate()
     {
-        for (QListIterator<PostUpdateRec> i(_postUpdates); i.hasNext(); )
-        {
-            const PostUpdateRec & rec = i.next();
+        foreach (const PostUpdateRec & rec, _postUpdates)
             _nodes[rec._index].current().setWeight(rec._weight);
-        }
     }
 
     void NeuroNet::addPostUpdate(const PostUpdateRec & rec)

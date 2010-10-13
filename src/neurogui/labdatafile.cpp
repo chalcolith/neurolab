@@ -143,11 +143,11 @@ namespace NeuroGui
 
         _itemColumnIndices.clear();
 
-        for (QListIterator<QGraphicsItem *> i(_network->items()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, _network->items())
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
 
-            if (!item->label().isEmpty() && !item->label().isNull())
+            if (item && !item->label().isEmpty() && !item->label().isNull())
             {
                 changeItemLabel(item, item->label());
             }
@@ -169,17 +169,16 @@ namespace NeuroGui
         int row = _table->rowCount() - 1;
         if (row >= 0)
         {
-            for (QMapIterator<NeuroItem *, int> i(_itemColumnIndices); i.hasNext(); i.next())
+            foreach (NeuroItem *item, _itemColumnIndices.keys())
             {
-                setChanged();
-
-                NeuroItem *item = i.peekNext().key();
-                int columnIndex = i.peekNext().value();
+                int columnIndex = _itemColumnIndices[item];
 
                 QTableWidgetItem *wi = new QTableWidgetItem(item->dataValue());
                 disableEdit(wi);
                 _table->setItem(row, columnIndex, wi);
             }
+
+            setChanged();
         }
     }
 
@@ -224,9 +223,8 @@ namespace NeuroGui
                 ts << "# \n";
 
                 // write network properties
-                for (QListIterator<PropertyObject::PropertyBase *> i(_network->properties()); i.hasNext(); )
+                foreach (const PropertyObject::PropertyBase *p, _network->properties())
                 {
-                    const PropertyObject::PropertyBase *p = i.next();
                     ts << "# " << p->name() << ": " << p->value().toString() << '\n';
                 }
 

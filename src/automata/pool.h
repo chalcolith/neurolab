@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QVector>
+#include <QStack>
 #include <QReadWriteLock>
 #include <QWriteLocker>
 
@@ -49,7 +50,7 @@ namespace Automata
     class Pool
     {
         QVector<T*> items;
-        QVector<T*> free_items;
+        QStack<T*> free_items;
         QReadWriteLock lock;
 
     public:
@@ -61,7 +62,7 @@ namespace Automata
             {
                 T *item = new T();
                 items.append(item);
-                free_items.append(item);
+                free_items.push(item);
             }
         }
 
@@ -97,8 +98,8 @@ namespace Automata
 
             if (free_items.size() > 0)
             {
-                T *item = free_items.last();
-                free_items.remove(free_items.size()-1);
+                T *item = free_items.pop();
+                new (item) T();
                 return item;
             }
             else
@@ -113,7 +114,8 @@ namespace Automata
         void returnItem(T *item)
         {
             QWriteLocker l(&lock);
-            free_items.append(item);
+            item->~T();
+            free_items.push(item);
         }
     };
 

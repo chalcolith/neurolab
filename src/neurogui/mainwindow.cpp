@@ -197,9 +197,8 @@ namespace NeuroGui
         {
             QDir dir(pluginPath);
             QStringList entries = dir.entryList(QDir::Dirs);
-            for (QStringListIterator i(entries); i.hasNext(); )
+            foreach (QString entry, entries)
             {
-                QString entry = i.next();
                 if (!entry.startsWith("."))
                     loadPlugins(pluginPath + "/" + entry + "/Versions/Current");
             }
@@ -211,9 +210,8 @@ namespace NeuroGui
         {
             QDir dir(pluginPath);
             QStringList entries = dir.entryList(QDir::Dirs);
-            for (QStringListIterator i(entries); i.hasNext(); )
+            foreach (QString entry, entries)
             {
-                QString entry = i.next();
                 if (!entry.startsWith("."))
                     loadPlugins(pluginPath + "/" + entry);
             }
@@ -234,9 +232,8 @@ namespace NeuroGui
             return;
 
         QStringList entries = dir.entryList(QDir::Files);
-        for (QStringListIterator i(entries); i.hasNext(); )
+        foreach (QString entry, entries)
         {
-            QString entry = i.next();
             QString fname = dirPath + "/" + entry;
 #ifndef __APPLE__
             if (QLibrary::isLibrary(fname))
@@ -284,25 +281,25 @@ namespace NeuroGui
 
     void MainWindow::setActionsEnabled(bool enabled)
     {
-        for (QListIterator<QAction *> i(this->actions()); i.hasNext(); )
-            i.next()->setEnabled(enabled);
+        foreach (QAction *i, this->actions())
+            i->setEnabled(enabled);
 
-        for (QListIterator<QAction *> i(_ui->menuBar->actions()); i.hasNext(); )
-            i.next()->setEnabled(enabled);
+        foreach (QAction *i, _ui->menuBar->actions())
+            i->setEnabled(enabled);
 
-        for (QListIterator<QAction *> i(_ui->mainToolBar->actions()); i.hasNext(); )
-            i.next()->setEnabled(enabled);
+        foreach (QAction *i, _ui->mainToolBar->actions())
+            i->setEnabled(enabled);
 
-        for (QListIterator<QAction *> i(_ui->viewToolbar->actions()); i.hasNext(); )
-            i.next()->setEnabled(enabled);
+        foreach (QAction *i, _ui->viewToolbar->actions())
+            i->setEnabled(enabled);
 
-        for (QListIterator<QAction *> i(_ui->simulationToolbar->actions()); i.hasNext(); )
-            i.next()->setEnabled(enabled);
+        foreach (QAction *i, _ui->simulationToolbar->actions())
+            i->setEnabled(enabled);
 
         if (_breadCrumbBar)
         {
-            for (QListIterator<QAction *> i(_breadCrumbBar->actions()); i.hasNext(); )
-                i.next()->setEnabled(enabled);
+            foreach (QAction *i, _breadCrumbBar->actions())
+                i->setEnabled(enabled);
         }
 
         if (_zoomSpinBox)
@@ -763,9 +760,8 @@ namespace NeuroGui
     {
         // remove existing properties
         QList<QtProperty *> currentProperties = _propertyEditor->properties();
-        for (QListIterator<QtProperty *> i(currentProperties); i.hasNext(); )
+        foreach (QtProperty *property, currentProperties)
         {
-            QtProperty *property = i.next();
             _propertyEditor->removeProperty(property);
             delete property;
         }
@@ -815,10 +811,8 @@ namespace NeuroGui
 
             if (_rememberedProperties.contains(typeName))
             {
-                for (QListIterator<PropertyObject::PropertyBase *> i(_rememberedProperties[typeName]); i.hasNext(); )
+                foreach (const PropertyObject::PropertyBase *p, _rememberedProperties[typeName])
                 {
-                    const PropertyObject::PropertyBase *p = i.next();
-
                     const QString name = p->name();
                     const QVariant value = p->value();
                     item->setPropertyValue(name, value);
@@ -840,10 +834,8 @@ namespace NeuroGui
     {
         if (_rememberProperties && _propertyObjects.size() > 0)
         {
-            for (QListIterator<PropertyObject *> i(_propertyObjects); i.hasNext(); )
+            foreach (PropertyObject *po, _propertyObjects)
             {
-                PropertyObject *po = i.next();
-
                 if (po)
                 {
                     QString typeName(typeid(*po).name());

@@ -120,10 +120,8 @@ namespace NeuroGui
         if (newLength != _cellIndices.size())
         {
             // disconnect connections
-            for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
-            {
-                removeEdges(i.next());
-            }
+            foreach (NeuroItem *ni, connections())
+                removeEdges(ni);
 
             // add or delete cells from the automaton as necessary
             QList<NeuroCell::Index> cellsToDelete;
@@ -150,16 +148,12 @@ namespace NeuroGui
             }
 
             // delete the unused cells
-            for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
-            {
-                neuronet->removeNode(i.next());
-            }
+            foreach (NeuroCell::Index i, cellsToDelete)
+                neuronet->removeNode(i);
 
             // re-connect
-            for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
-            {
-                addEdges(i.next());
-            }
+            foreach (NeuroItem *ni, connections())
+                addEdges(ni);
         }
 
         // update property if necessary
@@ -233,9 +227,9 @@ namespace NeuroGui
     {
         QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
 
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        foreach (NeuroItem *ni, _incoming)
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(i.next());
+            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ni);
             if (link)
                 link->setLine(link->line().p1(), center.toPointF());
         }
@@ -330,9 +324,9 @@ namespace NeuroGui
 
         // incoming
         ds << static_cast<qint32>(_incoming.size());
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        foreach (NeuroItem *ni, _incoming)
         {
-            qint32 id = static_cast<qint32>(i.next()->id());
+            qint32 id = static_cast<qint32>(ni->id());
 
             if (id_map.contains(id))
                 ds << static_cast<qint32>(id_map[id]);
@@ -392,9 +386,8 @@ namespace NeuroGui
         qint32 num = static_cast<qint32>(_incoming.size());
         ds << num;
 
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        foreach (NeuroItem *item, _incoming)
         {
-            NeuroItem *item = i.next();
             if (item)
                 ds << static_cast<IdType>(item->id());
             else
@@ -433,9 +426,9 @@ namespace NeuroGui
         // incoming
         QSet<NeuroItem *> itemsToAdd;
 
-        for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
+        foreach (NeuroItem *ni, _incoming)
         {
-            IdType wanted_id = reinterpret_cast<IdType>(i.next());
+            IdType wanted_id = reinterpret_cast<IdType>(ni);
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)

@@ -75,9 +75,9 @@ namespace NeuroGui
         QRect rect = viewport()->rect();
 
         QList<QGraphicsItem *> in_view = items(rect);
-        for (QMutableListIterator<QGraphicsItem *> i(in_view); i.hasNext(); )
+        foreach (QGraphicsItem *gi, in_view)
         {
-            NeuroItem *item = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->updateProperties();
         }

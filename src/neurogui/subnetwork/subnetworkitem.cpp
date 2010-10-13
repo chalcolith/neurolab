@@ -379,9 +379,8 @@ namespace NeuroGui
         QMap<const NeuroItem *, SubConnectionItem *> newConnections;
         QList<const NeuroItem *> keys = _subconnections.keys();
 
-        for (QListIterator<const NeuroItem *> i(keys); i.hasNext(); )
+        foreach (const NeuroItem *key_ptr, keys)
         {
-            const NeuroItem *key_ptr = i.next();
             SubConnectionItem *val_ptr = _subconnections[key_ptr];
 
             NeuroItem::IdType key_id = reinterpret_cast<NeuroItem::IdType>(key_ptr);

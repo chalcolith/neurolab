@@ -57,12 +57,13 @@ namespace NeuroGui
 
     NeuroNarrowItem::~NeuroNarrowItem()
     {
-        if (_ui_delete && network() && network()->neuronet())
+        if (_ui_delete)
         {
-            for (QListIterator<NeuroCell::Index> i(_cellIndices); i.hasNext(); )
-            {
-                network()->neuronet()->removeNode(i.next());
-            }
+            Q_ASSERT(network());
+            Q_ASSERT(network()->neuronet());
+
+            foreach (NeuroCell::Index i, _cellIndices)
+                network()->neuronet()->removeNode(i);
         }
     }
 

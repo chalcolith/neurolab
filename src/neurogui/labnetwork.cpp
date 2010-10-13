@@ -477,10 +477,8 @@ namespace NeuroGui
             QList<QGraphicsItem *> selected = sc->selectedItems();
             sc->clearSelection();
 
-            for (QListIterator<QGraphicsItem *> i(selected); i.hasNext(); )
+            foreach (QGraphicsItem *gi, selected)
             {
-                QGraphicsItem *gi = i.next();
-
                 NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
                 if (item)
                 {
@@ -539,9 +537,10 @@ namespace NeuroGui
         // get items
         QList<QGraphicsItem *> graphicsitems = scene()->selectedItems();
         QList<NeuroItem *> neuroitems;
-        for (QMutableListIterator<QGraphicsItem *> i(graphicsitems); i.hasNext(); )
+
+        foreach (QGraphicsItem *gi, graphicsitems)
         {
-            NeuroItem *ni = dynamic_cast<NeuroItem *>(i.next());
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(gi);
             if (ni && ni->canCutAndPaste())
                 neuroitems.append(ni);
         }
@@ -553,9 +552,9 @@ namespace NeuroGui
         QVector2D center(0, 0);
         QMap<int, int> id_map;
         int cur_id = 1;
-        for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); ++cur_id)
+
+        foreach (NeuroItem *ni, neuroitems)
         {
-            const NeuroItem *ni = i.next();
             center += QVector2D(ni->pos());
             id_map[ni->id()] = cur_id;
         }
@@ -573,18 +572,15 @@ namespace NeuroGui
             ds << static_cast<quint32>(neuroitems.size());
 
             // write type names so we can create items before reading them...
-            for (QListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
+            foreach (NeuroItem *ni, neuroitems)
             {
-                const NeuroItem *ni = i.next();
                 ds << ni->getTypeName();
                 ds << static_cast<qint32>(id_map[ni->id()]);
             }
 
             // write data
-            for (QMutableListIterator<NeuroItem *> i(neuroitems); i.hasNext(); )
+            foreach (NeuroItem *ni, neuroitems)
             {
-                NeuroItem *ni = i.next();
-
                 QVector2D relPos = QVector2D(ni->pos()) - center;
                 ds << relPos;
 
@@ -655,9 +651,8 @@ namespace NeuroGui
         // place items in relative order
         QVector2D center(scene()->lastMousePos());
 
-        for (QListIterator<NeuroItem *> i(new_items); i.hasNext(); )
+        foreach (NeuroItem *item, new_items)
         {
-            NeuroItem *item = i.next();
             if (!item)
                 continue;
 
@@ -687,12 +682,10 @@ namespace NeuroGui
         {
             MainWindow::instance()->setPropertyObject(0);
 
-            for (QMutableListIterator<NeuroItem *> i(new_items); i.hasNext(); )
+            foreach (NeuroItem *item, new_items)
             {
-                NeuroItem *item = i.next();
                 if (!item)
                     continue;
-
                 item->adjustLinks();
             }
 

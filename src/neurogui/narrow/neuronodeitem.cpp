@@ -243,12 +243,11 @@ namespace NeuroGui
 
     void NeuroNodeItem::toggleActivated()
     {
-        if (!scene())
-            return;
+        Q_ASSERT(scene());
 
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, scene()->selectedItems())
         {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(gi);
             if (item)
             {
                 NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
@@ -274,12 +273,11 @@ namespace NeuroGui
 
     void NeuroNodeItem::toggleFrozen()
     {
-        if (!scene())
-            return;
+        Q_ASSERT(scene());
 
-        for (QListIterator<QGraphicsItem *> i(scene()->selectedItems()); i.hasNext(); )
+        foreach (QGraphicsItem *gi, scene()->selectedItems())
         {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(i.next());
+            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(gi);
             if (item)
             {
                 NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
