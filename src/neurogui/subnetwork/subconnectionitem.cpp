@@ -48,6 +48,8 @@ using namespace NeuroLib;
 namespace NeuroGui
 {
 
+    NEUROITEM_DEFINE_CREATOR(SubConnectionItem, QString("__INTERNAL__|SubConnectionItem"));
+
     SubConnectionItem::SubConnectionItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNetworkItem(network, scenePos, context), MixinArrow(this),
           _direction(INCOMING), _parentSubnetworkItem(0), _governingItem(0),

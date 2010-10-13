@@ -119,10 +119,12 @@ namespace NeuroGui
 
         if (newLength != length())
         {
+            // disconnect connections
+            foreach (NeuroItem *item, connections())
+                removeEdges(item);
+
             // adjust the internal cell links
             QList<NeuroCell::Index> cellsToDelete;
-            NeuroCell::Index oldUpwardLast = _frontward_cells.last();
-            NeuroCell::Index oldDownwardLast = _backward_cells.last();
 
             if (newLength > length())
             {
@@ -155,39 +157,15 @@ namespace NeuroGui
                 }
             }
 
-            // adjust the neighbors of our targets to reflect the new last cell
-            NeuroCell::Index newUpwardLast = _frontward_cells.last();
-            NeuroCell::Index newDownwardLast = _backward_cells.last();
-
-            NeuroNetworkItem *frontTarget = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
-            if (frontTarget && newUpwardLast != oldUpwardLast)
-            {
-                NeuroCell::Index target = frontTarget->getIncomingCellFor(this);
-                if (target != -1)
-                {
-                    if (neuronet->containsEdge(target, oldUpwardLast))
-                        neuronet->removeEdge(target, oldUpwardLast);
-                    neuronet->addEdge(target, newUpwardLast);
-                }
-            }
-
-            NeuroNetworkItem *backTarget = dynamic_cast<NeuroNetworkItem *>(_backLinkTarget);
-            if (backTarget && newDownwardLast != oldDownwardLast)
-            {
-                NeuroCell::Index target = backTarget->getIncomingCellFor(this);
-                if (target != -1)
-                {
-                    if (neuronet->containsEdge(target, oldDownwardLast))
-                        neuronet->removeEdge(target, oldDownwardLast);
-                    neuronet->addEdge(target, newDownwardLast);
-                }
-            }
-
             // delete the unused cells
             for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
             {
                 neuronet->removeNode(i.next());
             }
+
+            // re-connect
+            foreach (NeuroItem *item, connections())
+                addEdges(item);
         }
 
         if (updateValue)

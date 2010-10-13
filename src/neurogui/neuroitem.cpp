@@ -210,15 +210,22 @@ namespace NeuroGui
             if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
                 continue;
 
+            // get menu text and create function
+            const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
+            const QString pathName = p.first;
+
+            // skip internal types
+            if (pathName.startsWith("__INTERNAL__"))
+                continue;
+
 #ifndef DEBUG
-            // don't add debug classes
-            if (friendlyName.startsWith("Debug"))
+            // skip debug classes
+            if (pathName.startsWith("Debug"))
                 continue;
 #endif
 
-            // get menu text and create function
-            const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
-            const QStringList menuPath = p.first.split('|');
+            // build menu
+            const QStringList menuPath = pathName.split('|');
 
             QMenu *subMenu = &menu;
             for (int j = 0; j < menuPath.size(); ++j)

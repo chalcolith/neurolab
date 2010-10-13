@@ -119,9 +119,14 @@ namespace NeuroGui
 
         if (newLength != _cellIndices.size())
         {
+            // disconnect connections
+            for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
+            {
+                removeEdges(i.next());
+            }
+
             // add or delete cells from the automaton as necessary
             QList<NeuroCell::Index> cellsToDelete;
-            NeuroCell::Index oldLastIndex = _cellIndices.last();
 
             if (newLength > _cellIndices.size())
             {
@@ -144,22 +149,16 @@ namespace NeuroGui
                 }
             }
 
-            // now adjust the neighbors of our front target to reflect the new last cell
-            NeuroCell::Index newLastIndex = _cellIndices.last();
-            NeuroNarrowItem *front = dynamic_cast<NeuroNarrowItem *>(_frontLinkTarget);
-            if (front && newLastIndex != oldLastIndex)
-            {
-                NeuroCell::Index frontIndex = front->cellIndices().first();
-
-                // remember, the neighbors of a cell are its inputs
-                neuronet->removeEdge(frontIndex, oldLastIndex);
-                neuronet->addEdge(frontIndex, newLastIndex);
-            }
-
             // delete the unused cells
             for (QListIterator<NeuroCell::Index> i(cellsToDelete); i.hasNext(); )
             {
                 neuronet->removeNode(i.next());
+            }
+
+            // re-connect
+            for (QSetIterator<NeuroItem *> i(connections()); i.hasNext(); )
+            {
+                addEdges(i.next());
             }
         }
 
@@ -318,6 +317,7 @@ namespace NeuroGui
         NeuroNarrowItem::writeClipboard(ds, id_map);
         ds << _line;
 
+        // targets
         if (_frontLinkTarget && id_map.contains(_frontLinkTarget->id()))
             ds << static_cast<qint32>(id_map[_frontLinkTarget->id()]);
         else
@@ -328,7 +328,8 @@ namespace NeuroGui
         else
             ds << static_cast<qint32>(0);
 
-        ds << _incoming.size();
+        // incoming
+        ds << static_cast<qint32>(_incoming.size());
         for (QSetIterator<NeuroItem *> i(_incoming); i.hasNext(); )
         {
             qint32 id = static_cast<qint32>(i.next()->id());

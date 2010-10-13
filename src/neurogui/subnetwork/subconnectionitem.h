@@ -56,6 +56,7 @@ namespace NeuroGui
         : public NeuroNetworkItem, public MixinArrow
     {
         Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
 
     public:
         /// Which direction activation can be transferred to or from the outer network.

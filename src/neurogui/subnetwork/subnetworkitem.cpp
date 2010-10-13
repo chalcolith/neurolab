@@ -280,20 +280,24 @@ namespace NeuroGui
         Q_ASSERT(mainWindow);
         Q_ASSERT(mainWindow->currentNetwork());
 
+        bool hook_up = false;
+
         // we have an ID from the file, and we need to find it in the current network
         if (_treeNodeIdNeeded != static_cast<quint32>(-1) && mainWindow->currentNetwork())
         {
             _treeNode = mainWindow->currentNetwork()->findSubNetwork(_treeNodeIdNeeded);
+            hook_up = true;
         }
 
         // we don't have a tree node; make a new one
         if (!_treeNode && mainWindow->currentNetwork())
         {
             _treeNode = mainWindow->currentNetwork()->newSubNetwork();
+            hook_up = true;
         }
 
         // don't look for existing node anymore
-        if (_treeNode)
+        if (hook_up && _treeNode)
         {
             _treeNodeIdNeeded = static_cast<quint32>(-1);
 
