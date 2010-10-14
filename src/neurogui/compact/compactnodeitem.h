@@ -57,13 +57,12 @@ namespace NeuroGui
         };
 
     protected:
+        Direction _direction;
+
         NeuroItem *_tipLinkItem;
-        QSet<NeuroItem *> _baseLinkItems;
+        QList<NeuroItem *> _baseLinkItems;
 
         NeuroLib::NeuroCell::Index _frontwardTipCell, _backwardTipCell;
-
-        Direction _direction;
-        Property<CompactNodeItem, QVariant::Int, int, Direction> _direction_property;
 
     public:
         /// Constructor.
@@ -96,6 +95,13 @@ namespace NeuroGui
 
         bool posOnTip(const QPointF & p) const;
         bool scenePosOnTip(const QPointF & p) const;
+
+        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
+        virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
     }; // class CompactNodeItem
 
 } // namespace NeuroGui

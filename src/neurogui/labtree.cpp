@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labnetwork.h"
 
 #include <Qaction>
+#include <QLayout>
 #include <typeinfo>
 
 namespace NeuroGui
@@ -169,6 +170,17 @@ namespace NeuroGui
             _view->updateItemProperties();
             _view->update();
         }
+    }
+
+    void LabTreeNode::removeWidgetsFrom(QLayout *w)
+    {
+        foreach (LabTreeNode *child, _children)
+        {
+            child->removeWidgetsFrom(w);
+        }
+
+        if (_view)
+            w->removeWidget(_view);
     }
 
     void LabTreeNode::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
@@ -400,6 +412,12 @@ namespace NeuroGui
     LabTreeNode *LabTree::newSubNetwork()
     {
         return _current ? _current->createChild() : 0;
+    }
+
+    void LabTree::removeWidgetsFrom(QLayout *w)
+    {
+        Q_ASSERT(_root);
+        _root->removeWidgetsFrom(w);
     }
 
     void LabTree::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const

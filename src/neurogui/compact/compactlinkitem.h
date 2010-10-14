@@ -122,7 +122,6 @@ namespace NeuroGui
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void setPenProperties(QPen &pen) const;
-        virtual void setBrushProperties(QBrush &brush) const;
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);

@@ -71,6 +71,8 @@ namespace NeuroGui
     //////////////////////////////////////////////
 
     NeuroItem::IdType NeuroItem::NEXT_ID = 1;
+    qreal NeuroItem::HIGHEST_Z_VALUE = 0;
+
     QMap<QString, QString> *NeuroItem::_typeNames = 0;
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
 
@@ -298,19 +300,7 @@ namespace NeuroGui
 
     void NeuroItem::bringToFront()
     {
-        qreal highest_z = this->zValue();
-
-        foreach (QGraphicsItem *item, this->collidingItems())
-        {
-            if (!item)
-                continue;
-
-            if (item->zValue() > highest_z)
-                highest_z = item->zValue();
-        }
-
-        if (highest_z > this->zValue())
-            this->setZValue(highest_z + 0.1);
+        setZValue(HIGHEST_Z_VALUE += 0.001f);
     }
 
     void NeuroItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
@@ -408,6 +398,8 @@ namespace NeuroGui
 
     void NeuroItem::setPenProperties(QPen & pen) const
     {
+        pen.setStyle(Qt::SolidLine);
+
         if (shouldHighlight())
             pen.setWidth(HOVER_LINE_WIDTH);
         else
@@ -419,26 +411,22 @@ namespace NeuroGui
     void NeuroItem::setBrushProperties(QBrush & brush) const
     {
         brush.setColor(BACKGROUND_COLOR);
+        brush.setStyle(Qt::NoBrush);
     }
 
     void NeuroItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     {
         painter->setRenderHint(QPainter::Antialiasing);
 
-        QPen pen(Qt::SolidLine);
+        QPen pen;
         setPenProperties(pen);
 
-        QBrush brush(Qt::SolidPattern);
+        QBrush brush;
         setBrushProperties(brush);
 
-        painter->setPen(pen);
         painter->setBrush(brush);
+        painter->setPen(pen);
         painter->drawPath(_drawPath);
-
-        QPen textPen(Qt::SolidLine);
-        textPen.setColor(NORMAL_LINE_COLOR);
-        textPen.setWidth(NORMAL_LINE_WIDTH);
-        painter->setPen(textPen);
 
         foreach (const TextPathRec & rec, _texts)
         {
@@ -735,7 +723,6 @@ namespace NeuroGui
                 throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
         }
 
-        items.clear();
         items = itemsToAdd;
     }
 

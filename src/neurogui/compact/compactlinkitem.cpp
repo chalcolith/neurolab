@@ -302,6 +302,8 @@ namespace NeuroGui
 
     void CompactLinkItem::setPenProperties(QPen &pen) const
     {
+        CompactItem::setPenProperties(pen);
+
         // get weight
         qreal w = qBound(0.0f, qAbs(weight()), 1.0f);
 
@@ -355,12 +357,7 @@ namespace NeuroGui
         }
 
         // set pen
-        pen = QPen(gradient, shouldHighlight() ? HOVER_LINE_WIDTH : NORMAL_LINE_WIDTH);
-    }
-
-    void CompactLinkItem::setBrushProperties(QBrush &brush) const
-    {
-        brush.setStyle(Qt::NoBrush);
+        pen = QPen(gradient, pen.width());
     }
 
     void CompactLinkItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const

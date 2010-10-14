@@ -94,23 +94,6 @@ namespace NeuroGui
         }
     }
 
-    void NeuroNarrowItem::setPenProperties(QPen & pen) const
-    {
-        NeuroNetworkItem::setPenProperties(pen);
-
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
-        if (cell)
-        {
-            qreal t = qBound(0.0f, qAbs(cell->current().outputValue()), 1.0f);
-            QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
-
-            if (cell->current().frozen())
-                pen.setColor(lerp(result, Qt::gray, 0.5f));
-            else
-                pen.setColor(result);
-        }
-    }
-
     void NeuroNarrowItem::reset()
     {
         setOutputValue(0);

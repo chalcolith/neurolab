@@ -71,7 +71,6 @@ namespace NeuroGui
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value & value);
 
         virtual bool canCutAndPaste() const { return true; }
-        virtual void setPenProperties(QPen & pen) const;
 
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);

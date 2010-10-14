@@ -170,7 +170,6 @@ namespace NeuroGui
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
         NeuroNarrowItem::setPenProperties(pen);
-        int oldWidth = pen.width();
 
         // get weight
         qreal w = qBound(0.0f, qAbs(weight()), 1.0f);
@@ -215,12 +214,7 @@ namespace NeuroGui
         }
 
         // new pen
-        pen = QPen(gradient, oldWidth);
-    }
-
-    void NeuroLinkItem::setBrushProperties(QBrush &brush) const
-    {
-        brush.setStyle(Qt::NoBrush);
+        pen = QPen(gradient, pen.width());
     }
 
     void NeuroLinkItem::adjustLinks()

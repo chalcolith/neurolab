@@ -48,6 +48,7 @@ class QDataStream;
 class QWidget;
 class QGraphicsItem;
 class QAction;
+class QLayout;
 
 namespace NeuroGui
 {
@@ -108,6 +109,8 @@ namespace NeuroGui
 
         /// Updates all the items in the scene.
         void updateItemProperties();
+
+        void removeWidgetsFrom(QLayout *);
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
@@ -174,6 +177,8 @@ namespace NeuroGui
 
         LabTreeNode *findSubNetwork(const quint32 & id);
         LabTreeNode *newSubNetwork();
+
+        void removeWidgetsFrom(QLayout *w);
 
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);

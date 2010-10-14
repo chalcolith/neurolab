@@ -76,8 +76,8 @@ namespace NeuroGui
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
 
     private:
-        qreal getRadius() const { return NeuroItem::NODE_WIDTH; }
-        qreal getTip() const { return (getRadius() / 3.0f) * (_direction == DOWNWARD ? -1 : 1); }
+        qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }
+        qreal getTip() const { return (getRadius() / 2.5f) * (_direction == DOWNWARD ? -1 : 1); }
 
         void adjustNodeThreshold();
     }; // class CompactAndItem
@@ -99,6 +99,8 @@ namespace NeuroGui
         }
 
         virtual ~CompactUpwardAndItem() {}
+
+        virtual QString uiName() const { return tr("Upward AND"); }
     }; // class CompactUpwardAndItem
 
     class NEUROGUISHARED_EXPORT CompactDownwardAndItem
@@ -115,6 +117,8 @@ namespace NeuroGui
         }
 
         virtual ~CompactDownwardAndItem() {}
+
+        virtual QString uiName() const { return tr("Downward AND"); }
     }; // class CompactDownwardAndItem
 
 } // namespace NeuroGui

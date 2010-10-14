@@ -111,6 +111,12 @@ namespace NeuroGui
         return dirTo * (NeuroNarrowItem::NODE_WIDTH/2.0 + 2.0);
     }
 
+    void NeuroNodeItemBase::setBrushProperties(QBrush &brush) const
+    {
+        NeuroNarrowItem::setBrushProperties(brush);
+        brush.setStyle(Qt::SolidPattern);
+    }
+
     void NeuroNodeItemBase::postLoad()
     {
         QVector2D center(scenePos());
@@ -226,6 +232,14 @@ namespace NeuroGui
         texts.append(TextPathRec(QPointF(-4, 4), QString::number(inputs())));
     }
 
+    void NeuroNodeItem::setPenProperties(QPen &pen) const
+    {
+        NeuroNodeItemBase::setPenProperties(pen);
+
+        if (frozen())
+            pen.setColor(lerp(pen.color(), Qt::gray, 0.5f));
+    }
+
     void NeuroNodeItem::buildActionMenu(LabScene *, const QPointF &, QMenu & menu)
     {
         menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
@@ -243,9 +257,14 @@ namespace NeuroGui
 
     void NeuroNodeItem::toggleActivated()
     {
-        Q_ASSERT(scene());
+        LabScene *sc = dynamic_cast<LabScene *>(scene());
+        Q_ASSERT(sc);
 
-        foreach (QGraphicsItem *gi, scene()->selectedItems())
+        QList<QGraphicsItem *> items = sc->selectedItems();
+        if (sc->itemUnderMouse() && !items.contains(sc->itemUnderMouse()))
+            items.append(sc->itemUnderMouse());
+
+        foreach (QGraphicsItem *gi, items)
         {
             NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(gi);
             if (item)
@@ -256,7 +275,7 @@ namespace NeuroGui
                 {
                     NeuroCell::Value val = 0;
 
-                    if (qAbs(cell->current().outputValue()) < 0.1f)
+                    if (qAbs(cell->current().outputValue()) < 0.01f)
                         val = 1;
 
                     if (cell->current().weight() < 0)
@@ -269,6 +288,8 @@ namespace NeuroGui
                 }
             }
         }
+
+        sc->network()->setChanged();
     }
 
     void NeuroNodeItem::toggleFrozen()

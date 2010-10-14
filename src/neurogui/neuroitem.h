@@ -98,6 +98,7 @@ namespace NeuroGui
         QString _label; ///< The item's label.
 
         static IdType NEXT_ID;
+        static qreal HIGHEST_Z_VALUE;
 
     public:
         static const QColor NORMAL_LINE_COLOR;

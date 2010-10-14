@@ -67,15 +67,18 @@ namespace NeuroGui
         if (shouldHighlight())
             pen.setColor(Qt::gray);
         else
-            pen.setColor(BACKGROUND_COLOR);
+            pen.setStyle(Qt::NoPen);
     }
 
     void NeuroTextItem::setBrushProperties(QBrush & brush) const
     {
+        NeuroItem::setBrushProperties(brush);
+
         if (shouldHighlight())
+        {
+            brush.setStyle(Qt::SolidPattern);
             brush.setColor(BACKGROUND_COLOR);
-        else
-            brush.setColor(QColor(255, 255, 255, 0));
+        }
     }
 
     void NeuroTextItem::addToShape(QPainterPath & path, QList<TextPathRec> & texts) const

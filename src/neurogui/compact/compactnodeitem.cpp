@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "compactnodeitem.h"
 #include "../labnetwork.h"
+#include "../labexception.h"
 
 using namespace NeuroLib;
 
@@ -44,9 +45,7 @@ namespace NeuroGui
 
     CompactNodeItem::CompactNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactItem(network, scenePos, context), MixinRemember(this),
-        _tipLinkItem(0), _frontwardTipCell(-1), _backwardTipCell(-1),
-        _direction_property(this, &CompactNodeItem::direction, &CompactNodeItem::setDirection,
-                            tr("Direction"), tr("The direction in which the multiple-link side of the node is facing."))
+        _direction(DOWNWARD), _tipLinkItem(0), _frontwardTipCell(-1), _backwardTipCell(-1)
     {
         this->_value_property.setEditable(false);
 
@@ -81,6 +80,7 @@ namespace NeuroGui
 
         if (frontwardCell && backwardCell)
             return qMax(frontwardCell->current().outputValue(), backwardCell->current().outputValue());
+
         return 0;
     }
 
@@ -104,9 +104,9 @@ namespace NeuroGui
     bool CompactNodeItem::posOnTip(const QPointF &p) const
     {
         if (_direction == UPWARD)
-            return p.y() <= 0;
-        else
             return p.y() > 0;
+        else
+            return p.y() <= 0;
     }
 
     bool CompactNodeItem::scenePosOnTip(const QPointF &p) const
@@ -131,7 +131,7 @@ namespace NeuroGui
         }
         else if (_baseLinkItems.contains(item))
         {
-            _baseLinkItems.remove(item);
+            _baseLinkItems.removeAll(item);
         }
 
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
@@ -149,19 +149,103 @@ namespace NeuroGui
     void CompactNodeItem::setPenProperties(QPen &pen) const
     {
         CompactItem::setPenProperties(pen);
-        pen.setWidth(pen.width() * 2);
+
+        if (pen.width() == NORMAL_LINE_WIDTH)
+            pen.setWidth(pen.width() * 2);
     }
 
     void CompactNodeItem::setBrushProperties(QBrush &brush) const
     {
         CompactItem::setBrushProperties(brush);
-        brush.setStyle(Qt::NoBrush);
+        brush.setStyle(Qt::SolidPattern);
     }
 
     void CompactNodeItem::postLoad()
     {
         QVector2D center(scenePos());
         rememberItems(connections(), center);
+    }
+
+    void CompactNodeItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        CompactItem::writeBinary(ds, file_version);
+
+        ds << static_cast<quint8>(_direction);
+        ds << static_cast<quint32>(_frontwardTipCell);
+        ds << static_cast<quint32>(_backwardTipCell);
+    }
+
+    void CompactNodeItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        CompactItem::readBinary(ds, file_version);
+
+        quint8 dir;
+        ds >> dir;
+        _direction = static_cast<Direction>(dir);
+
+        quint32 index;
+        ds >> index;
+        _frontwardTipCell = static_cast<NeuroCell::Index>(index);
+
+        ds >> index;
+        _backwardTipCell = static_cast<NeuroCell::Index>(index);
+    }
+
+    void CompactNodeItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        CompactItem::writePointerIds(ds, file_version);
+
+        QList<NeuroItem *> items;
+        items.append(_tipLinkItem);
+        items.append(_baseLinkItems);
+
+        ds << static_cast<qint32>(items.size());
+        foreach (NeuroItem *ni, items)
+        {
+            ds << (ni ? static_cast<IdType>(ni->id()) : static_cast<IdType>(0));
+        }
+    }
+
+    void CompactNodeItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        CompactItem::readPointerIds(ds, file_version);
+
+        qint32 num;
+        ds >> num;
+
+        _baseLinkItems.clear();
+        for (int i = 0; i < num; ++i)
+        {
+            IdType id;
+            ds >> id;
+
+            if (i == 0)
+                _tipLinkItem = reinterpret_cast<NeuroItem *>(id);
+            else
+                _baseLinkItems.append(reinterpret_cast<NeuroItem *>(id));
+        }
+    }
+
+    void CompactNodeItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap)
+    {
+        CompactItem::idsToPointers(idMap);
+
+        IdType wanted_id = reinterpret_cast<IdType>(_tipLinkItem);
+        _tipLinkItem = idMap[wanted_id]; // can be null
+
+        QList<NeuroItem *> itemsToAdd;
+        foreach (NeuroItem *ni, _baseLinkItems)
+        {
+            wanted_id = reinterpret_cast<IdType>(ni);
+            NeuroItem *wanted_item = idMap[wanted_id];
+
+            if (wanted_item)
+                itemsToAdd.append(wanted_item);
+            else
+                throw LabException(tr("Dangling node in compact node base: %1").arg(wanted_id));
+        }
+
+        _baseLinkItems = itemsToAdd;
     }
 
 } // namespace NeuroGui

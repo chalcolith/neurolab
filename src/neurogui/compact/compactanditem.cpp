@@ -78,7 +78,10 @@ namespace NeuroGui
     {
         if (dynamic_cast<MixinArrow *>(item) != 0 && item != _tipLinkItem)
         {
-            return !posOnTip(pos) || _tipLinkItem == 0;
+            if (scenePosOnTip(pos))
+                return _tipLinkItem == 0;
+            else
+                return !_baseLinkItems.contains(item);
         }
 
         return false;
@@ -88,36 +91,38 @@ namespace NeuroGui
     {
         CompactNodeItem::onAttachedBy(item);
 
-            // get the position
-            bool onTip = false;
-            MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-            if (link)
-            {
-                if (link->dragFront() && link->frontLinkTarget() == this)
-                    onTip = scenePosOnTip(link->line().p2());
-                else if (!link->dragFront() && link->backLinkTarget() == this)
-                    onTip = scenePosOnTip(link->line().p1());
-            }
-            else
-            {
-                onTip = scenePosOnTip(item->scenePos());
-            }
+        // get the position
+        bool onTip = false;
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+        {
+            if (link->dragFront() && link->frontLinkTarget() == this)
+                onTip = scenePosOnTip(link->line().p2());
+            else if (!link->dragFront() && link->backLinkTarget() == this)
+                onTip = scenePosOnTip(link->line().p1());
+        }
+        else
+        {
+            onTip = scenePosOnTip(item->scenePos());
+        }
 
-            // if it's attached to the tip, connect in and out
-            if (onTip)
-            {
-                _tipLinkItem = item;
-                addEdges(item);
-            }
+        // if it's attached to the tip, connect in and out
+        if (onTip)
+        {
+            _tipLinkItem = item;
+            addEdges(item);
+        }
 
-            // if it's attached to the base, connect in and out; adjust node threshold
-            else
-            {
-                _baseLinkItems.insert(item);
-                addEdges(item);
-            }
+        // if it's attached to the base, connect in and out; adjust node threshold
+        else
+        {
+            _baseLinkItems.append(item);
+            addEdges(item);
 
-            // TODO: add delay lines for sequence node
+            adjustNodeThreshold();
+        }
+
+        // TODO: add delay lines for sequence node
     }
 
     void CompactAndItem::onDetach(NeuroItem *item)
@@ -127,16 +132,10 @@ namespace NeuroGui
 
         // TODO: remove delay line
 
-        if (item == _tipLinkItem)
-            _tipLinkItem = 0;
-        else if (_baseLinkItems.contains(item))
-            _baseLinkItems.remove(item);
-
-        // adjust node threshold
-        _baseLinkItems.remove(item);
-
         //
         CompactNodeItem::onDetach(item);
+
+        adjustNodeThreshold();
     }
 
     void CompactAndItem::adjustNodeThreshold()

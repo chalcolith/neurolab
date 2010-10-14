@@ -99,7 +99,6 @@ namespace Automata
             if (free_items.size() > 0)
             {
                 T *item = free_items.pop();
-                new (item) T();
                 return item;
             }
             else
@@ -114,7 +113,6 @@ namespace Automata
         void returnItem(T *item)
         {
             QWriteLocker l(&lock);
-            item->~T();
             free_items.push(item);
         }
     };

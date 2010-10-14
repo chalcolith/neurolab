@@ -68,12 +68,18 @@ namespace NeuroGui
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
-        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel, tr("Current Subnetwork"), tr("A label for the current subnetwork")),
-        _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay, tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
-        _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate, tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
-        _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate, tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
-        _node_forget_property(this, &LabNetwork::nodeForgetRate, &LabNetwork::setNodeForgetRate, tr("Node Forget Rate"), tr("Controls the rate of node threshold lowering.")),
-        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime, tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
+        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel,
+                        tr("Current Subnetwork"), tr("A label for the current subnetwork")),
+        _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay,
+                        tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
+        _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate,
+                             tr("Link Learn Rate"), tr("Controls the rate of link learning.")),
+        _node_learn_property(this, &LabNetwork::nodeLearnRate, &LabNetwork::setNodeLearnRate,
+                             tr("Node Learn Rate"), tr("Controls the rate of node threshold raising or.")),
+        _node_forget_property(this, &LabNetwork::nodeForgetRate, &LabNetwork::setNodeForgetRate,
+                              tr("Node Forget Rate"), tr("Controls the rate of node threshold lowering.")),
+        _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime,
+                             tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
         _current_step(0), _max_steps(0)
     {
         _neuronet = new NeuroLib::NeuroNet();
@@ -505,6 +511,12 @@ namespace NeuroGui
     LabTreeNode *LabNetwork::newSubNetwork()
     {
         return _tree ? _tree->newSubNetwork() : 0;
+    }
+
+    void LabNetwork::removeWidgetsFrom(QLayout *w)
+    {
+        if (w && _tree)
+            _tree->removeWidgetsFrom(w);
     }
 
     /// \return True if there is something to paste.

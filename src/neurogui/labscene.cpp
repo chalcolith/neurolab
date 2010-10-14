@@ -146,6 +146,8 @@ namespace NeuroGui
 
         if (event->button() == Qt::LeftButton && _itemUnderMouse)
         {
+            _itemUnderMouse->bringToFront();
+
             if (event->modifiers().testFlag(Qt::ControlModifier))
             {
                 if (_itemUnderMouse->isSelected())

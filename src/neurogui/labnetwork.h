@@ -154,6 +154,8 @@ namespace NeuroGui
         LabTreeNode *findSubNetwork(const quint32 & id);
         LabTreeNode *newSubNetwork();
 
+        void removeWidgetsFrom(QLayout *w);
+
     public slots:
         bool save(bool saveAs = false);
         bool close();

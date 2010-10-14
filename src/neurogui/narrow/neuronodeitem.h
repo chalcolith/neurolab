@@ -85,6 +85,8 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.last(); }
 
         virtual QVector2D getAttachPos(const QVector2D & dirTo);
+
+        virtual void setBrushProperties(QBrush &brush) const;
     };
 
 
@@ -125,6 +127,8 @@ namespace NeuroGui
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+        virtual void setPenProperties(QPen &pen) const;
+
         virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &);
     };
 

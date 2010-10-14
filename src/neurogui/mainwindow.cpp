@@ -610,7 +610,17 @@ namespace NeuroGui
 
         if (_currentNetwork)
         {
-            _networkLayout->removeWidget(_currentNetwork->view());
+            disconnect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)));
+            disconnect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)));
+            disconnect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
+                       this, SLOT(setPropertyObjects(QList<PropertyObject*>)));
+            disconnect(_currentNetwork, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
+
+            disconnect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)));
+            disconnect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)));
+            disconnect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)));
+
+            _currentNetwork->removeWidgetsFrom(_networkLayout);
 
             delete _currentNetwork;
             _currentNetwork = 0;
@@ -623,7 +633,8 @@ namespace NeuroGui
 
             connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
-            connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)), this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
+                    this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
 
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);

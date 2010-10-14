@@ -54,6 +54,15 @@ namespace NeuroGui
     {
     }
 
+    void NeuroNetworkItem::setPenProperties(QPen &pen) const
+    {
+        NeuroItem::setPenProperties(pen);
+
+        qreal t = qBound(0.0f, qAbs(outputValue()), 1.0f);
+        QColor result = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
+        pen.setColor(result);
+    }
+
     void NeuroNetworkItem::addEdges(NeuroItem *item)
     {
         Q_ASSERT(network());
