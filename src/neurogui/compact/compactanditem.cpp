@@ -153,35 +153,62 @@ namespace NeuroGui
         }
 
         // add delay lines for sequence node
-        // frontwards has to add on the beginning of all of them
-        for (int i = 0; i < _frontwardDelayLines.size(); ++i)
+        if (_sequence)
         {
-            NeuroCell::Index prevIndex = _frontwardDelayLines[i].size() > 0 ? _frontwardDelayLines[i].first() : _frontwardTipCell;
-            NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-            if (prevIndex != -1 && newIndex != -1)
-                network()->neuronet()->addEdge(prevIndex, newIndex);
-            _frontwardDelayLines[i].insert(0, newIndex);
+            foreach (NeuroItem *ni, connections())
+                removeEdges(ni);
+
+            // frontwards has to add on the beginning of all of them
+            for (int i = 0; i < _frontwardDelayLines.size(); ++i)
+            {
+                NeuroCell::Index prevIndex = _frontwardDelayLines[i].size() > 0 ? _frontwardDelayLines[i].first() : _frontwardTipCell;
+                NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+                if (prevIndex != -1 && newIndex != -1)
+                    network()->neuronet()->addEdge(prevIndex, newIndex);
+                _frontwardDelayLines[i].insert(0, newIndex);
+            }
+            _frontwardDelayLines.append(buildDelayLine(0, -1, _frontwardTipCell));
+
+            // backwards just add one on the end
+            _backwardDelayLines.append(buildDelayLine(_baseLinkItems.size()-1, _backwardTipCell, -1));
+
+            foreach (NeuroItem *ni, connections())
+                addEdges(ni);
+
+            // re-space links
+            adjustLinks();
         }
-        _frontwardDelayLines.append(buildDelayLine(0, -1, _frontwardTipCell));
-
-        // backwards just add one on the end
-        _backwardDelayLines.append(buildDelayLine(_baseLinkItems.size()-1, _backwardTipCell, -1));
-
-        // connect
-        addEdges(item);
+        else
+        {
+            addEdges(item);
+        }
     }
 
     void CompactAndItem::onDetach(NeuroItem *item)
     {
-        // disconnect
-        removeEdges(item);
-
-        // TODO: remove delay line
-
-
-        //
         CompactNodeItem::onDetach(item);
 
+        // remove delay line
+        if (_sequence)
+        {
+            removeEdges(item); // the base onDetach() removed it from connections
+            foreach (NeuroItem *ni, connections())
+                removeEdges(ni);
+
+
+
+            foreach (NeuroItem *ni, connections())
+                addEdges(ni);
+
+            // re-space links
+            adjustLinks();
+        }
+        else // just disconnect
+        {
+            removeEdges(item);
+        }
+
+        //
         adjustNodeThreshold();
     }
 

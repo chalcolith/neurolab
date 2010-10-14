@@ -38,6 +38,9 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QVector>
+#include <QStack>
+#include <QMap>
+#include <QSet>
 #include <QDataStream>
 #include <QReadWriteLock>
 
@@ -56,8 +59,10 @@ namespace Automata
         bool _directed;
 
         QVector<TNode> _nodes;
-        QVector< QVector<TIndex> > _edges;
-        QList<TIndex> _free_nodes;
+        QVector< QVector<TIndex> > _edges; ///< [src -> destination]; vectors for speed of access.
+        QMap<TIndex, QSet<TIndex> > _edges_to;    ///< [destination -> src]; used only for deleting nodes.
+
+        QStack<TIndex> _free_nodes;
 
         QReadWriteLock _nodes_lock;
         QReadWriteLock _edges_lock;
@@ -91,15 +96,12 @@ namespace Automata
 
             if (_free_nodes.size() > 0)
             {
-                index = _free_nodes.last();
-                _free_nodes.removeAt(_free_nodes.size() - 1);
-
+                index = _free_nodes.pop();
                 _nodes[index] = node;
             }
             else
             {
                 index = _nodes.size();
-
                 _nodes.append(node);
                 _edges.append(QVector<TIndex>());
             }
@@ -108,7 +110,6 @@ namespace Automata
         }
 
         /// Removes a node from the graph.
-        /// \note This can be quite expensive in a large graph.
         void removeNode(const TIndex & index)
         {
             QWriteLocker nwl(&_nodes_lock);
@@ -116,15 +117,16 @@ namespace Automata
 
             if (index < _edges.size())
             {
-                _edges[index].clear();
-                for (TIndex i = 0; i < _nodes.size(); ++i)
-                {
-                    int ii = _edges[i].indexOf(index);
+                _edges[index].resize(0);
 
-                    if (ii != -1)
-                        _edges[i].remove(ii);
+                foreach (TIndex src, _edges_to[index])
+                {
+                    TIndex neighbor_index = _edges[src].indexOf(index);
+                    if (neighbor_index != -1)
+                        _edges[src].remove(neighbor_index);
                 }
-                _free_nodes.append(index);
+
+                _free_nodes.push(index);
             }
             else
             {
@@ -163,6 +165,8 @@ namespace Automata
 
                 if (!outgoing.contains(to))
                     outgoing.append(to);
+
+                _edges_to[to].insert(from);
             }
             else
             {
@@ -177,6 +181,8 @@ namespace Automata
 
                     if (!incoming.contains(from))
                         incoming.append(from);
+
+                    _edges_to[from].insert(to);
                 }
                 else
                 {
@@ -197,11 +203,10 @@ namespace Automata
             {
                 QVector<TIndex> & outgoing = _edges[from];
                 int i = outgoing.indexOf(to);
-                while (i != -1)
-                {
+                if (i != -1)
                     outgoing.remove(i);
-                    i = outgoing.indexOf(to);
-                }
+
+                _edges_to[to].remove(from);
             }
             else
             {
@@ -214,11 +219,10 @@ namespace Automata
                 {
                     QVector<TIndex> & incoming = _edges[to];
                     int i = incoming.indexOf(from);
-                    while (i != -1)
-                    {
+                    if (i != -1)
                         incoming.remove(i);
-                        i = incoming.indexOf(from);
-                    }
+
+                    _edges_to[from].remove(to);
                 }
                 else
                 {
@@ -249,8 +253,9 @@ namespace Automata
                 throw IndexOverflow();
         }
 
-        /// Returns a pointer to an array containing the indices of all the nodes to which there is an edge from
-        /// the given node.
+        /// Returns a pointer to an array containing the indices of all the
+        /// nodes to which there is an edge from the given node.
+        /// \note This pointer is not stable over graph updates, obviously.
         /// \param index The index of the node.
         /// \param num Is set to the size of the array.
         TIndex * neighbors(const TIndex & index, int & num) const
@@ -316,6 +321,16 @@ namespace Automata
                 // edges
                 ds >> _edges;
 
+                _edges_to.clear();
+                for (int from = 0; from < _edges.size(); ++from)
+                {
+                    foreach (TIndex to, _edges[from])
+                    {
+                        _edges_to[to].insert(from);
+                    }
+                }
+
+                // free nodes
                 if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_2)
                 {
                     ds >> num;
