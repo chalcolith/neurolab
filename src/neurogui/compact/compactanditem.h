@@ -54,6 +54,8 @@ namespace NeuroGui
 
         Property<CompactAndItem, QVariant::Bool, bool, bool> _sequence_property;
 
+        QList< QList<NeuroCell::Index> > _frontwardDelayLines, _backwardDelayLines;
+
     public:
         /// Constructor.
         /// \see NeuroGui::NeuroItem::NeuroItem()
@@ -61,7 +63,7 @@ namespace NeuroGui
         virtual ~CompactAndItem();
 
         bool sequence() const { return _sequence; }
-        void setSequence(const bool & seq) { _sequence = seq; }
+        void setSequence(const bool & seq);
 
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
@@ -79,6 +81,12 @@ namespace NeuroGui
         qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }
         qreal getTip() const { return (getRadius() / 2.5f) * (_direction == DOWNWARD ? -1 : 1); }
 
+        void buildDelayLines();
+        QList<NeuroCell::Index> buildDelayLine(int len, NeuroCell::Index in, NeuroCell::Index out);
+
+        void teardownDelayLines();
+        void deleteDelayLines(QList< QList<NeuroCell::Index> > & delayLines);
+        void deleteDelayLine(QList<NeuroCell::Index> & delayLine);
         void adjustNodeThreshold();
     }; // class CompactAndItem
 

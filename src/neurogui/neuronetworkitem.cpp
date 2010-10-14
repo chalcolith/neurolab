@@ -54,6 +54,12 @@ namespace NeuroGui
     {
     }
 
+    void NeuroNetworkItem::onDetach(NeuroItem *item)
+    {
+        removeEdges(item);
+        NeuroItem::onDetach(item);
+    }
+
     void NeuroNetworkItem::setPenProperties(QPen &pen) const
     {
         NeuroItem::setPenProperties(pen);

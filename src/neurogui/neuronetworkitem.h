@@ -64,6 +64,8 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const = 0;
 
     protected:
+        virtual void onDetach(NeuroItem *item);
+
         virtual void setPenProperties(QPen &pen) const;
 
         void addEdges(NeuroItem *);
