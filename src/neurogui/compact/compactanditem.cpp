@@ -46,10 +46,13 @@ namespace NeuroGui
 
     CompactAndItem::CompactAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactNodeItem(network, scenePos, context),
-        _sequence(false),
-        _sequence_property(this, &CompactAndItem::sequence, &CompactAndItem::setSequence,
-                           tr("Sequential"), tr("Whether or not the node will sequence its inputs/outputs in time."))
+        _sequential(false), _delay(1),
+        _sequential_property(this, &CompactAndItem::sequential, &CompactAndItem::setSequential,
+                           tr("Sequential"), tr("Whether or not the node will sequence its inputs/outputs in time.")),
+        _delay_property(this, &CompactAndItem::delay, &CompactAndItem::setDelay,
+                        tr("Delay"), tr("How long the node will delay between firing (if sequential)."))
     {
+        _delay_property.setEditable(false);
     }
 
     CompactAndItem::~CompactAndItem()
@@ -60,9 +63,9 @@ namespace NeuroGui
         }
     }
 
-    void CompactAndItem::setSequence(const bool &seq)
+    void CompactAndItem::setSequential(const bool &seq)
     {
-        if (seq != _sequence)
+        if (seq != _sequential)
         {
             // disconnect from connections
             foreach (NeuroItem *ni, connections())
@@ -78,30 +81,87 @@ namespace NeuroGui
                 teardownDelayLines();
             }
 
-            _sequence = seq;
+            _sequential = seq;
+
+            // re-connect
+            foreach (NeuroItem *ni, connections())
+                addEdges(ni);
+
+            _delay_property.setEditable(_sequential);
+            adjustLinks();
+        }
+    }
+
+    void CompactAndItem::setDelay(const qint32 & d)
+    {
+        bool updateValue = false;
+        qint32 newDelay = d;
+
+        if (newDelay < 1)
+        {
+            updateValue = true;
+            newDelay = 1;
+        }
+
+        if (newDelay != _delay)
+        {
+            // disconnect
+            foreach (NeuroItem *ni, connections())
+                removeEdges(ni);
+
+            // tear down then build delay lines
+            teardownDelayLines();
+
+            _delay = newDelay;
+            buildDelayLines();
 
             // re-connect
             foreach (NeuroItem *ni, connections())
                 addEdges(ni);
         }
+
+        if (updateValue)
+            _delay_property.setValue(QVariant(newDelay));
     }
 
     NeuroCell::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
     {
-        // TODO: get delay cells
         if (item == _tipLinkItem)
+        {
             return _backwardTipCell;
+        }
+        else if (_sequential)
+        {
+            int index = _baseLinkItems.indexOf(const_cast<NeuroItem *>(item));
+            if (index != -1 && index < _frontwardDelayLines.size())
+                return _frontwardDelayLines[index].size() > 0 ? _frontwardDelayLines[index].first() : _frontwardTipCell;
+            else
+                return -1;
+        }
         else
+        {
             return _frontwardTipCell;
+        }
     }
 
     NeuroCell::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
     {
-        // TODO: get delay cells
         if (item == _tipLinkItem)
+        {
             return _frontwardTipCell;
+        }
+        else if (_sequential)
+        {
+            int index = _baseLinkItems.indexOf(const_cast<NeuroItem *>(item));
+            if (index != -1 && index < _backwardDelayLines.size())
+                return _backwardDelayLines[index].size() > 0 ? _backwardDelayLines[index].last() : _backwardTipCell;
+            else
+                return -1;
+        }
         else
+        {
             return _backwardTipCell;
+        }
     }
 
     bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
@@ -121,8 +181,6 @@ namespace NeuroGui
     {
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
-
-        CompactNodeItem::onAttachedBy(item);
 
         // get the position
         bool onTip = false;
@@ -152,8 +210,11 @@ namespace NeuroGui
             adjustNodeThreshold();
         }
 
+        // this will re-space the nodes
+        CompactNodeItem::onAttachedBy(item);
+
         // add delay lines for sequence node
-        if (_sequence)
+        if (_sequential && !onTip)
         {
             foreach (NeuroItem *ni, connections())
                 removeEdges(ni);
@@ -162,10 +223,14 @@ namespace NeuroGui
             for (int i = 0; i < _frontwardDelayLines.size(); ++i)
             {
                 NeuroCell::Index prevIndex = _frontwardDelayLines[i].size() > 0 ? _frontwardDelayLines[i].first() : _frontwardTipCell;
-                NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-                if (prevIndex != -1 && newIndex != -1)
-                    network()->neuronet()->addEdge(prevIndex, newIndex);
-                _frontwardDelayLines[i].insert(0, newIndex);
+
+                for (int j = 0; j < _delay; ++j)
+                {
+                    NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+                    if (prevIndex != -1 && newIndex != -1)
+                        network()->neuronet()->addEdge(prevIndex, newIndex);
+                    _frontwardDelayLines[i].insert(0, newIndex);
+                }
             }
             _frontwardDelayLines.append(buildDelayLine(0, -1, _frontwardTipCell));
 
@@ -175,7 +240,6 @@ namespace NeuroGui
             foreach (NeuroItem *ni, connections())
                 addEdges(ni);
 
-            // re-space links
             adjustLinks();
         }
         else
@@ -186,29 +250,65 @@ namespace NeuroGui
 
     void CompactAndItem::onDetach(NeuroItem *item)
     {
-        CompactNodeItem::onDetach(item);
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
 
         // remove delay line
-        if (_sequence)
+        if (_sequential && item != _tipLinkItem)
         {
-            removeEdges(item); // the base onDetach() removed it from connections
+            // disconnect cells
             foreach (NeuroItem *ni, connections())
                 removeEdges(ni);
 
+            // trim delay lines
+            int item_index = _baseLinkItems.indexOf(item);
+            if (item_index != -1)
+            {
+                // frontwards; remove the first cell from each up to the item
+                for (int i = 0; i < item_index; ++i)
+                {
+                    for (int j = 0; j < _delay; ++j)
+                    {
+                        network()->neuronet()->removeNode(_frontwardDelayLines[i].first());
+                        _frontwardDelayLines[i].removeFirst();
+                    }
+                }
 
+                clearDelayLine(_frontwardDelayLines[item_index]);
+                _frontwardDelayLines.removeAt(item_index);
 
+                // backwards; remove last cell from lines after the item
+                for (int i = item_index + 1; i < _backwardDelayLines.size(); ++i)
+                {
+                    for (int j = 0; j < _delay; ++j)
+                    {
+                        network()->neuronet()->removeNode(_backwardDelayLines[i].last());
+                        _backwardDelayLines[i].removeLast();
+                    }
+                }
+
+                clearDelayLine(_backwardDelayLines[item_index]);
+                _backwardDelayLines.removeAt(item_index);
+
+                // remove the item
+                _baseLinkItems.removeAt(item_index);
+            }
+
+            // re-connect cells
             foreach (NeuroItem *ni, connections())
-                addEdges(ni);
+                if (ni != item)
+                    addEdges(ni);
 
             // re-space links
             adjustLinks();
         }
-        else // just disconnect
+        else
         {
             removeEdges(item);
         }
 
-        //
+        // clean up
+        CompactNodeItem::onDetach(item);
         adjustNodeThreshold();
     }
 
@@ -241,11 +341,14 @@ namespace NeuroGui
         NeuroCell::Index lastIndex = in;
         for (int i = 0; i < len; ++i)
         {
-            NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-            if (lastIndex != -1 && newIndex != -1)
-                network()->neuronet()->addEdge(newIndex, lastIndex);
-            line.append(newIndex);
-            lastIndex = newIndex;
+            for (int j = 0; j < _delay; ++j)
+            {
+                NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+                if (lastIndex != -1 && newIndex != -1)
+                    network()->neuronet()->addEdge(newIndex, lastIndex);
+                line.append(newIndex);
+                lastIndex = newIndex;
+            }
         }
 
         if (lastIndex != -1 && out != -1)
@@ -256,25 +359,25 @@ namespace NeuroGui
 
     void CompactAndItem::teardownDelayLines()
     {
-        deleteDelayLines(_frontwardDelayLines);
-        deleteDelayLines(_backwardDelayLines);
+        clearDelayLines(_frontwardDelayLines);
+        clearDelayLines(_backwardDelayLines);
     }
 
-    void CompactAndItem::deleteDelayLines(QList<QList<NeuroCell::Index> > & delayLines)
+    void CompactAndItem::clearDelayLines(QList<QList<NeuroCell::Index> > & delayLines)
     {
-        foreach (QList<NeuroCell::Index> & line, delayLines)
-            deleteDelayLine(line);
+        for (QMutableListIterator< QList<NeuroCell::Index> > line(delayLines); line.hasNext(); )
+            clearDelayLine(line.next());
         delayLines.clear();
     }
 
-    void CompactAndItem::deleteDelayLine(QList<NeuroCell::Index> & delayLine)
+    void CompactAndItem::clearDelayLine(QList<NeuroCell::Index> & delayLine)
     {
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
         foreach (NeuroCell::Index index, delayLine)
             network()->neuronet()->removeNode(index);
-        line.clear();
+        delayLine.clear();
     }
 
     void CompactAndItem::adjustNodeThreshold()
@@ -298,19 +401,124 @@ namespace NeuroGui
         drawPath.lineTo(-radius, -to_tip);
     }
 
-    QVector2D CompactAndItem::getAttachPos(const QVector2D &dirTo)
+    void CompactAndItem::adjustLinks()
     {
-        if (dirTo.y() <= 0)
+        if (_sequential)
         {
-            return _direction == DOWNWARD ? QVector2D(0, getTip()) : QVector2D(0, -getTip());
+            if (_tipLinkItem)
+            {
+                MixinArrow *link = dynamic_cast<MixinArrow *>(_tipLinkItem);
+                if (link)
+                {
+                    QSet<MixinArrow *> already;
+                    adjustLink(link, already);
+                }
+            }
+
+            QSet<NeuroItem *> itemsToRemember;
+
+            for (int i = 0; i < _baseLinkItems.size(); ++i)
+            {
+                MixinArrow *link = dynamic_cast<MixinArrow *>(_baseLinkItems[i]);
+                if (link)
+                {
+                    itemsToRemember.insert(_baseLinkItems[i]);
+
+                    QLineF line = link->line();
+                    QPointF back = line.p1();
+                    QPointF front = line.p2();
+                    QPointF & point = link->frontLinkTarget() == this ? front : back;
+
+                    qreal x = (scenePos().x() - getRadius()) + (2.0f * getRadius() / (_baseLinkItems.size()+1)) * (i+1);
+
+                    point.setX(x);
+                    point.setY(scenePos().y() - getTip());
+
+                    link->setLine(back, front);
+                }
+            }
+
+            rememberItems(itemsToRemember, QVector2D(scenePos()));
         }
         else
         {
-            return _direction == DOWNWARD ? QVector2D(0, -getTip()) : QVector2D(0, getTip());
+            MixinRemember::adjustLinks();
         }
     }
 
-    //
+    QVector2D CompactAndItem::getAttachPos(const QVector2D & dirTo)
+    {
+        qreal x = 0;
+        qreal y = posOnTip(dirTo.toPointF()) ? getTip() : -getTip();
+
+        return QVector2D(x, y);
+    }
+
+    void CompactAndItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        CompactNodeItem::writeBinary(ds, file_version);
+
+        ds << _sequential;
+        ds << _delay;
+        writeDelayLines(ds, file_version, _frontwardDelayLines);
+        writeDelayLines(ds, file_version, _backwardDelayLines);
+    }
+
+    void CompactAndItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        CompactNodeItem::readBinary(ds, file_version);
+
+        ds >> _sequential;
+        ds >> _delay;
+
+        _delay_property.setEditable(_sequential);
+
+        readDelayLines(ds, file_version, _frontwardDelayLines);
+        readDelayLines(ds, file_version, _backwardDelayLines);
+    }
+
+    void CompactAndItem::writeDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version,
+                                         const QList<QList<NeuroCell::Index> > &delayLines) const
+    {
+        qint32 num = delayLines.size();
+        ds << num;
+
+        for (int i = 0; i < num; ++i)
+        {
+            qint32 num2 = delayLines[i].size();
+            ds << num2;
+
+            for (int j = 0; j < num2; ++j)
+                ds << static_cast<qint32>(delayLines[i][j]);
+        }
+    }
+
+    void CompactAndItem::readDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version, QList<QList<NeuroCell::Index> > &delayLines)
+    {
+        qint32 num;
+
+        delayLines.clear();
+        ds >> num;
+
+        for (int i = 0; i < num; ++i)
+        {
+            QList<NeuroCell::Index> line;
+            qint32 num2;
+            ds >> num2;
+
+            for (int j = 0; j < num2; ++j)
+            {
+                qint32 index;
+                ds >> index;
+
+                line.append(index);
+            }
+
+            delayLines.append(line);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
 
     NEUROITEM_DEFINE_CREATOR(CompactUpwardAndItem, QObject::tr("Abstract|AND Node (Upward)"));
     NEUROITEM_DEFINE_CREATOR(CompactDownwardAndItem, QObject::tr("Abstract|AND Node (Downward)"));

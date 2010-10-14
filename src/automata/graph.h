@@ -37,14 +37,15 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "automata_global.h"
+#include "exception.h"
+
 #include <QVector>
 #include <QStack>
 #include <QMap>
 #include <QSet>
 #include <QDataStream>
 #include <QReadWriteLock>
-
-#include "exception.h"
 
 namespace Automata
 {

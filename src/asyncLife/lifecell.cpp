@@ -1,6 +1,7 @@
 #include "lifecell.h"
 
-void LifeCell::update(BOARD_TYPE *, const LifeIndex &, LifeCell &next, const QVector<int> &neighbor_indices, const LifeCell *const neighbors) const
+void LifeCell::update(BOARD_TYPE *, const LifeIndex &, LifeCell &next,
+                      const QVector<int> &neighbor_indices, const LifeCell *const neighbors) const
 {
     int num_alive_neighbors = 0;
     for (int i = 0; i < neighbor_indices.size(); ++i)

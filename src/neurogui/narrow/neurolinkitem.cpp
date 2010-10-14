@@ -462,7 +462,7 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK, NeuroCell::DEFAULT_LINK_WEIGHT));
         _cellIndices.append(index);
     }
 
@@ -513,7 +513,7 @@ namespace NeuroGui
 
     void NeuroInhibitoryLinkItem::addNewCell()
     {
-        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -1, 1));
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -NeuroCell::DEFAULT_LINK_WEIGHT));
         _cellIndices.append(index);
     }
 

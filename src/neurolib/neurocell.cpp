@@ -42,14 +42,16 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroLib
 {
 
+    const NeuroCell::Value NeuroCell::DEFAULT_LINK_WEIGHT = 1.1f;
+
     NeuroCell::NeuroCell(const KindOfCell & k,
                          const Value & weight,
                          const Value & run,
                          const Value & current_value)
-        : _kind(k), _frozen(false),
-        _weight(weight), _run(run),
+        : _weight(weight), _run(run),
         _output_value(current_value),
-        _running_average(current_value)
+        _running_average(current_value),
+        _kind(k), _frozen(false)
     {
     }
 
@@ -133,7 +135,8 @@ namespace NeuroLib
 
                     if (incoming._kind == EXCITORY_LINK)
                     {
-                        Value delta_weight = network->linkLearnRate() * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                        Value delta_weight = network->linkLearnRate()
+                                             * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
 
                         if (qAbs(delta_weight) > EPSILON)
                         {

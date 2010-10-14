@@ -38,9 +38,9 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "automata_global.h"
-#include "pool.h"
 #include "graph.h"
 #include "asyncstate.h"
+#include "pool.h"
 
 #include <QtGlobal>
 #include <QtConcurrentMap>
@@ -139,23 +139,27 @@ namespace Automata
         inline void update(ASYNC_STATE & state)
         {
             const TIndex & index = &state - this->_nodes.data();
+            const QVector<TIndex> & neighbors = this->_edges[index];
 
             // update
             if (state.r == 0)
             {
-                if (isReady(index, 0))
+                // temporary neighbor array
+                typename Pool< QVector<TState> >::Item tni(_temp_neighbor_pool);
+                QVector<TState> *temp_neighbors = tni.data;
+                TState *temp_ptr = 0;
+
+                bool do_update = true;
                 {
-                    // temporary neighbor array
-                    typename Pool< QVector<TState> >::Item tni(_temp_neighbor_pool);
-                    QVector<TState> *temp_neighbors = tni.data;
+                    QReadLocker read_lock(&_network_lock);
 
-                    const QVector<TIndex> & neighbors = this->_edges[index];
-                    if (neighbors.size() > temp_neighbors->size())
-                        temp_neighbors->resize(neighbors.size());
-                    TState *const temp_ptr = temp_neighbors->data();
-
+                    if (isReady(index, 0))
                     {
-                        QReadLocker read_lock(&_network_lock);
+                        do_update = true;
+
+                        if (neighbors.size() > temp_neighbors->size())
+                            temp_neighbors->resize(neighbors.size());
+                        temp_ptr = temp_neighbors->data();
 
                         // get appropriate states of neighbors
                         for (int i = 0; i < neighbors.size(); ++i)
@@ -168,31 +172,45 @@ namespace Automata
                                 temp_ptr[i] = neighbor.q1;
                         }
                     }
+                }
 
                     // update
-                    {
-                        QWriteLocker write_lock(&_network_lock);
+                if (do_update)
+                {
+                    TState q0 = state.q0;
+                    TState q1 = q0;
 
-                        state.q1 = state.q0;
-                        state.q1.update(this, index, state.q0, neighbors, temp_ptr);
-                        state.r = 1;
-                    }
+                    q1.update(this, index, q0, neighbors, temp_ptr);
+
+                    QWriteLocker write_lock(&_network_lock);
+                    state.q0 = q0;
+                    state.q1 = q1;
+                    state.r = 1;
                 }
             }
-            else if (isReady(index, state.r))
+            else
             {
-                state.r = (state.r+1) % 3;
+                bool do_update;
+                {
+                    QReadLocker read_lock(&_network_lock);
+                    do_update = isReady(index, state.r);
+                }
+
+                if (do_update)
+                {
+                    QWriteLocker write_lock(&_network_lock);
+                    state.r = (state.r+1) % 3;
+                }
             }
         }
 
+    private:
         /// Used for asynchronous updates.
         /// \return Whether or not a given cell is ready to be updated.
         inline bool isReady(const TIndex & index, const int & r) const
         {
             if (index < this->_nodes.size())
             {
-                QReadLocker read_lock(&_network_lock);
-
                 const QVector<TIndex> & neighbors = this->_edges[index];
 
                 for (int i = 0; i < neighbors.size(); ++i)

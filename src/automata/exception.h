@@ -37,11 +37,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "automata_global.h"
+
 #include <QString>
 #include <QObject>
 #include <QDebug>
-
-#include "automata_global.h"
 
 namespace Automata
 {

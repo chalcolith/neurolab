@@ -77,10 +77,14 @@ namespace NeuroLib
 
         typedef Automata::Automaton<NeuroCell, NeuroCell::Index> NEURONET_BASE;
 
+        static const Value DEFAULT_LINK_WEIGHT;
+
         /// Constructor.
         /// \param k The kind of cell.
-        /// \param weight For links, the output weight; for nodes, the input weight (roughly, the input value required to produce an output close to 1).
-        /// \param run The distance in which the node's output sigmoid curve goes from close to 0 to close to 1 (basically the inverse of the slope of the curve).
+        /// \param weight For links, the output weight; for nodes, the input weight
+        ///        (roughly, the input value required to produce an output close to 1).
+        /// \param run The distance in which the node's output sigmoid curve goes
+        ///        from close to 0 to close to 1 (basically the inverse of the slope of the curve).
         /// \param current_value The current output value to initialize the cell.
         NeuroCell(const KindOfCell & k = NeuroCell::NODE,
                   const Value & weight = 1.0f,
@@ -88,32 +92,36 @@ namespace NeuroLib
                   const Value & current_value = 0);
 
         /// \return The kind of cell.
-        inline const KindOfCell & kind() const { return _kind; }
+        inline const KindOfCell kind() const { return _kind; }
 
         /// \return Whether or not the node is "frozen".  A frozen node will not be updated, but maintain its current output value.
         /// \see NeuroCell::setFrozen()
-        inline const bool & frozen() const { return _frozen; }
+        inline const bool frozen() const { return _frozen; }
 
         /// Sets the "frozen" state of the node.
         /// \see NeuroCell::frozen()
         inline void setFrozen(const bool & frozen) { _frozen = frozen; }
 
-        /// \return The "weight" of the cell.  For links, this is the output weight; for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
+        /// \return The "weight" of the cell.  For links, this is the output weight;
+        ///         for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::setWeight()
         const Value & weight() const { return _weight; }
 
-        /// Set the "weight" of the cell.  For links, this is the output weight; for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
+        /// Set the "weight" of the cell.  For links, this is the output weight;
+        /// for nodes, this is the input threshold (roughly, the input value required to produce an output close to 1).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::weight()
         void setWeight(const Value & weight) { _weight = weight; }
 
-        /// \return The distance in which the node's output sigmoid curve goes from close to 0 to close to 1 (basically the inverse of the slope of the curve).
+        /// \return The distance in which the node's output sigmoid curve goes from close to 0 to close to 1
+        ///         (conceptually the inverse of the slope of the curve).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::setRun()
         const Value & run() const { return _run; }
 
-        /// Sets the distance in which the node's output sigmoid curve goes from close to 0 to close to 1 (basically the inverse of the slope of the curve).
+        /// Sets the distance in which the node's output sigmoid curve goes from close to 0 to close to 1
+        /// (conceptually the inverse of the slope of the curve).
         /// \see NeuroCell::NeuroCell()
         /// \see NeuroCell::run()
         void setRun(const Value & run) { _run = run; }
@@ -161,9 +169,6 @@ namespace NeuroLib
         void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
 
     private:
-        KindOfCell _kind;
-        bool _frozen;
-
         union
         {
             Value _weight; ///< Used in links for their weight; in nodes for their input thresholds.
@@ -178,6 +183,9 @@ namespace NeuroLib
 
         Value _output_value;
         Value _running_average; ///< The running average of output values.
+
+        KindOfCell _kind   : 3;
+        bool       _frozen : 1;
     }; // class NeuroCell
 
 } // namespace NeuroLib

@@ -40,6 +40,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui_global.h"
 #include "compactnodeitem.h"
 
+using namespace NeuroLib;
+
 namespace NeuroGui
 {
 
@@ -50,9 +52,11 @@ namespace NeuroGui
         Q_OBJECT
 
     protected:
-        bool _sequence;
+        bool _sequential;
+        qint32 _delay;
 
-        Property<CompactAndItem, QVariant::Bool, bool, bool> _sequence_property;
+        Property<CompactAndItem, QVariant::Bool, bool, bool> _sequential_property;
+        Property<CompactAndItem, QVariant::Int, qint32, qint32> _delay_property;
 
         QList< QList<NeuroCell::Index> > _frontwardDelayLines, _backwardDelayLines;
 
@@ -62,8 +66,11 @@ namespace NeuroGui
         explicit CompactAndItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~CompactAndItem();
 
-        bool sequence() const { return _sequence; }
-        void setSequence(const bool & seq);
+        bool sequential() const { return _sequential; }
+        void setSequential(const bool & seq);
+
+        qint32 delay() const { return _delay; }
+        void setDelay(const qint32 & d);
 
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
@@ -77,17 +84,27 @@ namespace NeuroGui
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
 
+        virtual void adjustLinks();
+
+        void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
     private:
         qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }
         qreal getTip() const { return (getRadius() / 2.5f) * (_direction == DOWNWARD ? -1 : 1); }
+
+        void adjustNodeThreshold();
 
         void buildDelayLines();
         QList<NeuroCell::Index> buildDelayLine(int len, NeuroCell::Index in, NeuroCell::Index out);
 
         void teardownDelayLines();
-        void deleteDelayLines(QList< QList<NeuroCell::Index> > & delayLines);
-        void deleteDelayLine(QList<NeuroCell::Index> & delayLine);
-        void adjustNodeThreshold();
+        void clearDelayLines(QList< QList<NeuroCell::Index> > & delayLines);
+        void clearDelayLine(QList<NeuroCell::Index> & delayLine);
+
+        void writeDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version,
+                             const QList< QList<NeuroCell::Index> > & delayLines) const;
+        void readDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version, QList< QList<NeuroCell::Index> > & delayLines);
     }; // class CompactAndItem
 
 

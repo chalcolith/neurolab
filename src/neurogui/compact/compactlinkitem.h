@@ -130,7 +130,7 @@ namespace NeuroGui
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
 
     private:
-        void addNewCell(bool upwards);
+        void addNewCell(bool frontwards);
         void setWeightAux(QList<NeuroLib::NeuroCell::Index> & cells, const NeuroLib::NeuroCell::Value &value);
 
         NeuroLib::NeuroCell::Value outputValueAux(const QList<NeuroLib::NeuroCell::Index> & cells) const;

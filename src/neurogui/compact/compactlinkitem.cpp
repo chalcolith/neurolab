@@ -93,13 +93,13 @@ namespace NeuroGui
         }
     }
 
-    void CompactLinkItem::addNewCell(bool upwards)
+    void CompactLinkItem::addNewCell(bool frontwards)
     {
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK));
-        if (upwards)
+        NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK, NeuroCell::DEFAULT_LINK_WEIGHT));
+        if (frontwards)
             _frontward_cells.append(index);
         else
             _backward_cells.append(index);
@@ -192,7 +192,7 @@ namespace NeuroGui
             NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
             if (cell)
             {
-                if (i == cells.size() - 1)
+                if (i == (cells.size() - 1))
                 {
                     cell->current().setWeight(value);
                     cell->former().setWeight(value);
@@ -200,7 +200,7 @@ namespace NeuroGui
                 else
                 {
                     cell->current().setWeight(1);
-                    cell->current().setWeight(1);
+                    cell->former().setWeight(1);
                 }
             }
         }
