@@ -824,6 +824,9 @@ namespace NeuroGui
             {
                 foreach (const PropertyObject::PropertyBase *p, _rememberedProperties[typeName])
                 {
+                    if (!p->remember())
+                        continue;
+
                     const QString name = p->name();
                     const QVariant value = p->value();
                     item->setPropertyValue(name, value);

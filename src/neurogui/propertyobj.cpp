@@ -272,7 +272,7 @@ namespace NeuroGui
 
 
     CommonPropertyObject::CommonProperty::CommonProperty(PropertyObject *container, const QString &name, const QString &tooltip, bool enabled, int type)
-        : PropertyBase(container, name, tooltip, enabled, type)
+        : PropertyBase(container, name, tooltip, enabled, type, false)
     {
     }
 

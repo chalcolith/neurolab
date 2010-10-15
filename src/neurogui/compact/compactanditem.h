@@ -77,14 +77,13 @@ namespace NeuroGui
 
     protected:
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
-        virtual QVector2D getAttachPos(const QVector2D &dirTo);
 
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *item);
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
-
         virtual void adjustLinks();
+        virtual QVector2D getAttachPos(const QVector2D &dirTo);
 
         void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
@@ -124,8 +123,6 @@ namespace NeuroGui
         }
 
         virtual ~CompactUpwardAndItem() {}
-
-        virtual QString uiName() const { return tr("Upward AND"); }
     }; // class CompactUpwardAndItem
 
     class NEUROGUISHARED_EXPORT CompactDownwardAndItem
@@ -142,8 +139,6 @@ namespace NeuroGui
         }
 
         virtual ~CompactDownwardAndItem() {}
-
-        virtual QString uiName() const { return tr("Downward AND"); }
     }; // class CompactDownwardAndItem
 
 } // namespace NeuroGui

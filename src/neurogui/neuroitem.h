@@ -249,17 +249,22 @@ namespace NeuroGui
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 
+        /// Gets a description of the type for UI purposes.
+        virtual QString uiName() const;
+
         /// Gets a friendly type name from the mangled name.
         static QString getTypeName(const QString & mangledName);
 
         /// Registers a mangled/friendly typename pair.
-        static void registerTypeName(const QString & mangledName, const QString & friendlyName);
+        static void registerTypeName(const QString & mangledName, const QString & friendlyName,
+                                     const QString & menuPath, const QString & uiName);
 
         /// Function type for static item creator objects.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos, const CreateContext & context);
 
         /// Registers an item type creator with the global item broker.
-        static void registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc);
+        static void registerItemCreator(const QString & typeName, const QString & menuPath,
+                                        const QString & uiName, CreateFT createFunc);
 
         /// Unregisters an item type creator from the global item broker.
         static void removeItemCreator(const QString & typeName);
@@ -309,8 +314,20 @@ namespace NeuroGui
 
         //////////////////////////////////////////////////////////////
 
+        struct TypeNameRec
+        {
+            QString mangledName;
+            QString typeName;
+            QString uiName;
+            QString menuPath;
+
+            TypeNameRec() {}
+            TypeNameRec(const QString & mangledName, const QString & typeName, const QString & uiName, const QString & menuPath)
+                : mangledName(mangledName), typeName(typeName), uiName(uiName), menuPath(menuPath) {}
+        };
+
         /// Maps mangled names to friendly type names.
-        static QMap<QString, QString> *_typeNames;
+        static QMap<QString, TypeNameRec> *_typeNames;
 
         /// Registers item creator functions.
         static QMap<QString, QPair<QString, CreateFT> > *_itemCreators;
@@ -326,12 +343,15 @@ namespace NeuroGui
         QString _mangledName;
 
     public:
-        NeuroItemRegistrator(const QString & typeName, const QString & mangledName, const QString & description, NeuroItem::CreateFT create_func)
+        NeuroItemRegistrator(const QString & typeName, const QString & mangledName,
+                             const QString & menuPath, const QString & uiName, NeuroItem::CreateFT create_func)
             : _typeName(typeName), _mangledName(mangledName)
         {
-            NeuroItem::registerTypeName(mangledName, typeName);
-            NeuroItem::registerItemCreator(typeName, description, create_func);
-            NeuroItem::registerItemCreator(mangledName, description, create_func); // this is for backwards compatibility with the old file format
+            NeuroItem::registerTypeName(mangledName, typeName, menuPath, uiName);
+            NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func);
+
+            // this is for backwards compatibility with the old file format
+            NeuroItem::registerItemCreator(mangledName, menuPath, uiName, create_func);
         }
 
         virtual ~NeuroItemRegistrator()
@@ -347,8 +367,8 @@ namespace NeuroGui
     static NeuroGui::NeuroItemRegistrator _static_registrator;
 
     /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem in order to have it show up in the context menu.
-    #define NEUROITEM_DEFINE_CREATOR(TypeName, Description) \
-    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), Description, &TypeName::_create_); \
+    #define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName) \
+    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (!(scene && scene->network() && scene->network()->neuronet())) \

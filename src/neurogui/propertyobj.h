@@ -66,6 +66,7 @@ namespace NeuroGui
             QString _name;
             QString _tooltip;
             bool _editable;
+            bool _remember;
             int _type;
             bool _visible;
 
@@ -75,9 +76,11 @@ namespace NeuroGui
             friend class PropertyObject;
 
         public:
-            explicit PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip, bool editable, int type)
+            explicit PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip,
+                                  bool editable, int type, bool remember)
                 : _name(name), _tooltip(tooltip),
-                  _editable(editable), _type(type), _visible(true),
+                  _editable(editable), _remember(remember),
+                  _type(type), _visible(true),
                   _container(container), _property(0) {}
             virtual ~PropertyBase() { delete _property; }
 
@@ -94,6 +97,9 @@ namespace NeuroGui
 
             bool editable() const { return _editable; }
             void setEditable(bool e) { _editable = e; if (_property) _property->setEnabled(e); }
+
+            bool remember() const { return _remember; }
+            void setRemember(bool r) { _remember = r; }
 
             int type() const { return _type; }
 
@@ -131,8 +137,8 @@ namespace NeuroGui
             /// \param tooltip A tooltip for the property.
             /// \param editable Whether or not to enable the property for editing.
             explicit Property(CType *container, DType (CType::*getter)() const, void (CType::*setter)(const DType &),
-                              const QString & name, const QString & tooltip = QString(), bool editable = true)
-                : PropertyBase(container, name, tooltip, editable, TypeID),
+                              const QString & name, const QString & tooltip = QString(), bool editable = true, bool remember = false)
+                : PropertyBase(container, name, tooltip, editable, TypeID, remember),
                 _typed_container(container), _getter(getter), _setter(setter)
             {
                 Q_ASSERT(_container != 0);

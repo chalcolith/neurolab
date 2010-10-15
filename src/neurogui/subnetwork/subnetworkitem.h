@@ -71,8 +71,6 @@ namespace NeuroGui
         explicit SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
 
-        virtual QString uiName() const { return tr("Sub-Network"); }
-
         virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) { }
 

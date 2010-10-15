@@ -73,7 +73,7 @@ namespace NeuroGui
     NeuroItem::IdType NeuroItem::NEXT_ID = 1;
     qreal NeuroItem::HIGHEST_Z_VALUE = 0;
 
-    QMap<QString, QString> *NeuroItem::_typeNames = 0;
+    QMap<QString, NeuroItem::TypeNameRec> *NeuroItem::_typeNames = 0;
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
 
 
@@ -110,22 +110,43 @@ namespace NeuroGui
         }
     }
 
-    void NeuroItem::registerTypeName(const QString & mangledName, const QString & friendlyName)
+    void NeuroItem::registerTypeName(const QString & mangledName, const QString & typeName, const QString & menuPath, const QString & uiName)
     {
         if (!_typeNames)
-            _typeNames = new QMap<QString, QString>();
+            _typeNames = new QMap<QString, TypeNameRec>();
 
-        if (!mangledName.isNull() && !mangledName.isEmpty()
-            && !friendlyName.isNull() && !friendlyName.isEmpty() && !_typeNames->contains(mangledName))
+        if (!mangledName.isEmpty()
+            && !typeName.isEmpty()
+            && !menuPath.isEmpty()
+            && !uiName.isEmpty())
         {
-            (*_typeNames)[mangledName] = friendlyName;
+            if (!_typeNames->contains(mangledName))
+                (*_typeNames)[mangledName] = TypeNameRec(mangledName, typeName, uiName, menuPath);
+            else
+                qDebug() << "You cannot register a duplicate name: " << mangledName;
         }
+        else
+        {
+            qDebug() << "You cannot register a type with a null string: " << mangledName;
+        }
+    }
+
+    QString NeuroItem::uiName() const
+    {
+        if (!_typeNames)
+            _typeNames = new QMap<QString, TypeNameRec>();
+
+        QString mangledName(typeid(*this).name());
+
+        if (_typeNames->contains(mangledName))
+            return (*_typeNames)[mangledName].uiName;
+        return QString("?NeuroItem?");
     }
 
     QString NeuroItem::getTypeName() const
     {
         if (!_typeNames)
-            _typeNames = new QMap<QString, QString>();
+            _typeNames = new QMap<QString, TypeNameRec>();
 
         QString mangledName(typeid(*this).name());
         return getTypeName(mangledName);
@@ -134,23 +155,23 @@ namespace NeuroGui
     QString NeuroItem::getTypeName(const QString & mangledName)
     {
         if (!_typeNames)
-            _typeNames = new QMap<QString, QString>();
+            _typeNames = new QMap<QString, TypeNameRec>();
 
         // we don't want to insert empty values
         if (_typeNames->contains(mangledName))
-            return (*_typeNames)[mangledName];
-        else
-            return QString();
+            return (*_typeNames)[mangledName].typeName;
+        return QString("?unknown?");
     }
 
-    void NeuroItem::registerItemCreator(const QString & typeName, const QString & description, CreateFT createFunc)
+    void NeuroItem::registerItemCreator(const QString & typeName, const QString & menuPath,
+                                        const QString & uiName, CreateFT createFunc)
     {
         if (!_itemCreators)
             _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
 
         if (!typeName.isNull() && !typeName.isEmpty() && createFunc)
         {
-            (*_itemCreators)[typeName] = QPair<QString, CreateFT>(description, createFunc);
+            (*_itemCreators)[typeName] = QPair<QString, CreateFT>(QString("%1|%2").arg(menuPath, uiName), createFunc);
         }
     }
 

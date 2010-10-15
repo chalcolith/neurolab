@@ -53,8 +53,6 @@ namespace GridItems
         NeuroGridItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
 
-        virtual QString uiName() const { return tr("Test Grid"); }
-
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
     };

@@ -37,6 +37,89 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "../neurogui_global.h"
+#include "compactnodeitem.h"
 
+namespace NeuroGui
+{
+
+    class NEUROGUISHARED_EXPORT CompactOrItem
+        : public CompactNodeItem
+    {
+        Q_OBJECT
+
+    protected:
+        bool _shortcut;
+
+        Property<CompactOrItem, QVariant::Bool, bool, bool> _shortcut_property;
+
+    public:
+        explicit CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        virtual ~CompactOrItem();
+
+        bool shortcut() const { return _shortcut; }
+        void setShortcut(const bool & s) { _shortcut = s; }
+
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+
+    public slots:
+        void preStep();
+        void postStep();
+
+    protected:
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
+
+        virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+        virtual void adjustLinks();
+        virtual QVector2D getAttachPos(const QVector2D &dirTo);
+
+        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
+    private:
+        qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }
+        qreal getTip() const { return (getRadius() * 0.125f) * (_direction == DOWNWARD ? -1 : 1); }
+    }; // class CompactOrItem
+
+
+    //
+
+    class NEUROGUISHARED_EXPORT CompactUpwardOrItem
+        : public CompactOrItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+    public:
+        explicit CompactUpwardOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+            : CompactOrItem(network, scenePos, context)
+        {
+            setDirection(UPWARD);
+        }
+
+        virtual ~CompactUpwardOrItem() {}
+    };
+
+    class NEUROGUISHARED_EXPORT CompactDownwardOrItem
+        : public CompactOrItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
+
+    public:
+        explicit CompactDownwardOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+            : CompactOrItem(network, scenePos, context)
+        {
+            setDirection(DOWNWARD);
+        }
+
+        virtual ~CompactDownwardOrItem() {}
+    };
+
+} // namespace NeuroGui
 
 #endif

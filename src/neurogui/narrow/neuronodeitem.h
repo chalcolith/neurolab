@@ -105,8 +105,6 @@ namespace NeuroGui
         explicit NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItem();
 
-        virtual QString uiName() const { return tr("Node"); }
-
         bool frozen() const;
         void setFrozen(const bool & f);
 
@@ -147,8 +145,6 @@ namespace NeuroGui
     public:
         explicit NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroOscillatorItem();
-
-        virtual QString uiName() const { return tr("Oscillator"); }
 
         NeuroLib::NeuroCell::Step phase() const;
         void setPhase(const NeuroLib::NeuroCell::Step &);

@@ -68,8 +68,6 @@ namespace NeuroGui
         /// Destructor.
         virtual ~CompactLinkItem();
 
-        virtual QString uiName() const { return tr("Abstract Link"); }
-
         /// The length of the link (i.e. how many time steps it takes to transmit its activation).
         /// \see CompactLinkItem::setLength()
         int length() const { return _frontward_cells.size(); }

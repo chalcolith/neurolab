@@ -105,8 +105,6 @@ namespace NeuroGui
                                    const QVector2D & initialPos, const QVector2D & initialDir);
         virtual ~SubConnectionItem();
 
-        virtual QString uiName() const { return tr("Subnetwork Connection"); }
-
         /// The output value of the governing item.
         /// \see SubConnectionItem::setOutputValue()
         /// \see SubConnectionItem::governingItem()

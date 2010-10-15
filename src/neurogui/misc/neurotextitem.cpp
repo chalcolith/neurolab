@@ -43,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroGui
 {
 
-    NEUROITEM_DEFINE_CREATOR(NeuroTextItem, QObject::tr("Misc|Text Item"));
+    NEUROITEM_DEFINE_CREATOR(NeuroTextItem, QObject::tr("Misc"), QObject::tr("Text Item"));
 
     NeuroTextItem::NeuroTextItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),

@@ -34,7 +34,8 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <QtGui/QApplication>
+#include <QtGlobal>
+#include <QApplication>
 #include <QMessageBox>
 #include <QDir>
 
@@ -51,13 +52,6 @@ int main(int argc, char *argv[])
 
     QApplication application(argc, argv);
 
-#ifdef Q_WS_MAC
-    QDir dir(QApplication::applicationDirPath());
-    dir.cdUp();
-    dir.cd("PlugIns");
-    QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
-#endif
-
     NeuroGui::MainWindow window(0, QCoreApplication::applicationName());
 
     window.show();
@@ -68,15 +62,15 @@ int main(int argc, char *argv[])
     }
     catch (NeuroGui::LabException & le)
     {
-        QMessageBox::critical(0, "Critical Error", le.message());
+        qDebug() << "Critical Error: " << le.message();
     }
     catch (Automata::Exception & ne)
     {
-        QMessageBox::critical(0, "Critical Error", ne.message());
+        qDebug() << "Critical Error: " << ne.message();
     }
     catch (std::exception & se)
     {
-        QMessageBox::critical(0, "Critical Error", se.what());
+        qDebug() << "Critical Error: " << se.what();
     }
 
     return -1;

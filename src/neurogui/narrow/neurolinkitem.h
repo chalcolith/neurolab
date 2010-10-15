@@ -128,7 +128,6 @@ namespace NeuroGui
         explicit NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroExcitoryLinkItem();
 
-        virtual QString uiName() const { return tr("Excitory Link"); }
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
     protected:
@@ -149,8 +148,6 @@ namespace NeuroGui
         /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroInhibitoryLinkItem();
-
-        virtual QString uiName() const { return tr("Inhibitory Link"); }
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;

@@ -68,8 +68,6 @@ namespace NeuroGui
         : PropertyObject(parent),
         _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
-        _label_property(this, &LabNetwork::subNetworkLabel, &LabNetwork::setSubNetworkLabel,
-                        tr("Current Subnetwork"), tr("A label for the current subnetwork")),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay,
                         tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
         _link_learn_property(this, &LabNetwork::linkLearnRate, &LabNetwork::setLinkLearnRate,
@@ -729,7 +727,7 @@ namespace NeuroGui
         _tree->updateItemProperties();
     }
 
-    /// Advances the network by one timestep.
+    /// Advances the network by one or more timesteps.
     void LabNetwork::step(int numSteps)
     {
         if (_running)
@@ -754,6 +752,7 @@ namespace NeuroGui
             emit stepProgressValueChanged(0);
         }
 
+        emit preStep();
         _neuronet->preUpdate();
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
@@ -772,21 +771,15 @@ namespace NeuroGui
         if (_current_step == _max_steps)
         {
             if (_max_steps > 3)
-            {
                 emit stepProgressValueChanged(_current_step);
-            }
 
+            emit postStep();
             emit actionsEnabled(true);
 
             if (_max_steps == 3)
-            {
                 emit statusChanged(tr("Done stepping 1 time."));
-            }
             else
-            {
                 emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
-            }
-
 
             _running = false;
             setChanged();
@@ -794,17 +787,16 @@ namespace NeuroGui
         }
         else
         {
+            _neuronet->preUpdate();
             _future_watcher.setFuture(_neuronet->stepAsync());
 
-            // only change the display 10 times a second
-            if (_step_time.elapsed() >= 100)
+            // only change the display 2 times a second
+            if (_step_time.elapsed() >= 500)
             {
                 _step_time.start();
 
                 if (_max_steps > 3)
-                {
                     emit stepProgressValueChanged(_current_step);
-                }
 
                 _tree->updateItemProperties();
             }

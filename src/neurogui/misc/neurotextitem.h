@@ -82,8 +82,6 @@ namespace NeuroGui
         /// \see NeuroTextItem::text()
         void setText(const QString & t) { _text = t; }
 
-        virtual QString uiName() const { return tr("Text"); }
-
         virtual bool canCutAndPaste() const { return true; }
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;

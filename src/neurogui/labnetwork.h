@@ -75,7 +75,6 @@ namespace NeuroGui
         QString _fname;
 
         Property<LabNetwork, QVariant::String, QString, QString> _filename_property;
-        Property<LabNetwork, QVariant::String, QString, QString> _label_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _decay_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _link_learn_property;
         Property<LabNetwork, QVariant::Double, double, NeuroLib::NeuroCell::Value> _node_learn_property;
@@ -193,6 +192,10 @@ namespace NeuroGui
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
+
+        void preStep();
+        void postStep();
+
         void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);
         void stepProgressValueChanged(int value);
