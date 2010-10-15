@@ -14,20 +14,19 @@ if "%1" == "--help" goto help
 goto build
 
 :help
-echo usage: makedist.bat [-bump]
+echo usage: makedist.bat [-v version|-bump]
 echo  -bump: increment version number and tag mercurial repository
 goto done
 
 REM ------------------------------------------------------------------
 REM Build settings
-
 :build
 echo setting build settings...
 set PROJECT_NAME=neurolab_all
 set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
 set DISTRIB_DIR=..\distrib
 
-set QT_DIST_DIR=C:\Qt\2010.02.1
+for /f usebackq %%i in (`dir /b /od C:\Qt\*`) do set QT_DIST_DIR=C:\Qt\%%i
 set QTDIR=%QT_DIST_DIR%\qt
 set QMAKESPEC=win32-g++
 
@@ -38,54 +37,51 @@ echo done setting build settings.
 
 REM ------------------------------------------------------------------
 REM Clean build
-
 call :distclean
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM Update
-
 echo updating...
 hg -q update
 if ERRORLEVEL 1 goto error
 
 REM ------------------------------------------------------------------
 REM Build Tools
-
 call :build utils\incversion incversion.pro
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM Increment version if necessary
-
 call :bumpdlls
 if "%1" == "-bump" call :bump
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM get version
-
+if "%1" == "-v" goto manualversion
 for /f usebackq %%v in (`utils\incversion\release\incversion.exe -nobump version.txt`) do set NEUROLAB_VERSION=%%v
 if ERRORLEVEL 1 goto error
+goto doneversion
+:manualversion
+set NEUROLAB_VERSION=%2
+:doneversion
 echo version is %NEUROLAB_VERSION%
 
 REM ------------------------------------------------------------------
 REM hg id
-
 for /f usebackq %%i in (`hg -q id`) do set HG_ID=%%i
 if ERRORLEVEL 1 goto error
 echo hg id is %HG_ID%
 
 REM ------------------------------------------------------------------
 REM build NeuroLab
-
 if not exist "%SHADOW_DIR%" mkdir "%SHADOW_DIR%"
 call :build "%SHADOW_DIR%" ..\src\neurolab_all.pro
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM create release directory
-
 if not exist "%DISTRIB_DIR%\zips" mkdir "%DISTRIB_DIR%\zips"
 set RELEASE_DIR=%DISTRIB_DIR%\%NEUROLAB_VERSION%-%HG_ID%
 
@@ -103,7 +99,6 @@ if ERRORLEVEL 1 goto error
 
 REM ------------------------------------------------------------------
 REM copy files
-
 echo copying licenses...
 call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
@@ -154,6 +149,7 @@ set ERRORLEVEL=0
 popd
 goto :EOF
 
+REM ----------------------------
 :distclean
 echo cleaning...
 pushd .
@@ -163,6 +159,7 @@ popd
 echo done cleaning
 goto :EOF
 
+REM ----------------------------
 :makezip
 pushd "%DISTRIB_DIR%\%1-%2"
 set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
@@ -175,6 +172,7 @@ echo made %ZIPFILE%
 popd
 goto :EOF
 
+REM ----------------------------
 :copyfile
 pushd .
 REM echo copy /y "%1" "%2"
@@ -183,6 +181,7 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+REM ----------------------------
 :bumpdlls
 pushd .
 copy /y "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" utils\incversion\release > "%TEMP%\deploy.log"
@@ -194,6 +193,7 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+REM ----------------------------
 :bump
 echo incrementing version...
 pushd .
@@ -206,6 +206,7 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+REM ----------------------------
 :build
 pushd .
 call :qmake %1 %2
@@ -217,6 +218,7 @@ echo done build
 goto :EOF
 
 :qmake
+REM ----------------------------
 echo running qmake in %1...
 pushd "%1"
 "%QT_DIST_DIR%\qt\bin\qmake.exe" "%2" -spec %QMAKESPEC% -r CONFIG-=debug CONFIG+=release
@@ -224,6 +226,7 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+REM ----------------------------
 :make
 echo running make in %1...
 pushd "%1"
@@ -232,11 +235,13 @@ if ERRORLEVEL 1 goto error
 popd
 goto :EOF
 
+REM ----------------------------
 :wrongdir
 pushd .
 echo You must be in the src directory to run the makedist.bat script!
 goto error
 
+REM ----------------------------
 :error
 popd
 cd %OLDDIR%
