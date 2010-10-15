@@ -117,7 +117,7 @@ namespace NeuroGui
         QVector2D back(link_line.p1()); back -= center; // link's back in my frame
 
         QVector2D mouse_pos(lab_scene->lastMousePos()); // in the scene
-        QVector2D toPos = (mouse_pos - center).normalized(); // in my frame
+        QVector2D toPos = mouse_pos - center; // in my frame
 
         if (frontLink)
         {

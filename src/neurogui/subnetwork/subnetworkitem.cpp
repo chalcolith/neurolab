@@ -248,10 +248,10 @@ namespace NeuroGui
         MixinRemember::adjustLinks();
     }
 
-    QVector2D SubNetworkItem::getAttachPos(const QVector2D & dirTo)
+    QVector2D SubNetworkItem::getAttachPos(const QVector2D & pos)
     {
         // just extend beyond us and clip
-        QVector2D newPos = dirTo * (_rect.width() + _rect.height());
+        QVector2D newPos = pos.normalized() * (_rect.width() + _rect.height());
         clipTo(newPos, _rect);
         return newPos;
     }

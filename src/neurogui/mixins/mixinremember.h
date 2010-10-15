@@ -82,8 +82,8 @@ namespace NeuroGui
         virtual void adjustLink(MixinArrow *link, QSet<MixinArrow *> & alreadyAdjusted);
 
         /// Get the appropriate relative position for an attached item.
-        /// \param dirTo The original position (in this item's frame).
-        virtual QVector2D getAttachPos(const QVector2D & dirTo) = 0;
+        /// \param pos The original position (in this item's frame).
+        virtual QVector2D getAttachPos(const QVector2D & pos) = 0;
     };
 
 } // namespace NeuroGui

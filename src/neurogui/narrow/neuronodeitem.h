@@ -84,7 +84,7 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return _cellIndices.first(); }
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.last(); }
 
-        virtual QVector2D getAttachPos(const QVector2D & dirTo);
+        virtual QVector2D getAttachPos(const QVector2D &);
 
         virtual void setBrushProperties(QBrush &brush) const;
     };

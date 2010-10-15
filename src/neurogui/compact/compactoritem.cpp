@@ -45,13 +45,13 @@ namespace NeuroGui
 
     CompactOrItem::CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactNodeItem(network, scenePos, context),
-        _shortcut(false),
-        _shortcut_property(this, &CompactOrItem::shortcut, &CompactOrItem::setShortcut,
-                           tr("Shortcut"), tr("Whether or not this OR node can be used for choosing alternatives."))
+        _shortcut(false)
+        //_shortcut_property(this, &CompactOrItem::shortcut, &CompactOrItem::setShortcut,
+        //                   tr("Shortcut"), tr("Whether or not this OR node can be used for choosing alternatives."))
     {
         Q_ASSERT(network);
 
-        _shortcut_property.setEditable(false);
+        //_shortcut_property.setEditable(false);
 
         connect(network, SIGNAL(preStep()), this, SLOT(preStep()));
         connect(network, SIGNAL(postStep()), this, SLOT(postStep()));
@@ -160,14 +160,33 @@ namespace NeuroGui
         drawPath.lineTo(radius, -toTip);
     }
 
+    void CompactOrItem::setBrushProperties(QBrush &brush) const
+    {
+        brush.setStyle(Qt::NoBrush);
+    }
+
     void CompactOrItem::adjustLinks()
     {
         MixinRemember::adjustLinks();
     }
 
-    QVector2D CompactOrItem::getAttachPos(const QVector2D &)
+    QVector2D CompactOrItem::getAttachPos(const QVector2D & pos)
     {
-        return QVector2D(0, 0);
+        qreal x = 0, y;
+
+        if (pos.y() <= 0)
+            y = -1;
+        else
+            y = 1;
+
+        if (posOnTip(pos.toPointF()))
+        {
+            qreal radius = getRadius();
+            if (qAbs(pos.x()) > radius/3.0f)
+                x = qBound(-1.0, pos.x(), 1.0) * 2.0f / 3.0f;
+        }
+
+        return QVector2D(x, y);
     }
 
     void CompactOrItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
@@ -187,7 +206,7 @@ namespace NeuroGui
 
     //
 
-    NEUROITEM_DEFINE_CREATOR(CompactUpwardOrItem, QObject::tr("Abstract"), QObject::tr("OR Node (Upward"));
-    NEUROITEM_DEFINE_CREATOR(CompactDownwardOrItem, QObject::tr("Abstract"), QObject::tr("OR Node (Downward"));
+    NEUROITEM_DEFINE_CREATOR(CompactUpwardOrItem, QObject::tr("Abstract"), QObject::tr("OR Node (Upward)"));
+    NEUROITEM_DEFINE_CREATOR(CompactDownwardOrItem, QObject::tr("Abstract"), QObject::tr("OR Node (Downward)"));
 
 } // namespace NeuroGui

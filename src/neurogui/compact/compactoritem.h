@@ -50,15 +50,16 @@ namespace NeuroGui
 
     protected:
         bool _shortcut;
+        QSet<NeuroItem *> _shortcut_nodes;
 
-        Property<CompactOrItem, QVariant::Bool, bool, bool> _shortcut_property;
+        //Property<CompactOrItem, QVariant::Bool, bool, bool> _shortcut_property;
 
     public:
         explicit CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~CompactOrItem();
 
         bool shortcut() const { return _shortcut; }
-        void setShortcut(const bool & s) { _shortcut = s; }
+        //void setShortcut(const bool & s) { _shortcut = s; }
 
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
@@ -74,15 +75,17 @@ namespace NeuroGui
         virtual void onDetach(NeuroItem *);
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+        virtual void setBrushProperties(QBrush &brush) const;
+
         virtual void adjustLinks();
-        virtual QVector2D getAttachPos(const QVector2D &dirTo);
+        virtual QVector2D getAttachPos(const QVector2D &);
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
 
     private:
         qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }
-        qreal getTip() const { return (getRadius() * 0.125f) * (_direction == DOWNWARD ? -1 : 1); }
+        qreal getTip() const { return (getRadius() * 0.2f) * (_direction == DOWNWARD ? -1 : 1); }
     }; // class CompactOrItem
 
 

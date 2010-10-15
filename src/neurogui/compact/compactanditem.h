@@ -83,7 +83,7 @@ namespace NeuroGui
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void adjustLinks();
-        virtual QVector2D getAttachPos(const QVector2D &dirTo);
+        virtual QVector2D getAttachPos(const QVector2D &);
 
         void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
