@@ -100,14 +100,17 @@ namespace NeuroGui
 
     NeuroItem::~NeuroItem()
     {
-        if (_ui_delete)
+    }
+
+    void NeuroItem::cleanup()
+    {
+        foreach (NeuroItem *item, _connections)
         {
-            foreach (NeuroItem *item, _connections)
-            {
-                item->onDetach(this);
-                this->onDetach(item);
-            }
+            item->onDetach(this);
+            this->onDetach(item);
         }
+
+        _connections.clear();
     }
 
     void NeuroItem::registerTypeName(const QString & mangledName, const QString & typeName, const QString & menuPath, const QString & uiName)

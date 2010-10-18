@@ -269,9 +269,58 @@ namespace NeuroGui
         return CompactItem::handleMove(mousePos, movePos);
     }
 
+    void CompactLinkItem::addEdges(NeuroItem *item)
+    {
+        NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
+
+        if (inhibit)
+        {
+            NeuroCell::Index linkOut = inhibit->getOutgoingCellFor(this);
+            NeuroCell::Index myIn = _frontward_cells.first();
+            if (linkOut != -1 && myIn != -1)
+                network()->neuronet()->addEdge(myIn, linkOut);
+
+            myIn = _backward_cells.first();
+            if (linkOut != -1 && myIn != -1)
+                network()->neuronet()->addEdge(myIn, linkOut);
+        }
+        else
+        {
+            CompactItem::addEdges(item);
+        }
+    }
+
+    void CompactLinkItem::removeEdges(NeuroItem *item)
+    {
+        NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
+
+        if (inhibit)
+        {
+            NeuroCell::Index linkOut = inhibit->getOutgoingCellFor(this);
+
+            NeuroCell::Index myIn = _frontward_cells.first();
+            if (linkOut != -1 && myIn != -1)
+                network()->neuronet()->removeEdge(myIn, linkOut);
+
+            myIn = _backward_cells.first();
+            if (linkOut != -1 && myIn != -1)
+                network()->neuronet()->removeEdge(myIn, linkOut);
+        }
+        else
+        {
+            CompactItem::removeEdges(item);
+        }
+    }
+
     bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
     {
         return true;
+    }
+
+    bool CompactLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    {
+        NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
+        return inhibit != 0;
     }
 
     void CompactLinkItem::onAttachTo(NeuroItem *item)
@@ -282,6 +331,15 @@ namespace NeuroGui
             setBackLinkTarget(item);
 
         CompactItem::onAttachTo(item);
+    }
+
+    void CompactLinkItem::onAttachedBy(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        CompactItem::onAttachedBy(item);
+        addEdges(item);
     }
 
     void CompactLinkItem::onDetach(NeuroItem *item)

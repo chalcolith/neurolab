@@ -235,7 +235,8 @@ namespace NeuroGui
 
     NeuroCell::Index NeuroLinkItem::getIncomingCellFor(const NeuroItem *item) const
     {
-        return item == _backLinkTarget ? _cellIndices.first() : -1;
+        const NeuroInhibitoryLinkItem *inhibit = dynamic_cast<const NeuroInhibitoryLinkItem *>(item);
+        return (item == _backLinkTarget || inhibit != 0) ? _cellIndices.first() : -1;
     }
 
     NeuroCell::Index NeuroLinkItem::getOutgoingCellFor(const NeuroItem *item) const
@@ -284,10 +285,17 @@ namespace NeuroGui
     {
         _incoming.insert(item);
         NeuroNarrowItem::onAttachedBy(item);
+        addEdges(item);
+        adjustLinks();
     }
 
     void NeuroLinkItem::onDetach(NeuroItem *item)
     {
+        if (_dragFront && item == _frontLinkTarget)
+            setFrontLinkTarget(0);
+        else if (!_dragFront && item == _backLinkTarget)
+            setBackLinkTarget(0);
+
         _incoming.remove(item);
         NeuroNarrowItem::onDetach(item);
     }

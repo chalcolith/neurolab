@@ -262,11 +262,6 @@ namespace NeuroGui
             {
                 linkedItem->onDetach(_self); // this should go first
                 _self->onDetach(linkedItem);
-
-                if (_dragFront)
-                    setFrontLinkTarget(0);
-                else
-                    setBackLinkTarget(0);
             }
         }
     }

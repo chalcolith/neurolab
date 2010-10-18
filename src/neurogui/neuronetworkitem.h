@@ -65,11 +65,12 @@ namespace NeuroGui
 
     protected:
         virtual void onDetach(NeuroItem *item);
+        virtual void cleanup();
 
         virtual void setPenProperties(QPen &pen) const;
 
-        void addEdges(NeuroItem *);
-        void removeEdges(NeuroItem *);
+        virtual void addEdges(NeuroItem *);
+        virtual void removeEdges(NeuroItem *);
 
         /// \return A pointer to the neural network cell's previous and current state.
         const NeuroLib::NeuroNet::ASYNC_STATE *getCell(const NeuroLib::NeuroCell::Index & index) const;

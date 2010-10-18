@@ -114,8 +114,13 @@ namespace NeuroGui
     protected:
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
 
+        virtual void addEdges(NeuroItem *);
+        virtual void removeEdges(NeuroItem *);
+
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
         virtual void onAttachTo(NeuroItem *);
+        virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
 
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;

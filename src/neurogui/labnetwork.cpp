@@ -472,6 +472,7 @@ namespace NeuroGui
             {
                 sc->setItemUnderMouse(0);
 
+                underMouse->cleanup();
                 underMouse->setUIDelete();
                 emit itemDeleted(underMouse);
                 sc->removeItem(underMouse);
@@ -486,6 +487,7 @@ namespace NeuroGui
                 NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
                 if (item)
                 {
+                    item->cleanup();
                     item->setUIDelete();
                     emit itemDeleted(item);
                 }

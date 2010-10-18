@@ -90,6 +90,9 @@ namespace NeuroGui
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
 
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *item) const;
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *item) const;
+
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();
 
@@ -108,9 +111,6 @@ namespace NeuroGui
         virtual void setPenGradient(QPen &pen, const QLineF &line) const;
 
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
-
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *item) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *item) const;
 
         /// Add a new automaton cell.
         virtual void addNewCell() = 0;

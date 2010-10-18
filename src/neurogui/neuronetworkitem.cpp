@@ -54,6 +54,17 @@ namespace NeuroGui
     {
     }
 
+    void NeuroNetworkItem::cleanup()
+    {
+        // we need to do this before the connections are broken
+        foreach (NeuroItem *ni, connections())
+        {
+            removeEdges(ni);
+        }
+
+        NeuroItem::cleanup();
+    }
+
     void NeuroNetworkItem::onDetach(NeuroItem *item)
     {
         removeEdges(item);

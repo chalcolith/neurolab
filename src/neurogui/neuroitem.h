@@ -172,6 +172,9 @@ namespace NeuroGui
         /// Called when two nodes are detached.
         virtual void onDetach(NeuroItem *item) { _connections.remove(item); }
 
+        /// Called before destruction.
+        virtual void cleanup();
+
         /// Called when an item moves, so it can adjust the position or shape of any incoming or outgoing items.
         virtual void adjustLinks() { }
 
