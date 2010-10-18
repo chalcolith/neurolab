@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../neurogui_global.h"
 #include "compactnodeitem.h"
+#include "../neurolib/neurocell.h"
 
 namespace NeuroGui
 {
@@ -50,9 +51,8 @@ namespace NeuroGui
 
     protected:
         bool _shortcut;
-        QSet<NeuroItem *> _shortcut_nodes;
-
-        //Property<CompactOrItem, QVariant::Bool, bool, bool> _shortcut_property;
+        QSet<NeuroItem *> _shortcut_items;
+        QList<NeuroCell::Index> _shortcut_cells;
 
     public:
         explicit CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);

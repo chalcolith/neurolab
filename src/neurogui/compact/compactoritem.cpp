@@ -85,7 +85,7 @@ namespace NeuroGui
     {
         const MixinArrow *link;
 
-        if (_shortcut_nodes.contains(const_cast<NeuroItem *>(item)) && (link = dynamic_cast<const MixinArrow *>(item)))
+        if (_shortcut_items.contains(const_cast<NeuroItem *>(item)) && (link = dynamic_cast<const MixinArrow *>(item)))
         {
             if (link->frontLinkTarget() == this)
                 return QPointF(link->line().p2().x(), scenePos().y() + getTip());
@@ -100,10 +100,33 @@ namespace NeuroGui
 
     void CompactOrItem::preStep()
     {
+        // for each shortcut link
+        foreach (NeuroItem *ni, _shortcut_items)
+        {
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
+            if (!link)
+                continue;
+
+            // get the target of the link
+            NeuroNetworkItem *linkTarget =
+                    dynamic_cast<NeuroNetworkItem *>(link->frontLinkTarget() == this ? link->backLinkTarget() : link->frontLinkTarget());
+            if (!linkTarget)
+                continue;
+
+            //
+        }
     }
 
     void CompactOrItem::postStep()
     {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        // tear down shortcut cells
+        foreach (NeuroCell::Index index, _shortcut_cells)
+        {
+            network()->neuronet()->removeNode(index);
+        }
     }
 
     bool CompactOrItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
@@ -162,13 +185,13 @@ namespace NeuroGui
             qreal bound = getRadius() * 0.5f;
 
             if (diff >= bound)
-                _shortcut_nodes.insert(item);
+                _shortcut_items.insert(item);
         }
     }
 
     void CompactOrItem::onDetach(NeuroItem *item)
     {
-        _shortcut_nodes.remove(item);
+        _shortcut_items.remove(item);
 
         removeEdges(item);
         CompactNodeItem::onDetach(item);
