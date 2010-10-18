@@ -283,6 +283,18 @@ namespace NeuroGui
 
         id = _backLinkTarget ? _backLinkTarget->id() : 0;
         ds << id;
+
+        // incoming
+        qint32 num = static_cast<qint32>(_incoming.size());
+        ds << num;
+
+        foreach (NeuroItem *item, _incoming)
+        {
+            if (item)
+                ds << static_cast<NeuroItem::IdType>(item->id());
+            else
+                ds << static_cast<NeuroItem::IdType>(0);
+        }
     }
 
     void MixinArrow::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -315,6 +327,23 @@ namespace NeuroGui
             if (id)
                 _backLinkTarget = reinterpret_cast<NeuroItem *>(id);
         }
+
+        // incoming
+        if (file_version.neurolab_version >= NEUROLAB_FILE_VERSION_7)
+        {
+            qint32 num;
+            ds >> num;
+
+            _incoming.clear();
+            for (qint32 i = 0; i < num; ++i)
+            {
+                NeuroItem::IdType id;
+                ds >> id;
+
+                if (id)
+                    _incoming.insert(reinterpret_cast<NeuroItem *>(id));
+            }
+        }
     }
 
     void MixinArrow::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
@@ -342,6 +371,22 @@ namespace NeuroGui
         {
             throw LabException(QObject::tr("Link in file has dangling ID: %2").arg(backId));
         }
+
+        // incoming
+        QSet<NeuroItem *> itemsToAdd;
+
+        foreach (NeuroItem *ni, _incoming)
+        {
+            NeuroItem::IdType wanted_id = reinterpret_cast<NeuroItem::IdType>(ni);
+            NeuroItem *wanted_item = idMap[wanted_id];
+
+            if (wanted_item)
+                itemsToAdd.insert(wanted_item);
+            else
+                throw LabException(QObject::tr("Dangling node id in link incoming: %1").arg(wanted_id));
+        }
+
+        _incoming = itemsToAdd;
     }
 
 } // namespace NeuroGui

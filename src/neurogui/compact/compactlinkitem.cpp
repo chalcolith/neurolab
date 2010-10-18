@@ -269,6 +269,18 @@ namespace NeuroGui
         return CompactItem::handleMove(mousePos, movePos);
     }
 
+    void CompactLinkItem::adjustLinks()
+    {
+        QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
+
+        foreach (NeuroItem *ni, _incoming)
+        {
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
+            if (link)
+                link->setLine(link->line().p1(), center.toPointF());
+        }
+    }
+
     void CompactLinkItem::addEdges(NeuroItem *item)
     {
         NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
@@ -338,8 +350,10 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
+        _incoming.insert(item);
         CompactItem::onAttachedBy(item);
         addEdges(item);
+        adjustLinks();
     }
 
     void CompactLinkItem::onDetach(NeuroItem *item)
@@ -349,6 +363,7 @@ namespace NeuroGui
         else if (!_dragFront && item == _backLinkTarget)
             setBackLinkTarget(0);
 
+        _incoming.remove(item);
         CompactItem::onDetach(item);
     }
 

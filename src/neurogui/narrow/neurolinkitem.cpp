@@ -227,7 +227,7 @@ namespace NeuroGui
 
         foreach (NeuroItem *ni, _incoming)
         {
-            NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(ni);
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
             if (link)
                 link->setLine(link->line().p1(), center.toPointF());
         }
@@ -387,18 +387,6 @@ namespace NeuroGui
     {
         NeuroNarrowItem::writePointerIds(ds, file_version);
         MixinArrow::writePointerIds(ds, file_version);
-
-        // incoming
-        qint32 num = static_cast<qint32>(_incoming.size());
-        ds << num;
-
-        foreach (NeuroItem *item, _incoming)
-        {
-            if (item)
-                ds << static_cast<IdType>(item->id());
-            else
-                ds << static_cast<IdType>(0);
-        }
     }
 
     void NeuroLinkItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)
@@ -406,44 +394,12 @@ namespace NeuroGui
         NeuroNarrowItem::readPointerIds(ds, file_version);
         MixinArrow::readPointerIds(ds, file_version);
 
-        // incoming5
-        if (file_version.neurolab_version >= NEUROLAB_FILE_VERSION_7)
-        {
-            qint32 num;
-            ds >> num;
-
-            _incoming.clear();
-            for (qint32 i = 0; i < num; ++i)
-            {
-                IdType id;
-                ds >> id;
-
-                if (id)
-                    _incoming.insert(reinterpret_cast<NeuroItem *>(id));
-            }
-        }
     }
 
     void NeuroLinkItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
         NeuroNarrowItem::idsToPointers(idMap);
         MixinArrow::idsToPointers(idMap);
-
-        // incoming
-        QSet<NeuroItem *> itemsToAdd;
-
-        foreach (NeuroItem *ni, _incoming)
-        {
-            IdType wanted_id = reinterpret_cast<IdType>(ni);
-            NeuroItem *wanted_item = idMap[wanted_id];
-
-            if (wanted_item)
-                itemsToAdd.insert(wanted_item);
-            else
-                throw LabException(tr("Dangling node id in link incoming: %1").arg(wanted_id));
-        }
-
-        _incoming = itemsToAdd;
     }
 
 

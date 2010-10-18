@@ -64,6 +64,8 @@ namespace NeuroGui
         NeuroItem *_frontLinkTarget, *_backLinkTarget;
         bool _dragFront, _settingLine;
 
+        QSet<NeuroItem *> _incoming;
+
     public:
         /// Constructor.
         /// You must call this in derived classes' initialization, in order to correctly set the self pointer.

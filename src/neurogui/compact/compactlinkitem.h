@@ -113,6 +113,7 @@ namespace NeuroGui
 
     protected:
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
+        virtual void adjustLinks();
 
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);
