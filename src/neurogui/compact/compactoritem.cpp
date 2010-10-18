@@ -45,7 +45,7 @@ namespace NeuroGui
 
     CompactOrItem::CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactNodeItem(network, scenePos, context),
-        _shortcut(false)
+        _shortcut(true)
         //_shortcut_property(this, &CompactOrItem::shortcut, &CompactOrItem::setShortcut,
         //                   tr("Shortcut"), tr("Whether or not this OR node can be used for choosing alternatives."))
     {
@@ -79,6 +79,23 @@ namespace NeuroGui
             return _frontwardTipCell;
         else
             return _backwardTipCell;
+    }
+
+    QPointF CompactOrItem::targetPointFor(const NeuroItem *item) const
+    {
+        const MixinArrow *link;
+
+        if (_shortcut_nodes.contains(const_cast<NeuroItem *>(item)) && (link = dynamic_cast<const MixinArrow *>(item)))
+        {
+            if (link->frontLinkTarget() == this)
+                return QPointF(link->line().p2().x(), scenePos().y() + getTip());
+            else
+                return QPointF(link->line().p1().x(), scenePos().y() + getTip());
+        }
+        else
+        {
+            return scenePos();
+        }
     }
 
     void CompactOrItem::preStep()
@@ -135,15 +152,23 @@ namespace NeuroGui
         }
 
         CompactNodeItem::onAttachedBy(item);
-
-        // TODO: set up shortcut stuff
-
         addEdges(item);
+
+        // add to shortcut nodes
+        if (link)
+        {
+            QPointF attachPos = link->frontLinkTarget() == this ? link->line().p2() : link->line().p1();
+            qreal diff = qAbs(attachPos.x() - scenePos().x());
+            qreal bound = getRadius() * 0.5f;
+
+            if (diff >= bound)
+                _shortcut_nodes.insert(item);
+        }
     }
 
     void CompactOrItem::onDetach(NeuroItem *item)
     {
-        // TODO: clean up shortcut stuff
+        _shortcut_nodes.remove(item);
 
         removeEdges(item);
         CompactNodeItem::onDetach(item);
@@ -179,11 +204,11 @@ namespace NeuroGui
         else
             y = 1;
 
-        if (posOnTip(pos.toPointF()))
+        if (!posOnTip(pos.toPointF()))
         {
             qreal radius = getRadius();
             if (qAbs(pos.x()) > radius/3.0f)
-                x = qBound(-1.0, pos.x(), 1.0) * 2.0f / 3.0f;
+                x = radius * qBound(-1.0, pos.x(), 1.0) * 0.5f;
         }
 
         return QVector2D(x, y);

@@ -170,7 +170,11 @@ namespace NeuroGui
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
         NeuroNarrowItem::setPenProperties(pen);
+        setPenGradient(pen, _line);
+    }
 
+    void NeuroLinkItem::setPenGradient(QPen &pen, const QLineF &line) const
+    {
         // get weight
         qreal w = qBound(0.0f, qAbs(weight()), 1.0f);
 
@@ -198,7 +202,7 @@ namespace NeuroGui
         const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
         bool frozen = cell && cell->current().frozen();
 
-        QLinearGradient gradient(_line.p1(), _line.p2());
+        QLinearGradient gradient(line.p1(), line.p2());
 
         for (int i = 0; i < steps.size(); ++i)
         {

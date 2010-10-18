@@ -96,7 +96,7 @@ namespace NeuroGui
         /// The item that the front of the link is currently attached to.
         /// \see line()
         /// \see setFrontLinkTarget()
-        NeuroItem *frontLinkTarget() { return _frontLinkTarget; }
+        NeuroItem *frontLinkTarget() const { return _frontLinkTarget; }
 
         /// Sets the item that the front of the link is currently attached to.
         /// \see line()
@@ -106,12 +106,15 @@ namespace NeuroGui
         /// The item that the back of the link is currently attached to.
         /// \see line()
         /// \see setBackLinkTarget()
-        NeuroItem *backLinkTarget() { return _backLinkTarget; }
+        NeuroItem *backLinkTarget() const { return _backLinkTarget; }
 
         /// Sets the item that the back of the link is currently attached to.
         /// \see line()
         /// \see backLinkTarget()
         virtual void setBackLinkTarget(NeuroItem *linkTarget);
+
+        /// Used to shortcut setting the gradient for subconnection items.
+        virtual void setPenGradient(QPen & pen, const QLineF & line) const {}
 
     protected:
         /// Draws the arrow's shaft.

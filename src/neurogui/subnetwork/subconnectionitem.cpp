@@ -213,7 +213,7 @@ namespace NeuroGui
 
         if (_frontLinkTarget)
         {
-            QVector2D center(_frontLinkTarget->scenePos());
+            QVector2D center(_frontLinkTarget->targetPointFor(this));
             QVector2D toFront = QVector2D(line().p2()) - center;
             c2 = (center + toFront * 3) - myPos;
         }
@@ -285,15 +285,21 @@ namespace NeuroGui
 
     void SubConnectionItem::setPenProperties(QPen &pen) const
     {
-        if (_governingItem)
+        const MixinArrow *link = dynamic_cast<const MixinArrow *>(_governingItem);
+
+        if (link)
+        {
+            link->setPenGradient(pen, _line);
+        }
+        else if (_governingItem)
         {
             _governingItem->setPenProperties(pen);
-
-            if (shouldHighlight())
-                pen.setWidth(NeuroItem::HOVER_LINE_WIDTH);
-            else
-                pen.setWidth(NeuroItem::NORMAL_LINE_WIDTH);
         }
+
+        if (shouldHighlight())
+            pen.setWidth(NeuroItem::HOVER_LINE_WIDTH);
+        else
+            pen.setWidth(NeuroItem::NORMAL_LINE_WIDTH);
     }
 
     void SubConnectionItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const

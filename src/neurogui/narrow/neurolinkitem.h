@@ -105,6 +105,7 @@ namespace NeuroGui
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void setPenProperties(QPen & pen) const;
+        virtual void setPenGradient(QPen &pen, const QLineF &line) const;
 
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
