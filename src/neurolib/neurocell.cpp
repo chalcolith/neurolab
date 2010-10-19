@@ -196,9 +196,6 @@ namespace NeuroLib
             // the weight should be negative, so only clip the inputs
             next_value = qBound(ZERO, input_sum, ONE) * inhibit_factor * prev._weight;
             break;
-        case THRESHOLD_INHIBITORY_LINK:
-            next_value = qBound(ZERO, sigmoid(prev._run, 0.1f, input_sum), ONE) * inhibit_factor * prev._weight;
-            break;
         default:
             break;
         }

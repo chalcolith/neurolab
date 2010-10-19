@@ -62,7 +62,6 @@ namespace NeuroLib
             EXCITORY_LINK,
             INHIBITORY_LINK,
             OSCILLATOR,
-            THRESHOLD_INHIBITORY_LINK,
             NUM_KINDS
         };
 
