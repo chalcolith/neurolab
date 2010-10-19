@@ -304,9 +304,6 @@ namespace NeuroGui
         /// Used to handle movement.
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
-        /// Handles transforming ids to actual pointers.
-        virtual void idsToPointersAux(QSet<NeuroItem *> & items, const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
-
         /// Linear interpolation for colors.
         /// \return A color that is \c t of the way between \c a and \c b.
         static QColor lerp(const QColor & a, const QColor & b, const qreal & t);

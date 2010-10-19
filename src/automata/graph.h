@@ -232,6 +232,17 @@ namespace Automata
             }
         }
 
+        void clear()
+        {
+            QWriteLocker nl(&_nodes_lock);
+            QWriteLocker el(&_edges_lock);
+
+            _nodes.clear();
+            _edges.clear();
+            _edges_to.clear();
+            _free_nodes.clear();
+        }
+
         /// Access a node in the graph.
         /// \returns A const reference to a node in the graph.
         /// \param index The index of the node.
@@ -259,11 +270,11 @@ namespace Automata
         /// \note This pointer is not stable over graph updates, obviously.
         /// \param index The index of the node.
         /// \param num Is set to the size of the array.
-        TIndex * neighbors(const TIndex & index, int & num) const
+        const TIndex * neighbors(const TIndex & index, int & num) const
         {
             if (index < _nodes.size())
             {
-                const QList<TIndex> & nbrs = _edges[index];
+                const QVector<TIndex> & nbrs = _edges[index];
                 num = nbrs.size();
                 return nbrs.data();
             }

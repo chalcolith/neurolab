@@ -43,6 +43,7 @@ namespace NeuroLib
 {
 
     const NeuroCell::Value NeuroCell::DEFAULT_LINK_WEIGHT = 1.1f;
+    const NeuroCell::Value NeuroCell::EPSILON = static_cast<NeuroCell::Value>(0.000001f);
 
     NeuroCell::NeuroCell(const KindOfCell & k,
                          const Value & weight,
@@ -69,7 +70,6 @@ namespace NeuroLib
     static const NeuroCell::Value ONE = static_cast<NeuroCell::Value>(1.0f);
     static const NeuroCell::Value SLOPE_Y = static_cast<NeuroCell::Value>(0.99f);
     static const NeuroCell::Value SLOPE_OFFSET = static_cast<NeuroCell::Value>(6.0f);
-    static const NeuroCell::Value EPSILON = static_cast<NeuroCell::Value>(0.000001f);
     static const NeuroCell::Value MAX_LINK = static_cast<NeuroCell::Value>(1.1f);
 
     static NeuroCell::Value sigmoid(const NeuroCell::Value & threshold, const NeuroCell::Value & run, const NeuroCell::Value & input)

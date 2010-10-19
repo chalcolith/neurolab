@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../neurogui_global.h"
 #include "compactnodeitem.h"
-#include "../neurolib/neurocell.h"
+#include "../../neurolib/neurocell.h"
 
 namespace NeuroGui
 {
@@ -51,15 +51,15 @@ namespace NeuroGui
 
     protected:
         bool _shortcut;
-        QSet<NeuroItem *> _shortcut_items;
-        QList<NeuroCell::Index> _shortcut_cells;
+        QSet<NeuroItem *> _shortcutItems;
+
+        NeuroLib::NeuroNet _futureNetwork;
 
     public:
         explicit CompactOrItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~CompactOrItem();
 
         bool shortcut() const { return _shortcut; }
-        //void setShortcut(const bool & s) { _shortcut = s; }
 
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
@@ -84,6 +84,10 @@ namespace NeuroGui
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+
+        virtual void writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
 
     private:
         qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }

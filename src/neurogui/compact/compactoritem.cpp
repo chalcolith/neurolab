@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "compactoritem.h"
+#include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 
@@ -85,7 +86,7 @@ namespace NeuroGui
     {
         const MixinArrow *link;
 
-        if (_shortcut_items.contains(const_cast<NeuroItem *>(item)) && (link = dynamic_cast<const MixinArrow *>(item)))
+        if (_shortcutItems.contains(const_cast<NeuroItem *>(item)) && (link = dynamic_cast<const MixinArrow *>(item)))
         {
             if (link->frontLinkTarget() == this)
                 return QPointF(link->line().p2().x(), scenePos().y() + getTip());
@@ -100,21 +101,6 @@ namespace NeuroGui
 
     void CompactOrItem::preStep()
     {
-        // for each shortcut link
-        foreach (NeuroItem *ni, _shortcut_items)
-        {
-            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
-            if (!link)
-                continue;
-
-            // get the target of the link
-            NeuroNetworkItem *linkTarget =
-                    dynamic_cast<NeuroNetworkItem *>(link->frontLinkTarget() == this ? link->backLinkTarget() : link->frontLinkTarget());
-            if (!linkTarget)
-                continue;
-
-            //
-        }
     }
 
     void CompactOrItem::postStep()
@@ -122,10 +108,98 @@ namespace NeuroGui
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
-        // tear down shortcut cells
-        foreach (NeuroCell::Index index, _shortcut_cells)
+        // check the output of all our shortcut links
+        foreach (NeuroItem *ni, _shortcutItems)
         {
-            network()->neuronet()->removeNode(index);
+            // make sure the item is a link and a network item
+            MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
+            if (!link)
+                continue;
+
+            NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(ni);
+            if (!netItem)
+                continue;
+
+            // get link target
+            NeuroItem *linkTarget = link->frontLinkTarget() == this ? link->backLinkTarget() : link->frontLinkTarget();
+            NeuroNetworkItem *netTarget = dynamic_cast<NeuroNetworkItem *>(linkTarget);
+            if (!netTarget)
+                continue;
+
+            // if the link's output is not activated, forget about it
+            NeuroCell::Index linkOutgoingIndex = netItem->getOutgoingCellFor(linkTarget);
+            NeuroNet::ASYNC_STATE *linkOutgoingCell = getCell(linkOutgoingIndex);
+            if (!linkOutgoingCell || linkOutgoingCell->current().outputValue() < NeuroCell::EPSILON)
+                continue;
+
+            // otherwise, get its incoming cell
+            NeuroCell::Index targetCellIndex = netTarget->getIncomingCellFor(ni);
+            if (targetCellIndex == -1)
+                continue;
+
+            NeuroNet::ASYNC_STATE *targetCell = getCell(targetCellIndex);
+            if (!targetCell)
+                continue;
+
+            // copy the link target and all its neighbors to our little network
+            _futureNetwork.clear();
+            NeuroCell::Index targetCellCopyIndex = _futureNetwork.addNode(targetCell->current());
+
+            int num_neighbors;
+            const NeuroCell::Index *neighbors = network()->neuronet()->neighbors(targetCellIndex, num_neighbors);
+            for (int i = 0; i < num_neighbors; ++i)
+            {
+                NeuroNet::ASYNC_STATE *inputCell = getCell(neighbors[i]);
+                if (inputCell)
+                {
+                    NeuroCell::Index inputCellCopyIndex = _futureNetwork.addNode(inputCell->current());
+                    _futureNetwork.addEdge(targetCellCopyIndex, inputCellCopyIndex);
+                }
+            }
+
+            // run the little network forward one step (three updates)
+            _futureNetwork.stepInThread();
+            _futureNetwork.stepInThread();
+            _futureNetwork.stepInThread();
+
+            // get the value of the target cell in the little network
+            NeuroCell::Value futureValue = _futureNetwork[targetCellCopyIndex].current().outputValue();
+            if (futureValue > NeuroCell::EPSILON)
+            {
+                // inhibit central links
+                foreach (NeuroItem *baseItem, _baseLinkItems)
+                {
+                    if (_shortcutItems.contains(baseItem))
+                        continue;
+                    NeuroNetworkItem *netBase = dynamic_cast<NeuroNetworkItem *>(baseItem);
+                    if (!netBase)
+                        continue;
+
+                    NeuroCell::Value curValue = netBase->outputValue();
+                    NeuroCell::Value newValue = 1.0f - qBound(0.0f, futureValue, 1.0f);
+                    newValue = qMin(curValue, newValue);
+
+                    // get base link's outgoing cell
+                    MixinArrow *baseLink = dynamic_cast<MixinArrow *>(baseItem);
+                    if (baseLink)
+                    {
+                        NeuroItem *baseTarget = baseLink->frontLinkTarget() == this ? baseLink->backLinkTarget() : baseLink->frontLinkTarget();
+                        NeuroCell::Index baseOutgoingIndex = netBase->getOutgoingCellFor(baseTarget);
+                        if (baseOutgoingIndex != -1)
+                        {
+                            NeuroNet::ASYNC_STATE *baseCell = &(*network()->neuronet())[baseOutgoingIndex];
+                            baseCell->current().setOutputValue(newValue);
+                            baseCell->former().setOutputValue(newValue);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // inhibit this link's output
+                linkOutgoingCell->current().setOutputValue(0);
+                linkOutgoingCell->former().setOutputValue(0);
+            }
         }
     }
 
@@ -185,13 +259,13 @@ namespace NeuroGui
             qreal bound = getRadius() * 0.5f;
 
             if (diff >= bound)
-                _shortcut_items.insert(item);
+                _shortcutItems.insert(item);
         }
     }
 
     void CompactOrItem::onDetach(NeuroItem *item)
     {
-        _shortcut_items.remove(item);
+        _shortcutItems.remove(item);
 
         removeEdges(item);
         CompactNodeItem::onDetach(item);
@@ -223,9 +297,9 @@ namespace NeuroGui
         qreal x = 0, y;
 
         if (pos.y() <= 0)
-            y = -1;
+            y = -2;
         else
-            y = 1;
+            y = 2;
 
         if (!posOnTip(pos.toPointF()))
         {
@@ -249,6 +323,54 @@ namespace NeuroGui
         CompactNodeItem::readBinary(ds, file_version);
 
         ds >> _shortcut;
+    }
+
+    void CompactOrItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        CompactNodeItem::writePointerIds(ds, file_version);
+
+        ds << static_cast<qint32>(_shortcutItems.size());
+        foreach (NeuroItem *ni, _shortcutItems)
+        {
+            ds << static_cast<NeuroItem::IdType>(ni->id());
+        }
+    }
+
+    void CompactOrItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        CompactNodeItem::readPointerIds(ds, file_version);
+
+        qint32 num;
+        ds >> num;
+
+        _shortcutItems.clear();
+        for (qint32 i = 0; i < num; ++i)
+        {
+            NeuroItem::IdType id;
+            ds >> id;
+
+            if (id)
+                _shortcutItems.insert(reinterpret_cast<NeuroItem *>(id));
+        }
+    }
+
+    void CompactOrItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap)
+    {
+        CompactNodeItem::idsToPointers(idMap);
+
+        QSet<NeuroItem *> itemsToAdd;
+        foreach (NeuroItem *ni, _shortcutItems)
+        {
+            NeuroItem::IdType wanted_id = reinterpret_cast<NeuroItem::IdType>(ni);
+            NeuroItem *wanted_item = idMap[wanted_id];
+
+            if (wanted_item)
+                itemsToAdd.insert(wanted_item);
+            else
+                throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
+        }
+
+        _shortcutItems = itemsToAdd;
     }
 
 

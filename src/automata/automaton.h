@@ -100,9 +100,20 @@ namespace Automata
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
+        /// \note Executes in a separate step, and blocks until the step returns.
         inline void step()
         {
             stepAsync().waitForFinished();
+        }
+
+        /// Causes the automaton to be advanced by one-third of a timestep, in the calling thread.
+        inline void stepInThread()
+        {
+            const int num = this->_nodes.size();
+            for (int i = 0; i < num; ++i)
+            {
+                update(this->_nodes[i]);
+            }
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.

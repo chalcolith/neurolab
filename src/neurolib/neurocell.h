@@ -76,6 +76,7 @@ namespace NeuroLib
 
         typedef Automata::Automaton<NeuroCell, NeuroCell::Index> NEURONET_BASE;
 
+        static const Value EPSILON;
         static const Value DEFAULT_LINK_WEIGHT;
 
         /// Constructor.

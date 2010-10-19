@@ -729,14 +729,9 @@ namespace NeuroGui
 
     void NeuroItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
-        idsToPointersAux(_connections, idMap);
-    }
-
-    void NeuroItem::idsToPointersAux(QSet<NeuroItem *> & items, const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
-    {
         QSet<NeuroItem *> itemsToAdd;
 
-        foreach (NeuroItem *ni, items)
+        foreach (NeuroItem *ni, _connections)
         {
             IdType wanted_id = reinterpret_cast<IdType>(ni);
             NeuroItem *wanted_item = idMap[wanted_id];
@@ -747,7 +742,7 @@ namespace NeuroGui
                 throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
         }
 
-        items = itemsToAdd;
+        _connections = itemsToAdd;
     }
 
 } // namespace NeuroGui
