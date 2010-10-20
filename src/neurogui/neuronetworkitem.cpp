@@ -65,6 +65,15 @@ namespace NeuroGui
         NeuroItem::cleanup();
     }
 
+    QString NeuroNetworkItem::dataValue() const
+    {
+        NeuroCell::Value val = outputValue();
+        if (val < NeuroCell::EPSILON)
+            val = 0;
+
+        return QString::number(val);
+    }
+
     void NeuroNetworkItem::onDetach(NeuroItem *item)
     {
         removeEdges(item);

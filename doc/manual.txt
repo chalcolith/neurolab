@@ -1,38 +1,78 @@
 Neurocognitive Linguistics Laboratory User Manual
 =================================================
 Gordon Tisher <gordon@balafon.net>
-1.1.0: Initial Version
 :toc:
 :icons:
 
-Neurocognitive Linguistics is an approach to linguistics developed by
-http://www.ruf.rice.edu/~lamb[Sydney Lamb] which uses relational
-networks to model what the brain actually does when it handles
-language. You can read more about it at the
-http://www.ruf.rice.edu/~lngbrain/main.htm[LangBrain] web site and the
-http://www.glottopedia.de/index.php/Neurocognitive_linguistics[Glottopedia] wiki.
 
 Introduction
-============
+------------
+
+Neurocognitive Linguistics is an approach to linguistics developed by http://www.ruf.rice.edu/%7Elamb[Sydney Lamb] which uses relational networks to model what the brain actually does when it handles language. You can read more about it at the http://www.ruf.rice.edu/%7Elngbrain/main.htm[LangBrain] web site and the http://www.glottopedia.de/index.php/Neurocognitive_linguistics[Glottopedia] wiki.
 
 Neurocognitive Linguistics Lab (``NeuroLab'' for short) is a program that allows you to experiment with relational networks using a convenient GUI, and record the results of your experiments in tabular form.
 
-The Neurocognitive Linguistics Lab is Copyright (C) 2010 Gordon Tisher, and available under the terms of the BSD License.
+Neurocognitive Linguistics Lab is Copyright (C) 2010 Gordon Tisher, and available under the terms of the <<bsd_license, BSD License>>.
 
 
 Getting Started
-===============
+---------------
+
+You can find this manual, as well as other information, at the http://bitbucket.org/kulibali/neurocogling/wiki/Home[NeuroLab website].
 
 Download and Install
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
+The latest distribution of NeuroLab is at the http://bitbucket.org/kulibali/neurocogling/downloads[Download Page].  NeuroLab is available for Windows XP/Vista/7, Mac OS X, and Linux.
+
+Windows
+^^^^^^^
+
+The Windows distribution comes in two forms, a ZIP file and a Windows Installer MSI file.  To run NeuroLab from the ZIP file, download it, then right-click it in Windows Explorer and choose "Extract All" from the context menu.  This will create a new folder containing the executable program +NeuroLab.exe+, along with a +samples+ directory that contains several sample files.  If you choose to use the MSI file, simply download and run it.  This will install the program to +C:\Program Files+ (or wherever else you choose to install it) and create a Start Menu entry for it.  The sample files can be located in +C:\Program Files\NeuroLab\samples+.
+
+Mac OS X
+^^^^^^^^
+
+The OS X distribution is a DMG disk image file, which, when you download it, should open to reveal the NeuroLab application, which you can drag to your Applications folder, if you like, or run directly from the mounted DMG.  A +samples+ folder containing several sample files is included in the DMG.
+
+Linux
+^^^^^
+
+The Linux distribution is a tarball.  Download and extract it.  The resulting directory contains a script called +neurolab+ that launches the application, as well as a +samples+ folder containing several sample files.
+
+
+Using NeuroLab
+~~~~~~~~~~~~~~
+
+This is NeuroLab's main screen:
+
+.Main Screen
+image::images/main_screen.png[Main Screen]
 
 
 
 [appendix]
 Mathematical Details
-====================
+--------------------
 
+Blah blah blah
+
+
+[[bsd_license]]
 [appendix]
 License
-=======
+-------
+
+Neurocognitive Linguistics Lab
+
+Copyright (c) 2010, Gordon Tisher
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+- Neither the name of the Neurocognitive Linguistics Lab nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

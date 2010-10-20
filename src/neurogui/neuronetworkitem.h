@@ -55,7 +55,7 @@ namespace NeuroGui
         explicit NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNetworkItem();
 
-        virtual QString dataValue() const { return QString::number(outputValue()); }
+        virtual QString dataValue() const;
 
         virtual NeuroLib::NeuroCell::Value outputValue() const = 0;
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) = 0;

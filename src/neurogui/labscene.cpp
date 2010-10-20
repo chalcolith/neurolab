@@ -144,7 +144,7 @@ namespace NeuroGui
         _mouseIsDown = true;
         _lastMousePos = event->scenePos();
 
-        if (event->button() == Qt::LeftButton && _itemUnderMouse)
+        if (event->button() == Qt::LeftButton && _itemUnderMouse && selectedItems().size() <= 1)
         {
             _itemUnderMouse->bringToFront();
 
@@ -173,6 +173,12 @@ namespace NeuroGui
                 clearSelection();
                 _itemUnderMouse->setSelected(true);
             }
+        }
+        else if (event->button() == Qt::RightButton && _itemUnderMouse)
+        {
+            clearSelection();
+            _itemUnderMouse->bringToFront();
+            _itemUnderMouse->setSelected(true);
         }
 
         QGraphicsScene::mousePressEvent(event);
