@@ -460,12 +460,12 @@ namespace NeuroGui
         }
     }
 
-    bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *item)
+    bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *)
     {
         return false;
     }
 
-    bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *)
     {
         return false;
     }

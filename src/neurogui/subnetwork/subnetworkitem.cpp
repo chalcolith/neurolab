@@ -263,7 +263,7 @@ namespace NeuroGui
         drawPath.addRect(_rect);
     }
 
-    void SubNetworkItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+    void SubNetworkItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *)
     {
         makeSubNetwork();
 

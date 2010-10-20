@@ -116,7 +116,7 @@ namespace NeuroGui
         virtual void setBackLinkTarget(NeuroItem *linkTarget);
 
         /// Used to shortcut setting the gradient for subconnection items.
-        virtual void setPenGradient(QPen & pen, const QLineF & line) const {}
+        virtual void setPenGradient(QPen &, const QLineF &) const {}
 
     protected:
         /// Draws the arrow's shaft.

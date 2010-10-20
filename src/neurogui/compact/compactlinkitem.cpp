@@ -324,7 +324,7 @@ namespace NeuroGui
         }
     }
 
-    bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
+    bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *)
     {
         return true;
     }

@@ -92,11 +92,11 @@ namespace NeuroLib
                   const Value & current_value = 0);
 
         /// \return The kind of cell.
-        inline const KindOfCell kind() const { return _kind; }
+        inline KindOfCell kind() const { return _kind; }
 
         /// \return Whether or not the node is "frozen".  A frozen node will not be updated, but maintain its current output value.
         /// \see NeuroCell::setFrozen()
-        inline const bool frozen() const { return _frozen; }
+        inline bool frozen() const { return _frozen; }
 
         /// Sets the "frozen" state of the node.
         /// \see NeuroCell::frozen()

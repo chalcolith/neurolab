@@ -266,12 +266,12 @@ namespace NeuroGui
         }
     }
 
-    void MixinArrow::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    void MixinArrow::writeBinary(QDataStream &ds, const NeuroLabFileVersion &) const
     {
         ds << _line;
     }
 
-    void MixinArrow::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    void MixinArrow::readBinary(QDataStream &ds, const NeuroLabFileVersion &)
     {
         ds >> _line;
     }

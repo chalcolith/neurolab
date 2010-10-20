@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labscene.h"
 #include "labnetwork.h"
 
-#include <Qaction>
+#include <QAction>
 #include <QLayout>
 #include <typeinfo>
 
@@ -146,7 +146,7 @@ namespace NeuroGui
         }
     }
 
-    LabTreeNode *LabTreeNode::createChild(const QString &label)
+    LabTreeNode *LabTreeNode::createChild(const QString &)
     {
         LabTreeNode *child = new LabTreeNode(_tree, this);
         _children.append(child);

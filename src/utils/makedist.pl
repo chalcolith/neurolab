@@ -3,7 +3,7 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '/opt/qtsdk-2010.04';
+my $qt_base_dir = '/opt/qtsdk-2010.05';
 
 my $cwd = getcwd();
 if ($cwd =~ /utils$/)

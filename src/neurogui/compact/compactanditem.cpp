@@ -390,7 +390,7 @@ namespace NeuroGui
         }
     }
 
-    void CompactAndItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
+    void CompactAndItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &) const
     {
         qreal radius = getRadius();
         qreal to_tip = getTip();
@@ -477,7 +477,7 @@ namespace NeuroGui
         readDelayLines(ds, file_version, _backwardDelayLines);
     }
 
-    void CompactAndItem::writeDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version,
+    void CompactAndItem::writeDelayLines(QDataStream &ds, const NeuroLabFileVersion &,
                                          const QList<QList<NeuroCell::Index> > &delayLines) const
     {
         qint32 num = delayLines.size();
@@ -493,7 +493,7 @@ namespace NeuroGui
         }
     }
 
-    void CompactAndItem::readDelayLines(QDataStream &ds, const NeuroLabFileVersion &file_version, QList<QList<NeuroCell::Index> > &delayLines)
+    void CompactAndItem::readDelayLines(QDataStream &ds, const NeuroLabFileVersion &, QList<QList<NeuroCell::Index> > &delayLines)
     {
         qint32 num;
 
