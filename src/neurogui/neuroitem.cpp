@@ -472,11 +472,15 @@ namespace NeuroGui
 
     QVariant NeuroItem::itemChange(GraphicsItemChange change, const QVariant & value)
     {
+        Q_ASSERT(_network);
+
         LabScene *labScene;
 
         switch (change)
         {
         case QGraphicsItem::ItemPositionChange:
+            _network->setChanged(true);
+
             if (!_setting_pos
                 && (labScene = dynamic_cast<LabScene *>(scene()))
                 && labScene->selectedItems().size() <= 1

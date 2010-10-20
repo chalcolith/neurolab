@@ -253,7 +253,8 @@ namespace NeuroGui
 
     /// Loads a LabNetwork object and its corresponding NeuroNet from a file.
     /// LabNetwork files have the extension .nln; their corresponding NeuroNet files have the extension .nnn.
-    /// \param fname The name of the file from which to load the network.  If this is empty, then the standard file dialog is used to request the name of a file.
+    /// \param fname The name of the file from which to load the network.
+    /// If this is empty, then the standard file dialog is used to request the name of a file.
     LabNetwork *LabNetwork::open(const QString & fname)
     {
         QString nln_fname = fname;
@@ -345,6 +346,8 @@ namespace NeuroGui
                     delete ln;
                     throw LabException(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
+
+                ln->setChanged(false);
             }
             else
             {
