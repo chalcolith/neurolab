@@ -8,12 +8,18 @@ Gordon Tisher <gordon@balafon.net>
 Introduction
 ------------
 
-Neurocognitive Linguistics is an approach to linguistics developed by http://www.ruf.rice.edu/%7Elamb[Sydney Lamb] which uses relational networks to model what the brain actually does when it handles language. You can read more about it at the http://www.ruf.rice.edu/%7Elngbrain/main.htm[LangBrain] web site and the http://www.glottopedia.de/index.php/Neurocognitive_linguistics[Glottopedia] wiki.
+Neurocognitive Linguistics is an approach to linguistics developed by http://www.ruf.rice.edu/%7Elamb[Sydney Lamb] which uses relational networks to model what the brain actually does when it handles language. You can read more about it at the http://www.ruf.rice.edu/%7Elngbrain/main.htm[LangBrain] web site and the http://www.glottopedia.de/index.php/Neurocognitive_linguistics[Glottopedia] wiki, or in Lamb's books:
+
+- <<Lamb1999>> http://www.amazon.com/Pathways-Brain-Neurocognitive-Language-Linguistic/dp/9027236771[Pathways of the Brain: The Neurocognitive Basis of Language].
+- <<Lamb2004>> http://www.amazon.com/Language-Reality-Selected-Writings-Sydney/dp/0826492975[Language and Reality: Selected Writings of Sydney Lamb].
 
 Neurocognitive Linguistics Lab (``NeuroLab'' for short) is a program that allows you to experiment with relational networks using a convenient GUI, and record the results of your experiments in tabular form.
 
 Neurocognitive Linguistics Lab is Copyright (C) 2010 Gordon Tisher, and available under the terms of the <<bsd_license, BSD License>>.
 
+This document is Copyright (C) 2010 Gordon Tisher, and available under the terms of the http://creativecommons.org/licenses/by-nc-nd/3.0/[Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License].
+
+image:images/cc_by_nc_nd.png[Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License]
 
 Getting Started
 ---------------
@@ -41,21 +47,457 @@ Linux
 The Linux distribution is a tarball.  Download and extract it.  The resulting directory contains a script called +neurolab+ that launches the application, as well as a +samples+ folder containing several sample files.
 
 
-Using NeuroLab
-~~~~~~~~~~~~~~
+Main Window
+-----------
 
-This is NeuroLab's main screen:
+This is NeuroLab's main window:
 
-.Main Screen
-image::images/main_screen.png[Main Screen]
+.Main Window
+image::images/main_screen.png[Main Window]
+
+The program is organized around a Network file, which stores the relational network that you create, and the Data file, which contains data from simulating spreading activation in the network.  When a network file is loaded, its filename appears in the title bar of the main window.
+
+There are several different parts to the main screen:
+
+Tool Bar
+~~~~~~~~
+
+.Tool Bar
+image::images/tool_bar.png[Tool Bar]
+
+The bar of icons across the top of the screen allows quick access to program functions.  All of these functions are also available via the menus.  If you move your mouse pointer over one of the buttons and wait a second or two, a tooltip will be displayed that describes the button.
+
+The buttons are, from left to right:
+
+New Network::
+  image:images/new_network.png[New Network] Create a new network file.
+  
+Open Network::
+  image:images/open_network.png[Open Network] Open an existing network file.
+  
+Save Network::
+  image:images/save_network.png[Save Network] Saves the current network file to disk.
+  
+Reload Network::
+  image:images/reload_network.png[Reload Network] Discards any changes to the current network file, and reloads it from disk.  Since there is no Undo function yet, this is useful for backing out of changes.
+  
+Close Network::
+  image:images/close_network.png[Close Network] Closes the network file.
+
+Print::
+  image:images/print.png[Print] Prints an image of the portion of the network that is visible in the editing area.
+
+New Data File::
+  image:images/new_data.png[New Data File] Initializes a new data file.
+  
+Save Data File::
+  image:images/save_data.png[Save Data File] Saves the data file to a Comma-Separated Value (CSV) text file.
+
+Zoom In::
+  image:images/zoom_in.png[Zoom In] Zooms the editing area in.
+  
+Zoom Percent::
+  image:images/zoom.png[Zoom] Allows you to directly edit the zoom factor for the editing area.
+  
+Zoom Out::
+  image:images/zoom_out.png[Zoom Out] Zooms the editing area out.
+  
+Reset::
+  image:images/reset.png[Reset] Resets the network.  This sets all network activation to zero.
+  
+Number of Steps::
+  image:images/num_steps.png[Number of Steps] This allows you to set the number of time steps the network will advance when you press the Step button.
+  
+Step::
+  image:images/step.png[Step] Advances the network simulation by the number of time steps you have specified.
+
+Property Bar
+~~~~~~~~~~~~
+
+.Property Bar
+image::images/property_bar.png[Property Bar]
+
+The Property Bar displays a list of properties for the network item that you have currently selected, or the overall network file properties if you have not selected anything.  Most of these properties are editable.  Left-click on the value of a property to edit it.
+
+Network Editing Area
+~~~~~~~~~~~~~~~~~~~~
+
+.Network Editing Area
+image::images/edit_area.png[Network Editing Area]
+
+The network editing area is where you create and connect the items that make up your relational network.  See <<create_network, below>> for details.
+
+Data Display Area
+~~~~~~~~~~~~~~~~~
+
+.Data Display Area
+image::images/data_area.png[Data Display Area]
+
+If you have currently created a data file to record the results of your simulations, you can view the data in the data display area.  The numbers along the left-hand side are the time steps, and the columns record the values of any labeled items in your network.
 
 
+Other Menu Options
+~~~~~~~~~~~~~~~~~~
 
+There are a few other menu options to note:
+
+.Export Menu
+image::images/export_menu.png[Export Menu]
+
+The Export menu allows you to save an image of your network (actually, the part of your network that is visible in the editing area) to a number of different file formats.
+
+.Help Menu
+image::images/help_menu.png[Help Menu]
+
+The Help menu allows you to view this manual, or display some information about the license and version of NeuroLab that you are using.
+
+
+[[create_network]]
+Creating and Editing a Network
+------------------------------
+
+When you create a new network, you are presented with a blank editing area.  In order to add new items to your network, right-click in the blank white space of the editing area (hold down Control and click on a Mac with only one mouse button).
+
+.New Item Menu
+image::images/new_item_menu.png[New Item Menu]
+
+Choose one of the available items from the menu that pops up, and it will appear in the network editing area.  It will be automatically selected when you first create it, so you can immediately modify its properties if you need to.
+
+See <<available_items, below>> for a list of the various items you can create, and their properties.
+
+Editing
+~~~~~~~
+
+After you create an item, you can left-click and drag it to wherever you like in the editing area.  You can also left-click and drag in the empty white space of the  editing area to select multiple items, which you can then move, delete, or copy and paste.
+
+.Multiple Selection
+image::images/multiple.png[Multiple Selection]
+
+After you create a link, you can drag either end of it close to a compact or narrow node, and it will connect itself to the node.
+
+You can pick up any item, whether a node or a link or otherwise, and move it without changing its shape, by holding down the Alt key while you drag the item.
+
+Some items (Narrow Nodes, for example), will allow you to create new links directly on top of them.  The new links will be created already connected to the node.
+
+Labels
+~~~~~~
+
+The first property of many network items is its label.  If you give an item a label, the label will be displayed beside the item.
+
+.Labeled Item
+image::images/labeled_item.png[Labeled Item]
+
+[NOTE]
+.Collecting Data
+=========================
+If an item is labeled, its output values will be recorded in the data file.
+=========================
+
+Sub-Networks
+~~~~~~~~~~~~
+
+One of the items you can create is called a Sub-Network item (Misc/Sub-Network in the new item menu).  After you create a sub-network item, you can double-click on it, and the editing area will display a new blank network.  You can navigate back to the top-level network and the sub-networks that you have opened by means of the buttons at the top of the editing area:
+
+.Subnetwork Buttons
+image::images/breadcrumbs.png[Subnetwork Breadcrumbs]
+
+You can connect links to the outer sub-network item:
+
+.Link to Sub-Network
+image::images/subnetwork_item.png[Link to Sub-Network]
+
+When you connect a link to a sub-network item, the ends of the links will appear inside the sub-network itself:
+
+.Links Inside a Sub-Network
+image::images/subnetwork_links.png[Links Inside a Sub-Network]
+
+You can connect these inner links to other items inside the sub-network, and they will transmit activation from the outer network to the inner (and vice versa) just as you would expect.
+
+
+Simulating the Network
+----------------------
+
+When you wish to simulate spreading activation in your network, you can right-click on one or more nodes or links in the network and choose "Activate/Deactivate" from the menu.  When an item is activated, it will turn red.
+
+.Item Activation
+image::images/node_activation.png[Item Activation]
+
+If connections have been set up from that item, when you press the Step button, the activation will spread to those other nodes.
+
+.Spreading Activation
+image::images/spreading_activation.png[Spreading Activation]
+
+[NOTE]
+.Ouput Value
+================================
+Note that the output value of an item depends on the values of its inputs _at the previous time step_.
+================================
+
+[NOTE]
+.Decay Rate
+================================
+The network's *Decay Rate* property governs how fast an item will lose its activation.  If the decay rate is 1, items will lose 100% of their activation in the timestep after they become active.  If you set the decay rate to 0.5, they will lose half, etc.
+================================
+
+
+Collecting Data
+---------------
+
+In order to collect data from your simulations, create a new data file, and give labels to the network items that you wish to record data for.  Then, when you step through the simulation, the output values of nodes have labels will be recorded.  When you are done you can save the data to a text file in Comma-Separated Value (CSV) format.
+
+.Data Display Area
+image::images/data_area.png[Data Display Area]
+
+The rows of the data file correspond to the time steps of your simulation, and the columns contain the labels of the items that you are recording.
+
+
+[[available_items]]
+Available Items
+---------------
+
+This section contains a list of the network items that are available by default in NeuroLab.
+
+Network
+~~~~~~~
+
+The network itself contains a number of properties that control how the simulation works.
+
+.Network Properties
+image::images/network_properties.png[Network Properties]
+
+Filename::
+  The file name of the current network.
+Decay Rate::
+  The rate at which items will lose their activation in a given time step.  If the rate is 1, then items will lose 100% of their activation in the next time step.  If the rate is 0.5, they will lose half of their activation, etc.
+Link Learn Rate::
+  A factor that determines how much links will ``learn'' during the simulation.  If this is greater than zero, links whose activation causes their targets to become active after a period of inactivity will have their weights increased.  See <<math, below>> for mathematical details.
+Node Learn Rate::
+  A factor that determines how much nodes' thresholds will increase if they are activated after a period of inactivity.  See <<math, below>> for mathematical details.
+Node Forget Rate::
+  A factor that determines how much nodes' thresholds will decrease if their activation level has not changed over a period.  See <<math, below>> for mathematical details.
+Learn Window::
+  Link and node learning depends on a running average of the links' and nodes' values over a period of timesteps.  The Learn Window specifies the number of timesteps over which this running average will be calculated.
+
+Abstract Notation
+~~~~~~~~~~~~~~~~~
+
+These items allow you to build networks using Sydney Lamb's Abstract (formerly "Compact") notation.  Abstract nodes and links are bidirectional; they allow activation to be transmitted in two directions.  Activation in one direction does _not_ affect activation in the other.
+
+[NOTE]
+.Mixing Abstract and Compact Items
+====================================
+You can freely mix abstract and narrow items.  I.e. you can connect uni-directional narrow links to abstract nodes, and bi-directional abstract links to narrow nodes.  You can even use narrow inhibitory links to inhibit abstract bidirectional links.
+====================================
+
+Abstract AND Node
+^^^^^^^^^^^^^^^^^
+
+The *Abstract AND* item takes one link to the upward (or downward) tip of its triangle, and one or more links to the base of the triangle.  Activation from the top link will spread to all of the bottom ones, or conversely, if all of the bottom links transmit activation, the top link will be activated.
+
+.Abstract AND
+image::images/abstract_and.png[Abstract AND]
+
+Label::
+  The node's label.
+Output Value::
+  The node's current output value.  This is a convenience property which is set to the maximum of its upward and downward activation values.
+Sequential::
+  Whether or not the node is *sequential*.  A sequential node will spread activation to its bottom links one at a time from left to right, rather than all in the same time step.  Conversely, it will only activate its top link if it receives input activation to its bottom links in a precise sequence from left to right.
+Delay::
+  For a sequential node, this determines the number of timesteps it will take for activation to be transmitted (or needed to be received) by its bottom links.  For a value of 1, the bottom links will be activated one after the other.  For a value of 2, the first bottom link will be activated, then the second two timesteps after that, and so on.
+  
+.Sequential Abstract AND node
+image::images/abstract_and_seq.png[Sequential Abstract AND node]
+
+You can create both upward- and downward-facing Abstract AND nodes.
+
+Abstract OR Node
+^^^^^^^^^^^^^^^^
+
+The *Abstract OR* item takes one link to its upper side (or lower, if it is an upward-facing node), and multiple links to the center of its lower side.  If its upper link transmits activation, then all the lower links will be activated.  Going the other way, only one of the lower links needs to be activated for the top link to be activated.
+
+.Abstract OR
+image::images/abstract_or.png[Abstract OR]
+
+Label::
+  The node's label.
+Output Value::
+  The node's current output value.  This is a convenience property which is set to the maximum of its upward and downward activation values.
+
+Choosing Alternatives
++++++++++++++++++++++
+
+If there are links connected to the ``arms'' of the lower side of the OR node, they function in a special manner.  These links are called ``alternative'' links.
+
+.Alternatives
+image::images/abstract_or_alt.png[Alternatives]
+
+When activation is transmitted downwards through an OR node that contains alternative links, the simulation checks to see if the nodes that the links are connected to are going to activate their targets.  If so, the alternative link is allowed to remain active, and the links that are connected to the center of the OR node _are inhibited_, i.e. their activation level is set to zero.  If the target node of an alternative link would _not_ be activated despite the link being active, the alternative link is itself inhibited, and the central links allowed to remain active.
+
+Abstract Link
+^^^^^^^^^^^^^
+
+An abstract link is bidirectional; it allows activation to be transmitted along it in both directions.  Activation in one direction does not affect the other direction.
+
+.Abstract Link
+image::images/abstract_link.png[Abstract Link]
+
+Label::
+  The node's label.
+Output Value::
+  The node's current output value.  This is a convenience property which is set to the maximum of its activation values in both directions.  Setting this property will set the output value in both directions.
+Length::
+  The number of time steps it will take to transmit activation along the node.  The node's appearance will reflect how far along the activation is.
+Weight::
+  The maximum of the weights of its links in both directions.  The weight of a link is a factor that is multiplied by the activation level of its input to calculate its output value.  The default is 1.1, because most nodes will return an output value of slightly less than 1, so a link weight of 1.1 will maintain the activation signal rather than allow it to die out.
+Frontward Output Value::
+  The output value of one of the link's directions.
+Backward Output Value::
+  The output value of the node in the other direction.
+
+Narrow Notation
+~~~~~~~~~~~~~~~
+
+These items allow you to build networks using Sydney Lamb's Narrow notation.  Narrow links are unidirectional; they will only transmit activation in one direction.
+
+Narrow Node
+^^^^^^^^^^^
+
+A narrow node sums up the activation level of all its inputs from the previous time step, and then calculates its output value using a sigmoid function that constrains its output to between zero and one.  See <<math, below>> for more mathematical details.
+
+.Sigmoid Function
+image::images/sigmoid.png[Sigmoid Function]
+
+The number displayed in the middle of the node is its input threshold.
+
+.Narrow Node
+image::images/narrow_node.png[Narrow Node]
+
+Label::
+  The node's label.
+Output Value::
+  The current output value of the node.
+Frozen::
+  If a node is frozen, its output value will never change.  This is for convenience in providing a steady source of activation.
+Input Threshold::
+  The threshold at which the sum of the node's inputs will cause the node to have an output value close to 1.  You can think of this as the number of input links that must be active for the node to become active.
+1 / Slope::
+  This is the range over which the output value will increase from close to zero to close to one.  The default value of 0.1 causes nodes to have an abrupt cut-off; if the sum of their inputs is less than 0.1 less than their input threshold, they will not have much output.  A larger value will make the nodes less sensitive.
+
+Narrow Oscillator
+^^^^^^^^^^^^^^^^^
+
+A narrow oscillator provides an alternating source of activation.  The numbers displayed in the middle of the node are its *Spike* and *Gap* properties respectively.
+
+.Narrow Oscillator
+image::images/narrow_oscillator.png[Narrow Oscillator]
+
+Label::
+  The oscillator's label.
+Output Value::
+  The oscillator's output value.  Either 0 or 1.
+Phase::
+  The number of timesteps that the oscillator will wait at the beginning of a simulation before starting to be activated.
+Spike::
+  The number of timesteps for which the oscillator will then be activated.
+Gap::
+  The number of timesteps the oscillator will then be deactivated.
+
+Narrow Excitory Link
+^^^^^^^^^^^^^^^^^^^^
+
+A narrow excitory link transmits activation in one direction.
+
+.Narrow Excitory Link
+image::images/narrow_excitory.png[Narrow Excitory Link]
+
+Label::
+  The link's label.
+Output Value::
+  The output value of the link.
+Weight::
+  The weight of the link.  This number will be multiplied by the link's input to calculate the link's output value.  If the network's *Link Learn Rate* is non-zero, the weight of a link can change depending on whether or not the link's target node gets activated by the link.
+Length::
+  The number of time steps the link takes to transmit its activation.  The link's appearance will reflect how far along the activation is.
+
+Narrow Inhibitory Link
+^^^^^^^^^^^^^^^^^^^^^^
+
+A narrow inhibitory link _inhibits_ the activation of its target.  If the inhibitory link's input is 1, its target's output value will be 0.  An inhibitory link can be connected to a narrow node, narrow oscillator, excitory link, abstract link, or another inhibitory link.
+
+.Narrow Inhibitory Link
+image::images/narrow_inhibitory.png[Narrow Inhibitory Link]
+
+Label::
+  The link's label.
+Output Value::
+  The link's output value.  Will be negative if the link is active.
+Weight::
+  The link's weight.  You cannot modify the weight of an inhibitory link.
+Length::
+  The number of time steps the link takes to transmit its inhibition.
+
+Misc
+~~~~
+
+Text Item
+^^^^^^^^^
+
+A text item is a convenient way to place arbitrary text in your network editing area.  Text items do not interact with any other network items.  Currently only one line of text is supported.
+
+.Text Item
+image::images/text_item.png[Text Item]
+
+Font::
+  The font in which to display the text.
+Text::
+  The text to display.
+
+Sub-Network Item
+^^^^^^^^^^^^^^^^
+
+A sub-network item
+
+.Sub-Network Item
+image::images/subnetwork_props.png[Sub-Network Item]
+
+Label::
+  The subnetwork's label.  This is assigned automatically.
+
+[[math]]
 [appendix]
 Mathematical Details
 --------------------
 
-Blah blah blah
+Spreading activation is simulated in NeuroLab using an asynchronous network automaton (a network automaton is like a cellular automaton, but a cell's neighbors are not in a fixed grid, but connected in a directed graph).
+
+The automaton is updated using Nehaniv's asynchronous algorithm <<Nehaniv2003>>.  This allows us to use the Qt library's concurrent functionality to update different parts of the network asynchronously on different cores, while guaranteeing that the final state of the network is the same as it would have been had the automaton been updated synchronously.
+
+Automaton Cells
+~~~~~~~~~~~~~~~
+
+There are four types of cells in the network, each with a different update rule:
+
+Nodes
+^^^^^
+
+Oscillators
+^^^^^^^^^^^
+
+Excitory Links
+^^^^^^^^^^^^^^
+
+Inhibitory Links
+^^^^^^^^^^^^^^^^
+
+
+Implementation Details
+~~~~~~~~~~~~~~~~~~~~~~
+
+The network items that are manipulable in NeuroLab are implemented in the underlying network automaton in various ways:
+
+Narrow Items
+^^^^^^^^^^^^
 
 
 [[bsd_license]]
@@ -76,3 +518,11 @@ Redistribution and use in source and binary forms, with or without modification,
 - Neither the name of the Neurocognitive Linguistics Lab nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+[bibliography]
+References
+----------
+
+- [[[Lamb1999]]] Lamb, Sydney. _Pathways of the Brain: the Neurocognitive Basis of Language_. John Benjamins Publishing Co. 1999.
+- [[[Lamb2004]]] Lamb, Sydney. _Language and Reality: Selected Writings of Sydney Lamb_. Continuum International Publishing Group Ltd. 2004.
+- [[[Nehaniv2003]]] Nehaniv, Chrystopher L. Asynchronous automata networks can emulate any synchronous automata network. Journal of Algebra, December 2003.

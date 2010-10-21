@@ -12,6 +12,7 @@ glob:*_resource.rc
 glob:src/utils/incversion/incversion
 glob:src/utils/incversion/main.o
 glob:doc/html
+glob:doc/manual.html
 glob:distrib/0.*
 glob:distrib/1.*
 glob:distrib/zips
