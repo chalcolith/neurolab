@@ -13,6 +13,11 @@ glob:src/utils/incversion/incversion
 glob:src/utils/incversion/main.o
 glob:doc/html
 glob:doc/manual.html
+glob:doc/manual.xml
+glob:doc/images/*.aux
+glob:doc/images/*.log
+glob:doc/images/*.tex
+glob:doc/images/*.md5
 glob:distrib/0.*
 glob:distrib/1.*
 glob:distrib/zips

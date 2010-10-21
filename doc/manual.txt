@@ -3,7 +3,7 @@ Neurocognitive Linguistics Laboratory User Manual
 Gordon Tisher <gordon@balafon.net>
 :toc:
 :icons:
-
+:latexmath:
 
 Introduction
 ------------
@@ -236,14 +236,14 @@ Note that the output value of an item depends on the values of its inputs _at th
 [NOTE]
 .Decay Rate
 ================================
-The network's *Decay Rate* property governs how fast an item will lose its activation.  If the decay rate is 1, items will lose 100% of their activation in the timestep after they become active.  If you set the decay rate to 0.5, they will lose half, etc.
+The network's *Decay Rate* property governs how fast an item will lose its activation.  If the decay rate is 1, items will lose 100% of their activation in the time step after they become active.  If you set the decay rate to 0.5, they will lose half, etc.
 ================================
 
 
 Collecting Data
 ---------------
 
-In order to collect data from your simulations, create a new data file, and give labels to the network items that you wish to record data for.  Then, when you step through the simulation, the output values of nodes have labels will be recorded.  When you are done you can save the data to a text file in Comma-Separated Value (CSV) format.
+In order to collect data from your simulations, create a new data file, and give labels to the network items that you wish to record data for.  Then, when you step through the simulation, the output values of nodes that have labels will be recorded.  When you are done you can save the data to a text file in Comma-Separated Value (CSV) format.
 
 .Data Display Area
 image::images/data_area.png[Data Display Area]
@@ -276,7 +276,7 @@ Node Learn Rate::
 Node Forget Rate::
   A factor that determines how much nodes' thresholds will decrease if their activation level has not changed over a period.  See <<math, below>> for mathematical details.
 Learn Window::
-  Link and node learning depends on a running average of the links' and nodes' values over a period of timesteps.  The Learn Window specifies the number of timesteps over which this running average will be calculated.
+  Link and node learning depends on a running average of the links' and nodes' values over a period of time steps.  The Learn Window specifies the number of time steps over which this running average will be calculated.
 
 Abstract Notation
 ~~~~~~~~~~~~~~~~~
@@ -302,9 +302,9 @@ Label::
 Output Value::
   The node's current output value.  This is a convenience property which is set to the maximum of its upward and downward activation values.
 Sequential::
-  Whether or not the node is *sequential*.  A sequential node will spread activation to its bottom links one at a time from left to right, rather than all in the same time step.  Conversely, it will only activate its top link if it receives input activation to its bottom links in a precise sequence from left to right.
+  Specifies whether or not the node is *sequential*.  A sequential node will spread activation to its bottom links one at a time from left to right, rather than all in the same time step.  Conversely, it will only activate its top link if it receives input activation to its bottom links in a precise sequence from left to right.
 Delay::
-  For a sequential node, this determines the number of timesteps it will take for activation to be transmitted (or needed to be received) by its bottom links.  For a value of 1, the bottom links will be activated one after the other.  For a value of 2, the first bottom link will be activated, then the second two timesteps after that, and so on.
+  For a sequential node, this determines the number of time steps it will take for activation to be transmitted (or needed to be received) by its bottom links.  For a value of 1, the bottom links will be activated one after the other.  For a value of 2, the first bottom link will be activated, then the second two time steps after that, and so on.
   
 .Sequential Abstract AND node
 image::images/abstract_and_seq.png[Sequential Abstract AND node]
@@ -397,11 +397,11 @@ Label::
 Output Value::
   The oscillator's output value.  Either 0 or 1.
 Phase::
-  The number of timesteps that the oscillator will wait at the beginning of a simulation before starting to be activated.
+  The number of time steps that the oscillator will wait at the beginning of a simulation before starting to be activated.
 Spike::
-  The number of timesteps for which the oscillator will then be activated.
+  The number of time steps for which the oscillator will then be activated.
 Gap::
-  The number of timesteps the oscillator will then be deactivated.
+  The number of time steps the oscillator will then be deactivated.
 
 Narrow Excitory Link
 ^^^^^^^^^^^^^^^^^^^^
@@ -464,6 +464,14 @@ image::images/subnetwork_props.png[Sub-Network Item]
 Label::
   The subnetwork's label.  This is assigned automatically.
 
+[sect1]
+References
+----------
+
+- [[[Lamb1999]]] Lamb, Sydney. _Pathways of the Brain: the Neurocognitive Basis of Language_. John Benjamins Publishing Co. 1999.
+- [[[Lamb2004]]] Lamb, Sydney. _Language and Reality: Selected Writings of Sydney Lamb_. Continuum International Publishing Group Ltd. 2004.
+- [[[Nehaniv2003]]] Nehaniv, Chrystopher L. Asynchronous automata networks can emulate any synchronous automata network. Journal of Algebra, December 2003.
+
 [[math]]
 [appendix]
 Mathematical Details
@@ -473,22 +481,101 @@ Spreading activation is simulated in NeuroLab using an asynchronous network auto
 
 The automaton is updated using Nehaniv's asynchronous algorithm <<Nehaniv2003>>.  This allows us to use the Qt library's concurrent functionality to update different parts of the network asynchronously on different cores, while guaranteeing that the final state of the network is the same as it would have been had the automaton been updated synchronously.
 
+In the relational network, a cell's inputs are its neighbors in the automaton.  As the automaton is a directed graph, the neighbor relationship is not reciprocal.
+
 Automaton Cells
 ~~~~~~~~~~~~~~~
+
+Updating the cells of the automaton happens as follows:
+
+If the cell is frozen, its output does not change.
+
+Otherwise, before updating the cell the following values are calculated:
+
+["latex","images/input_sum.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ v=\sum_{j=1}^n{x_j|x_j>0} }$
+-------------------------------------------------
+
+The *input sum* _v_ is set to the sum of the values of the cell's inputs, if they are positive.
+
+["latex","images/inhibit_factor.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ h=1 - clip\left \{0, \left | \sum_{j=1}^n{x_j|x_j<0} \right | ,1 \right \} }$
+-------------------------------------------------
+
+The *inhibition factor* _h_ is 1 minus the absolute value of all the cell's inputs, if they are negative.
 
 There are four types of cells in the network, each with a different update rule:
 
 Nodes
 ^^^^^
 
+The *output value* _y_ of the node is calculated using a sigmoid function similar to a generalized logistic function with asymptotes at 0 and 1:
+
+["latex","images/sigmoid_function.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ y = \frac{h}{\left({1 + \exp\left({6 - s\left( v - \left( d - r \right) \right)}\right)}\right)} }$
+-------------------------------------------------
+
+where the *slope* _s_ of the curve is:
+
+["latex","images/sigmoid_slope.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ s = \frac{6 - \ln \left( 1/0.99 - 1 \right )}{r} }$
+-------------------------------------------------
+
+and the *inverse slope* _r_ is the distance in the input over which the output goes from close to 0 to close to 1, and the *threshold* _d_ is the point at which the output reaches close to 1.
+
+The output of a node is further modified by the learning function below.
+
 Oscillators
 ^^^^^^^^^^^
+
+The output value _y_ of an oscillator is calculated using the function:
+
+["latex","images/oscillator_func.png",150,align="center"]
+-------------------------------------------------
+$\begin{displaystyle}
+y = h\left\{\begin{matrix}
+1\ |\ \left(\phi + t \right)\ mod\ \left( g+p \right) < p\\ 
+0
+\end{matrix}\right.
+\end{displaystyle}
+$
+-------------------------------------------------
+
+The *output value* _y_ is set to 1 when the *phase* _phi_ plus the *timestep* t, modulo the *gap* _g_ plus the *spike* _p_, is less than the spike, otherwise it is set to 0.
 
 Excitory Links
 ^^^^^^^^^^^^^^
 
+The output value _y_ of an excitory link is calculated using the function:
+
+["latex","images/excite_func.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ y = h\ clip\left\{ 0, vw , 1.1\right\} }$
+-------------------------------------------------
+
+where _w_ is the weight of the link.
+
 Inhibitory Links
 ^^^^^^^^^^^^^^^^
+
+The output value _y_ of an inhibitory link is calculated using the function:
+
+["latex","images/inhibit_func.png",150,align="center"]
+-------------------------------------------------
+$\displaystyle{ y = hw\ clip\left\{0, v, 1 \right\} }$
+-------------------------------------------------
+
+where _w_ is the weight of the link, which is always -1 for inhibitory links.
+
+Link Learning
+^^^^^^^^^^^^^
+
+Node Learning
+^^^^^^^^^^^^^
 
 
 Implementation Details
@@ -519,10 +606,3 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-[bibliography]
-References
-----------
-
-- [[[Lamb1999]]] Lamb, Sydney. _Pathways of the Brain: the Neurocognitive Basis of Language_. John Benjamins Publishing Co. 1999.
-- [[[Lamb2004]]] Lamb, Sydney. _Language and Reality: Selected Writings of Sydney Lamb_. Continuum International Publishing Group Ltd. 2004.
-- [[[Nehaniv2003]]] Nehaniv, Chrystopher L. Asynchronous automata networks can emulate any synchronous automata network. Journal of Algebra, December 2003.
