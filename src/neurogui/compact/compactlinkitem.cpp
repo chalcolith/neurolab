@@ -175,8 +175,10 @@ namespace NeuroGui
 
     NeuroCell::Value CompactLinkItem::weight() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_frontward_cells.last());
-        return cell ? cell->current().weight() : 0;
+        const NeuroNet::ASYNC_STATE *fcell = getCell(_frontward_cells.last());
+        const NeuroNet::ASYNC_STATE *bcell = getCell(_backward_cells.last());
+
+        return (fcell != 0 && bcell != 0) ? qMax(fcell->current().weight(), bcell->current().weight()) : 0;
     }
 
     void CompactLinkItem::setWeight(const NeuroLib::NeuroCell::Value &value)

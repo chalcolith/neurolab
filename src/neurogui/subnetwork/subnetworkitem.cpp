@@ -58,6 +58,8 @@ namespace NeuroGui
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0),
           _rect(-15, -10, 30, 20)
     {
+        _value_property.setVisible(false);
+
         connect(this, SIGNAL(subnetworkDeleted(LabTreeNode*)), MainWindow::instance(), SLOT(treeNodeDeleted(LabTreeNode*)));
 
         if (context == NeuroItem::CREATE_UI)
