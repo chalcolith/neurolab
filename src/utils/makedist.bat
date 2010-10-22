@@ -104,6 +104,7 @@ call :copyfile "%QT_DIST_DIR%\qt\LICENSE.LGPL" %RELEASE_DIR%\licenses\qt
 call :copyfile thirdparty\qtpropertybrowser\qtpropertybrowser-2.5_1-opensource\LICENSE.LGPL %RELEASE_DIR%\licenses\qtpropertybrowser
 call :copyfile ..\LICENSE.txt %RELEASE_DIR%
 call :copyfile ..\README.txt %RELEASE_DIR%
+call :copyfile ..\doc\manual.pdf %RELEASE_DIR%\NeuroLab_UserManual.pdf
 if ERRORLEVEL 1 goto :EOF
 
 echo copying samples...
