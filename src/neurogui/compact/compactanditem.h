@@ -85,8 +85,11 @@ namespace NeuroGui
         virtual void adjustLinks();
         virtual QVector2D getAttachPos(const QVector2D &);
 
-        void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
-        void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
+
+        virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
 
     private:
         qreal getRadius() const { return NeuroItem::NODE_WIDTH + 0.25f; }

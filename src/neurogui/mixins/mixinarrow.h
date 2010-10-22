@@ -74,6 +74,8 @@ namespace NeuroGui
         /// Destructor.
         virtual ~MixinArrow();
 
+        NeuroItem *self() const { return _self; }
+
         /// The link's back (\c p1) and front (\c p2) position, in scene coordinates.
         QLineF line() const;
 
@@ -130,6 +132,9 @@ namespace NeuroGui
 
         /// Handles breaking a link when it is moved away from its target.
         void breakLinks(const QPointF & mousePos);
+
+        void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
 
         /// Write to a data stream.
         void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;

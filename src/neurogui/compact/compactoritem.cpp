@@ -311,6 +311,40 @@ namespace NeuroGui
         return QVector2D(x, y);
     }
 
+    void CompactOrItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        CompactNodeItem::writeClipboard(ds, id_map);
+
+        ds << static_cast<qint32>(_shortcutItems.size());
+        foreach (NeuroItem *ni, _shortcutItems)
+        {
+            qint32 id = ni->id();
+
+            if (id && id_map.contains(id))
+                ds << static_cast<qint32>(id_map[id]);
+            else
+                ds << static_cast<qint32>(0);
+        }
+    }
+
+    void CompactOrItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        CompactNodeItem::readClipboard(ds, id_map);
+
+        qint32 num;
+        ds >> num;
+
+        _shortcutItems.clear();
+        for (qint32 i = 0; i < num; ++i)
+        {
+            qint32 id;
+            ds >> id;
+
+            if (id && id_map.contains(id))
+                _shortcutItems.insert(id_map[id]);
+        }
+    }
+
     void CompactOrItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
         CompactNodeItem::writeBinary(ds, file_version);

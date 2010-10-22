@@ -166,6 +166,53 @@ namespace NeuroGui
         rememberItems(connections(), center);
     }
 
+    void CompactNodeItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        CompactItem::writeClipboard(ds, id_map);
+        MixinRemember::writeClipboard(ds, id_map);
+
+        ds << static_cast<qint32>(_direction);
+
+        if (_tipLinkItem && id_map.contains(_tipLinkItem->id()))
+            ds << static_cast<qint32>(_tipLinkItem->id());
+        else
+            ds << static_cast<qint32>(0);
+
+        ds << static_cast<qint32>(_baseLinkItems.size());
+        foreach (NeuroItem *ni, _baseLinkItems)
+        {
+            if (ni && id_map.contains(ni->id()))
+                ds << static_cast<qint32>(ni->id());
+            else
+                ds << static_cast<qint32>(0);
+        }
+    }
+
+    void CompactNodeItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        CompactItem::readClipboard(ds, id_map);
+        MixinRemember::readClipboard(ds, id_map);
+
+        qint32 dir;
+        ds >> dir;
+        _direction = static_cast<Direction>(dir);
+
+        qint32 tip_id;
+        ds >> tip_id;
+        if (tip_id && id_map.contains(tip_id))
+            _tipLinkItem = id_map[tip_id];
+
+        qint32 num;
+        ds >> num;
+        for (qint32 i = 0; i < num; ++i)
+        {
+            qint32 id;
+            ds >> id;
+            if (id && id_map.contains(i))
+                _baseLinkItems.append(id_map[id]);
+        }
+    }
+
     void CompactNodeItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
         CompactItem::writeBinary(ds, file_version);

@@ -161,4 +161,62 @@ namespace NeuroGui
         alreadyAdjusted.insert(link);
     }
 
+    void MixinRemember::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        writeClipboard(_incomingAttachments, ds, id_map);
+        writeClipboard(_outgoingAttachments, ds, id_map);
+    }
+
+    void MixinRemember::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        readClipboard(_incomingAttachments, ds, id_map);
+        readClipboard(_outgoingAttachments, ds, id_map);
+    }
+
+    void MixinRemember::writeClipboard(const QMap<MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        ds << static_cast<qint32>(attachments.size());
+        foreach (MixinArrow *link, attachments.keys())
+        {
+            qint32 id = link->self()->id();
+
+            if (id && id_map.contains(id))
+            {
+                ds << static_cast<qint32>(id_map[id]);
+                ds << attachments[link];
+            }
+            else
+            {
+                ds << static_cast<qint32>(0);
+            }
+        }
+    }
+
+    void MixinRemember::readClipboard(QMap<MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        qint32 num;
+        ds >> num;
+
+        attachments.clear();
+        for (qint32 i = 0; i < num; ++i)
+        {
+            qint32 id;
+            ds >> id;
+
+            if (id)
+            {
+                QVector2D vec;
+                ds >> vec;
+
+                if (id_map.contains(id))
+                {
+                    MixinArrow *link = dynamic_cast<MixinArrow *>(id_map[id]);
+
+                    if (link)
+                        attachments.insert(link, vec);
+                }
+            }
+        }
+    }
+
 } // namespace NeuroGui

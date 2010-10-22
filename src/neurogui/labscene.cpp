@@ -87,14 +87,16 @@ namespace NeuroGui
     {
         Q_ASSERT(network());
 
-        if ((event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) && this->selectedItems().size() > 0)
-        {
-            network()->deleteSelected();
-        }
-        else
-        {
-            QGraphicsScene::keyReleaseEvent(event);
-        }
+//        if ((event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) && this->selectedItems().size() > 0)
+//        {
+//            network()->deleteSelected();
+//        }
+//        else
+//        {
+//            QGraphicsScene::keyReleaseEvent(event);
+//        }
+
+        QGraphicsScene::keyReleaseEvent(event);
     }
 
     void LabScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)

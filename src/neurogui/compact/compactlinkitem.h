@@ -105,6 +105,8 @@ namespace NeuroGui
         /// \see CompactItem::downwardCells()
         void setBackwardOutputValue(const NeuroLib::NeuroCell::Value & value) { setOutputValueAux(_backward_cells, value); }
 
+        virtual bool canCutAndPaste() const { return true; }
+
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
 
@@ -127,6 +129,9 @@ namespace NeuroGui
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void setPenProperties(QPen &pen) const;
         virtual void setPenGradient(QPen &pen, const QLineF &line) const;
+
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);

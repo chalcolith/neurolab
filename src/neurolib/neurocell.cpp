@@ -120,8 +120,6 @@ namespace NeuroLib
         case NODE:
             {
                 // node output
-                //NeuroValue slope = (SLOPE_OFFSET - ::log(ONE/SLOPE_Y - ONE)) / prev._run;
-                //next_value = ONE / (ONE + ::exp(SLOPE_OFFSET - slope * (input_sum - (prev._weight - prev._run))));
                 next_value = sigmoid(prev._weight, prev._run, input_sum);
 
                 next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));

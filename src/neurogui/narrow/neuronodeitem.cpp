@@ -126,12 +126,14 @@ namespace NeuroGui
     void NeuroNodeItemBase::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroNarrowItem::writeClipboard(ds, id_map);
+        MixinRemember::writeClipboard(ds, id_map);
         ds << _rect;
     }
 
     void NeuroNodeItemBase::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroNarrowItem::readClipboard(ds, id_map);
+        MixinRemember::readClipboard(ds, id_map);
         ds >> _rect;
     }
 

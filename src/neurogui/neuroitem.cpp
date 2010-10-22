@@ -88,7 +88,7 @@ namespace NeuroGui
         setFlag(QGraphicsItem::ItemIsSelectable, true);
         setFlag(QGraphicsItem::ItemIsMovable, true);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-        setFlag(QGraphicsItem::ItemIsFocusable, false);
+        setFlag(QGraphicsItem::ItemIsFocusable, true);
 
         setAcceptHoverEvents(true);
 

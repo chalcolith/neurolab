@@ -315,60 +315,13 @@ namespace NeuroGui
     void NeuroLinkItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroNarrowItem::writeClipboard(ds, id_map);
-        ds << _line;
-
-        // targets
-        if (_frontLinkTarget && id_map.contains(_frontLinkTarget->id()))
-            ds << static_cast<qint32>(id_map[_frontLinkTarget->id()]);
-        else
-            ds << static_cast<qint32>(0);
-
-        if (_backLinkTarget && id_map.contains(_backLinkTarget->id()))
-            ds << static_cast<qint32>(id_map[_backLinkTarget->id()]);
-        else
-            ds << static_cast<qint32>(0);
-
-        // incoming
-        ds << static_cast<qint32>(_incoming.size());
-        foreach (NeuroItem *ni, _incoming)
-        {
-            qint32 id = static_cast<qint32>(ni->id());
-
-            if (id_map.contains(id))
-                ds << static_cast<qint32>(id_map[id]);
-            else
-                ds << static_cast<qint32>(0);
-        }
+        MixinArrow::writeClipboard(ds, id_map);
     }
 
     void NeuroLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map)
     {
         NeuroNarrowItem::readClipboard(ds, id_map);
-        ds >> _line;
-
-        qint32 id;
-
-        // front link target
-        ds >> id;
-        if (id && id_map.contains(id))
-            setFrontLinkTarget(id_map[id]);
-
-        // back link target
-        ds >> id;
-        if (id && id_map[id])
-            setBackLinkTarget(id_map[id]);
-
-        // incoming
-        _incoming.clear();
-        qint32 num;
-        ds >> num;
-
-        for (qint32 i = 0; i < num; ++i)
-        {
-            ds >> id;
-            if (id && id_map.contains(id))
-                _incoming.insert(id_map[id]);
-        }
+        MixinArrow::readClipboard(ds, id_map);
     }
 
     void NeuroLinkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const

@@ -52,8 +52,6 @@ namespace NeuroGui
     {
         Q_OBJECT
 
-        QSet<NeuroItem *> _incoming;
-
     protected:
         Property<NeuroLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _weight_property;
         Property<NeuroLinkItem, QVariant::Int, int, int> _length_property;

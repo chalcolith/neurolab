@@ -439,9 +439,22 @@ namespace NeuroGui
         pen = QPen(gradient, pen.width());
     }
 
+    void CompactLinkItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
+    {
+        CompactItem::writeClipboard(ds, id_map);
+        MixinArrow::writeClipboard(ds, id_map);
+    }
+
+    void CompactLinkItem::readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    {
+        CompactItem::readClipboard(ds, id_map);
+        MixinArrow::readClipboard(ds, id_map);
+    }
+
     void CompactLinkItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
         CompactItem::writeBinary(ds, file_version);
+        MixinArrow::writeBinary(ds, file_version);
 
         quint32 num = _frontward_cells.size();
         ds << num;
@@ -458,13 +471,13 @@ namespace NeuroGui
             quint32 index = _backward_cells[i];
             ds << index;
         }
-
-        MixinArrow::writeBinary(ds, file_version);
     }
 
     void CompactLinkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
         CompactItem::readBinary(ds, file_version);
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_8)
+            MixinArrow::readBinary(ds, file_version);
 
         quint32 num;
 
@@ -486,7 +499,8 @@ namespace NeuroGui
             _backward_cells.append(static_cast<NeuroCell::Index>(index));
         }
 
-        MixinArrow::readBinary(ds, file_version);
+        if (file_version.neurolab_version < NeuroGui::NEUROLAB_FILE_VERSION_8)
+            MixinArrow::readBinary(ds, file_version);
     }
 
     void CompactLinkItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const

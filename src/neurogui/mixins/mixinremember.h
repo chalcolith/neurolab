@@ -59,6 +59,8 @@ namespace NeuroGui
         explicit MixinRemember(NeuroItem *self);
         virtual ~MixinRemember();
 
+        NeuroItem *self() const { return _self; }
+
     protected:
         /// Remembers the positions of items relative to the center of this node.
         void rememberItems(const QSet<NeuroItem *> & items, const QVector2D & center);
@@ -84,6 +86,13 @@ namespace NeuroGui
         /// Get the appropriate relative position for an attached item.
         /// \param pos The original position (in this item's frame).
         virtual QVector2D getAttachPos(const QVector2D & pos) = 0;
+
+        void writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const;
+        void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
+
+    private:
+        void writeClipboard(const QMap<MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, int> &id_map) const;
+        void readClipboard(QMap<MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
     };
 
 } // namespace NeuroGui

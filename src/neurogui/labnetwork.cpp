@@ -40,8 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labtree.h"
 #include "labview.h"
 #include "labscene.h"
-#include "neuroitem.h"
-#include "propertyobj.h"
+#include "neuronetworkitem.h"
 #include "../neurolib/neuronet.h"
 
 #include <QMessageBox>
@@ -229,6 +228,7 @@ namespace NeuroGui
             property_objects.append(this);
 
         emit propertyObjectChanged(property_objects);
+        emit actionsEnabled(true);
     }
 
     void LabNetwork::changeItemLabel(NeuroItem *item, const QString & label)
@@ -570,8 +570,8 @@ namespace NeuroGui
 
         foreach (NeuroItem *ni, neuroitems)
         {
-            center += QVector2D(ni->pos());
-            id_map[ni->id()] = cur_id;
+            center += QVector2D(ni->scenePos());
+            id_map[ni->id()] = cur_id++;
         }
 
         center *= 1.0 / neuroitems.size();
@@ -596,7 +596,7 @@ namespace NeuroGui
             // write data
             foreach (NeuroItem *ni, neuroitems)
             {
-                QVector2D relPos = QVector2D(ni->pos()) - center;
+                QVector2D relPos = QVector2D(ni->scenePos()) - center;
                 ds << relPos;
 
                 MainWindow::instance()->setPropertyObject(ni); // force properties to be built
@@ -652,14 +652,12 @@ namespace NeuroGui
                 NeuroItem *new_item = NeuroItem::create(typeName, scene(), scene()->lastMousePos(), NeuroItem::CREATE_UI);
 
                 if (new_item)
+                {
                     id_map[clip_id] = new_item;
 
-                new_items.append(new_item);
-                scene()->addItem(new_item);
-            }
-            else
-            {
-                new_items.append(0);
+                    new_items.append(new_item);
+                    scene()->addItem(new_item);
+                }
             }
         }
 
@@ -678,31 +676,38 @@ namespace NeuroGui
             item->readClipboard(ds, id_map);
 
             QVector2D itemPos = center + rel_pos;
-            if (itemPos.x() < 0)
-                itemPos.setX(0);
-            if (itemPos.y() < 0)
-                itemPos.setY(0);
-
             QRectF view = scene()->sceneRect();
-            if (itemPos.x() >= view.x())
+            if (itemPos.x() < view.x())
                 itemPos.setX(view.x());
-            if (itemPos.y() >= view.y())
+            if (itemPos.y() < view.y())
                 itemPos.setY(view.y());
+
+            if (itemPos.x() >= view.x() + view.width())
+                itemPos.setX(view.x() + view.width());
+            if (itemPos.y() >= view.y() + view.height())
+                itemPos.setY(view.y() + view.height());
 
             item->setPos(itemPos.toPointF());
         }
 
-        // update
+        // link up network cells
+        foreach (NeuroItem *item, new_items)
+        {
+            NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
+            if (netItem)
+            {
+                foreach (NeuroItem *ni, netItem->connections())
+                    netItem->addEdges(ni);
+            }
+        }
+
+        // update view
         if (new_items.size() > 0)
         {
             MainWindow::instance()->setPropertyObject(0);
 
             foreach (NeuroItem *item, new_items)
-            {
-                if (!item)
-                    continue;
                 item->adjustLinks();
-            }
 
             _tree->updateItemProperties();
         }

@@ -83,6 +83,8 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Value outputValue() const;
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &);
 
+        virtual bool canCutAndPaste() const { return true; }
+
     protected:
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
@@ -95,6 +97,9 @@ namespace NeuroGui
 
         bool posOnTip(const QPointF & p) const;
         bool scenePosOnTip(const QPointF & p) const;
+
+        virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
+        virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
 
         virtual void writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version);
