@@ -160,7 +160,7 @@ namespace Automata
                 QVector<TState> *temp_neighbors = tni.data;
                 TState *temp_ptr = 0;
 
-                bool do_update = true;
+                bool do_update = false;
                 {
                     QReadLocker read_lock(&_network_lock);
 
@@ -201,7 +201,7 @@ namespace Automata
             }
             else
             {
-                bool do_update;
+                bool do_update = false;
                 {
                     QReadLocker read_lock(&_network_lock);
                     do_update = isReady(index, state.r);
