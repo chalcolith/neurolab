@@ -620,6 +620,8 @@ namespace NeuroGui
     /// Pastes any items in the clipboard.
     void LabNetwork::pasteItems()
     {
+        scene()->clearSelection();
+
         // get data from clipboard
         QClipboard *clipboard = QApplication::clipboard();
         if (!clipboard)
@@ -690,6 +692,15 @@ namespace NeuroGui
             item->setPos(itemPos.toPointF());
         }
 
+        // update view
+        if (new_items.size() > 0)
+        {
+            foreach (NeuroItem *item, new_items)
+                item->adjustLinks();
+
+            _tree->updateItemProperties();
+        }
+
         // link up network cells
         foreach (NeuroItem *item, new_items)
         {
@@ -697,20 +708,18 @@ namespace NeuroGui
             if (netItem)
             {
                 foreach (NeuroItem *ni, netItem->connections())
+                {
                     netItem->addEdges(ni);
+
+                    NeuroNetworkItem *netConn = dynamic_cast<NeuroNetworkItem *>(ni);
+                    if (netConn)
+                        netConn->addEdges(item);
+                }
             }
         }
 
-        // update view
-        if (new_items.size() > 0)
-        {
-            MainWindow::instance()->setPropertyObject(0);
-
-            foreach (NeuroItem *item, new_items)
-                item->adjustLinks();
-
-            _tree->updateItemProperties();
-        }
+        // set network as property object
+        MainWindow::instance()->setPropertyObject(this);
     }
 
     void LabNetwork::selectAll()

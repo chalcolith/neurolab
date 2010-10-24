@@ -291,9 +291,9 @@ namespace NeuroGui
 
     void NeuroLinkItem::onDetach(NeuroItem *item)
     {
-        if (_dragFront && item == _frontLinkTarget)
+        if (item == _frontLinkTarget)
             setFrontLinkTarget(0);
-        else if (!_dragFront && item == _backLinkTarget)
+        else if (item == _backLinkTarget)
             setBackLinkTarget(0);
 
         _incoming.remove(item);

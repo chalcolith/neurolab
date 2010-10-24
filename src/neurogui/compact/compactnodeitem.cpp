@@ -174,7 +174,7 @@ namespace NeuroGui
         ds << static_cast<qint32>(_direction);
 
         if (_tipLinkItem && id_map.contains(_tipLinkItem->id()))
-            ds << static_cast<qint32>(_tipLinkItem->id());
+            ds << static_cast<qint32>(id_map[_tipLinkItem->id()]);
         else
             ds << static_cast<qint32>(0);
 
@@ -182,7 +182,7 @@ namespace NeuroGui
         foreach (NeuroItem *ni, _baseLinkItems)
         {
             if (ni && id_map.contains(ni->id()))
-                ds << static_cast<qint32>(ni->id());
+                ds << static_cast<qint32>(id_map[ni->id()]);
             else
                 ds << static_cast<qint32>(0);
         }
@@ -204,11 +204,12 @@ namespace NeuroGui
 
         qint32 num;
         ds >> num;
+        _baseLinkItems.clear();
         for (qint32 i = 0; i < num; ++i)
         {
             qint32 id;
             ds >> id;
-            if (id && id_map.contains(i))
+            if (id && id_map.contains(id))
                 _baseLinkItems.append(id_map[id]);
         }
     }
