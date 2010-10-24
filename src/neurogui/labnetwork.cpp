@@ -678,16 +678,17 @@ namespace NeuroGui
             item->readClipboard(ds, id_map);
 
             QVector2D itemPos = center + rel_pos;
-            QRectF view = scene()->sceneRect();
-            if (itemPos.x() < view.x())
-                itemPos.setX(view.x());
-            if (itemPos.y() < view.y())
-                itemPos.setY(view.y());
+//            QRectF view = scene()->sceneRect();
 
-            if (itemPos.x() >= view.x() + view.width())
-                itemPos.setX(view.x() + view.width());
-            if (itemPos.y() >= view.y() + view.height())
-                itemPos.setY(view.y() + view.height());
+//            if (itemPos.x() < view.x())
+//                itemPos.setX(view.x());
+//            if (itemPos.y() < view.y())
+//                itemPos.setY(view.y());
+
+//            if (itemPos.x() >= view.x() + view.width())
+//                itemPos.setX(view.x() + view.width());
+//            if (itemPos.y() >= view.y() + view.height())
+//                itemPos.setY(view.y() + view.height());
 
             item->setPos(itemPos.toPointF());
         }
