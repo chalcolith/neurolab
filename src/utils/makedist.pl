@@ -12,6 +12,8 @@ if ($cwd =~ /utils$/)
     $cwd = getcwd();
 }
 
+die "You must be in the src directory to run makedist.\n" unless -d 'utils';
+
 my $is_darwin = `uname` =~ 'Darwin';
 
 print "cleaning...\n";
@@ -31,6 +33,10 @@ if ($#ARGV > 0 && $ARGV[0] eq '-bump')
     $version = `utils/incversion/incversion version.txt`;
     &run("hg commit -m \"makedist: incremented version.txt to $version\"");
     &run("hg tag \"$version\"");
+}
+elsif ($#ARGV > 0 && $ARGV[0] eq '-v')
+{
+    $version = $ARGV[1];
 }
 else
 {
@@ -78,6 +84,7 @@ else
 &run("cp thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/LICENSE.LGPL $release_dir/licenses/qtpropertybrowser/LICENSE.LGPL");
 &run("cp ../LICENSE.txt $release_dir");
 &run("cp ../README.txt $release_dir");
+&run("cp ../doc/manual.pdf $release_dir/NeuroLab_UserManual.pdf");
 
 &run("cp -a ../samples/*.nln ../samples/*.nnn $release_dir/samples");
 
