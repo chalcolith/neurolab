@@ -160,6 +160,9 @@ namespace NeuroGui
         /// Used to decide when a moving item can attach to another item it collides with.
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
 
+        /// Used to determine if an item can attach to another item more than once.
+        virtual bool canAttachTwice(NeuroItem *) { return false; }
+
         /// Used to decide if a stationary item can have a moving item attach to it.
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 

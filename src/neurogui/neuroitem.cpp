@@ -547,7 +547,8 @@ namespace NeuroGui
         // attach, if possible
         if (itemAtPos)
         {
-            if (!_connections.contains(itemAtPos) && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+            if ((!_connections.contains(itemAtPos) || canAttachTwice(itemAtPos))
+                && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
             {
                 this->onAttachTo(itemAtPos);
                 itemAtPos->onAttachedBy(this);

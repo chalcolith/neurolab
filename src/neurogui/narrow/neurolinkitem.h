@@ -82,6 +82,7 @@ namespace NeuroGui
         void setLength(const int & value);
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canAttachTwice(NeuroItem *);
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
         virtual void onAttachTo(NeuroItem *);

@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neurolinkitem.h"
+#include "neuronodeitem.h"
 #include "../subnetwork/subconnectionitem.h"
 #include "../labexception.h"
 #include "../labnetwork.h"
@@ -257,6 +258,12 @@ namespace NeuroGui
             return false;
 
         return true;
+    }
+
+    bool NeuroLinkItem::canAttachTwice(NeuroItem *item)
+    {
+        NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
+        return nodeItem && !(_frontLinkTarget == item && _backLinkTarget == item);
     }
 
     bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
