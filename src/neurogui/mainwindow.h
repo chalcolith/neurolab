@@ -180,6 +180,7 @@ namespace NeuroGui
         void setNetwork(LabNetwork *network);
 
     private slots:
+        void on_action_Cancel_triggered();
         void networkChanged(const QString & title);
         void zoomValueChanged(int);
 

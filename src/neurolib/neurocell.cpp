@@ -81,7 +81,7 @@ namespace NeuroLib
 
 
     void NeuroCell::update(NEURONET_BASE *neuronet, const Index &, NeuroCell & next,
-                           const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
+                           const QVector<int> & neighbor_indices, const NeuroCell *const *const neighbors) const
     {
         const NeuroCell & prev = *this;
         NeuroNet *network = dynamic_cast<NeuroNet *>(neuronet);
@@ -98,14 +98,14 @@ namespace NeuroLib
         bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
         {
-            if (neighbors[i]._output_value < ZERO)
+            if (neighbors[i]->_output_value < ZERO)
             {
                 inhibited = true;
-                inhibit_sum += -neighbors[i]._output_value;
+                inhibit_sum += -neighbors[i]->_output_value;
             }
             else
             {
-                input_sum += neighbors[i]._output_value;
+                input_sum += neighbors[i]->_output_value;
             }
         }
 
@@ -126,28 +126,34 @@ namespace NeuroLib
                 next_value *= inhibit_factor;
 
                 // hebbian learning (link learning)
-                num_neighbors = neighbor_indices.size();
-                for (int i = 0; i < num_neighbors; ++i)
+                if (network->linkLearnRate() > 0)
                 {
-                    const NeuroCell & incoming = neighbors[i];
-
-                    if (incoming._kind == EXCITORY_LINK)
+                    num_neighbors = neighbor_indices.size();
+                    for (int i = 0; i < num_neighbors; ++i)
                     {
-                        Value delta_weight = network->linkLearnRate()
-                                             * (incoming._output_value - incoming._running_average) * (next_value - prev._running_average);
+                        const NeuroCell *incoming = neighbors[i];
 
-                        if (qAbs(delta_weight) > EPSILON)
+                        if (incoming->_kind == EXCITORY_LINK)
                         {
-                            Value new_weight = qBound(ZERO, incoming._weight + delta_weight, MAX_LINK);
-                            network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
+                            Value delta_weight = network->linkLearnRate()
+                                                 * (incoming->_output_value - incoming->_running_average) * (next_value - prev._running_average);
+
+                            if (qAbs(delta_weight) > EPSILON)
+                            {
+                                Value new_weight = qBound(ZERO, incoming->_weight + delta_weight, MAX_LINK);
+                                network->addPostUpdate(NeuroNet::PostUpdateRec(neighbor_indices[i], new_weight));
+                            }
                         }
                     }
                 }
 
                 // node raising/lowering
-                diff = qBound(ZERO, next_value - prev._running_average, ONE);
-                delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
-                next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+                if (network->nodeLearnRate() > 0 || network->nodeForgetRate() > 0)
+                {
+                    diff = qBound(ZERO, next_value - prev._running_average, ONE);
+                    delta = network->nodeLearnRate() * (diff * diff * diff - network->nodeForgetRate());
+                    next._weight = qBound(ZERO, next._weight + delta, next._weight + delta);
+                }
             }
 
             break;

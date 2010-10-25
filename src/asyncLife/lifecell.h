@@ -28,7 +28,7 @@ public:
         return *this;
     }
 
-    void update(BOARD_TYPE *, const LifeIndex &, LifeCell & next, const QVector<int> & neighbor_indices, const LifeCell *const neighbors) const;
+    void update(BOARD_TYPE *, const LifeIndex &, LifeCell & next, const QVector<int> & neighbor_indices, const LifeCell *const *const neighbors) const;
 
     virtual void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
     virtual void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);

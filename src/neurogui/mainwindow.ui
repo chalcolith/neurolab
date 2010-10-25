@@ -130,6 +130,7 @@
      <string>Simulation</string>
     </property>
     <addaction name="action_Step"/>
+    <addaction name="action_Cancel"/>
     <addaction name="action_Reset"/>
    </widget>
    <addaction name="menu_File"/>
@@ -236,6 +237,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Reset"/>
+   <addaction name="action_Cancel"/>
    <addaction name="action_Step"/>
   </widget>
   <action name="action_Open">
@@ -493,6 +495,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="action_Cancel">
+   <property name="icon">
+    <iconset resource="neurogui.qrc">
+     <normaloff>:/icons/cancel.png</normaloff>:/icons/cancel.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Pause</string>
    </property>
   </action>
  </widget>

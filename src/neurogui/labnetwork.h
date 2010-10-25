@@ -85,6 +85,8 @@ namespace NeuroGui
         QFutureWatcher<void> _future_watcher;
         QTime _step_time;
 
+        bool _cancel_step;
+
     public:
         explicit LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
@@ -171,6 +173,7 @@ namespace NeuroGui
         void start();
         void stop();
         void step(int numSteps);
+        void cancel();
 
         void selectionChanged();
         void changeItemLabel(NeuroItem *, const QString & label);

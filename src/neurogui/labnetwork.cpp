@@ -77,7 +77,7 @@ namespace NeuroGui
                               tr("Node Forget Rate"), tr("Controls the rate of node threshold lowering.")),
         _learn_time_property(this, &LabNetwork::learnTime, &LabNetwork::setLearnTime,
                              tr("Learn Window"), tr("Window of time used to calculate running average for link and node learning.")),
-        _current_step(0), _max_steps(0)
+        _current_step(0), _max_steps(0), _cancel_step(false)
     {
         _neuronet = new NeuroLib::NeuroNet();
         _tree = new LabTree(parent, this);
@@ -738,6 +738,7 @@ namespace NeuroGui
     void LabNetwork::start()
     {
         _running = true;
+        _cancel_step = false;
     }
 
     /// Stops the network running (currently not implemented).
@@ -750,6 +751,8 @@ namespace NeuroGui
     /// Advances the network by one or more timesteps.
     void LabNetwork::step(int numSteps)
     {
+        _cancel_step = false;
+
         if (_running)
             return; // can't happen
 
@@ -782,24 +785,24 @@ namespace NeuroGui
     {
         _future_watcher.waitForFinished();
         _neuronet->postUpdate();
+        emit postStep();
 
         ++_current_step;
         if ((_current_step % 3) == 0)
             emit stepIncremented();
 
         // are we done?
-        if (_current_step == _max_steps)
+        if (_current_step == _max_steps || _cancel_step)
         {
             if (_max_steps > 3)
-                emit stepProgressValueChanged(_current_step);
+                emit stepProgressValueChanged(_max_steps);
 
-            emit postStep();
             emit actionsEnabled(true);
 
             if (_max_steps == 3)
                 emit statusChanged(tr("Done stepping 1 time."));
             else
-                emit statusChanged(tr("Done stepping %1 times.").arg(_max_steps / 3));
+                emit statusChanged(tr("Done stepping %1 times.").arg(_current_step / 3));
 
             _running = false;
             setChanged();
@@ -821,6 +824,11 @@ namespace NeuroGui
                 _tree->updateItemProperties();
             }
         }
+    }
+
+    void LabNetwork::cancel()
+    {
+        _cancel_step = true;
     }
 
     /// Resets the network: all nodes and links that are not frozen have their output values set to 0.

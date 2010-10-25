@@ -119,6 +119,9 @@ namespace NeuroGui
             newNetwork();
         else
             setNetwork(LabNetwork::open(initialFname));
+
+        //
+        setActionsEnabled(true);
     }
 
     MainWindow::~MainWindow()
@@ -156,7 +159,7 @@ namespace NeuroGui
         _zoomSpinBoxAction = _ui->viewToolbar->insertWidget(_ui->action_Zoom_Out, _zoomSpinBox);
 
         _numStepsSpinBox = new QSpinBox(this);
-        _numStepsSpinBox->setRange(0, 1000000);
+        _numStepsSpinBox->setRange(1, 1000000);
         _numStepsSpinBox->setValue(1);
         _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Step, _numStepsSpinBox);
 
@@ -171,6 +174,7 @@ namespace NeuroGui
         _networkLayout = new QVBoxLayout(_ui->tab_1);
 
         _breadCrumbBar = new QToolBar(tr("breadCrumbBar"));
+        _breadCrumbBar->setWindowTitle(tr("Sub-Network Buttons"));
         _networkLayout->addWidget(_breadCrumbBar);
         _breadCrumbBar->setVisible(false);
     }
@@ -295,6 +299,8 @@ namespace NeuroGui
 
         foreach (QAction *i, _ui->simulationToolbar->actions())
             i->setEnabled(enabled);
+
+        _ui->action_Cancel->setEnabled(!enabled);
 
         if (_breadCrumbBar)
         {
@@ -1304,6 +1310,19 @@ void NeuroGui::MainWindow::on_action_Zoom_Out_triggered()
             int step = _zoomSpinBox->singleStep();
             _zoomSpinBox->setValue(prev - step);
         }
+    }
+    catch (Automata::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroGui::MainWindow::on_action_Cancel_triggered()
+{
+    try
+    {
+        if (_currentNetwork)
+            _currentNetwork->cancel();
     }
     catch (Automata::Exception & e)
     {

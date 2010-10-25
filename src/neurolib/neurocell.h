@@ -160,7 +160,7 @@ namespace NeuroLib
 
         /// Update function.
         void update(NEURONET_BASE *neuronet, const Index & index, NeuroCell & next,
-                    const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const;
+                    const QVector<int> & neighbor_indices, const NeuroCell *const *const neighbors) const;
 
         /// Write to a data stream.
         void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;

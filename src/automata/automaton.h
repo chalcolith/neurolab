@@ -59,7 +59,7 @@ namespace Automata
     class Automaton
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
-        Pool< QVector<TState> > _temp_neighbor_pool;
+        Pool< QVector<const TState *> > _temp_neighbor_pool;
         mutable QReadWriteLock _network_lock;
 
         /// \internal Used in the call to <tt>QtConcurrent::mapped()</tt>.
@@ -156,9 +156,10 @@ namespace Automata
             if (state.r == 0)
             {
                 // temporary neighbor array
-                typename Pool< QVector<TState> >::Item tni(_temp_neighbor_pool);
-                QVector<TState> *temp_neighbors = tni.data;
-                TState *temp_ptr = 0;
+                typename Pool< QVector<const TState *> >::Item tni(_temp_neighbor_pool);
+                QVector<const TState *> *temp_neighbors = tni.data;
+                const TState **temp_ptr = 0;
+                TState q0, q1;
 
                 bool do_update = false;
                 {
@@ -178,21 +179,22 @@ namespace Automata
                             const ASYNC_STATE & neighbor = this->_nodes[neighbors[i]];
 
                             if (neighbor.r == 0)
-                                temp_ptr[i] = neighbor.q0;
+                                temp_ptr[i] = &neighbor.q0;
                             else if (neighbor.r == 1)
-                                temp_ptr[i] = neighbor.q1;
+                                temp_ptr[i] = &neighbor.q1;
                         }
+
+                        // copy states
+                        q0 = state.q0;
+                        q1 = q0;
+
+                        q1.update(this, index, q0, neighbors, temp_ptr);
                     }
                 }
 
-                    // update
+                // update
                 if (do_update)
                 {
-                    TState q0 = state.q0;
-                    TState q1 = q0;
-
-                    q1.update(this, index, q0, neighbors, temp_ptr);
-
                     QWriteLocker write_lock(&_network_lock);
                     state.q0 = q0;
                     state.q1 = q1;
