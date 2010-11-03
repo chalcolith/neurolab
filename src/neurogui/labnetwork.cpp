@@ -784,12 +784,17 @@ namespace NeuroGui
     void LabNetwork::futureFinished()
     {
         _future_watcher.waitForFinished();
-        _neuronet->postUpdate();
-        emit postStep();
 
+        // at the end of each step, do post updates
+        _neuronet->postUpdate();
+
+        // at the end of three steps, do post steps
         ++_current_step;
         if ((_current_step % 3) == 0)
+        {
+            emit postStep();
             emit stepIncremented();
+        }
 
         // are we done?
         if (_current_step == _max_steps || _cancel_step)

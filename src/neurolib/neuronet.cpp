@@ -64,7 +64,10 @@ namespace NeuroLib
     void NeuroNet::postUpdate()
     {
         foreach (const PostUpdateRec & rec, _postUpdates)
+        {
+            _nodes[rec._index].former().setWeight(rec._weight);
             _nodes[rec._index].current().setWeight(rec._weight);
+        }
     }
 
     void NeuroNet::addPostUpdate(const PostUpdateRec & rec)

@@ -84,8 +84,8 @@ namespace Automata
 
         //@{
         /// The former state of the cell.
-        const TState & former() const { return r == 0 ? q0 : q1; }
-        TState & former() { return r == 0 ? q0 : q1; }
+        const TState & former() const { return r == 0 ? q1 : q0; }
+        TState & former() { return r == 0 ? q1 : q0; }
         //@}
 
         /// Write the cell's data.

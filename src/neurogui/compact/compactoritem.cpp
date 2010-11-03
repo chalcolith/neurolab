@@ -143,6 +143,12 @@ namespace NeuroGui
 
             // copy the link target and all its neighbors to our little network
             _futureNetwork.clear();
+            _futureNetwork.setDecay(network()->neuronet()->decay());
+            _futureNetwork.setLinkLearnRate(network()->neuronet()->linkLearnRate());
+            _futureNetwork.setNodeLearnRate(network()->neuronet()->nodeLearnRate());
+            _futureNetwork.setNodeForgetRate(network()->neuronet()->nodeForgetRate());
+            _futureNetwork.setLearnTime(network()->neuronet()->learnTime());
+
             NeuroCell::Index targetCellCopyIndex = _futureNetwork.addNode(targetCell->current());
 
             int num_neighbors;
@@ -163,7 +169,8 @@ namespace NeuroGui
             _futureNetwork.stepInThread();
 
             // get the value of the target cell in the little network
-            NeuroCell::Value futureValue = _futureNetwork[targetCellCopyIndex].current().outputValue();
+            NeuroNet::ASYNC_STATE & future_cell = _futureNetwork[targetCellCopyIndex];
+            NeuroCell::Value futureValue = future_cell.current().outputValue();
             if (futureValue > NeuroCell::EPSILON)
             {
                 // inhibit central links
