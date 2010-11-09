@@ -62,8 +62,8 @@ void LifeWidget::paintEvent(QPaintEvent *)
         step_a.waitForFinished();
 
         step_a = this->board->stepAsync();
-//        step_b = this->board->stepAsync();
-//        step_c = this->board->stepAsync();
+        //step_b = this->board->stepAsync();
+        //step_c = this->board->stepAsync();
         update();
 
     }
@@ -79,8 +79,8 @@ void LifeWidget::start()
 {
     this->autoStep = true;
     step_a = this->board->stepAsync();
-//    step_b = this->board->stepAsync();
-//    step_c = this->board->stepAsync();
+    //step_b = this->board->stepAsync();
+    //step_c = this->board->stepAsync();
     update();
 }
 

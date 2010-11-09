@@ -55,12 +55,15 @@ namespace Automata
     /// \param TState A cell's state in the automaton.
     /// \param TIndex The type used to index cells in the automaton.
     /// \param NUM_PER_LOCK The number of cells per write lock.
-    template <typename TState, typename TIndex = quint32>
+    template <typename TState, typename TIndex = quint32, int NUM_PER_LOCK = 1000>
     class Automaton
         : public Graph<AsyncState<TState, TIndex>, TIndex>
     {
         Pool< QVector<const TState *> > _temp_neighbor_pool;
-        mutable QReadWriteLock _network_lock;
+        //mutable QReadWriteLock _network_lock;
+
+        mutable QReadWriteLock _locks_lock;
+        mutable QVector<QReadWriteLock *> _network_locks;
 
         /// \internal Used in the call to <tt>QtConcurrent::mapped()</tt>.
         struct MapFunctor
@@ -97,6 +100,10 @@ namespace Automata
         /// Destructor.
         virtual ~Automaton()
         {
+            foreach (QReadWriteLock *lock, _network_locks)
+            {
+                delete lock;
+            }
         }
 
         /// Causes the asynchronous automaton to be advanced by one-third of a timestep.
@@ -163,7 +170,7 @@ namespace Automata
 
                 bool do_update = false;
                 {
-                    QReadLocker read_lock(&_network_lock);
+                    //QReadLocker read_lock(&_network_lock);
 
                     if (isReady(index, 0))
                     {
@@ -174,8 +181,17 @@ namespace Automata
                         temp_ptr = temp_neighbors->data();
 
                         // get appropriate states of neighbors
+                        QSet<QReadWriteLock *> neighbor_locks;
+
                         for (int i = 0; i < neighbors.size(); ++i)
                         {
+                            QReadWriteLock *lock = getLock(neighbors[i]);
+                            if (!neighbor_locks.contains(lock))
+                            {
+                                neighbor_locks.insert(lock);
+                                lock->lockForRead();
+                            }
+
                             const ASYNC_STATE & neighbor = this->_nodes[neighbors[i]];
 
                             if (neighbor.r == 0)
@@ -189,13 +205,21 @@ namespace Automata
                         q1 = q0;
 
                         q1.update(this, index, q0, neighbors, temp_ptr);
+
+                        // unlock
+                        foreach (QReadWriteLock *lock, neighbor_locks)
+                        {
+                            lock->unlock();
+                        }
                     }
                 }
 
                 // update
                 if (do_update)
                 {
-                    QWriteLocker write_lock(&_network_lock);
+                    //QWriteLocker write_lock(&_network_lock);
+                    QWriteLocker write_lock(getLock(index));
+
                     state.q0 = q0;
                     state.q1 = q1;
                     state.r = 1;
@@ -205,13 +229,15 @@ namespace Automata
             {
                 bool do_update = false;
                 {
-                    QReadLocker read_lock(&_network_lock);
+                    //QReadLocker read_lock(&_network_lock);
+                    QReadLocker read_lock(getLock(index));
                     do_update = isReady(index, state.r);
                 }
 
                 if (do_update)
                 {
-                    QWriteLocker write_lock(&_network_lock);
+                    //QWriteLocker write_lock(&_network_lock);
+                    QWriteLocker write_lock(getLock(index));
                     state.r = (state.r+1) % 3;
                 }
             }
@@ -238,6 +264,35 @@ namespace Automata
             {
                 throw IndexOverflow();
             }
+        }
+
+        QReadWriteLock *getLock(const TIndex & index) const
+        {
+            int lock_index = index / NUM_PER_LOCK;
+
+            {
+                QReadLocker read_lock(&_locks_lock);
+                int old_size = _network_locks.size();
+
+                if (!(lock_index >= old_size))
+                {
+                    return _network_locks[lock_index];
+                }
+            }
+
+            QWriteLocker write_lock(&_locks_lock);
+            int old_size = _network_locks.size(); // might have changed in the interim
+
+            if (lock_index >= old_size)
+            {
+                int new_size = (lock_index * 2) + 1;
+                _network_locks.resize(new_size);
+
+                for (int i = old_size; i < new_size; ++i)
+                    _network_locks[i] = new QReadWriteLock();
+            }
+
+            return _network_locks[lock_index];
         }
 
     }; // class Automaton
