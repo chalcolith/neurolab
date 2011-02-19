@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,14 @@ namespace NeuroGui
     class LabTree;
     class LabNetwork;
 
+    /// An interface for controlling what happens in a lab tree node.
+    class NEUROGUISHARED_EXPORT LabTreeNodeController
+    {
+    public:
+        virtual bool canCreateNewItem(const QString & typeName, const QPointF & pos) const = 0;
+    };
+
+
     /// A node in the hierarchy of scenes.
     class NEUROGUISHARED_EXPORT LabTreeNode
         : public QObject
@@ -77,6 +85,8 @@ namespace NeuroGui
 
         QAction *_currentAction;
         bool _ui_delete;
+
+        LabTreeNodeController *_controller;
 
     public:
         /// Constructor.
@@ -101,8 +111,13 @@ namespace NeuroGui
 
         void setUIDelete(bool ui_delete = true) { _ui_delete = ui_delete; }
 
+        LabTreeNodeController *controller() const { return _controller; }
+        void setController(LabTreeNodeController *c) { _controller = c; }
+
         /// Creates a new child node in the network.
         LabTreeNode *createChild(const QString & label = QString());
+
+        bool canCreateNewItem(const QString & typeName, const QPointF & pos);
 
         /// Resets all the items in the scene.
         void reset();

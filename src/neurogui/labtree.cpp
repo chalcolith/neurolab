@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,14 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "labtree.h"
-#include "labexception.h"
 #include "labview.h"
 #include "labscene.h"
 #include "labnetwork.h"
 
 #include <QAction>
 #include <QLayout>
+#include <QScrollBar>
+
 #include <typeinfo>
 
 namespace NeuroGui
@@ -50,10 +51,14 @@ namespace NeuroGui
     // LabTreeNode
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
-        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0), _view(0), _currentAction(0), _ui_delete(false)
+        : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0),
+          _view(0), _currentAction(0), _ui_delete(false), _controller(0)
     {
         _scene = new LabScene(_tree->network());
+        _scene->setTreeNode(this);
+
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
+        _view->centerOn(0, 0);
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
@@ -151,6 +156,13 @@ namespace NeuroGui
         LabTreeNode *child = new LabTreeNode(_tree, this);
         _children.append(child);
         return child;
+    }
+
+    bool LabTreeNode::canCreateNewItem(const QString &typeName, const QPointF &pos)
+    {
+        if (_controller)
+            return _controller->canCreateNewItem(typeName, pos);
+        return true;
     }
 
     void LabTreeNode::reset()
@@ -268,7 +280,7 @@ namespace NeuroGui
                 }
                 else
                 {
-                    throw LabException(QObject::tr("Error loading; unknown type %1").arg(type));
+                    throw Exception(QObject::tr("Error loading; unknown type %1").arg(type));
                 }
             }
 

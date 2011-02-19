@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "subconnectionitem.h"
 #include "subnetworkitem.h"
-#include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 
@@ -368,7 +367,7 @@ namespace NeuroGui
         }
         else if (governingId)
         {
-            throw LabException(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
+            throw Exception(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
         }
 
         NeuroItem::IdType parentId = reinterpret_cast<NeuroItem::IdType>(_parentSubnetworkItem);
@@ -380,7 +379,7 @@ namespace NeuroGui
         }
         else
         {
-            throw LabException(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
+            throw Exception(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
         }
     }
 

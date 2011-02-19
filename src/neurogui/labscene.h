@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ namespace NeuroGui
 {
 
     class LabNetwork;
+    class LabTreeNode;
     class NeuroItem;
 
     /// A derived class from QGraphicsScene that handles displaying the neural network items.
@@ -60,6 +61,8 @@ namespace NeuroGui
         bool _mouseIsDown;
         bool _moveOnly;
         QPointF _lastMousePos;
+
+        LabTreeNode *_treeNode;
 
     public:
         /// Constructor.
@@ -82,12 +85,17 @@ namespace NeuroGui
         /// Used by items to set themselves as being the item under the mouse.
         void setItemUnderMouse(NeuroItem *item) { _itemUnderMouse = item; }
 
+        LabTreeNode *treeNode() const { return _treeNode; }
+        void setTreeNode(LabTreeNode *tn) { _treeNode = tn; }
+
+        bool canCreateNewItem(const QString & typeName, const QPointF & pos);
+
     public slots:
         /// Creates a new item with the given type name.
         /// \param typeName The C++ type name of the item to create.
         /// \param scenePos The position (in scene coordinates) to position the newly-created item.
         /// \see NeuroItem
-        void newItem(const QString & typeName, const QPointF & scenePos);
+        bool newItem(const QString & typeName, const QPointF & scenePos);
 
     signals:
         void itemCreated(NeuroItem *item);

@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,11 @@ namespace NeuroGui
     LabView::LabView(LabScene *scene, QWidget *parent)
         : QGraphicsView(scene, parent), _zoom(100)
     {
-        setSceneRect(0, 0, 10000, 10000);
         setAlignment(Qt::AlignLeft | Qt::AlignTop);
         setDragMode(QGraphicsView::RubberBandDrag);
         setResizeAnchor(QGraphicsView::AnchorViewCenter);
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
         setToolTip(tr("Right-click to add new network items."));
     }

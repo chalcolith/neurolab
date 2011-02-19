@@ -1,6 +1,9 @@
+#ifndef GRIDCONNECTIONITEM_H
+#define GRIDCONNECTIONITEM_H
+
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,11 +37,26 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "labexception.h"
+#include "griditems_global.h"
+#include "../neurogui/neuronetworkitem.h"
 
-namespace NeuroGui
+namespace GridItems
 {
 
+    class GRIDITEMSSHARED_EXPORT GridConnectionItem
+        : public NeuroGui::NeuroNetworkItem
+    {
+        Q_OBJECT
+        NEUROITEM_DECLARE_CREATOR
 
+    public:
+        GridConnectionItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
+        virtual ~GridConnectionItem();
+
+        virtual Value outputValue() const { return 0; }
+        virtual void setOutputValue(const Value &) { }
+    };
 
 }
+
+#endif // GRIDCONNECTIONITEM_H

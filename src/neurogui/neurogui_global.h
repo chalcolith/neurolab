@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,8 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <QtCore/qglobal.h>
+#include <QtGlobal>
+#include <QString>
 
 #if defined(NEUROGUI_LIBRARY)
 #  define NEUROGUISHARED_EXPORT Q_DECL_EXPORT
@@ -48,6 +49,8 @@ POSSIBILITY OF SUCH DAMAGE.
 /// The main user interface.
 namespace NeuroGui
 {
+
+    extern NEUROGUISHARED_EXPORT const QString VERSION;
 
     struct NEUROGUISHARED_EXPORT NeuroLabFileVersion
     {
@@ -65,7 +68,19 @@ namespace NeuroGui
         NEUROLAB_FILE_VERSION_6   = 6,
         NEUROLAB_FILE_VERSION_7   = 7,
         NEUROLAB_FILE_VERSION_8   = 8,
+        NEUROLAB_FILE_VERSION_9   = 9,
         NEUROLAB_NUM_FILE_VERSIONS
+    };
+
+    /// Base class for exceptions used by the NeuroLab software.
+    class NEUROGUISHARED_EXPORT Exception
+    {
+        QString _message;
+
+    public:
+        Exception(const QString & message) : _message(message) {}
+
+        QString message() const { return _message; }
     };
 
 } // namespace NeuroGui

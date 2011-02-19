@@ -1,9 +1,6 @@
-#ifndef LABEXCEPTION_H
-#define LABEXCEPTION_H
-
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,20 +34,25 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "neurogui_global.h"
-#include "../automata/exception.h"
+#include "gridconnectionitem.h"
+#include "neurogriditem.h"
+#include "../neurogui/labscene.h"
+#include "../neurogui/labnetwork.h"
 
-namespace NeuroGui
+using namespace NeuroGui;
+
+namespace GridItems
 {
 
-    /// Base class for exceptions used by the NeuroLab software.
-    class NEUROGUISHARED_EXPORT LabException
-        : public Automata::Exception
+    NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridConnectionItem, QObject::tr("Misc"), QObject::tr("Grid Connection"), GridItems::VERSION, NeuroGridItem);
+
+    GridConnectionItem::GridConnectionItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroNetworkItem(network, scenePos, context)
     {
-    public:
-        LabException(const QString & message) : Automata::Exception(message) {}
-    };
+    }
 
-} // namespace NeuroGui
+    GridConnectionItem::~GridConnectionItem()
+    {
+    }
 
-#endif // LABEXCEPTION_H
+} // namespace GridItems

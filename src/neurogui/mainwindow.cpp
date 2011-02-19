@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include "labexception.h"
 
 #include "labscene.h"
 #include "neuroitem.h"
@@ -97,7 +95,7 @@ namespace NeuroGui
           _rememberProperties(true)
     {
         if (_instance)
-            throw LabException("You cannot create more than one main window.");
+            throw Exception("You cannot create more than one main window.");
 
         _instance = this;
 
@@ -450,7 +448,7 @@ namespace NeuroGui
                 return true;
             }
         }
-        catch (LabException & le)
+        catch (Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to save network."), le.message());
         }
@@ -672,7 +670,7 @@ namespace NeuroGui
         if (!_currentNetwork || !treeNode)
             return;
         if (treeNode->tree()->network() != _currentNetwork)
-            throw LabException(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
+            throw Exception(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
 
         // remove the current network's view
         if (_currentNetwork->scene())

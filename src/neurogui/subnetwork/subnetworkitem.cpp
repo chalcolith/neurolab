@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "subnetworkitem.h"
-#include "../labexception.h"
 #include "../labtree.h"
 #include "../labscene.h"
 #include "../labview.h"
@@ -54,7 +53,7 @@ namespace NeuroGui
     NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc"), QObject::tr("Sub-Network"));
 
     SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNetworkItem(network, scenePos, context), MixinRemember(this),
+        : NeuroNetworkItem(network, scenePos, context), MixinRemember(this), LabTreeNodeController(),
           _treeNodeIdNeeded(static_cast<quint32>(-1)), _treeNode(0),
           _rect(-15, -10, 30, 20)
     {
@@ -183,9 +182,14 @@ namespace NeuroGui
         }
     }
 
+    bool SubNetworkItem::canCreateNewItem(const QString &, const QPointF &) const
+    {
+        return true;
+    }
+
     bool SubNetworkItem::canCreateNewOnMe(const QString & typeName, const QPointF &) const
     {
-        return typeName.indexOf("LinkItem") >= 0;
+        return typeName.contains("LinkItem");
     }
 
     NeuroCell::Index SubNetworkItem::getIncomingCellFor(const NeuroItem *item) const
@@ -306,6 +310,12 @@ namespace NeuroGui
             setLabel(_treeNode->label());
             connect(_treeNode, SIGNAL(labelChanged(QString)), this, SLOT(setLabel(QString)));
         }
+
+        // make sure we're the tree node's controller
+        if (_treeNode)
+        {
+            _treeNode->setController(this);
+        }
     }
 
     void SubNetworkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
@@ -314,6 +324,7 @@ namespace NeuroGui
 
         quint32 id_to_write = _treeNode ? _treeNode->id() : static_cast<quint32>(-1);
         ds << id_to_write;
+        ds << _rect;
     }
 
     void SubNetworkItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -323,6 +334,11 @@ namespace NeuroGui
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_3)
         {
             ds >> _treeNodeIdNeeded;
+        }
+
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_9)
+        {
+            ds >> _rect;
         }
     }
 
@@ -397,7 +413,7 @@ namespace NeuroGui
             }
             else
             {
-                throw LabException(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
+                throw Exception(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
             }
         }
 

@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -124,7 +124,7 @@ namespace NeuroGui
             _delay_property.setValue(QVariant(newDelay));
     }
 
-    NeuroCell::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
+    CompactAndItem::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
     {
         if (item == _tipLinkItem)
         {
@@ -144,7 +144,7 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
+    CompactAndItem::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
     {
         if (item == _tipLinkItem)
         {

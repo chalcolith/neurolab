@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "propertyobj.h"
+#include "labtree.h"
 
 #include <QApplication>
 #include <QGraphicsItem>
@@ -76,7 +77,8 @@ namespace NeuroGui
             QFont font;
             QPen pen;
 
-            TextPathRec(const QPointF & pos, const QString & text, const QFont & font = QApplication::font(), const QPen & pen = QPen())
+            TextPathRec(const QPointF & pos, const QString & text,
+                        const QFont & font = QApplication::font(), const QPen & pen = QPen())
                 : pos(pos), text(text), font(font), pen(pen) {}
         };
 
@@ -96,6 +98,7 @@ namespace NeuroGui
 
         mutable QList<TextPathRec> _texts; ///< Holds the strings to be drawn by the item.
         QString _label; ///< The item's label.
+        QPointF _label_pos;
 
         static IdType NEXT_ID;
         static qreal HIGHEST_Z_VALUE;
@@ -137,12 +140,15 @@ namespace NeuroGui
         const LabNetwork *network() const { return _network; }
         LabNetwork *network() { return _network; }
 
+        /// \return The node's ID, for use when saving and loading.
+        int id() const { return _id; }
+
         /// The label is drawn to the right of the item's scene position.
         /// \return The item's label.
         QString label() const { return _label; }
 
-        /// \return The node's ID, for use when saving and loading.
-        int id() const { return _id; }
+        const QPointF & labelPos() const { return _label_pos; }
+        void setLabelPos(const QPointF & pos) { _label_pos = pos; }
 
         /// The node's connections.
         const QSet<NeuroItem *> & connections() const { return _connections; }
@@ -318,6 +324,7 @@ namespace NeuroGui
         /// created on top of an already selected item.
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
 
+
         //////////////////////////////////////////////////////////////
 
         struct TypeNameRec
@@ -367,21 +374,39 @@ namespace NeuroGui
         }
     };
 
-    /// Use this macro in the header file for a class derived from \ref NeuroGui::NeuroItem in order to have it show up in the context menu.
-    #define NEUROITEM_DECLARE_CREATOR \
+    /// Use this macro in the header file for a class derived from \ref NeuroGui::NeuroItem
+    /// in order to have it show up in the context menu.
+#define NEUROITEM_DECLARE_CREATOR \
     static NeuroGui::NeuroItem *_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
+    static bool _can_create_(NeuroGui::LabTreeNodeController *tnc); \
     static NeuroGui::NeuroItemRegistrator _static_registrator;
 
-    /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem in order to have it show up in the context menu.
-    #define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName) \
+    /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem
+    /// in order to have it show up in the context menu.  It will also check that the version of the plugin is correct.
+    /// You can restrict the item to be created only in subnetworks of the given tree node controller type.
+#define NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion, ControllerType) \
     NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
+        if (NeuroGui::VERSION != NeuroLabVersion) \
+            throw NeuroGui::Exception(QObject::tr("The plugin that provides the %1 item is out of date.  It was built for NeuroLab version %2, and this is version %3").arg(UIName).arg(NeuroLabVersion).arg(NeuroGui::VERSION)); \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
         NeuroItem *item = new TypeName(scene->network(), scenePos, context); \
         return item; \
+    } \
+    bool TypeName::_can_create_(NeuroGui::LabTreeNodeController *tnc) \
+    { \
+        return !tnc || dynamic_cast<ControllerType *>(tnc); \
     }
+
+    /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem
+    /// in order to have it show up in the context menu.  It will also check that the version of the plugin is correct.
+#define NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion) NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion, NeuroGui::LabTreeNodeController)
+
+    /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem
+    /// in order to have it show up in the context menu.
+#define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName) NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroGui::VERSION)
 
 } // namespace NeuroGui
 

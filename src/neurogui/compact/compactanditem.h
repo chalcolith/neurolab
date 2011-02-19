@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -72,8 +72,8 @@ namespace NeuroGui
         qint32 delay() const { return _delay; }
         void setDelay(const qint32 & d);
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual Index getIncomingCellFor(const NeuroItem *) const;
+        virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
     protected:
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);

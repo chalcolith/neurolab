@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "neurolinkitem.h"
 #include "neuronodeitem.h"
 #include "../subnetwork/subconnectionitem.h"
-#include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 #include "../mainwindow.h"

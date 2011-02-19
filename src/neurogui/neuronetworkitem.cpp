@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -92,44 +92,74 @@ namespace NeuroGui
     void NeuroNetworkItem::addEdges(NeuroItem *item)
     {
         Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
+
+        NeuroLib::NeuroNet *neuronet = network()->neuronet();
+        Q_ASSERT(neuronet);
 
         NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
         if (netItem)
         {
-            NeuroCell::Index myIn = this->getIncomingCellFor(item);
-            NeuroCell::Index itemOut = netItem->getOutgoingCellFor(this);
+            // connect the item's outputs to my inputs
+            QList<Index> myIns = this->getIncomingCellsFor(item);
+            QList<Index> itemOuts = netItem->getOutgoingCellsFor(this);
 
-            if (myIn != -1 && itemOut != -1)
-                network()->neuronet()->addEdge(myIn, itemOut);
+            foreach (Index myIn, myIns)
+            {
+                foreach (Index itemOut, itemOuts)
+                {
+                    if (myIn != -1 && itemOut != -1)
+                        neuronet->addEdge(myIn, itemOut);
+                }
+            }
 
-            NeuroCell::Index myOut = this->getOutgoingCellFor(item);
-            NeuroCell::Index itemIn = netItem->getIncomingCellFor(this);
+            // connect my ouputs to the item's inputs
+            QList<Index> myOuts = this->getOutgoingCellsFor(item);
+            QList<Index> itemIns = netItem->getIncomingCellsFor(this);
 
-            if (myOut != -1 && itemIn != -1)
-                network()->neuronet()->addEdge(itemIn, myOut);
+            foreach (Index myOut, myOuts)
+            {
+                foreach (Index itemIn, itemIns)
+                {
+                    if (myOut != -1 && itemIn != -1)
+                        neuronet->addEdge(itemIn, myOut);
+                }
+            }
         }
     }
 
     void NeuroNetworkItem::removeEdges(NeuroItem *item)
     {
         Q_ASSERT(network());
-        Q_ASSERT(network()->neuronet());
+
+        NeuroLib::NeuroNet *neuronet = network()->neuronet();
+        Q_ASSERT(neuronet);
 
         NeuroNetworkItem *netItem = dynamic_cast<NeuroNetworkItem *>(item);
         if (netItem)
         {
-            NeuroCell::Index myIn = this->getIncomingCellFor(item);
-            NeuroCell::Index itemOut = netItem->getOutgoingCellFor(this);
+            QList<Index> myIns = this->getIncomingCellsFor(item);
+            QList<Index> itemOuts = netItem->getOutgoingCellsFor(this);
 
-            if (myIn != -1 && itemOut != -1)
-                network()->neuronet()->removeEdge(myIn, itemOut);
+            foreach (Index myIn, myIns)
+            {
+                foreach (Index itemOut, itemOuts)
+                {
+                    if (myIn != -1 && itemOut != -1)
+                        neuronet->removeEdge(myIn, itemOut);
+                }
+            }
 
-            NeuroCell::Index myOut = this->getOutgoingCellFor(item);
-            NeuroCell::Index itemIn = netItem->getIncomingCellFor(this);
+            QList<Index> myOuts = this->getOutgoingCellsFor(item);
+            QList<Index> itemIns = netItem->getIncomingCellsFor(this);
 
-            if (myOut != -1 && itemIn != -1)
-                network()->neuronet()->removeEdge(itemIn, myOut);
+            foreach (Index myOut, myOuts)
+            {
+                foreach (Index itemIn, itemIns)
+                {
+                    if (myOut != -1 && itemIn != -1)
+                        network()->neuronet()->removeEdge(itemIn, myOut);
+                }
+            }
         }
     }
 
