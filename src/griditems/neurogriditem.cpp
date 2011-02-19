@@ -50,7 +50,7 @@ namespace GridItems
 #include "../version.txt"
     ;
 
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(NeuroGridItem, QObject::tr("Misc"), QObject::tr("Grid Item"), GridItems::VERSION);
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(NeuroGridItem, QString("Grid Items"), QObject::tr("Grid Item"), GridItems::VERSION)
 
     NeuroGridItem::NeuroGridItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : SubNetworkItem(network, scenePos, context),

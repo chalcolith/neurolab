@@ -931,9 +931,9 @@ namespace NeuroGui
         if (scene() && view())
         {
             QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
-                                                         tr("Export Network to PostScript"),
+                                                         tr("Export Network to Encapsulated PostScript"),
                                                          MainWindow::LAST_DIRECTORY.absolutePath(),
-                                                         tr("PostScript files (*.ps);;All Files(*)"));
+                                                         tr("Encapsulated PostScript files (*.eps);;All Files(*)"));
 
             if (!fname.isNull() && !fname.isEmpty())
             {
@@ -948,7 +948,7 @@ namespace NeuroGui
                 view()->render(&painter);
                 painter.end();
 
-                MainWindow::instance()->setStatus(tr("Exported to PostScript: %1").arg(fname));
+                MainWindow::instance()->setStatus(tr("Exported to Encapsulated PostScript: %1").arg(fname));
             }
         }
     }
