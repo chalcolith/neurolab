@@ -144,10 +144,13 @@ namespace NeuroGui
     {
         setTitle();
 
-        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->sidebar_page_1);
+        // sidebar
+        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->propertiesWidget);
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
+        _propertyEditor->setMinimumWidth(210);
 
+        // zoom spinbox
         _zoomSpinBox = new QSpinBox(this);
         _zoomSpinBox->setRange(10, 1000);
         _zoomSpinBox->setSuffix(QString("%"));
@@ -156,21 +159,24 @@ namespace NeuroGui
         _zoomSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
         _zoomSpinBoxAction = _ui->viewToolbar->insertWidget(_ui->action_Zoom_Out, _zoomSpinBox);
 
+        // number of steps spinbox
         _numStepsSpinBox = new QSpinBox(this);
         _numStepsSpinBox->setRange(1, 1000000);
         _numStepsSpinBox->setValue(1);
         _numStepsSpinBoxAction = _ui->simulationToolbar->insertWidget(_ui->action_Step, _numStepsSpinBox);
 
+        // progress bar
         _stepProgressBar = new QProgressBar(this);
         _stepProgressBar->setVisible(false);
         _stepProgressBar->reset();
         _ui->statusBar->addPermanentWidget(_stepProgressBar);
 
-        _ui->tabWidget->setTabText(1, "");
+        //_ui->tabWidget->setTabText(1, "");
 
         // network tab widget
-        _networkLayout = new QVBoxLayout(_ui->tab_1);
+        _networkLayout = new QVBoxLayout(_ui->networkTab);
 
+        // breadcrumbs
         _breadCrumbBar = new QToolBar(tr("breadCrumbBar"));
         _breadCrumbBar->setWindowTitle(tr("Sub-Network Buttons"));
         _networkLayout->addWidget(_breadCrumbBar);
@@ -196,6 +202,7 @@ namespace NeuroGui
     {
 #ifdef __APPLE__
         QString pluginPath = QCoreApplication::applicationDirPath() + "/../Frameworks";
+
         {
             QDir dir(pluginPath);
             QStringList entries = dir.entryList(QDir::Dirs);
@@ -879,7 +886,7 @@ namespace NeuroGui
     {
         bool showPrint = false;
         bool showExport = false;
-        if (_ui->tabWidget->currentWidget() == _ui->tab_1 && _currentNetwork && _currentNetwork->items().size() > 0)
+        if (_ui->tabWidget->currentWidget() == _ui->networkTab && _currentNetwork && _currentNetwork->items().size() > 0)
         {
             showPrint = true;
             showExport = true;
@@ -1215,7 +1222,7 @@ void NeuroGui::MainWindow::on_action_Print_triggered()
         // are we in the scene or the data file?
         QWidget *current = _ui->tabWidget->currentWidget();
 
-        if (current == _ui->tab_1 && _currentNetwork)
+        if (current == _ui->networkTab && _currentNetwork)
         {
             _currentNetwork->exportPrint();
         }
