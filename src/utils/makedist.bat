@@ -1,9 +1,6 @@
 @echo off
 
-set OLDDIR=%CD%
-if "%CD:~-3%"=="ils" cd ..
-if "%CD:~-3%"=="cog" cd src
-if errorlevel 1 goto done
+pushd "%~dp0\.."
 
 if not exist utils goto wrongdir
 if ERRORLEVEL 1 goto error
@@ -136,7 +133,7 @@ if ERRORLEVEL 1 goto :EOF
 REM ------------------------------------------------------------------
 REM Done
 :done
-cd %OLDDIR%
+popd
 goto :EOF
 
 REM ------------------------------------------------------------------

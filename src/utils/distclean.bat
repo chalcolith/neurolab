@@ -1,9 +1,6 @@
 @echo off
 
-set OLDDIR=%CD%
-if "%CD:~-3%"=="ils" cd ..
-if "%CD:~-3%"=="cog" cd src
-if errorlevel 1 goto done
+pushd "%~dp0\.."
 
 if not exist Makefile echo > Makefile
 del /s /q Makefile* > "%TEMP%\distclean.log"
@@ -32,4 +29,4 @@ echo > object_scriptdummy
 del /s /q object_script* > "%TEMP%\distclean.log"
 
 :done
-cd %OLDDIR%
+popd
