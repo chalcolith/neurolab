@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QDir>
 
 #include "../automata/exception.h"
-#include "../neurogui/labexception.h"
 #include "../neurogui/mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -60,7 +59,7 @@ int main(int argc, char *argv[])
     {
         return application.exec();
     }
-    catch (NeuroGui::LabException & le)
+    catch (NeuroGui::Exception & le)
     {
         qDebug() << "Critical Error: " << le.message();
     }

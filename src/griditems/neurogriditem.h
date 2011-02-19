@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,41 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "griditems_global.h"
-#include "../neurogui/neuroitem.h"
+#include "../neurogui/subnetwork/subnetworkitem.h"
 
 namespace GridItems
 {
 
     class GRIDITEMSSHARED_EXPORT NeuroGridItem
-        : public NeuroGui::NeuroItem
+        : public NeuroGui::SubNetworkItem
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
+
+        Property<NeuroGridItem, QVariant::Int, qint32, qint32> _horizontal_property;
+        Property<NeuroGridItem, QVariant::Int, qint32, qint32> _vertical_property;
+
+        qint32 _num_horiz;
+        qint32 _num_vert;
 
     public:
         NeuroGridItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
 
+        qint32 horizontalCols() const { return _num_horiz; }
+        void setHorizontalCols(const qint32 & num) { _num_horiz = num; }
+
+        qint32 verticalRows() const { return _num_vert; }
+        void setVerticalRows(const qint32 & num) { _num_vert = num; }
+
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
+
+        virtual bool canCreateNewItem(const QString &, const QPointF &) const;
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+
+        virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
     };
 
 }

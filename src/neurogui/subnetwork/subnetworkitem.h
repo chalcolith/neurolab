@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "../neurogui_global.h"
+#include "../labtree.h"
 #include "../neuronetworkitem.h"
 #include "../mixins/mixinremember.h"
 #include "subconnectionitem.h"
@@ -52,7 +53,7 @@ namespace NeuroGui
 
     /// An item that represents a sub-network that can be opened.
     class NEUROGUISHARED_EXPORT SubNetworkItem
-        : public NeuroNetworkItem, public MixinRemember
+        : public NeuroNetworkItem, public MixinRemember, public LabTreeNodeController
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
@@ -71,6 +72,10 @@ namespace NeuroGui
         explicit SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~SubNetworkItem();
 
+        LabTreeNode *treeNode() { return _treeNode; }
+        const QRectF & rect() const { return _rect; }
+        void setRect(const QRectF & r) { _rect = r; }
+
         virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) { }
 
@@ -86,6 +91,7 @@ namespace NeuroGui
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
+        virtual bool canCreateNewItem(const QString &, const QPointF &) const;
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }

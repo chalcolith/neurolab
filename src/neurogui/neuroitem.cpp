@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuroitem.h"
-#include "labexception.h"
 #include "labscene.h"
 #include "labnetwork.h"
 #include "mainwindow.h"
@@ -79,9 +78,10 @@ namespace NeuroGui
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
         : PropertyObject(network), QGraphicsItem(),
-        _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
-        _setting_pos(false), _ui_delete(false),
-        _network(network), _id(NEXT_ID++)
+          _label_property(this, &NeuroItem::label, &NeuroItem::setLabel, tr("Label")),
+          _setting_pos(false), _ui_delete(false),
+          _network(network), _id(NEXT_ID++),
+          _label_pos(NODE_WIDTH + 4, -1)
     {
         setPos(scenePos);
 
@@ -94,7 +94,8 @@ namespace NeuroGui
 
         if (_network)
         {
-            connect(this, SIGNAL(labelChanged(NeuroItem*,QString)), _network, SLOT(changeItemLabel(NeuroItem*,QString)), Qt::UniqueConnection);
+            connect(this, SIGNAL(labelChanged(NeuroItem*,QString)),
+                    _network, SLOT(changeItemLabel(NeuroItem*,QString)), Qt::UniqueConnection);
         }
     }
 
@@ -113,7 +114,8 @@ namespace NeuroGui
         _connections.clear();
     }
 
-    void NeuroItem::registerTypeName(const QString & mangledName, const QString & typeName, const QString & menuPath, const QString & uiName)
+    void NeuroItem::registerTypeName(const QString & mangledName, const QString & typeName,
+                                     const QString & menuPath, const QString & uiName)
     {
         if (!_typeNames)
             _typeNames = new QMap<QString, TypeNameRec>();
@@ -214,7 +216,7 @@ namespace NeuroGui
         }
     };
 
-    void NeuroItem::buildNewMenu(LabScene *, NeuroItem *item, const QPointF & pos, QMenu & menu)
+    void NeuroItem::buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu)
     {
         QAction *newAction = menu.addAction(tr("New"));
         newAction->setEnabled(false);
@@ -258,7 +260,7 @@ namespace NeuroGui
                     // create the leaf action
                     QAction *action = subMenu->addAction(menuPath[j]);
                     action->setData(QVariant(typeName));
-                    action->setEnabled(!item || item->canCreateNewOnMe(typeName, pos));
+                    action->setEnabled(scene->canCreateNewItem(typeName, pos) && (!item || item->canCreateNewOnMe(typeName, pos)));
                 }
                 else
                 {
@@ -368,7 +370,7 @@ namespace NeuroGui
 
         // add texts
         if (!_label.isNull() && !_label.isEmpty())
-            _texts.append(TextPathRec(QPointF(NeuroItem::NODE_WIDTH + 4, -1), _label));
+            _texts.append(TextPathRec(_label_pos, _label));
 
         foreach (const TextPathRec & rec, _texts)
             _shapePath.addText(rec.pos, rec.font, rec.text);
@@ -744,7 +746,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.insert(wanted_item);
             else
-                throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
+                throw Exception(tr("Dangling node ID in file: %1").arg(wanted_id));
         }
 
         _connections = itemsToAdd;

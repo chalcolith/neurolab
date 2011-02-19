@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mainwindow.h"
-#include "labexception.h"
 #include "labnetwork.h"
 #include "labtree.h"
 #include "labview.h"
@@ -301,13 +300,13 @@ namespace NeuroGui
                 catch (...)
                 {
                     delete ln;
-                    throw LabException(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                    throw Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
                 }
             }
             else
             {
                 delete ln;
-                throw LabException(tr("Unable to open network file."));
+                throw Exception(tr("Unable to open network file."));
             }
         }
 
@@ -344,7 +343,7 @@ namespace NeuroGui
                 else
                 {
                     delete ln;
-                    throw LabException(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw Exception(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
 
                 ln->setChanged(false);
@@ -352,7 +351,7 @@ namespace NeuroGui
             else
             {
                 delete ln;
-                throw LabException(tr("Unable to open network scene file."));
+                throw Exception(tr("Unable to open network scene file."));
             }
         }
 
@@ -406,7 +405,7 @@ namespace NeuroGui
             }
             else
             {
-                throw LabException(tr("Unable to write network file."));
+                throw Exception(tr("Unable to write network file."));
             }
         }
 
@@ -432,7 +431,7 @@ namespace NeuroGui
             }
             else
             {
-                throw LabException(tr("Unable to write network scene file."));
+                throw Exception(tr("Unable to write network scene file."));
             }
         }
 
@@ -922,7 +921,7 @@ namespace NeuroGui
                 if (image.save(fname))
                     MainWindow::instance()->setStatus(tr("Exported to PNG: %1").arg(fname));
                 else
-                    throw LabException(tr("Unable to save image %1").arg(fname));
+                    throw Exception(tr("Unable to save image %1").arg(fname));
             }
         }
     }
@@ -932,9 +931,9 @@ namespace NeuroGui
         if (scene() && view())
         {
             QString fname = QFileDialog::getSaveFileName(MainWindow::instance(),
-                                                         tr("Export Network to PostScript"),
+                                                         tr("Export Network to Encapsulated PostScript"),
                                                          MainWindow::LAST_DIRECTORY.absolutePath(),
-                                                         tr("PostScript files (*.ps);;All Files(*)"));
+                                                         tr("Encapsulated PostScript files (*.eps);;All Files(*)"));
 
             if (!fname.isNull() && !fname.isEmpty())
             {
@@ -949,7 +948,7 @@ namespace NeuroGui
                 view()->render(&painter);
                 painter.end();
 
-                MainWindow::instance()->setStatus(tr("Exported to PostScript: %1").arg(fname));
+                MainWindow::instance()->setStatus(tr("Exported to Encapsulated PostScript: %1").arg(fname));
             }
         }
     }

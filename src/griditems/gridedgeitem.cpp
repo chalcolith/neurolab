@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,22 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "labexception.h"
+#include "gridedgeitem.h"
+#include "../neurogui/labscene.h"
+#include "../neurogui/labnetwork.h"
 
-namespace NeuroGui
+namespace GridItems
 {
 
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(GridEdgeItem, QString("Grid Items"), QObject::tr("Edge Item"), GridItems::VERSION)
 
+    GridEdgeItem::GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroGui::NeuroNetworkItem(network, scenePos, context)
+    {
+    }
 
-}
+    GridEdgeItem::~GridEdgeItem()
+    {
+    }
+
+} // namespace GridItems

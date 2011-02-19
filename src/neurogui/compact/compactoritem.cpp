@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "compactoritem.h"
-#include "../labexception.h"
 #include "../labnetwork.h"
 #include "../labscene.h"
 
@@ -408,7 +407,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.insert(wanted_item);
             else
-                throw LabException(tr("Dangling node ID in file: %1").arg(wanted_id));
+                throw Exception(tr("Dangling node ID in file: %1").arg(wanted_id));
         }
 
         _shortcutItems = itemsToAdd;

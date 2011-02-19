@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "compactnodeitem.h"
 #include "../labnetwork.h"
-#include "../labexception.h"
 
 using namespace NeuroLib;
 
@@ -290,7 +289,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.append(wanted_item);
             else
-                throw LabException(tr("Dangling node in compact node base: %1").arg(wanted_id));
+                throw Exception(tr("Dangling node in compact node base: %1").arg(wanted_id));
         }
 
         _baseLinkItems = itemsToAdd;

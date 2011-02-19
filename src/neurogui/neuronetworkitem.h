@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -60,8 +60,8 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Value outputValue() const = 0;
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) = 0;
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const = 0;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const = 0;
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return -1; }
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return -1; }
 
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);

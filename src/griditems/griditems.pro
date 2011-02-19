@@ -14,10 +14,12 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 
 DEFINES += GRIDITEMS_LIBRARY
 
-SOURCES += neurogriditem.cpp
+SOURCES += neurogriditem.cpp \
+           gridedgeitem.cpp
 
-HEADERS += neurogriditem.h\
-        griditems_global.h
+HEADERS += griditems_global.h \
+           neurogriditem.h\
+           gridedgeitem.h
 
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) { BUILDDIR=debug }

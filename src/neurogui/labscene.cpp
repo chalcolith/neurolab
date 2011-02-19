@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labscene.h"
 #include "labnetwork.h"
+#include "labtree.h"
 #include "neuroitem.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -52,7 +53,8 @@ namespace NeuroGui
 {
 
     LabScene::LabScene(LabNetwork *_network)
-        : QGraphicsScene(_network), _network(_network), _itemUnderMouse(0), _mouseIsDown(false), _moveOnly(false)
+        : QGraphicsScene(_network), _network(_network), _itemUnderMouse(0),
+          _mouseIsDown(false), _moveOnly(false), _treeNode(0)
     {
         connect(this, SIGNAL(selectionChanged()), _network, SLOT(selectionChanged()), Qt::UniqueConnection);
         connect(this, SIGNAL(itemCreated(NeuroItem*)), MainWindow::instance(), SLOT(createdItem(NeuroItem*)), Qt::UniqueConnection);
@@ -62,10 +64,17 @@ namespace NeuroGui
     {
     }
 
-    void LabScene::newItem(const QString & typeName, const QPointF & scenePos)
+    bool LabScene::canCreateNewItem(const QString &typeName, const QPointF &pos)
+    {
+        if (_treeNode)
+            return _treeNode->canCreateNewItem(typeName, pos);
+        return true;
+    }
+
+    bool LabScene::newItem(const QString & typeName, const QPointF & scenePos)
     {
         if (!_network)
-            return;
+            return false;
 
         NeuroItem *item = NeuroItem::create(typeName, this, scenePos, NeuroItem::CREATE_UI);
         if (item)
@@ -80,7 +89,11 @@ namespace NeuroGui
 
             _network->setChanged(true);
             emit itemCreated(item);
+
+            return true;
         }
+
+        return false;
     }
 
     void LabScene::keyReleaseEvent(QKeyEvent *event)

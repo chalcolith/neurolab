@@ -3,7 +3,7 @@
 
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -63,8 +63,6 @@ namespace Ui
 /// GUI code.
 namespace NeuroGui
 {
-
-    extern NEUROGUISHARED_EXPORT const QString VERSION;
 
     class LabTree;
     class LabTreeNode;

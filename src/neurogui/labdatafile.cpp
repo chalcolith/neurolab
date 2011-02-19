@@ -1,6 +1,6 @@
 /*
 Neurocognitive Linguistics Lab
-Copyright (c) 2010, Gordon Tisher
+Copyright (c) 2010,2011 Gordon Tisher
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "labdatafile.h"
-#include "labexception.h"
 #include "labnetwork.h"
 #include "neuronetworkitem.h"
 #include "subnetwork/subnetworkitem.h"
@@ -263,7 +262,7 @@ namespace NeuroGui
             }
             else
             {
-                throw LabException(tr("Unable to write data file."));
+                throw Exception(tr("Unable to write data file."));
             }
         }
     }

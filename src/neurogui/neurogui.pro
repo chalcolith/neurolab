@@ -20,7 +20,6 @@ INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensourc
 SOURCES += mainwindow.cpp \
     filedirtydialog.cpp \
     aboutdialog.cpp \
-    labexception.cpp \
     labdatafile.cpp \
     labnetwork.cpp \
     labscene.cpp \
@@ -47,7 +46,6 @@ HEADERS += neurogui_global.h \
     mainwindow.h \
     filedirtydialog.h \
     aboutdialog.h \
-    labexception.h \
     labdatafile.h \
     labnetwork.h \
     labscene.h \
