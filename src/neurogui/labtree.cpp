@@ -48,11 +48,13 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroGui
 {
 
+    static DefaultTreeNodeController _DEFAULT_CONTROLLER;
+
     // LabTreeNode
 
     LabTreeNode::LabTreeNode(LabTree *_tree, LabTreeNode *_parent)
         : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(0),
-          _view(0), _currentAction(0), _ui_delete(false), _controller(0)
+          _view(0), _currentAction(0), _ui_delete(false), _controller(&_DEFAULT_CONTROLLER)
     {
         _scene = new LabScene(_tree->network());
         _scene->setTreeNode(this);
@@ -156,13 +158,6 @@ namespace NeuroGui
         LabTreeNode *child = new LabTreeNode(_tree, this);
         _children.append(child);
         return child;
-    }
-
-    bool LabTreeNode::canCreateNewItem(const QString &typeName, const QPointF &pos)
-    {
-        if (_controller)
-            return _controller->canCreateNewItem(typeName, pos);
-        return true;
     }
 
     void LabTreeNode::reset()

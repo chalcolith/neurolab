@@ -35,21 +35,136 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "gridedgeitem.h"
+#include "neurogriditem.h"
+#include "../neurogui/labview.h"
 #include "../neurogui/labscene.h"
 #include "../neurogui/labnetwork.h"
+
+using namespace NeuroGui;
 
 namespace GridItems
 {
 
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(GridEdgeItem, QString("Grid Items"), QObject::tr("Edge Item"), GridItems::VERSION)
+    NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridEdgeItem, QString("Grid Items"), QObject::tr("Edge Connector"), GridItems::VERSION, NeuroGridItem)
 
-    GridEdgeItem::GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroGui::NeuroNetworkItem(network, scenePos, context)
+    GridEdgeItem::GridEdgeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
+        : NeuroNetworkItem(network, scenePos, context), _vertical(false)
     {
+        if (context == NeuroItem::CREATE_UI)
+        {
+            // should we be horizontal or vertical?
+            const QPointF mousePos = network->scene()->lastMousePos();
+            const QRectF sceneRect = network->view()->sceneRect();
+
+            qreal min_x = 1.0e9;
+            if (mousePos.x() - sceneRect.left() < min_x)
+                min_x = mousePos.x() - sceneRect.left();
+            if (sceneRect.right() - mousePos.x() < min_x)
+                min_x = sceneRect.right() - mousePos.x();
+
+            qreal min_y = 1.0e9;
+            if (mousePos.y() - sceneRect.top() < min_y)
+                min_y = mousePos.y() - sceneRect.top();
+            if (sceneRect.bottom() - mousePos.y() < min_y)
+                min_y = sceneRect.bottom() - mousePos.y();
+
+            _vertical = min_y < min_x;
+
+            QPointF movePos = scenePos;
+            if (_vertical)
+                movePos.setY((sceneRect.top() + sceneRect.bottom()) / 2.0);
+            else
+                movePos.setX((sceneRect.left() + sceneRect.right()) / 2.0);
+            setPos(movePos);
+        }
     }
 
     GridEdgeItem::~GridEdgeItem()
     {
+    }
+
+    bool GridEdgeItem::handleMove(const QPointF &mousePos, QPointF &movePos)
+    {
+        const QRectF sceneRect = this->network()->view()->sceneRect();
+
+        movePos = mousePos;
+
+        if (_vertical)
+            movePos.setY((sceneRect.top() + sceneRect.bottom()) / 2.0);
+        else
+            movePos.setX((sceneRect.left() + sceneRect.right()) / 2.0);
+
+        return NeuroNetworkItem::handleMove(mousePos, movePos);
+    }
+
+    static const int GAP = 2;
+    static const int LONG = NeuroItem::NODE_WIDTH/2;
+    static const int SHORT = NeuroItem::NODE_WIDTH/3;
+
+    void GridEdgeItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
+    {
+        NeuroNetworkItem::addToShape(drawPath, texts);
+
+        const QRectF sceneRect = this->network()->view()->sceneRect();
+        const QRect viewRect = this->network()->view()->rect();
+
+        // workaround for a bug in Qt where the scene rect leaves space for scroll bars
+        qreal horiz_fudge = static_cast<qreal>(viewRect.width()) - sceneRect.width() - 1;
+        qreal vert_fudge = static_cast<qreal>(viewRect.height()) - sceneRect.height() - 1;
+
+        if (_vertical)
+        {
+            // top
+            QPointF top = mapFromScene(scenePos().x(), sceneRect.top() + GAP);
+            QRectF bound(top.x() - SHORT/2, top.y() - LONG/2, SHORT, LONG);
+
+            drawPath.moveTo(top);
+            drawPath.arcTo(bound, 180, 180);
+            drawPath.closeSubpath();
+
+            // bottom
+            QPointF bot = mapFromScene(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
+            bound = QRectF(bot.x() - SHORT/2, bot.y() - LONG/2, SHORT, LONG);
+
+            drawPath.moveTo(bot);
+            drawPath.arcTo(bound, 0, 180);
+            drawPath.closeSubpath();
+        }
+        else
+        {
+            // left
+            QPointF left = mapFromScene(sceneRect.left() + GAP, scenePos().y());
+            QRectF bound(left.x() - LONG/2, left.y() - SHORT/2, LONG, SHORT);
+
+            drawPath.moveTo(left);
+            drawPath.arcTo(bound, 270, 180);
+            drawPath.closeSubpath();
+
+            // right
+            QPointF right = mapFromScene(sceneRect.right() + horiz_fudge - GAP, scenePos().y());
+            bound = QRectF(right.x() - LONG/2, right.y() - SHORT/2, LONG, SHORT);
+
+            drawPath.moveTo(right);
+            drawPath.arcTo(bound, 90, 180);
+            drawPath.closeSubpath();
+        }
+    }
+
+    void GridEdgeItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        NeuroNetworkItem::writeBinary(ds, file_version);
+
+        ds << _vertical;
+    }
+
+    void GridEdgeItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroNetworkItem::readBinary(ds, file_version);
+
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_10)
+        {
+            ds >> _vertical;
+        }
     }
 
 } // namespace GridItems

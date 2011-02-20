@@ -88,8 +88,6 @@ namespace NeuroGui
         LabTreeNode *treeNode() const { return _treeNode; }
         void setTreeNode(LabTreeNode *tn) { _treeNode = tn; }
 
-        bool canCreateNewItem(const QString & typeName, const QPointF & pos);
-
     public slots:
         /// Creates a new item with the given type name.
         /// \param typeName The C++ type name of the item to create.

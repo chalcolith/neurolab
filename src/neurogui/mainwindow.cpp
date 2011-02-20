@@ -313,11 +313,16 @@ namespace NeuroGui
                 i->setEnabled(enabled);
         }
 
+        bool zoomEnabled = _currentNetwork && _currentNetwork->treeNode()->controller()->allowZoom();
+
         if (_zoomSpinBox)
-            _zoomSpinBox->setEnabled(enabled);
+            _zoomSpinBox->setEnabled(enabled && zoomEnabled);
 
         if (_zoomSpinBoxAction)
-            _zoomSpinBoxAction->setEnabled(enabled);
+            _zoomSpinBoxAction->setEnabled(enabled && zoomEnabled);
+
+        _ui->action_Zoom_In->setEnabled(enabled && zoomEnabled);
+        _ui->action_Zoom_Out->setEnabled(enabled && zoomEnabled);
 
         if (_numStepsSpinBox)
             _numStepsSpinBox->setEnabled(enabled);
@@ -711,6 +716,8 @@ namespace NeuroGui
         setPropertyObject(_currentNetwork);
 
         updateBreadcrumbs();
+
+        setActionsEnabled(!_currentNetwork->running());
     }
 
     void MainWindow::treeNodeDeleted(LabTreeNode *treeNode)

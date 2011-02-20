@@ -110,7 +110,7 @@ namespace NeuroGui
             _tree->setCurrent(node);
     }
 
-    LabScene *LabNetwork::scene()
+    LabScene *LabNetwork::scene() const
     {
         return _tree ? _tree->scene() : 0;
     }
@@ -120,7 +120,7 @@ namespace NeuroGui
         return _tree ? _tree->items() : QList<QGraphicsItem *>();
     }
 
-    LabView *LabNetwork::view()
+    LabView *LabNetwork::view() const
     {
         return _tree ? _tree->view() : 0;
     }

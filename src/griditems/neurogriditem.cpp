@@ -94,7 +94,7 @@ namespace GridItems
 
     void NeuroGridItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
-        NeuroItem::addToShape(drawPath, texts);
+        NeuroNetworkItem::addToShape(drawPath, texts);
 
         const QRectF & r = rect();
         drawPath.addRect(r);
@@ -128,7 +128,7 @@ namespace GridItems
             return true;
         if (typeName.contains("TextItem"))
             return true;
-        if (typeName.contains("GridConnection"))
+        if (typeName.contains("GridEdgeItem"))
             return true;
 
         return false;

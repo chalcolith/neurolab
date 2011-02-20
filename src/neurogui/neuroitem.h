@@ -57,6 +57,7 @@ namespace NeuroGui
 
     class LabNetwork;
     class LabScene;
+    class LabTreeNodeController;
 
     /// Base class for items that can be displayed in a NeuroLab scene.
     class NEUROGUISHARED_EXPORT NeuroItem
@@ -131,8 +132,8 @@ namespace NeuroGui
         explicit NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroItem();
 
-        /// Creates an item of the correct type, given an RTTI type name that has been registered.
-        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos, const CreateContext & context);
+        /// \name Object Properties
+        //@{
 
         /// Set whether or not the item will be deleted from the UI, or as a result of program shutdown.
         void setUIDelete(bool ui_delete = true) { _ui_delete = ui_delete; }
@@ -153,15 +154,28 @@ namespace NeuroGui
         /// The node's connections.
         const QSet<NeuroItem *> & connections() const { return _connections; }
 
-        /// Updates the UI properties based on the values of the cell.
-        /// \note Forces a redraw of the scene.
-        virtual void updateProperties();
-
         /// Used to write data values to the data file.
         virtual QString dataValue() const { return QString(); }
 
         /// Whether or not the item is bidirectional.
         virtual bool isBidirectional() const { return false; }
+
+        //@}
+
+        /// \name UI Properties
+        //@{
+
+        /// Updates the UI properties based on the values of the cell.
+        /// \note Forces a redraw of the scene.
+        virtual void updateProperties();
+
+        //@}
+
+        /// \name UI Interaction
+        //@{
+
+        /// Called when an item moves.
+        virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
         /// Used to decide when a moving item can attach to another item it collides with.
         virtual bool canAttachTo(const QPointF &, NeuroItem *);
@@ -172,6 +186,12 @@ namespace NeuroGui
         /// Used to decide if a stationary item can have a moving item attach to it.
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 
+        /// Returns true if the item collides with the given scene pos (with a margin of error the same as used to attach).
+        bool containsScenePos(const QPointF & scenePos);
+
+        /// Returns the target point for an attached link (usually the center of the item).
+        virtual QPointF targetPointFor(const NeuroItem *) const { return scenePos(); }
+
         /// Called when a moving item is attached to a stationary one.
         virtual void onAttachTo(NeuroItem *item) { _connections.insert(item); }
 
@@ -181,35 +201,49 @@ namespace NeuroGui
         /// Called when two nodes are detached.
         virtual void onDetach(NeuroItem *item) { _connections.remove(item); }
 
-        /// Called before destruction.
-        virtual void cleanup();
-
         /// Called when an item moves, so it can adjust the position or shape of any incoming or outgoing items.
         virtual void adjustLinks() { }
 
-        /// Returns the target point for an attached link (usually the center of the item).
-        virtual QPointF targetPointFor(const NeuroItem *) const { return scenePos(); }
+        //@}
 
-        /// Returns true if the item collides with the given scene pos (with a margin of error the same as used to attach).
-        bool containsScenePos(const QPointF & scenePos);
+        /// \name Mouse Interaction
+        //@{
 
-        /// Called when an item moves.
-        virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
+        /// Whether or not to highlight the item.
+        /// The default implementation highlights an item if it is selected or if the mouse is over it.
+        virtual bool shouldHighlight() const;
 
-        /// Used to translate ids of incoming and outgoing items (which are used when saving an item) to valid memory pointers.
-        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+        /// Used to track whether or not the mouse is over an item.
+        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
 
-        /// Updates the item's drawing and collision painter paths.
-        /// Calls addToShape(), which when overridden should add text records to be drawn.
-        void updateShape() const;
+        /// Used to track whether or not the mouse is over an item.
+        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 
-        /// Returns the bounding rectangle of the item's collision painter path.
+        /// Can be overridden to control whether or not a new item with a given type name can be
+        /// created on top of an already selected item.
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
+
+        /// Can be overridden to add actions to the context menu.
+        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &) { }
+
+        /// Adds actions to the context menu for adding new item types that are registered.
+        static void buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+
+        /// Adds actions to the context menu depending on the current item.
+        static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+
+        //@}
+
+        /// \name Drawing and Collision
+        //@{
+
+        /// Returns the bounding rectangle of the item's collision painter path.  Should not normally be overwritten.
         virtual QRectF boundingRect() const;
 
-        /// Returns the item's collision painter path.
+        /// Returns the item's collision painter path.  Should not normally be overwritten.
         virtual QPainterPath shape() const;
 
-        /// Paints the item and draws any text records associated with it.
+        /// Paints the item and draws any text records associated with it.  Should not normally be overwritten.
         virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
         /// Should be overridden to add to the drawing painter path.
@@ -221,14 +255,14 @@ namespace NeuroGui
         /// Should be overridden if the item needs special properties for drawing.
         virtual void setBrushProperties(QBrush & brush) const;
 
-        /// Brings the item to the front of the z-order.
-        void bringToFront();
+        /// Updates the item's drawing and collision painter paths.
+        /// Calls addToShape(), which when overridden should add text records to be drawn.
+        void updateShape() const;
 
-        /// Adds actions to the context menu for adding new item types that are registered.
-        static void buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+        //@}
 
-        /// Adds actions to the context menu depending on the current item.
-        static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
+        /// \name Serialization
+        //@{
 
         /// Writes the item's data to a data stream.  Derived classes should call the base class version to correctly save item data.
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
@@ -255,11 +289,16 @@ namespace NeuroGui
         /// Reads the ids of incoming and outgoing items.
         virtual void readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        /// Used to translate ids of incoming and outgoing items (which are used when saving an item) to valid memory pointers.
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
+
         /// Called after all nodes have been loaded.
         virtual void postLoad() {}
 
-        /// Allows mixins to call prepareGeometryChange().
-        inline void prepGeomChange() { prepareGeometryChange(); }
+        //@}
+
+        /// \name Item Registration and Creation
+        //@{
 
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
@@ -277,12 +316,23 @@ namespace NeuroGui
         /// Function type for static item creator objects.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos, const CreateContext & context);
 
+        /// Function type for static item restrictor objects.
+        typedef bool (*CanCreateFT) (NeuroGui::LabTreeNodeController *tnc);
+
+        /// Creates an item of the correct type, given a type name that has been registered.
+        static NeuroItem *create(const QString & typeName, LabScene *scene, const QPointF & pos, const CreateContext & context);
+
         /// Registers an item type creator with the global item broker.
         static void registerItemCreator(const QString & typeName, const QString & menuPath,
-                                        const QString & uiName, CreateFT createFunc);
+                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc);
 
         /// Unregisters an item type creator from the global item broker.
         static void removeItemCreator(const QString & typeName);
+
+        //@}
+
+        /// Allows mixins to call prepareGeometryChange().
+        inline void prepGeomChange() { prepareGeometryChange(); }
 
     signals:
         /// Emitted when the item's label changes.
@@ -292,24 +342,22 @@ namespace NeuroGui
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
+        /// Sets the items state to changed.
         void setChanged(bool changed = true);
 
         /// Set the item's label.
         void setLabel(const QString & s) { _label = s; emit labelChanged(s); emit labelChanged(this, s); updateShape(); update(); }
 
-        /// Resets the item.  This is implemented variously by derived classes to do the right thing.
+        /// Brings the item to the front of the z-order.
+        void bringToFront();
+
+        /// Called for all items when the user clicks Reset.
         virtual void reset() {}
 
+        /// Called before destruction.
+        virtual void cleanup();
+
     protected:
-        /// Whether or not to highlight the item.
-        /// The default implementation highlights an item if it is selected or if the mouse is over it.
-        virtual bool shouldHighlight() const;
-
-        /// Used to track whether or not the mouse is over an item.
-        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
-        /// Used to track whether or not the mouse is over an item.
-        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-
         /// Used to handle movement.
         virtual QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
@@ -317,15 +365,8 @@ namespace NeuroGui
         /// \return A color that is \c t of the way between \c a and \c b.
         static QColor lerp(const QColor & a, const QColor & b, const qreal & t);
 
-        /// Can be overridden to add actions to the context menu.
-        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &) { }
-
-        /// Can be overridden to control whether or not a new item with a given type name can be
-        /// created on top of an already selected item.
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const { return false; }
-
-
-        //////////////////////////////////////////////////////////////
+        /// \name Item Registration and Creation
+        //@{
 
         struct TypeNameRec
         {
@@ -344,6 +385,11 @@ namespace NeuroGui
 
         /// Registers item creator functions.
         static QMap<QString, QPair<QString, CreateFT> > *_itemCreators;
+
+        /// Registers item restrictor functions.
+        static QMap<QString, CanCreateFT> *_itemRestrictors;
+
+        //@}
     };
 
 
@@ -357,14 +403,15 @@ namespace NeuroGui
 
     public:
         NeuroItemRegistrator(const QString & typeName, const QString & mangledName,
-                             const QString & menuPath, const QString & uiName, NeuroItem::CreateFT create_func)
+                             const QString & menuPath, const QString & uiName,
+                             NeuroItem::CreateFT create_func, NeuroItem::CanCreateFT restrict_func)
             : _typeName(typeName), _mangledName(mangledName)
         {
             NeuroItem::registerTypeName(mangledName, typeName, menuPath, uiName);
-            NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func);
+            NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func, restrict_func);
 
-            // this is for backwards compatibility with the old file format
-            NeuroItem::registerItemCreator(mangledName, menuPath, uiName, create_func);
+//            // this is for backwards compatibility with the old file format
+//            NeuroItem::registerItemCreator(mangledName, menuPath, uiName, create_func, restrict_func);
         }
 
         virtual ~NeuroItemRegistrator()
@@ -377,15 +424,15 @@ namespace NeuroGui
     /// Use this macro in the header file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.
 #define NEUROITEM_DECLARE_CREATOR \
+    static NeuroGui::NeuroItemRegistrator _static_registrator; \
     static NeuroGui::NeuroItem *_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context); \
-    static bool _can_create_(NeuroGui::LabTreeNodeController *tnc); \
-    static NeuroGui::NeuroItemRegistrator _static_registrator;
+    static bool _can_create_(NeuroGui::LabTreeNodeController *tnc);
 
     /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.  It will also check that the version of the plugin is correct.
     /// You can restrict the item to be created only in subnetworks of the given tree node controller type.
 #define NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion, ControllerType) \
-    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_); \
+    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_, &TypeName::_can_create_); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (NeuroGui::VERSION != NeuroLabVersion) \
@@ -397,7 +444,7 @@ namespace NeuroGui
     } \
     bool TypeName::_can_create_(NeuroGui::LabTreeNodeController *tnc) \
     { \
-        return !tnc || dynamic_cast<ControllerType *>(tnc); \
+        return dynamic_cast<ControllerType *>(tnc); \
     }
 
     /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem

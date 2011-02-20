@@ -43,11 +43,13 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace GridItems
 {
 
-    class GridEdgeItem
+    class GRIDITEMSSHARED_EXPORT GridEdgeItem
         : public NeuroGui::NeuroNetworkItem
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
+
+        bool _vertical;
 
     public:
         GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -55,6 +57,14 @@ namespace GridItems
 
         virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) {}
+
+        virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
+
+        virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+
+    protected:
+        virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
+        virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
     };
 
 } // namespace GridItems

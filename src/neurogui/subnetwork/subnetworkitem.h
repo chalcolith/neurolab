@@ -91,6 +91,8 @@ namespace NeuroGui
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
+        virtual bool allowZoom() const { return true; }
+
         virtual bool canCreateNewItem(const QString &, const QPointF &) const;
         virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
 

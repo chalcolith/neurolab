@@ -107,10 +107,10 @@ namespace NeuroGui
         void setTreeNode(LabTreeNode *);
 
         /// \return The currently active graphics scene.
-        LabScene *scene();
+        LabScene *scene() const;
 
         /// \return The currently active graphics view.
-        LabView *view();
+        LabView *view() const;
 
         /// \return Items in the network, including all sub-networks.
         QList<QGraphicsItem *> items() const;

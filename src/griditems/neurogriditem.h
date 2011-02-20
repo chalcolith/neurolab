@@ -70,6 +70,7 @@ namespace GridItems
 
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
+        virtual bool allowZoom() const { return false; }
         virtual bool canCreateNewItem(const QString &, const QPointF &) const;
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
 

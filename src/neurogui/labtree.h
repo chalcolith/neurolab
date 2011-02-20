@@ -62,9 +62,17 @@ namespace NeuroGui
     class NEUROGUISHARED_EXPORT LabTreeNodeController
     {
     public:
+        virtual bool allowZoom() const = 0;
         virtual bool canCreateNewItem(const QString & typeName, const QPointF & pos) const = 0;
     };
 
+    /// Default controller; allows everything to happen.
+    class NEUROGUISHARED_EXPORT DefaultTreeNodeController
+        : public LabTreeNodeController
+    {
+        virtual bool allowZoom() const { return true; }
+        virtual bool canCreateNewItem(const QString &, const QPointF &) const { return true; }
+    };
 
     /// A node in the hierarchy of scenes.
     class NEUROGUISHARED_EXPORT LabTreeNode
@@ -116,8 +124,6 @@ namespace NeuroGui
 
         /// Creates a new child node in the network.
         LabTreeNode *createChild(const QString & label = QString());
-
-        bool canCreateNewItem(const QString & typeName, const QPointF & pos);
 
         /// Resets all the items in the scene.
         void reset();

@@ -65,13 +65,6 @@ namespace NeuroGui
     {
     }
 
-    bool LabScene::canCreateNewItem(const QString &typeName, const QPointF &pos)
-    {
-        if (_treeNode)
-            return _treeNode->canCreateNewItem(typeName, pos);
-        return true;
-    }
-
     bool LabScene::newItem(const QString & typeName, const QPointF & scenePos)
     {
         if (!_network)

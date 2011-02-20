@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuroitem.h"
+#include "labview.h"
 #include "labscene.h"
 #include "labnetwork.h"
 #include "mainwindow.h"
@@ -74,6 +75,7 @@ namespace NeuroGui
 
     QMap<QString, NeuroItem::TypeNameRec> *NeuroItem::_typeNames = 0;
     QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
+    QMap<QString, NeuroItem::CanCreateFT> *NeuroItem::_itemRestrictors = 0;
 
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
@@ -169,23 +171,28 @@ namespace NeuroGui
     }
 
     void NeuroItem::registerItemCreator(const QString & typeName, const QString & menuPath,
-                                        const QString & uiName, CreateFT createFunc)
+                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc)
     {
         if (!_itemCreators)
             _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+        if (!_itemRestrictors)
+            _itemRestrictors = new QMap<QString, NeuroItem::CanCreateFT>();
 
-        if (!typeName.isNull() && !typeName.isEmpty() && createFunc)
+        if (!typeName.isNull() && !typeName.isEmpty())
         {
-            (*_itemCreators)[typeName] = QPair<QString, CreateFT>(QString("%1|%2").arg(menuPath, uiName), createFunc);
+            if (createFunc)
+                (*_itemCreators)[typeName] = QPair<QString, CreateFT>(QString("%1|%2").arg(menuPath, uiName), createFunc);
+            if (restrictFunc)
+                (*_itemRestrictors)[typeName] = restrictFunc;
         }
     }
 
     void NeuroItem::removeItemCreator(const QString & typeName)
     {
-        if (!_itemCreators)
-            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
-
-        _itemCreators->remove(typeName);
+        if (_itemCreators)
+            _itemCreators->remove(typeName);
+        if (_itemRestrictors)
+            _itemRestrictors->remove(typeName);
     }
 
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos, const CreateContext & context)
@@ -223,6 +230,8 @@ namespace NeuroGui
 
         if (!_itemCreators)
             _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+        if (!_itemRestrictors)
+            _itemRestrictors = new QMap<QString, NeuroItem::CanCreateFT>();
 
         // sort type names
         QList<QString> keys = _itemCreators->keys();
@@ -238,6 +247,8 @@ namespace NeuroGui
             // get menu text and create function
             const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
             const QString pathName = p.first;
+
+            NeuroItem::CanCreateFT can_create = (*_itemRestrictors)[typeName];
 
             // skip internal types
             if (pathName.startsWith("__INTERNAL__"))
@@ -260,7 +271,11 @@ namespace NeuroGui
                     // create the leaf action
                     QAction *action = subMenu->addAction(menuPath[j]);
                     action->setData(QVariant(typeName));
-                    action->setEnabled(scene->canCreateNewItem(typeName, pos) && (!item || item->canCreateNewOnMe(typeName, pos)));
+
+                    bool enabled = scene->network()->treeNode()->controller()->canCreateNewItem(typeName, pos)
+                            && (!item || item->canCreateNewOnMe(typeName, pos))
+                            && can_create(scene->treeNode()->controller());
+                    action->setEnabled(enabled);
                 }
                 else
                 {
