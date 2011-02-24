@@ -48,7 +48,8 @@ namespace GridItems
     NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridEdgeItem, QString("Grid Items"), QObject::tr("Edge Connector"), GridItems::VERSION, NeuroGridItem)
 
     GridEdgeItem::GridEdgeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
-        : NeuroNetworkItem(network, scenePos, context), _vertical(false)
+        : NeuroNetworkItem(network, scenePos, context), MixinRemember(this),
+          _vertical(false)
     {
         if (context == NeuroItem::CREATE_UI)
         {
@@ -97,6 +98,60 @@ namespace GridItems
         return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
 
+    bool GridEdgeItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        return link != 0;
+    }
+
+    QVector2D GridEdgeItem::getAttachPos(const QVector2D &pos)
+    {
+        return pos;
+    }
+
+    void GridEdgeItem::onAttachedBy(NeuroItem *item)
+    {
+        NeuroNetworkItem::onAttachedBy(item);
+
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onAttachedBy(link);
+    }
+
+    void GridEdgeItem::onDetach(NeuroItem *item)
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        if (link)
+            MixinRemember::onDetach(link);
+
+        NeuroNetworkItem::onDetach(item);
+    }
+
+    QPointF GridEdgeItem::targetPointFor(const NeuroItem *item) const
+    {
+        MixinArrow *link = dynamic_cast<MixinArrow *>(const_cast<NeuroItem *>(item));
+        if (link)
+        {
+            QPointF connect_pos(item->scenePos());
+            if (_incomingAttachments.contains(link))
+                connect_pos = mapToScene(_incomingAttachments[link].toPoint());
+            else if (_outgoingAttachments.contains(link))
+                connect_pos = mapToScene(_outgoingAttachments[link].toPoint());
+
+            QVector2D to_pt1 = point1 - QVector2D(connect_pos);
+            QVector2D to_pt2 = point2 - QVector2D(connect_pos);
+
+            if (to_pt1.lengthSquared() < to_pt2.lengthSquared())
+                return point1.toPoint();
+            else
+                return point2.toPoint();
+        }
+        else
+        {
+            return scenePos();
+        }
+    }
+
     static const int GAP = 2;
     static const int LONG = NeuroItem::NODE_WIDTH/2;
     static const int SHORT = NeuroItem::NODE_WIDTH/3;
@@ -123,12 +178,15 @@ namespace GridItems
             drawPath.closeSubpath();
 
             // bottom
-            QPointF bot = mapFromScene(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
+            QPointF bot= mapFromScene(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
             bound = QRectF(bot.x() - SHORT/2, bot.y() - LONG/2, SHORT, LONG);
 
             drawPath.moveTo(bot);
             drawPath.arcTo(bound, 0, 180);
             drawPath.closeSubpath();
+
+            point1 = QVector2D(mapToScene(top));
+            point2 = QVector2D(mapToScene(bot));
         }
         else
         {
@@ -147,7 +205,15 @@ namespace GridItems
             drawPath.moveTo(right);
             drawPath.arcTo(bound, 90, 180);
             drawPath.closeSubpath();
+
+            point1 = QVector2D(mapToScene(left));
+            point2 = QVector2D(mapToScene(right));
         }
+    }
+
+    void GridEdgeItem::adjustLinks()
+    {
+        MixinRemember::adjustLinks();
     }
 
     void GridEdgeItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
@@ -165,6 +231,12 @@ namespace GridItems
         {
             ds >> _vertical;
         }
+    }
+
+    void GridEdgeItem::postLoad()
+    {
+        QVector2D center(scenePos());
+        rememberItems(connections(), center);
     }
 
 } // namespace GridItems

@@ -39,17 +39,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "griditems_global.h"
 #include "../neurogui/neuronetworkitem.h"
+#include "../neurogui/mixins/mixinremember.h"
 
 namespace GridItems
 {
 
     class GRIDITEMSSHARED_EXPORT GridEdgeItem
-        : public NeuroGui::NeuroNetworkItem
+        : public NeuroGui::NeuroNetworkItem, public NeuroGui::MixinRemember
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
         bool _vertical;
+
+        mutable QVector2D point1;
+        mutable QVector2D point2;
 
     public:
         GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -60,11 +64,19 @@ namespace GridItems
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual QVector2D getAttachPos(const QVector2D &pos);
+        virtual void onAttachedBy(NeuroItem *item);
+        virtual void onDetach(NeuroItem *item);
+
+        virtual QPointF targetPointFor(const NeuroItem *) const;
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
+        virtual void adjustLinks();
 
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
+        virtual void postLoad();
     };
 
 } // namespace GridItems

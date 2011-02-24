@@ -189,7 +189,7 @@ namespace NeuroGui
         /// Returns true if the item collides with the given scene pos (with a margin of error the same as used to attach).
         bool containsScenePos(const QPointF & scenePos);
 
-        /// Returns the target point for an attached link (usually the center of the item).
+        /// Returns the target point for an attached link (in scene coordinates; usually the center of the item).
         virtual QPointF targetPointFor(const NeuroItem *) const { return scenePos(); }
 
         /// Called when a moving item is attached to a stationary one.
