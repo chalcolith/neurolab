@@ -145,7 +145,7 @@ namespace NeuroGui
         setTitle();
 
         // sidebar
-        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->propertiesWidget);
+        QVBoxLayout *sidebarLayout = new QVBoxLayout(_ui->propertiesContents);
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
         _propertyEditor->setMinimumWidth(210);
@@ -188,7 +188,9 @@ namespace NeuroGui
         connect(_ui->menu_File, SIGNAL(aboutToShow()), this, SLOT(filterFileMenu()));
         connect(_ui->menu_Edit, SIGNAL(aboutToShow()), this, SLOT(filterEditMenu()));
 
-        connect(_ui->sidebarDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->propertiesDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
+        connect(_ui->itemsDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Network_Items, SLOT(setChecked(bool)), Qt::UniqueConnection);
+
         connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
@@ -405,7 +407,7 @@ namespace NeuroGui
         {
             newNetwork = LabNetwork::open(fname);
         }
-        catch (Automata::Exception & le)
+        catch (NeuroGui::Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to open network file %1").arg(fname), le.message());
             newNetwork = 0;
@@ -427,7 +429,7 @@ namespace NeuroGui
                     closeNetwork();
                 }
             }
-            catch (Automata::Exception & le)
+            catch (NeuroGui::Exception & le)
             {
                 QMessageBox::critical(this, tr("Problem closing network."), le.message());
             }
@@ -438,7 +440,7 @@ namespace NeuroGui
                 setStatus(tr("Opened %1").arg(newNetwork->fname()));
                 return true;
             }
-            catch (Automata::Exception & le)
+            catch (NeuroGui::Exception & le)
             {
                 QMessageBox::critical(this, tr("Unable to open network."), le.message());
             }
@@ -460,7 +462,7 @@ namespace NeuroGui
                 return true;
             }
         }
-        catch (Exception & le)
+        catch (NeuroGui::Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to save network."), le.message());
         }
@@ -941,7 +943,7 @@ void NeuroGui::MainWindow::on_action_New_triggered()
     {
         newNetwork();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -954,7 +956,7 @@ void NeuroGui::MainWindow::on_action_Open_triggered()
         if (!openNetwork() && !_currentNetwork)
             newNetwork();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -966,7 +968,7 @@ void NeuroGui::MainWindow::on_action_Close_triggered()
     {
         closeNetwork();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -978,7 +980,7 @@ void NeuroGui::MainWindow::on_action_Reload_Network_triggered()
     {
         reloadNetwork();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -990,7 +992,7 @@ void NeuroGui::MainWindow::on_action_Save_triggered()
     {
         saveNetwork();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1002,7 +1004,7 @@ void NeuroGui::MainWindow::on_action_Quit_triggered()
     {
         close();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1012,9 +1014,21 @@ void NeuroGui::MainWindow::on_action_Sidebar_triggered()
 {
     try
     {
-        _ui->sidebarDockWidget->toggleViewAction()->trigger();
+        _ui->propertiesDockWidget->toggleViewAction()->trigger();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroGui::MainWindow::on_action_Network_Items_triggered()
+{
+    try
+    {
+        _ui->itemsDockWidget->toggleViewAction()->trigger();
+    }
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1026,7 +1040,7 @@ void NeuroGui::MainWindow::on_action_Main_Toolbar_triggered()
     {
         _ui->mainToolBar->toggleViewAction()->trigger();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1038,7 +1052,7 @@ void NeuroGui::MainWindow::on_action_View_Toolbar_triggered()
     {
         _ui->viewToolbar->toggleViewAction()->trigger();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1051,7 +1065,7 @@ void NeuroGui::MainWindow::on_action_Simulation_Toolbar_triggered()
     {
         _ui->simulationToolbar->toggleViewAction()->trigger();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1072,7 +1086,7 @@ void NeuroGui::MainWindow::on_action_Step_triggered()
         if (_currentNetwork)
             _currentNetwork->step(_numStepsSpinBox->value());
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1088,7 +1102,7 @@ void NeuroGui::MainWindow::on_action_Reset_triggered()
         if (_currentNetwork)
             _currentNetwork->reset();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1101,7 +1115,7 @@ void NeuroGui::MainWindow::on_action_Delete_triggered()
         if (_currentNetwork)
             _currentNetwork->deleteSelected();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1113,7 +1127,7 @@ void NeuroGui::MainWindow::on_action_New_Data_Set_triggered()
     {
         newDataFile();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1126,7 +1140,7 @@ void NeuroGui::MainWindow::on_action_Save_Data_Set_triggered()
         if (_currentDataFile)
             _currentDataFile->saveAs();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1138,7 +1152,7 @@ void NeuroGui::MainWindow::on_action_Close_Data_Set_triggered()
     {
         closeDataFile();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1150,7 +1164,7 @@ void NeuroGui::MainWindow::on_action_Manual_triggered()
     {
         QDesktopServices::openUrl(QUrl("http://bitbucket.org/kulibali/neurocogling/wiki/Manual"));
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1164,7 +1178,7 @@ void NeuroGui::MainWindow::on_action_About_NeuroLab_triggered()
         about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroGui::VERSION));
         about.exec();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1177,7 +1191,7 @@ void NeuroGui::MainWindow::on_action_Cut_triggered()
         if (_currentNetwork)
             _currentNetwork->cutSelected();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1190,7 +1204,7 @@ void NeuroGui::MainWindow::on_action_Copy_triggered()
         if (_currentNetwork)
             _currentNetwork->copySelected();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1203,7 +1217,7 @@ void NeuroGui::MainWindow::on_action_Paste_triggered()
         if (_currentNetwork)
             _currentNetwork->pasteItems();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1216,7 +1230,7 @@ void NeuroGui::MainWindow::on_action_Select_All_triggered()
         if (_currentNetwork)
             _currentNetwork->selectAll();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1237,7 +1251,7 @@ void NeuroGui::MainWindow::on_action_Print_triggered()
         //    {
         //    }
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1250,7 +1264,7 @@ void NeuroGui::MainWindow::on_action_SVG_triggered()
         if (_currentNetwork)
             _currentNetwork->exportSVG();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1263,7 +1277,7 @@ void NeuroGui::MainWindow::on_action_PNG_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPNG();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1276,7 +1290,7 @@ void NeuroGui::MainWindow::on_action_PS_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPS();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1289,7 +1303,7 @@ void NeuroGui::MainWindow::on_action_PDF_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPDF();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1306,7 +1320,7 @@ void NeuroGui::MainWindow::on_action_Zoom_In_triggered()
             _zoomSpinBox->setValue(prev + step);
         }
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1323,7 +1337,7 @@ void NeuroGui::MainWindow::on_action_Zoom_Out_triggered()
             _zoomSpinBox->setValue(prev - step);
         }
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1336,8 +1350,9 @@ void NeuroGui::MainWindow::on_action_Cancel_triggered()
         if (_currentNetwork)
             _currentNetwork->cancel();
     }
-    catch (Automata::Exception & e)
+    catch (NeuroGui::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
 }
+

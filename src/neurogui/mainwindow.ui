@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>797</width>
-    <height>400</height>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -102,6 +102,7 @@
      <addaction name="action_Simulation_Toolbar"/>
     </widget>
     <addaction name="action_Sidebar"/>
+    <addaction name="action_Network_Items"/>
     <addaction name="menuToolbars"/>
     <addaction name="separator"/>
     <addaction name="action_Zoom_In"/>
@@ -169,66 +170,26 @@
 }</string>
    </property>
   </widget>
-  <widget class="QDockWidget" name="sidebarDockWidget">
+  <widget class="QDockWidget" name="propertiesDockWidget">
    <property name="minimumSize">
     <size>
      <width>250</width>
-     <height>122</height>
+     <height>38</height>
     </size>
    </property>
    <property name="windowTitle">
-    <string>Sidebar</string>
+    <string>Properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="sidebarContents">
+   <widget class="QWidget" name="propertiesContents">
     <property name="minimumSize">
      <size>
       <width>240</width>
-      <height>100</height>
+      <height>0</height>
      </size>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QToolBox" name="propertiesToolbox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>230</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="propertiesWidget">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>232</width>
-          <height>258</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>220</width>
-          <height>100</height>
-         </size>
-        </property>
-        <attribute name="label">
-         <string>Properties</string>
-        </attribute>
-       </widget>
-      </widget>
-     </item>
-    </layout>
    </widget>
   </widget>
   <widget class="QToolBar" name="viewToolbar">
@@ -257,6 +218,15 @@
    <addaction name="action_Reset"/>
    <addaction name="action_Cancel"/>
    <addaction name="action_Step"/>
+  </widget>
+  <widget class="QDockWidget" name="itemsDockWidget">
+   <property name="windowTitle">
+    <string>Network Items</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="itemsContents"/>
   </widget>
   <action name="action_Open">
    <property name="icon">
@@ -325,7 +295,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Sidebar</string>
+    <string>&amp;Properties</string>
    </property>
   </action>
   <action name="action_Delete">
@@ -525,6 +495,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Pause</string>
+   </property>
+  </action>
+  <action name="action_Network_Items">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Network Items</string>
    </property>
   </action>
  </widget>
