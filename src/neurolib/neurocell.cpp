@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurocell.h"
 #include "neuronet.h"
-#include "../automata/exception.h"
 #include <cmath>
 
 namespace NeuroLib

@@ -407,7 +407,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.insert(wanted_item);
             else
-                throw Exception(tr("Dangling node ID in file: %1").arg(wanted_id));
+                throw Common::Exception(tr("Dangling node ID in file: %1").arg(wanted_id));
         }
 
         _shortcutItems = itemsToAdd;

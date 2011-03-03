@@ -1,7 +1,7 @@
 CONFIG += debug_and_release
 QT -= gui
 
-TARGET = automata
+TARGET = common
 TEMPLATE = lib
 
 macx { CONFIG += lib_bundle }
@@ -10,13 +10,12 @@ macx { CONFIG -= x86_64 }
 
 include(../version.txt)
 
-DEFINES += AUTOMATA_LIBRARY
+DEFINES += COMMON_LIBRARY
 
-HEADERS += automaton.h \
-    automata_global.h \
-    graph.h \
-    asyncstate.h \
-    pool.h
+SOURCES += exception.cpp
+
+HEADERS += common.h \
+    exception.h \
 
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) { BUILDDIR=debug }
@@ -29,14 +28,3 @@ OBJECTS_DIR = $$TEMPDIR
 MOC_DIR = $$TEMPDIR
 UI_DIR = $$TEMPDIR
 RCC_DIR = $$TEMPDIR
-
-win32 {
-    LIBS += -L$$DESTDIR \
-        -lcommon1
-} else:macx {
-    QMAKE_LFLAGS += -F$$DESTDIR
-    LIBS += -framework common
-} else {
-    LIBS += -L$$DESTDIR \
-        -lcommon
-}

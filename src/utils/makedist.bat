@@ -119,6 +119,7 @@ if ERRORLEVEL 1 goto :EOF
 
 echo copying program...
 call :copyfile %SHADOW_DIR%\release\qtpropertybrowser?.dll %RELEASE_DIR%
+call :copyfile %SHADOW_DIR%\release\common?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\automata?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\neurolib?.dll %RELEASE_DIR%
 call :copyfile %SHADOW_DIR%\release\neurogui?.dll %RELEASE_DIR%

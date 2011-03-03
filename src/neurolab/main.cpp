@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QMessageBox>
 #include <QDir>
 
-#include "../automata/exception.h"
+#include "../common/common.h"
 #include "../neurogui/mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -59,17 +59,17 @@ int main(int argc, char *argv[])
     {
         return application.exec();
     }
-    catch (NeuroGui::Exception & le)
+    catch (Common::Exception & e)
     {
-        qDebug() << "Critical Error: " << le.message();
-    }
-    catch (Automata::Exception & ne)
-    {
-        qDebug() << "Critical Error: " << ne.message();
+        qDebug() << "Critical Error: " << e.message();
     }
     catch (std::exception & se)
     {
         qDebug() << "Critical Error: " << se.what();
+    }
+    catch (...)
+    {
+        qDebug() << "Critical Error";
     }
 
     return -1;

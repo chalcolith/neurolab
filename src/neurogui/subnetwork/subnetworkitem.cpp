@@ -413,7 +413,7 @@ namespace NeuroGui
             }
             else
             {
-                throw Exception(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
+                throw Common::FileFormatError(tr("Something went wrong trying to get the subnetwork connection items: %1 %2").arg(key_id).arg(val_id));
             }
         }
 

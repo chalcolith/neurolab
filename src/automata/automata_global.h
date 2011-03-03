@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QtGlobal>
+#include "../common/common.h"
 
 #if defined(AUTOMATA_LIBRARY)
 #  define AUTOMATASHARED_EXPORT Q_DECL_EXPORT

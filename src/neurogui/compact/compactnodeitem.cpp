@@ -289,7 +289,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.append(wanted_item);
             else
-                throw Exception(tr("Dangling node in compact node base: %1").arg(wanted_id));
+                throw Common::Exception(tr("Dangling node in compact node base: %1").arg(wanted_id));
         }
 
         _baseLinkItems = itemsToAdd;

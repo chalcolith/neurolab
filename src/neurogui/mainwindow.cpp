@@ -39,7 +39,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labscene.h"
 #include "neuroitem.h"
-#include "../automata/exception.h"
 
 #include "filedirtydialog.h"
 #include "aboutdialog.h"
@@ -95,7 +94,7 @@ namespace NeuroGui
           _rememberProperties(true)
     {
         if (_instance)
-            throw Exception("You cannot create more than one main window.");
+            throw Common::Exception(tr("You cannot create more than one main window."));
 
         _instance = this;
 
@@ -407,7 +406,7 @@ namespace NeuroGui
         {
             newNetwork = LabNetwork::open(fname);
         }
-        catch (NeuroGui::Exception & le)
+        catch (Common::Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to open network file %1").arg(fname), le.message());
             newNetwork = 0;
@@ -429,7 +428,7 @@ namespace NeuroGui
                     closeNetwork();
                 }
             }
-            catch (NeuroGui::Exception & le)
+            catch (Common::Exception & le)
             {
                 QMessageBox::critical(this, tr("Problem closing network."), le.message());
             }
@@ -440,7 +439,7 @@ namespace NeuroGui
                 setStatus(tr("Opened %1").arg(newNetwork->fname()));
                 return true;
             }
-            catch (NeuroGui::Exception & le)
+            catch (Common::Exception & le)
             {
                 QMessageBox::critical(this, tr("Unable to open network."), le.message());
             }
@@ -462,7 +461,7 @@ namespace NeuroGui
                 return true;
             }
         }
-        catch (NeuroGui::Exception & le)
+        catch (Common::Exception & le)
         {
             QMessageBox::critical(this, tr("Unable to save network."), le.message());
         }
@@ -684,7 +683,7 @@ namespace NeuroGui
         if (!_currentNetwork || !treeNode)
             return;
         if (treeNode->tree()->network() != _currentNetwork)
-            throw Exception(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
+            throw Common::Exception(tr("Internal error: trying to set a subnetwork that is not part of the current network."));
 
         // remove the current network's view
         if (_currentNetwork->scene())
@@ -943,7 +942,7 @@ void NeuroGui::MainWindow::on_action_New_triggered()
     {
         newNetwork();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -956,7 +955,7 @@ void NeuroGui::MainWindow::on_action_Open_triggered()
         if (!openNetwork() && !_currentNetwork)
             newNetwork();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -968,7 +967,7 @@ void NeuroGui::MainWindow::on_action_Close_triggered()
     {
         closeNetwork();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -980,7 +979,7 @@ void NeuroGui::MainWindow::on_action_Reload_Network_triggered()
     {
         reloadNetwork();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -992,7 +991,7 @@ void NeuroGui::MainWindow::on_action_Save_triggered()
     {
         saveNetwork();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1004,7 +1003,7 @@ void NeuroGui::MainWindow::on_action_Quit_triggered()
     {
         close();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1016,7 +1015,7 @@ void NeuroGui::MainWindow::on_action_Sidebar_triggered()
     {
         _ui->propertiesDockWidget->toggleViewAction()->trigger();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1028,7 +1027,7 @@ void NeuroGui::MainWindow::on_action_Network_Items_triggered()
     {
         _ui->itemsDockWidget->toggleViewAction()->trigger();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1040,7 +1039,7 @@ void NeuroGui::MainWindow::on_action_Main_Toolbar_triggered()
     {
         _ui->mainToolBar->toggleViewAction()->trigger();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1052,7 +1051,7 @@ void NeuroGui::MainWindow::on_action_View_Toolbar_triggered()
     {
         _ui->viewToolbar->toggleViewAction()->trigger();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1065,7 +1064,7 @@ void NeuroGui::MainWindow::on_action_Simulation_Toolbar_triggered()
     {
         _ui->simulationToolbar->toggleViewAction()->trigger();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1086,7 +1085,7 @@ void NeuroGui::MainWindow::on_action_Step_triggered()
         if (_currentNetwork)
             _currentNetwork->step(_numStepsSpinBox->value());
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1102,7 +1101,7 @@ void NeuroGui::MainWindow::on_action_Reset_triggered()
         if (_currentNetwork)
             _currentNetwork->reset();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1115,7 +1114,7 @@ void NeuroGui::MainWindow::on_action_Delete_triggered()
         if (_currentNetwork)
             _currentNetwork->deleteSelected();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1127,7 +1126,7 @@ void NeuroGui::MainWindow::on_action_New_Data_Set_triggered()
     {
         newDataFile();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1140,7 +1139,7 @@ void NeuroGui::MainWindow::on_action_Save_Data_Set_triggered()
         if (_currentDataFile)
             _currentDataFile->saveAs();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1152,7 +1151,7 @@ void NeuroGui::MainWindow::on_action_Close_Data_Set_triggered()
     {
         closeDataFile();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1164,7 +1163,7 @@ void NeuroGui::MainWindow::on_action_Manual_triggered()
     {
         QDesktopServices::openUrl(QUrl("http://bitbucket.org/kulibali/neurocogling/wiki/Manual"));
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1178,7 +1177,7 @@ void NeuroGui::MainWindow::on_action_About_NeuroLab_triggered()
         about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroGui::VERSION));
         about.exec();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1191,7 +1190,7 @@ void NeuroGui::MainWindow::on_action_Cut_triggered()
         if (_currentNetwork)
             _currentNetwork->cutSelected();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1204,7 +1203,7 @@ void NeuroGui::MainWindow::on_action_Copy_triggered()
         if (_currentNetwork)
             _currentNetwork->copySelected();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1217,7 +1216,7 @@ void NeuroGui::MainWindow::on_action_Paste_triggered()
         if (_currentNetwork)
             _currentNetwork->pasteItems();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1230,7 +1229,7 @@ void NeuroGui::MainWindow::on_action_Select_All_triggered()
         if (_currentNetwork)
             _currentNetwork->selectAll();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1251,7 +1250,7 @@ void NeuroGui::MainWindow::on_action_Print_triggered()
         //    {
         //    }
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1264,7 +1263,7 @@ void NeuroGui::MainWindow::on_action_SVG_triggered()
         if (_currentNetwork)
             _currentNetwork->exportSVG();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1277,7 +1276,7 @@ void NeuroGui::MainWindow::on_action_PNG_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPNG();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1290,7 +1289,7 @@ void NeuroGui::MainWindow::on_action_PS_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPS();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1303,7 +1302,7 @@ void NeuroGui::MainWindow::on_action_PDF_triggered()
         if (_currentNetwork)
             _currentNetwork->exportPDF();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1320,7 +1319,7 @@ void NeuroGui::MainWindow::on_action_Zoom_In_triggered()
             _zoomSpinBox->setValue(prev + step);
         }
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1337,7 +1336,7 @@ void NeuroGui::MainWindow::on_action_Zoom_Out_triggered()
             _zoomSpinBox->setValue(prev - step);
         }
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }
@@ -1350,7 +1349,7 @@ void NeuroGui::MainWindow::on_action_Cancel_triggered()
         if (_currentNetwork)
             _currentNetwork->cancel();
     }
-    catch (NeuroGui::Exception & e)
+    catch (Common::Exception & e)
     {
         QMessageBox::critical(this, tr("Error"), e.message());
     }

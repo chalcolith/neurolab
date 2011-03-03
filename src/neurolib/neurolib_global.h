@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <QtGlobal>
+#include "../common/common.h"
 
 #if defined(NEUROLIB_LIBRARY)
 #  define NEUROLIBSHARED_EXPORT Q_DECL_EXPORT

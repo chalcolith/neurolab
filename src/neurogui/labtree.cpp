@@ -275,7 +275,7 @@ namespace NeuroGui
                 }
                 else
                 {
-                    throw Exception(QObject::tr("Error loading; unknown type %1").arg(type));
+                    throw Common::IOError(QObject::tr("Error loading; unknown type %1").arg(type));
                 }
             }
 

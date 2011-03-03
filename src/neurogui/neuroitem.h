@@ -436,7 +436,7 @@ namespace NeuroGui
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (NeuroGui::VERSION != NeuroLabVersion) \
-            throw NeuroGui::Exception(QObject::tr("The plugin that provides the %1 item is out of date.  It was built for NeuroLab version %2, and this is version %3").arg(UIName).arg(NeuroLabVersion).arg(NeuroGui::VERSION)); \
+            throw Common::Exception(QObject::tr("The plugin that provides the %1 item is out of date.  It was built for NeuroLab version %2, and this is version %3").arg(UIName).arg(NeuroLabVersion).arg(NeuroGui::VERSION)); \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
         NeuroItem *item = new TypeName(scene->network(), scenePos, context); \

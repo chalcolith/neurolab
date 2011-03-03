@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "automata_global.h"
-#include "exception.h"
 
 #include <QtGlobal>
 #include <QDataStream>

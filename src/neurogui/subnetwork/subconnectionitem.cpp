@@ -367,7 +367,7 @@ namespace NeuroGui
         }
         else if (governingId)
         {
-            throw Exception(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
+            throw Common::FileFormatError(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
         }
 
         NeuroItem::IdType parentId = reinterpret_cast<NeuroItem::IdType>(_parentSubnetworkItem);
@@ -379,7 +379,7 @@ namespace NeuroGui
         }
         else
         {
-            throw Exception(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
+            throw Common::FileFormatError(tr("Subconnection item in file has dangling parent item: %1").arg(parentId));
         }
     }
 

@@ -262,7 +262,7 @@ namespace NeuroGui
             }
             else
             {
-                throw Exception(tr("Unable to write data file."));
+                throw Common::IOError(tr("Unable to write data file."));
             }
         }
     }

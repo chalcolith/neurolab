@@ -147,7 +147,7 @@ namespace Automata
             if (index < this->_nodes.size())
                 return this->_nodes[index].r;
             else
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
         }
 
     protected:
@@ -262,7 +262,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
         }
 

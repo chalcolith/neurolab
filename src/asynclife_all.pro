@@ -1,3 +1,5 @@
 TEMPLATE = subdirs
-SUBDIRS = automata asyncLife
-asyncLife.depends = automata
+SUBDIRS = common automata asyncLife
+
+automata.depends = common
+asyncLife.depends = common automata

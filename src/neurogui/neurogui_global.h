@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QtGlobal>
 #include <QString>
+#include "../common/common.h"
 
 #if defined(NEUROGUI_LIBRARY)
 #  define NEUROGUISHARED_EXPORT Q_DECL_EXPORT
@@ -71,17 +72,6 @@ namespace NeuroGui
         NEUROLAB_FILE_VERSION_9   = 9,
         NEUROLAB_FILE_VERSION_10  = 10,
         NEUROLAB_NUM_FILE_VERSIONS
-    };
-
-    /// Base class for exceptions used by the NeuroLab software.
-    class NEUROGUISHARED_EXPORT Exception
-    {
-        QString _message;
-
-    public:
-        Exception(const QString & message) : _message(message) {}
-
-        QString message() const { return _message; }
     };
 
 } // namespace NeuroGui

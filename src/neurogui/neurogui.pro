@@ -88,16 +88,19 @@ RCC_DIR = $$TEMPDIR
 
 win32 {
     LIBS += -L$$DESTDIR \
+        -lcommon1 \
         -lneurolib1 \
         -lautomata1 \
         -lqtpropertybrowser2
 } else:macx {
     QMAKE_LFLAGS += -F$$DESTDIR
-    LIBS += -framework neurolib \
+    LIBS += -framework common \
+        -framework neurolib \
         -framework automata \
         -framework qtpropertybrowser
 } else {
     LIBS += -L$$DESTDIR \
+        -lcommon \
         -lneurolib \
         -lautomata \
         -lqtpropertybrowser

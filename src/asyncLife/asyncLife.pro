@@ -29,10 +29,10 @@ UI_DIR = $$TEMPDIR
 RCC_DIR = $$TEMPDIR
 
 win32 {
-    LIBS += -L$$DESTDIR -lautomata1
+    LIBS += -L$$DESTDIR -lcommon1 -lautomata1
 } else:macx {
     QMAKE_LFLAGS += -F$$DESTDIR/asyncLife.app/Contents/Frameworks
-    LIBS += -framework automata
+    LIBS += -framework common -framework automata
 } else {
-    LIBS += -L$$DESTDIR -lautomata
+    LIBS += -L$$DESTDIR -lcommon -lautomata
 }

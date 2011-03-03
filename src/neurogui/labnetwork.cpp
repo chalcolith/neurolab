@@ -300,13 +300,13 @@ namespace NeuroGui
                 catch (...)
                 {
                     delete ln;
-                    throw Exception(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                    throw Common::IOError(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
                 }
             }
             else
             {
                 delete ln;
-                throw Exception(tr("Unable to open network file."));
+                throw Common::IOError(tr("Unable to open network file."));
             }
         }
 
@@ -343,7 +343,7 @@ namespace NeuroGui
                 else
                 {
                     delete ln;
-                    throw Exception(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
+                    throw Common::FileFormatError(tr("Network scene file %1 is not compatible with this version of NeuroLab.").arg(nln_fname));
                 }
 
                 ln->setChanged(false);
@@ -351,7 +351,7 @@ namespace NeuroGui
             else
             {
                 delete ln;
-                throw Exception(tr("Unable to open network scene file."));
+                throw Common::IOError(tr("Unable to open network scene file."));
             }
         }
 
@@ -405,7 +405,7 @@ namespace NeuroGui
             }
             else
             {
-                throw Exception(tr("Unable to write network file."));
+                throw Common::IOError(tr("Unable to write network file."));
             }
         }
 
@@ -431,7 +431,7 @@ namespace NeuroGui
             }
             else
             {
-                throw Exception(tr("Unable to write network scene file."));
+                throw Common::IOError(tr("Unable to write network scene file."));
             }
         }
 
@@ -921,7 +921,7 @@ namespace NeuroGui
                 if (image.save(fname))
                     MainWindow::instance()->setStatus(tr("Exported to PNG: %1").arg(fname));
                 else
-                    throw Exception(tr("Unable to save image %1").arg(fname));
+                    throw Common::IOError(tr("Unable to save image %1").arg(fname));
             }
         }
     }

@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "automata_global.h"
-#include "exception.h"
 
 #include <QVector>
 #include <QStack>
@@ -131,7 +130,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
         }
 
@@ -148,7 +147,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
         }
 
@@ -171,7 +170,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
 
             if (!_directed)
@@ -187,7 +186,7 @@ namespace Automata
                 }
                 else
                 {
-                    throw IndexOverflow();
+                    throw Common::IndexOverflow();
                 }
             }
         }
@@ -211,7 +210,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
 
             if (!_directed)
@@ -227,7 +226,7 @@ namespace Automata
                 }
                 else
                 {
-                    throw IndexOverflow();
+                    throw Common::IndexOverflow();
                 }
             }
         }
@@ -251,7 +250,7 @@ namespace Automata
             if (index < _nodes.size())
                 return _nodes[index];
             else
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
         }
 
         /// Access a node in the graph.
@@ -262,7 +261,7 @@ namespace Automata
             if (index < _nodes.size())
                 return _nodes[index];
             else
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
         }
 
         /// Returns a pointer to an array containing the indices of all the
@@ -280,7 +279,7 @@ namespace Automata
             }
             else
             {
-                throw IndexOverflow();
+                throw Common::IndexOverflow();
             }
         }
 

@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuronet.h"
-#include "../automata/exception.h"
 
 namespace NeuroLib
 {
@@ -140,7 +139,7 @@ namespace NeuroLib
         }
         else
         {
-            throw Automata::FileFormatError();
+            throw Common::FileFormatError();
         }
     }
 

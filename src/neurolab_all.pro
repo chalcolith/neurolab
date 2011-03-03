@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
-SUBDIRS = griditems neurolab neurogui neurolib automata thirdparty 
+SUBDIRS = common automata neurolib thirdparty neurogui neurolab
 
-neurolib.depends = automata
-neurogui.depends = neurolib thirdparty
-neurolab.depends = neurogui
-griditems.depends = neurogui
+automata.depends = common
+neurolib.depends = common automata
+neurogui.depends = common neurolib thirdparty
+neurolab.depends = common neurogui
+griditems.depends = common neurogui

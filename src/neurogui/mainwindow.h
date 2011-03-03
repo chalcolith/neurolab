@@ -39,7 +39,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neurogui_global.h"
 #include "propertyobj.h"
-#include "../automata/exception.h"
 
 #include <QtGui/QMainWindow>
 #include <QVBoxLayout>

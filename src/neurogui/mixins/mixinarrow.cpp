@@ -413,7 +413,7 @@ namespace NeuroGui
         }
         else if (frontId)
         {
-            throw Exception(QObject::tr("Link in file has dangling ID: %1").arg(frontId));
+            throw Common::FileFormatError(QObject::tr("Link in file has dangling ID: %1").arg(frontId));
         }
 
         NeuroItem::IdType backId = reinterpret_cast<NeuroItem::IdType>(_backLinkTarget);
@@ -425,7 +425,7 @@ namespace NeuroGui
         }
         else if (backId)
         {
-            throw Exception(QObject::tr("Link in file has dangling ID: %2").arg(backId));
+            throw Common::FileFormatError(QObject::tr("Link in file has dangling ID: %2").arg(backId));
         }
 
         // incoming
@@ -439,7 +439,7 @@ namespace NeuroGui
             if (wanted_item)
                 itemsToAdd.insert(wanted_item);
             else
-                throw Exception(QObject::tr("Dangling node id in link incoming: %1").arg(wanted_id));
+                throw Common::FileFormatError(QObject::tr("Dangling node id in link incoming: %1").arg(wanted_id));
         }
 
         _incoming = itemsToAdd;
