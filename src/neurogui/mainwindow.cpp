@@ -1169,6 +1169,19 @@ void NeuroGui::MainWindow::on_action_Manual_triggered()
     }
 }
 
+void NeuroGui::MainWindow::on_action_SubmitBug_triggered()
+{
+    try
+    {
+        QDesktopServices::openUrl(QUrl("https://bitbucket.org/kulibali/neurocogling/issues/new"));
+    }
+    catch (Common::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+
 void NeuroGui::MainWindow::on_action_About_NeuroLab_triggered()
 {
     try
@@ -1354,4 +1367,5 @@ void NeuroGui::MainWindow::on_action_Cancel_triggered()
         QMessageBox::critical(this, tr("Error"), e.message());
     }
 }
+
 

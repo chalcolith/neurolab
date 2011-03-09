@@ -219,6 +219,7 @@ namespace NeuroGui
         void on_action_Zoom_Out_triggered();
         void on_action_Zoom_In_triggered();
         void on_action_Network_Items_triggered();
+        void on_action_SubmitBug_triggered();
     };
 
 } // namespace NeuroGui

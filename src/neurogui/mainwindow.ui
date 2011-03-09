@@ -113,6 +113,7 @@
      <string>Help</string>
     </property>
     <addaction name="action_Manual"/>
+    <addaction name="action_SubmitBug"/>
     <addaction name="action_About_NeuroLab"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -506,6 +507,11 @@
    </property>
    <property name="text">
     <string>&amp;Network Items</string>
+   </property>
+  </action>
+  <action name="action_SubmitBug">
+   <property name="text">
+    <string>Submit a bug report...</string>
    </property>
   </action>
  </widget>
