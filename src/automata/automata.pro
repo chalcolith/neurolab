@@ -18,6 +18,8 @@ HEADERS += automaton.h \
     asyncstate.h \
     pool.h
 
+SOURCES += automata.cpp
+
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) { BUILDDIR=debug }
 

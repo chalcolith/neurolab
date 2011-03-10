@@ -63,6 +63,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QtVariantEditorFactory>
 #include <QtVariantPropertyManager>
 
+void gwt_break()
+{
+    asm("int $0x3");
+}
+
 namespace NeuroGui
 {
 

@@ -80,7 +80,7 @@ namespace NeuroLib
 
 
     void NeuroCell::update(NEURONET_BASE *neuronet, const Index &, NeuroCell & next,
-                           const QVector<int> & neighbor_indices, const NeuroCell *const *const neighbors) const
+                           const QVector<int> & neighbor_indices, const NeuroCell *const neighbors) const
     {
         const NeuroCell & prev = *this;
         NeuroNet *network = dynamic_cast<NeuroNet *>(neuronet);
@@ -97,14 +97,14 @@ namespace NeuroLib
         bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
         {
-            if (neighbors[i]->_output_value < ZERO)
+            if (neighbors[i]._output_value < ZERO)
             {
                 inhibited = true;
-                inhibit_sum += -neighbors[i]->_output_value;
+                inhibit_sum += -neighbors[i]._output_value;
             }
             else
             {
-                input_sum += neighbors[i]->_output_value;
+                input_sum += neighbors[i]._output_value;
             }
         }
 
@@ -130,7 +130,7 @@ namespace NeuroLib
                     num_neighbors = neighbor_indices.size();
                     for (int i = 0; i < num_neighbors; ++i)
                     {
-                        const NeuroCell *incoming = neighbors[i];
+                        const NeuroCell *incoming = &neighbors[i];
 
                         if (incoming->_kind == EXCITORY_LINK)
                         {

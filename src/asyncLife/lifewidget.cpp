@@ -9,8 +9,6 @@ LifeWidget::LifeWidget(QWidget *parent) : QWidget(parent), autoStep(false), boar
 
 LifeWidget::~LifeWidget()
 {
-    step_c.waitForFinished();
-    step_b.waitForFinished();
     step_a.waitForFinished();
 
     delete board;
@@ -57,13 +55,9 @@ void LifeWidget::paintEvent(QPaintEvent *)
     // trigger repaint
     if (this->autoStep)
     {
-        step_c.waitForFinished();
-        step_b.waitForFinished();
         step_a.waitForFinished();
-
         step_a = this->board->stepAsync();
-        //step_b = this->board->stepAsync();
-        //step_c = this->board->stepAsync();
+        //this->board->stepInThread();
         update();
 
     }
@@ -71,7 +65,7 @@ void LifeWidget::paintEvent(QPaintEvent *)
 
 void LifeWidget::step()
 {
-    this->board->step();
+    this->board->stepInThread();
     update();
 }
 
@@ -79,8 +73,7 @@ void LifeWidget::start()
 {
     this->autoStep = true;
     step_a = this->board->stepAsync();
-    //step_b = this->board->stepAsync();
-    //step_c = this->board->stepAsync();
+    //this->board->stepInThread();
     update();
 }
 

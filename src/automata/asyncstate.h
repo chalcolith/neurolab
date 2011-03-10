@@ -52,15 +52,16 @@ namespace Automata
     template <typename TState, typename TIndex>
     struct AsyncState
     {
+        TIndex index;
         TState q0; ///< First copy of the cell's state.
         TState q1; ///< Second copy of the cell's state.
         quint8 r;  ///< Used to track asynchronous updates.
 
         //@{
         /// Constructor.
-        AsyncState() : r(0) {}
-        AsyncState(const TState & s0, const TState & s1) : q0(s0), q1(s1), r(0) {}
-        AsyncState(const AsyncState & state) : q0(state.q0), q1(state.q1), r(state.r) {}
+        AsyncState() : index(static_cast<TIndex>(-1)), r(0) {}
+        AsyncState(const TState & s0, const TState & s1) : index(static_cast<TIndex>(-1)), q0(s0), q1(s1), r(0) {}
+        AsyncState(const AsyncState & state) : index(state.index), q0(state.q0), q1(state.q1), r(state.r) {}
         //@}
 
         /// Destructor.
@@ -69,6 +70,7 @@ namespace Automata
         /// Assignment operator.
         AsyncState & operator= (const AsyncState & state)
         {
+            index = state.index;
             q0 = state.q0;
             q1 = state.q1;
             r = state.r;
@@ -77,14 +79,14 @@ namespace Automata
 
         //@{
         /// The current state of the cell.
-        const TState & current() const { return r == 0 ? q0 : q1; }
-        TState & current() { return r == 0 ? q0 : q1; }
+        const TState & current() const { return q0; }
+        TState & current() { return q0; }
         //@}
 
         //@{
         /// The former state of the cell.
-        const TState & former() const { return r == 0 ? q1 : q0; }
-        TState & former() { return r == 0 ? q1 : q0; }
+        const TState & former() const { return q1; }
+        TState & former() { return q1; }
         //@}
 
         /// Write the cell's data.

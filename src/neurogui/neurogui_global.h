@@ -37,6 +37,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+extern __declspec(dllexport) void gwt_break();
+#define GWT_BREAK gwt_break()
+#include <QVector>
+#undef GWT_BREAK
+
 #include <QtGlobal>
 #include <QString>
 #include "../common/common.h"
