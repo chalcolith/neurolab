@@ -234,7 +234,15 @@ namespace NeuroGui
         }
     }
 
-    NeuroCell::Index CompactLinkItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<CompactLinkItem::Index> CompactLinkItem::allCells() const
+    {
+        QList<Index> result;
+        result.append(_frontward_cells);
+        result.append(_backward_cells);
+        return result;
+    }
+
+    CompactLinkItem::Index CompactLinkItem::getIncomingCellFor(const NeuroItem *item) const
     {
         if (item == _frontLinkTarget)
             return _backward_cells.first();
@@ -243,7 +251,7 @@ namespace NeuroGui
         return -1;
     }
 
-    NeuroCell::Index CompactLinkItem::getOutgoingCellFor(const NeuroItem *item) const
+    CompactLinkItem::Index CompactLinkItem::getOutgoingCellFor(const NeuroItem *item) const
     {
         if (item == _frontLinkTarget)
             return _frontward_cells.last();
@@ -325,7 +333,7 @@ namespace NeuroGui
         }
     }
 
-    bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
+    bool CompactLinkItem::canAttachTo(const QPointF &, NeuroItem *item) const
     {
         // don't link to what we're already linked to
         if (_dragFront && _frontLinkTarget == item)
@@ -336,7 +344,7 @@ namespace NeuroGui
         return true;
     }
 
-    bool CompactLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool CompactLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const
     {
         NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
         return inhibit != 0;

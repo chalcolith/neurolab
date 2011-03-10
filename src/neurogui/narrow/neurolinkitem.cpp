@@ -244,7 +244,7 @@ namespace NeuroGui
         return item == _frontLinkTarget ? _cellIndices.last() : -1;
     }
 
-    bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item)
+    bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item) const
     {
         // cannot link the back of a link to another link
         if (dynamic_cast<NeuroLinkItem *>(item) && !_dragFront)
@@ -259,13 +259,13 @@ namespace NeuroGui
         return true;
     }
 
-    bool NeuroLinkItem::canAttachTwice(NeuroItem *item)
+    bool NeuroLinkItem::canAttachTwice(NeuroItem *item) const
     {
         NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
         return nodeItem && !(_frontLinkTarget == item && _backLinkTarget == item);
     }
 
-    bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const
     {
         // can only be attached to by an inhibitory link
         bool result = dynamic_cast<NeuroInhibitoryLinkItem *>(item) != 0;
@@ -403,7 +403,7 @@ namespace NeuroGui
         addPoint(drawPath, _line.p2(), dir.normalized(), ELLIPSE_WIDTH);
     }
 
-    bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item)
+    bool NeuroExcitoryLinkItem::canAttachTo(const QPointF & pos, NeuroItem *item) const
     {
         // cannot attach to a link at all
         NeuroLinkItem *link = dynamic_cast<NeuroLinkItem *>(item);

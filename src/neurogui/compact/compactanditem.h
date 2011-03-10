@@ -72,11 +72,12 @@ namespace NeuroGui
         qint32 delay() const { return _delay; }
         void setDelay(const qint32 & d);
 
+        virtual QList<Index> allCells() const;
         virtual Index getIncomingCellFor(const NeuroItem *) const;
         virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
     protected:
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
 
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *item);

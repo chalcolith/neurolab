@@ -137,11 +137,12 @@ namespace NeuroGui
         /// Set the initial position and direction for the item.
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> allCells() const { return QList<Index>(); }
+        virtual Index getIncomingCellFor(const NeuroItem *) const;
+        virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
     protected:
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
         virtual void onAttachTo(NeuroItem *);
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
 

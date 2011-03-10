@@ -98,7 +98,7 @@ namespace GridItems
         return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
 
-    bool GridEdgeItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool GridEdgeItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const
     {
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         return link != 0;
@@ -129,7 +129,7 @@ namespace GridItems
 
     QPointF GridEdgeItem::targetPointFor(const NeuroItem *item) const
     {
-        MixinArrow *link = dynamic_cast<MixinArrow *>(const_cast<NeuroItem *>(item));
+        const MixinArrow *link = dynamic_cast<const MixinArrow *>(item);
         if (link)
         {
             QPointF connect_pos(item->scenePos());
@@ -138,13 +138,13 @@ namespace GridItems
             else if (_outgoingAttachments.contains(link))
                 connect_pos = mapToScene(_outgoingAttachments[link].toPoint());
 
-            QVector2D to_pt1 = point1 - QVector2D(connect_pos);
-            QVector2D to_pt2 = point2 - QVector2D(connect_pos);
+            QVector2D to_pt1 = _point1 - QVector2D(connect_pos);
+            QVector2D to_pt2 = _point2 - QVector2D(connect_pos);
 
             if (to_pt1.lengthSquared() < to_pt2.lengthSquared())
-                return point1.toPoint();
+                return _point1.toPoint();
             else
-                return point2.toPoint();
+                return _point2.toPoint();
         }
         else
         {
@@ -185,8 +185,8 @@ namespace GridItems
             drawPath.arcTo(bound, 0, 180);
             drawPath.closeSubpath();
 
-            point1 = QVector2D(mapToScene(top));
-            point2 = QVector2D(mapToScene(bot));
+            _point1 = QVector2D(mapToScene(top));
+            _point2 = QVector2D(mapToScene(bot));
         }
         else
         {
@@ -206,9 +206,52 @@ namespace GridItems
             drawPath.arcTo(bound, 90, 180);
             drawPath.closeSubpath();
 
-            point1 = QVector2D(mapToScene(left));
-            point2 = QVector2D(mapToScene(right));
+            _point1 = QVector2D(mapToScene(left));
+            _point2 = QVector2D(mapToScene(right));
         }
+    }
+
+    bool GridEdgeItem::isConnected(const NeuroItem *item, bool vertical, const QVector2D &pt1, const QVector2D &pt2) const
+    {
+        const MixinArrow *link = dynamic_cast<const MixinArrow *>(item);
+
+        if (link && (_vertical == vertical))
+        {
+            QVector2D attachPt;
+            if (_incomingAttachments.contains(link))
+                attachPt = QVector2D(mapToScene(_incomingAttachments[link].toPointF()));
+            else if (_outgoingAttachments.contains(link))
+                attachPt = QVector2D(mapToScene(_outgoingAttachments[link].toPointF()));
+            else
+                return false;
+
+            qreal dist1 = (pt1 - attachPt).lengthSquared();
+            qreal dist2 = (pt2 - attachPt).lengthSquared();
+
+            return dist1 < dist2;
+        }
+
+        return false;
+    }
+
+    bool GridEdgeItem::isConnectedToTop(const NeuroItem *item) const
+    {
+        return isConnected(item, true, _point1, _point2);
+    }
+
+    bool GridEdgeItem::isConnectedToBottom(const NeuroItem *item) const
+    {
+        return isConnected(item, true, _point2, _point1);
+    }
+
+    bool GridEdgeItem::isConnectedToLeft(const NeuroItem * const item) const
+    {
+        return isConnected(item, false, _point1, _point2);
+    }
+
+    bool GridEdgeItem::isConnectedToRight(const NeuroItem *item) const
+    {
+        return isConnected(item, false, _point2, _point1);
     }
 
     void GridEdgeItem::adjustLinks()

@@ -62,6 +62,9 @@ namespace NeuroGui
     class NEUROGUISHARED_EXPORT LabTreeNodeController
     {
     public:
+        virtual void onEnterView() = 0;
+        virtual void onLeaveView() = 0;
+
         virtual bool allowZoom() const = 0;
         virtual bool canCreateNewItem(const QString & typeName, const QPointF & pos) const = 0;
     };
@@ -70,6 +73,9 @@ namespace NeuroGui
     class NEUROGUISHARED_EXPORT DefaultTreeNodeController
         : public LabTreeNodeController
     {
+        virtual void onEnterView() {}
+        virtual void onLeaveView() {}
+
         virtual bool allowZoom() const { return true; }
         virtual bool canCreateNewItem(const QString &, const QPointF &) const { return true; }
     };

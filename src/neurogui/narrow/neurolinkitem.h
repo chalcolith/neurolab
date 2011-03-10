@@ -81,9 +81,9 @@ namespace NeuroGui
         /// \see NeuroLinkItem::length()
         void setLength(const int & value);
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
-        virtual bool canAttachTwice(NeuroItem *);
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
+        virtual bool canAttachTwice(NeuroItem *) const;
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
 
         virtual void onAttachTo(NeuroItem *);
         virtual void onAttachedBy(NeuroItem *);
@@ -128,7 +128,7 @@ namespace NeuroGui
         explicit NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroExcitoryLinkItem();
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;

@@ -79,8 +79,10 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) { }
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> allCells() const { return QList<Index>(); }
+
+        virtual Index getIncomingCellFor(const NeuroItem *) const;
+        virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
     signals:
         /// Emitted when the subnetwork item is deleted.
@@ -91,13 +93,14 @@ namespace NeuroGui
         virtual void propertyValueChanged(QtProperty *, const QVariant &);
 
     protected:
+        virtual void onEnterView() {}
+        virtual void onLeaveView() {}
         virtual bool allowZoom() const { return true; }
-
         virtual bool canCreateNewItem(const QString &, const QPointF &) const;
-        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *) { return false; }
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canCreateNewOnMe(const QString &, const QPointF &) const;
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) const { return false; }
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
 
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);

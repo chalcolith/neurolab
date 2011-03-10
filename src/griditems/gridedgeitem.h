@@ -41,6 +41,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/neuronetworkitem.h"
 #include "../neurogui/mixins/mixinremember.h"
 
+#include <QList>
+
 namespace GridItems
 {
 
@@ -52,8 +54,8 @@ namespace GridItems
 
         bool _vertical;
 
-        mutable QVector2D point1;
-        mutable QVector2D point2;
+        mutable QVector2D _point1;
+        mutable QVector2D _point2;
 
     public:
         GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -64,7 +66,7 @@ namespace GridItems
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
         virtual QVector2D getAttachPos(const QVector2D &pos);
         virtual void onAttachedBy(NeuroItem *item);
         virtual void onDetach(NeuroItem *item);
@@ -73,10 +75,20 @@ namespace GridItems
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void adjustLinks();
 
+        bool isConnectedToTop(const NeuroItem *) const;
+        bool isConnectedToBottom(const NeuroItem *) const;
+        bool isConnectedToLeft(const NeuroItem *) const;
+        bool isConnectedToRight(const NeuroItem *) const;
+
+        virtual QList<Index> allCells() const { return QList<Index>(); }
+
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
         virtual void postLoad();
+
+    private:
+        bool isConnected(const NeuroItem *item, bool vertical, const QVector2D & pt1, const QVector2D & pt2) const;
     };
 
 } // namespace GridItems

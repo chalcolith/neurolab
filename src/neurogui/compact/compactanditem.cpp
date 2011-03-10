@@ -124,6 +124,20 @@ namespace NeuroGui
             _delay_property.setValue(QVariant(newDelay));
     }
 
+    QList<CompactAndItem::Index> CompactAndItem::allCells() const
+    {
+        QList<Index> result;
+        result.append(_frontwardTipCell);
+        result.append(_backwardTipCell);
+
+        foreach (const QList<Index> & line, _frontwardDelayLines)
+            result.append(line);
+        foreach (const QList<Index> & line, _backwardDelayLines)
+            result.append(line);
+
+        return result;
+    }
+
     CompactAndItem::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
     {
         if (item == _tipLinkItem)
@@ -164,7 +178,7 @@ namespace NeuroGui
         }
     }
 
-    bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
+    bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const
     {
         if (dynamic_cast<MixinArrow *>(item) != 0 && item != _tipLinkItem)
         {

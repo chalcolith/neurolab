@@ -66,7 +66,7 @@ namespace NeuroGui
         /// \see rect()
         void setRect(const QRectF & r) { _rect = r; update(_rect); }
 
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
 

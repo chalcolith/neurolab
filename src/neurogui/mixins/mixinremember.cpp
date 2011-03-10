@@ -104,8 +104,6 @@ namespace NeuroGui
         LabScene *lab_scene = dynamic_cast<LabScene *>(_self->scene());
         Q_ASSERT(lab_scene);
 
-        QVector2D center(_self->scenePos()); // in the scene
-
         bool frontLink = link->frontLinkTarget() == _self;
         bool backLink = link->backLinkTarget() == _self;
 
@@ -113,11 +111,10 @@ namespace NeuroGui
         bool rememberBack = _outgoingAttachments.contains(link);
 
         QLineF link_line = link->line();
-        QVector2D front(link_line.p2()); front -= center; // link's front in my frame
-        QVector2D back(link_line.p1()); back -= center; // link's back in my frame
+        QVector2D front(_self->mapFromScene(link_line.p2())); // link's front in my frame
+        QVector2D back(_self->mapFromScene(link_line.p1())); // link's back in my frame
 
-        QVector2D mouse_pos(lab_scene->lastMousePos()); // in the scene
-        QVector2D toPos = mouse_pos - center; // in my frame
+        QVector2D toPos(_self->mapFromScene(lab_scene->lastMousePos())); // in my frame
 
         if (frontLink)
         {
@@ -148,14 +145,14 @@ namespace NeuroGui
         if (frontLink && backLink)
         {
             QVector2D avg_dir = ((front + back) * 0.5).normalized();
-            QPointF new_center = (center + avg_dir * (NeuroNarrowItem::NODE_WIDTH*3)).toPointF();
-            QLineF new_line((back + center).toPointF(), (front + center).toPointF());
+            QPointF new_center = _self->mapToScene((avg_dir * (NeuroItem::NODE_WIDTH*3)).toPointF());
+            QLineF new_line(_self->mapToScene(back.toPointF()), _self->mapToScene(front.toPointF()));
 
             link->setLine(new_line, &new_center);
         }
         else
         {
-            link->setLine((back + center).toPointF(), (front + center).toPointF());
+            link->setLine(_self->mapToScene(back.toPointF()), _self->mapToScene(front.toPointF()));
         }
 
         alreadyAdjusted.insert(link);
@@ -173,10 +170,10 @@ namespace NeuroGui
         readClipboard(_outgoingAttachments, ds, id_map);
     }
 
-    void MixinRemember::writeClipboard(const QMap<MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, int> &id_map) const
+    void MixinRemember::writeClipboard(const QMap<const MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, int> &id_map) const
     {
         ds << static_cast<qint32>(attachments.size());
-        foreach (MixinArrow *link, attachments.keys())
+        foreach (const MixinArrow *link, attachments.keys())
         {
             qint32 id = link->self()->id();
 
@@ -192,7 +189,7 @@ namespace NeuroGui
         }
     }
 
-    void MixinRemember::readClipboard(QMap<MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
+    void MixinRemember::readClipboard(QMap<const MixinArrow *, QVector2D> &attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map)
     {
         qint32 num;
         ds >> num;
@@ -210,7 +207,7 @@ namespace NeuroGui
 
                 if (id_map.contains(id))
                 {
-                    MixinArrow *link = dynamic_cast<MixinArrow *>(id_map[id]);
+                    const MixinArrow *link = dynamic_cast<const MixinArrow *>(id_map[id]);
 
                     if (link)
                         attachments.insert(link, vec);

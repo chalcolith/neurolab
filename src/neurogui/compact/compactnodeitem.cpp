@@ -100,6 +100,14 @@ namespace NeuroGui
         }
     }
 
+    QList<CompactNodeItem::Index> CompactNodeItem::allCells() const
+    {
+        QList<Index> result;
+        result.append(_frontwardTipCell);
+        result.append(_backwardTipCell);
+        return result;
+    }
+
     bool CompactNodeItem::posOnTip(const QPointF &p) const
     {
         if (_direction == UPWARD)

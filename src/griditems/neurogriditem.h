@@ -55,6 +55,14 @@ namespace GridItems
         qint32 _num_horiz;
         qint32 _num_vert;
 
+        bool _pattern_dirty;
+
+        QSet<NeuroNetworkItem *> _top_connections, _bottom_connections;
+
+        QSet<Index> _all_grid_cells; // all automaton cells used by the grid
+        QList<Index> _top_incoming, _top_outgoing; // cells to use for getIncomingCellsFor etc.
+        QList<Index> _bot_incoming, _bot_outgoing;
+
     public:
         NeuroGridItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
@@ -65,17 +73,32 @@ namespace GridItems
         qint32 verticalRows() const { return _num_vert; }
         void setVerticalRows(const qint32 & num) { _num_vert = num; }
 
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
+
     protected:
+        virtual void onEnterView();
+        virtual void onLeaveView();
+
         virtual void makeSubNetwork();
 
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
         virtual bool allowZoom() const { return false; }
         virtual bool canCreateNewItem(const QString &, const QPointF &) const;
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
+
+        virtual void onAttachedBy(NeuroItem *);
+        virtual void onDetach(NeuroItem *);
 
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
+
+        virtual void writePointerIds(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
+
+        void generateGrid();
     };
 
 }

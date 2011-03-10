@@ -50,17 +50,13 @@ namespace NeuroGui
         Q_OBJECT
 
     protected:
-        QList<NeuroLib::NeuroCell::Index> _cellIndices;
+        QList<Index> _cellIndices;
 
     public:
         /// Constructor.
         /// \see NeuroGui::NeuroItem::NeuroItem()
         explicit NeuroNarrowItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNarrowItem();
-
-        /// The indices of the automaton cells that are controlled by this item.
-        /// For narrow items, which are unidirectional, the first index is the incoming, and the last is the outgoing.
-        QList<NeuroLib::NeuroCell::Index> & cellIndices() { return _cellIndices; }
 
         /// The output value of the item.
         /// \see NeuroNarrowItem::setOutputValue()
@@ -69,6 +65,9 @@ namespace NeuroGui
         /// Set the output value of the item.
         /// \see NeuroNarrowItem::outputValue()
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value & value);
+
+        /// All cells.
+        virtual QList<Index> allCells() const { return _cellIndices; }
 
         virtual bool canCutAndPaste() const { return true; }
 

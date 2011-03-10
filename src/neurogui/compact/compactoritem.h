@@ -71,7 +71,7 @@ namespace NeuroGui
         void postStep();
 
     protected:
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
 
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);

@@ -209,7 +209,7 @@ namespace NeuroGui
         }
     }
 
-    bool CompactOrItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item)
+    bool CompactOrItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const
     {
         if (dynamic_cast<MixinArrow *>(item) && item != _tipLinkItem)
         {

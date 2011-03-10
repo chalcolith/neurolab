@@ -62,7 +62,7 @@ namespace NeuroGui
         NeuroItem *_tipLinkItem;
         QList<NeuroItem *> _baseLinkItems;
 
-        NeuroLib::NeuroCell::Index _frontwardTipCell, _backwardTipCell;
+        Index _frontwardTipCell, _backwardTipCell;
 
     public:
         /// Constructor.
@@ -82,6 +82,8 @@ namespace NeuroGui
 
         virtual NeuroLib::NeuroCell::Value outputValue() const;
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &);
+
+        virtual QList<Index> allCells() const;
 
         virtual bool canCutAndPaste() const { return true; }
 

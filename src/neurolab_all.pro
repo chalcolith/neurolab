@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
-SUBDIRS = common automata neurolib thirdparty neurogui neurolab
+SUBDIRS = common automata neurolib thirdparty neurogui neurolab griditems
 
 automata.depends = common
 neurolib.depends = common automata

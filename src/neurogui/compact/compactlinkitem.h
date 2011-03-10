@@ -51,8 +51,8 @@ namespace NeuroGui
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
-        QList<NeuroLib::NeuroCell::Index> _frontward_cells; ///< These go out the front.
-        QList<NeuroLib::NeuroCell::Index> _backward_cells; ///< These go out the back.
+        QList<Index> _frontward_cells; ///< These go out the front.
+        QList<Index> _backward_cells; ///< These go out the back.
 
         Property<CompactLinkItem, QVariant::Int, int, int> _length_property;
         Property<CompactLinkItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _weight_property;
@@ -107,8 +107,9 @@ namespace NeuroGui
 
         virtual bool canCutAndPaste() const { return true; }
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> allCells() const;
+        virtual Index getIncomingCellFor(const NeuroItem *) const;
+        virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
     public slots:
         virtual void reset();
@@ -120,8 +121,8 @@ namespace NeuroGui
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);
 
-        virtual bool canAttachTo(const QPointF &, NeuroItem *);
-        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *);
+        virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
+        virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
         virtual void onAttachTo(NeuroItem *);
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);

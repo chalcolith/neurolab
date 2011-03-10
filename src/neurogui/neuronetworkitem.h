@@ -53,10 +53,10 @@ namespace NeuroGui
         typedef NeuroLib::NeuroCell::Value Value;
 
     protected:
-        QList<Index> _incoming_cells; // these are just for convenience;
-        QList<Index> _outgoing_cells;
-
         Property<NeuroNetworkItem, QVariant::Double, double, Value> _value_property;
+
+        mutable QList<Index> _incoming_cells; // these are just for convenience;
+        mutable QList<Index> _outgoing_cells;
 
     public:
         explicit NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
@@ -67,11 +67,16 @@ namespace NeuroGui
         virtual Value outputValue() const = 0;
         virtual void setOutputValue(const Value &) = 0;
 
+        virtual QList<Index> allCells() const = 0;
+
+        /// \deprecated
         virtual Index getIncomingCellFor(const NeuroItem *) const { return -1; }
+
+        /// \deprecated
         virtual Index getOutgoingCellFor(const NeuroItem *) const { return -1; }
 
-        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) { _incoming_cells.clear(); _incoming_cells.append(getIncomingCellFor(item)); return _incoming_cells; }
-        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) { _outgoing_cells.clear(); _outgoing_cells.append(getOutgoingCellFor(item)); return _outgoing_cells; }
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const { _incoming_cells.clear(); _incoming_cells.append(getIncomingCellFor(item)); return _incoming_cells; }
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const { _outgoing_cells.clear(); _outgoing_cells.append(getOutgoingCellFor(item)); return _outgoing_cells; }
 
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);

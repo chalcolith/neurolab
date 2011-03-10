@@ -206,7 +206,7 @@ namespace NeuroGui
         return -1;
     }
 
-    bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item)
+    bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const
     {
         return dynamic_cast<MixinArrow *>(item) != 0;
     }
@@ -344,6 +344,8 @@ namespace NeuroGui
 
     void SubNetworkItem::postLoad()
     {
+        NeuroNetworkItem::postLoad();
+
         QVector2D center(scenePos());
         rememberItems(connections(), center);
     }

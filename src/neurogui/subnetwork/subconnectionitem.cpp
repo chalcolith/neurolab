@@ -132,7 +132,7 @@ namespace NeuroGui
             _backLinkTarget->onAttachedBy(this);
     }
 
-    bool SubConnectionItem::canAttachTo(const QPointF &pos, NeuroItem *item)
+    bool SubConnectionItem::canAttachTo(const QPointF &pos, NeuroItem *item) const
     {
         if (_dragFront && _governingItem)
         {

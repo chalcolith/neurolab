@@ -68,7 +68,7 @@ namespace NeuroGui
         return typeName.indexOf("LinkItem") >= 0;
     }
 
-    bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *)
+    bool NeuroNodeItemBase::canBeAttachedBy(const QPointF &, NeuroItem *) const
     {
         return true;
     }

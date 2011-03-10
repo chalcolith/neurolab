@@ -51,7 +51,7 @@ namespace NeuroGui
         NeuroItem *_self;
 
     protected:
-        QMap<MixinArrow *, QVector2D> _incomingAttachments, _outgoingAttachments;
+        QMap<const MixinArrow *, QVector2D> _incomingAttachments, _outgoingAttachments;
 
     public:
         /// Constructor.
@@ -91,8 +91,8 @@ namespace NeuroGui
         void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);
 
     private:
-        void writeClipboard(const QMap<MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, int> &id_map) const;
-        void readClipboard(QMap<MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
+        void writeClipboard(const QMap<const MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, int> &id_map) const;
+        void readClipboard(QMap<const MixinArrow *, QVector2D> & attachments, QDataStream &ds, const QMap<int, NeuroItem *> &id_map);
     };
 
 } // namespace NeuroGui

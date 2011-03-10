@@ -477,12 +477,12 @@ namespace NeuroGui
         }
     }
 
-    bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *)
+    bool NeuroItem::canAttachTo(const QPointF &, NeuroItem *) const
     {
         return false;
     }
 
-    bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *)
+    bool NeuroItem::canBeAttachedBy(const QPointF &, NeuroItem *) const
     {
         return false;
     }
@@ -667,7 +667,6 @@ namespace NeuroGui
             else
                 ds << static_cast<IdType>(0);
         }
-
     }
 
     void NeuroItem::readPointerIds(QDataStream & ds, const NeuroLabFileVersion & file_version)

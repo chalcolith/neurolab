@@ -688,6 +688,9 @@ namespace NeuroGui
         // remove the current network's view
         if (_currentNetwork->scene())
         {
+            if (_currentNetwork->scene()->treeNode()->controller())
+                _currentNetwork->scene()->treeNode()->controller()->onLeaveView();
+
             _currentNetwork->scene()->setItemUnderMouse(0);
         }
 
@@ -704,6 +707,9 @@ namespace NeuroGui
         {
             _currentNetwork->scene()->clearSelection();
             _currentNetwork->scene()->setItemUnderMouse(0);
+
+            if (_currentNetwork->scene()->treeNode()->controller())
+                _currentNetwork->scene()->treeNode()->controller()->onEnterView();
         }
 
         if (_currentNetwork->view())
