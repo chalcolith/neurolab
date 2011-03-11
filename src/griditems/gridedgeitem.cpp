@@ -104,6 +104,11 @@ namespace GridItems
         return link != 0;
     }
 
+    bool GridEdgeItem::canBeAttachedToTwice(NeuroItem *) const
+    {
+        return true;
+    }
+
     QVector2D GridEdgeItem::getAttachPos(const QVector2D &pos)
     {
         return pos;
@@ -115,11 +120,44 @@ namespace GridItems
 
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
+        {
             MixinRemember::onAttachedBy(link);
+
+            if (link->frontLinkTarget() == this && link->backLinkTarget() == this)
+            {
+                _connections1.insert(item);
+                _connections2.insert(item);
+            }
+            else
+            {
+                bool attached = true;
+                QVector2D attachPt;
+                if (_incomingAttachments.contains(link))
+                    attachPt = QVector2D(mapToScene(_incomingAttachments[link].toPointF()));
+                else if (_outgoingAttachments.contains(link))
+                    attachPt = QVector2D(mapToScene(_outgoingAttachments[link].toPointF()));
+                else
+                    attached = false;
+
+                if (attached)
+                {
+                    qreal dist1 = (_point1 - attachPt).lengthSquared();
+                    qreal dist2 = (_point2 - attachPt).lengthSquared();
+
+                    if (dist1 < dist2)
+                        _connections1.insert(item);
+                    else
+                        _connections2.insert(item);
+                }
+            }
+        }
     }
 
     void GridEdgeItem::onDetach(NeuroItem *item)
     {
+        _connections1.remove(item);
+        _connections2.remove(item);
+
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
             MixinRemember::onDetach(link);
@@ -211,47 +249,24 @@ namespace GridItems
         }
     }
 
-    bool GridEdgeItem::isConnected(const NeuroItem *item, bool vertical, const QVector2D &pt1, const QVector2D &pt2) const
-    {
-        const MixinArrow *link = dynamic_cast<const MixinArrow *>(item);
-
-        if (link && (_vertical == vertical))
-        {
-            QVector2D attachPt;
-            if (_incomingAttachments.contains(link))
-                attachPt = QVector2D(mapToScene(_incomingAttachments[link].toPointF()));
-            else if (_outgoingAttachments.contains(link))
-                attachPt = QVector2D(mapToScene(_outgoingAttachments[link].toPointF()));
-            else
-                return false;
-
-            qreal dist1 = (pt1 - attachPt).lengthSquared();
-            qreal dist2 = (pt2 - attachPt).lengthSquared();
-
-            return dist1 < dist2;
-        }
-
-        return false;
-    }
-
     bool GridEdgeItem::isConnectedToTop(const NeuroItem *item) const
     {
-        return isConnected(item, true, _point1, _point2);
+        return _vertical && _connections1.contains(const_cast<NeuroItem *>(item));
     }
 
     bool GridEdgeItem::isConnectedToBottom(const NeuroItem *item) const
     {
-        return isConnected(item, true, _point2, _point1);
+        return _vertical && _connections2.contains(const_cast<NeuroItem *>(item));
     }
 
-    bool GridEdgeItem::isConnectedToLeft(const NeuroItem * const item) const
+    bool GridEdgeItem::isConnectedToLeft(const NeuroItem *item) const
     {
-        return isConnected(item, false, _point1, _point2);
+        return !_vertical && _connections1.contains(const_cast<NeuroItem *>(item));
     }
 
     bool GridEdgeItem::isConnectedToRight(const NeuroItem *item) const
     {
-        return isConnected(item, false, _point2, _point1);
+        return !_vertical && _connections2.contains(const_cast<NeuroItem *>(item));
     }
 
     void GridEdgeItem::adjustLinks()
@@ -264,6 +279,8 @@ namespace GridItems
         NeuroNetworkItem::writeBinary(ds, file_version);
 
         ds << _vertical;
+        ds << _point1;
+        ds << _point2;
     }
 
     void GridEdgeItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -273,7 +290,86 @@ namespace GridItems
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_10)
         {
             ds >> _vertical;
+            ds >> _point1;
+            ds >> _point2;
         }
+    }
+
+    void GridEdgeItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
+    {
+        NeuroNetworkItem::writePointerIds(ds, file_version);
+
+        quint32 num = _connections1.size();
+        ds << num;
+
+        foreach (const NeuroItem *item, _connections1)
+        {
+            IdType id = item->id();
+            ds << id;
+        }
+
+        num = _connections2.size();
+        ds << num;
+
+        foreach (const NeuroItem *item, _connections2)
+        {
+            IdType id = item->id();
+            ds << id;
+        }
+    }
+
+    void GridEdgeItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
+    {
+        NeuroNetworkItem::readPointerIds(ds, file_version);
+
+        quint32 num;
+
+        _connections1.clear();
+        ds >> num;
+        for (quint32 i = 0; i < num; ++i)
+        {
+            IdType id;
+            ds >> id;
+            _connections1.insert(reinterpret_cast<NeuroItem *>(id));
+        }
+
+        _connections2.clear();
+        ds >> num;
+        for (quint32 i = 0; i < num; ++i)
+        {
+            IdType id;
+            ds >> id;
+            _connections2.insert(reinterpret_cast<NeuroItem *>(id));
+        }
+    }
+
+    void GridEdgeItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap)
+    {
+        NeuroNetworkItem::idsToPointers(idMap);
+
+        QSet<NeuroItem *> toAdd;
+        foreach (NeuroItem *item, _connections1)
+        {
+            IdType wanted_id = reinterpret_cast<IdType>(item);
+            NeuroItem *wanted_item = idMap[wanted_id];
+            if (wanted_item)
+                toAdd.insert(wanted_item);
+            else
+                throw Common::FileFormatError(tr("Dangling connection node in file: %1").arg(wanted_id));
+        }
+        _connections1 = toAdd;
+
+        toAdd.clear();
+        foreach (NeuroItem *item, _connections2)
+        {
+            IdType wanted_id = reinterpret_cast<IdType>(item);
+            NeuroItem *wanted_item = idMap[wanted_id];
+            if (wanted_item)
+                toAdd.insert(wanted_item);
+            else
+                throw Common::FileFormatError(tr("Dangling connection node in file: %1").arg(wanted_id));
+        }
+        _connections2 = toAdd;
     }
 
     void GridEdgeItem::postLoad()

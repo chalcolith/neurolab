@@ -78,14 +78,14 @@ namespace NeuroGui
         }
     }
 
-    void SubNetworkItem::propertyValueChanged(QtProperty *p, const QVariant & val)
+    void SubNetworkItem::propertyInBrowserChanged(QtProperty *p, const QVariant & val)
     {
-        if (_label_property.isPropertyFor(p) && _treeNode)
+        if (_label_property.propertyInBrowser() == p && _treeNode)
         {
-            _treeNode->setLabel(val.toString());
+            _treeNode->setLabel(tr("> ") + val.toString());
         }
 
-        NeuroNetworkItem::propertyValueChanged(p, val);
+        NeuroNetworkItem::propertyInBrowserChanged(p, val);
     }
 
     static void clipTo(QVector2D & p, const QRectF & r)
@@ -282,23 +282,20 @@ namespace NeuroGui
 
     void SubNetworkItem::makeSubNetwork()
     {
-        MainWindow *mainWindow = MainWindow::instance();
-        Q_ASSERT(mainWindow);
-        Q_ASSERT(mainWindow->currentNetwork());
-
         bool hook_up = false;
+        LabNetwork *current_network = network();
 
         // we have an ID from the file, and we need to find it in the current network
-        if (_treeNodeIdNeeded != static_cast<quint32>(-1) && mainWindow->currentNetwork())
+        if (_treeNodeIdNeeded != static_cast<quint32>(-1) && current_network)
         {
-            _treeNode = mainWindow->currentNetwork()->findSubNetwork(_treeNodeIdNeeded);
+            _treeNode = current_network->findSubNetwork(_treeNodeIdNeeded);
             hook_up = true;
         }
 
         // we don't have a tree node; make a new one
-        if (!_treeNode && mainWindow->currentNetwork())
+        if (!_treeNode && current_network)
         {
-            _treeNode = mainWindow->currentNetwork()->newSubNetwork();
+            _treeNode = current_network->newSubNetwork();
             hook_up = true;
         }
 
@@ -313,9 +310,7 @@ namespace NeuroGui
 
         // make sure we're the tree node's controller
         if (_treeNode)
-        {
             _treeNode->setController(this);
-        }
     }
 
     void SubNetworkItem::writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const
@@ -348,6 +343,7 @@ namespace NeuroGui
 
         QVector2D center(scenePos());
         rememberItems(connections(), center);
+        makeSubNetwork();
     }
 
     void SubNetworkItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const

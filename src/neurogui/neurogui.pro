@@ -75,7 +75,10 @@ FORMS += mainwindow.ui \
 RESOURCES += neurogui.qrc
 
 CONFIG(release, debug|release) { BUILDDIR=release }
-CONFIG(debug, debug|release) { BUILDDIR=debug }
+CONFIG(debug, debug|release) {
+    BUILDDIR=debug
+    DEFINES += DEBUG
+}
 
 macx { DESTDIR = $$OUT_PWD/../$$BUILDDIR/neurolab.app/Contents/Frameworks }
 else { DESTDIR = $$OUT_PWD/../$$BUILDDIR }

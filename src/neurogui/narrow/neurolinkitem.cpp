@@ -158,7 +158,7 @@ namespace NeuroGui
 
         // update property if necessary
         if (updateValue)
-            _length_property.setValue(QVariant(newLength));
+            _length_property.setValueInPropertyBrowser(QVariant(newLength));
     }
 
     void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -261,8 +261,7 @@ namespace NeuroGui
 
     bool NeuroLinkItem::canAttachTwice(NeuroItem *item) const
     {
-        NeuroNodeItem *nodeItem = dynamic_cast<NeuroNodeItem *>(item);
-        return nodeItem && !(_frontLinkTarget == item && _backLinkTarget == item);
+        return !(_frontLinkTarget == item && _backLinkTarget == item);
     }
 
     bool NeuroLinkItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const

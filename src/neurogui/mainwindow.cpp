@@ -579,10 +579,10 @@ namespace NeuroGui
         return true;
     }
 
-    void MainWindow::networkChanged(const QString &title)
+    void MainWindow::networkChanged()
     {
-        setTitle(title);
         filterActions();
+        setTitle(QString());
     }
 
     void MainWindow::setTitle(const QString & title)
@@ -632,7 +632,7 @@ namespace NeuroGui
 
         if (_currentNetwork)
         {
-            disconnect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)));
+            disconnect(_currentNetwork, SIGNAL(networkChanged()), this, SLOT(networkChanged()));
             disconnect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)));
             disconnect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
                        this, SLOT(setPropertyObjects(QList<PropertyObject*>)));
@@ -653,7 +653,7 @@ namespace NeuroGui
             _currentNetwork = network;
             setSubNetwork(_currentNetwork->treeNode());
 
-            connect(_currentNetwork, SIGNAL(networkChanged(QString)), this, SLOT(networkChanged(QString)), Qt::UniqueConnection);
+            connect(_currentNetwork, SIGNAL(networkChanged()), this, SLOT(networkChanged()), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
                     this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
@@ -771,17 +771,21 @@ namespace NeuroGui
             num = _breadCrumbs.size();
             for (int i = 0; i < num; ++i)
             {
-                if (_breadCrumbs[i]->currentAction())
+                QAction *cur = _breadCrumbs[i]->currentAction();
+
+                if (cur)
                 {
-                    _breadCrumbBar->addAction(_breadCrumbs[i]->currentAction());
+                    _breadCrumbBar->addAction(cur);
                 }
                 else
                 {
-                    QAction *action = _breadCrumbBar->addAction(_breadCrumbs[i]->label());
-                    action->setCheckable(true);
+                    QString label =_breadCrumbs[i]->label();
+
+                    cur = _breadCrumbBar->addAction(label);
+                    cur->setCheckable(true);
                     connect(_breadCrumbs[i], SIGNAL(nodeSelected(LabTreeNode*)), this, SLOT(setSubNetwork(LabTreeNode*)));
 
-                    _breadCrumbs[i]->setCurrentAction(action);
+                    _breadCrumbs[i]->setCurrentAction(cur);
                 }
 
                 _breadCrumbs[i]->currentAction()->setChecked(_breadCrumbs[i] == _currentNetwork->treeNode());
@@ -852,13 +856,13 @@ namespace NeuroGui
 
             if (_rememberedProperties.contains(typeName))
             {
-                foreach (const PropertyObject::PropertyBase *p, _rememberedProperties[typeName])
+                foreach (const PropertyBase *p, _rememberedProperties[typeName])
                 {
                     if (!p->remember())
                         continue;
 
                     const QString name = p->name();
-                    const QVariant value = p->value();
+                    const QVariant value = p->valueFromPropertyBrowser();
                     item->setPropertyValue(name, value);
                 }
             }

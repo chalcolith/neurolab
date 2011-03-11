@@ -60,7 +60,7 @@ namespace NeuroGui
             if (p->_property && p->_property->propertyName() == propertyName)
             {
                 p->_property->setValue(value);
-                p->valueChanged(value);
+                p->changeValueInContainer(value);
             }
         }
     }
@@ -72,7 +72,7 @@ namespace NeuroGui
 
         foreach (PropertyBase *p, _properties)
         {
-            p->create(manager);
+            p->createPropertyInBrowser(manager);
 
             if (p->visible())
                 topProperty->addSubProperty(p->_property);
@@ -86,11 +86,11 @@ namespace NeuroGui
         foreach (PropertyBase *p, _properties)
         {
             if (p->_property)
-                p->update();
+                p->updateBrowserValueFromContainer();
         }
     }
 
-    void PropertyObject::propertyValueChanged(QtProperty *property, const QVariant & value)
+    void PropertyObject::propertyInBrowserChanged(QtProperty *property, const QVariant & value)
     {
         QtVariantProperty *vprop = dynamic_cast<QtVariantProperty *>(property);
         if (!vprop)
@@ -103,7 +103,7 @@ namespace NeuroGui
             if (p->_property == vprop)
             {
                 changed = true;
-                p->valueChanged(value);
+                p->changeValueInContainer(value);
             }
         }
     }
@@ -117,7 +117,7 @@ namespace NeuroGui
             ds << p->name();
             ds << p->tooltip();
             ds << p->editable();
-            ds << p->value();
+            ds << p->valueFromPropertyBrowser();
         }
     }
 
@@ -143,14 +143,13 @@ namespace NeuroGui
                 {
                     p->setTooltip(tooltip);
                     p->setEditable(enabled);
-                    p->setValue(value);
+                    p->setValueInPropertyBrowser(value);
                 }
             }
         }
     }
 
-
-    void PropertyObject::PropertyBase::create(QtVariantPropertyManager *manager)
+    void PropertyBase::createPropertyInBrowser(QtVariantPropertyManager *manager)
     {
         Q_ASSERT(manager != 0);
 
@@ -159,7 +158,7 @@ namespace NeuroGui
         _property = manager->addProperty(_type, _name);
         _property->setToolTip(_tooltip);
         _property->setEnabled(_editable);
-        QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyValueChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
+        QObject::connect(manager, SIGNAL(valueChanged(QtProperty*,QVariant)), _container, SLOT(propertyInBrowserChanged(QtProperty*,const QVariant &)), Qt::UniqueConnection);
     }
 
 
@@ -186,7 +185,7 @@ namespace NeuroGui
         {
             QList<QString> names;
 
-            foreach (PropertyObject::PropertyBase *prop, po->properties())
+            foreach (PropertyBase *prop, po->properties())
             {
                 QString format("%1|%2|%3|%4");
                 QString name = format.arg(prop->name(), prop->tooltip(), prop->editable() ? "1" : 0).arg(prop->type());
@@ -286,12 +285,12 @@ namespace NeuroGui
             _shared_properties.append(p);
     }
 
-    void CommonPropertyObject::CommonProperty::update()
+    void CommonPropertyObject::CommonProperty::updateBrowserValueFromContainer()
     {
         QList<QVariant> all_values;
 
         foreach (PropertyBase *prop, _shared_properties)
-            all_values.append(prop->value());
+            all_values.append(prop->valueFromPropertyBrowser());
 
         bool values_are_equal = true;
         for (int i = 1; values_are_equal && i < all_values.size(); ++i)
@@ -301,10 +300,10 @@ namespace NeuroGui
             _property->setValue(all_values[0]);
     }
 
-    void CommonPropertyObject::CommonProperty::valueChanged(const QVariant &value)
+    void CommonPropertyObject::CommonProperty::changeValueInContainer(const QVariant &value)
     {
         foreach (PropertyBase *p, _shared_properties)
-            p->valueChanged(value);
+            p->changeValueInContainer(value);
     }
 
 } // namespace NeuroGui

@@ -226,9 +226,9 @@ namespace NeuroGui
                 ts << "# \n";
 
                 // write network properties
-                foreach (const PropertyObject::PropertyBase *p, _network->properties())
+                foreach (const PropertyBase *p, _network->properties())
                 {
-                    ts << "# " << p->name() << ": " << p->value().toString() << '\n';
+                    ts << "# " << p->name() << ": " << p->valueFromPropertyBrowser().toString() << '\n';
                 }
 
                 ts << '\n';

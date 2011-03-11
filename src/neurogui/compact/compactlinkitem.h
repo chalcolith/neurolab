@@ -123,6 +123,9 @@ namespace NeuroGui
 
         virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
+
+        virtual bool canAttachTwice(NeuroItem *) const;
+
         virtual void onAttachTo(NeuroItem *);
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);

@@ -169,7 +169,7 @@ namespace NeuroGui
         }
 
         if (updateValue)
-            _length_property.setValue(QVariant(newLength));
+            _length_property.setValueInPropertyBrowser(QVariant(newLength));
     }
 
     NeuroCell::Value CompactLinkItem::weight() const
@@ -348,6 +348,11 @@ namespace NeuroGui
     {
         NeuroInhibitoryLinkItem *inhibit = dynamic_cast<NeuroInhibitoryLinkItem *>(item);
         return inhibit != 0;
+    }
+
+    bool CompactLinkItem::canAttachTwice(NeuroItem *item) const
+    {
+        return !(_frontLinkTarget == item && _backLinkTarget == item);
     }
 
     void CompactLinkItem::onAttachTo(NeuroItem *item)

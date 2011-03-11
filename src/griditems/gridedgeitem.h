@@ -54,6 +54,9 @@ namespace GridItems
 
         bool _vertical;
 
+        QSet<NeuroItem *> _connections1;
+        QSet<NeuroItem *> _connections2;
+
         mutable QVector2D _point1;
         mutable QVector2D _point2;
 
@@ -61,15 +64,22 @@ namespace GridItems
         GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~GridEdgeItem();
 
+        bool isVertical() const { return _vertical; }
+
         virtual NeuroLib::NeuroCell::Value outputValue() const { return 0; }
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value &) {}
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
+        virtual bool canBeAttachedToTwice(NeuroItem *) const;
         virtual QVector2D getAttachPos(const QVector2D &pos);
         virtual void onAttachedBy(NeuroItem *item);
         virtual void onDetach(NeuroItem *item);
+
+        // don't attach anything -- we don't want spurious edges!
+        virtual void addEdges(NeuroItem *) {}
+        virtual void removeEdges(NeuroItem *) {}
 
         virtual QPointF targetPointFor(const NeuroItem *) const;
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
@@ -85,10 +95,10 @@ namespace GridItems
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
         virtual void readBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
+        virtual void writePointerIds(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;
+        virtual void readPointerIds(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
+        virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
         virtual void postLoad();
-
-    private:
-        bool isConnected(const NeuroItem *item, bool vertical, const QVector2D & pt1, const QVector2D & pt2) const;
     };
 
 } // namespace GridItems

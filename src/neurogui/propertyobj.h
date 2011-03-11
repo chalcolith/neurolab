@@ -51,66 +51,75 @@ class QtVariantPropertyManager;
 namespace NeuroGui
 {
 
+    class NEUROGUISHARED_EXPORT PropertyObject;
+
+    /// Base class for properties of various types.
+    class NEUROGUISHARED_EXPORT PropertyBase
+        : public QObject
+    {
+        Q_OBJECT
+
+    protected:
+        QString _name;
+        QString _tooltip;
+        bool _editable;
+        bool _remember;
+        int _type;
+        bool _visible;
+
+        PropertyObject *_container;
+        QtVariantProperty *_property;
+
+        friend class PropertyObject;
+
+    public:
+        explicit PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip,
+                              bool editable, int type, bool remember)
+            : QObject(),
+              _name(name), _tooltip(tooltip),
+              _editable(editable), _remember(remember),
+              _type(type), _visible(true),
+              _container(container), _property(0) {}
+        virtual ~PropertyBase() { delete _property; }
+
+        /// This creates the actual variant property in the property grid.
+        virtual void createPropertyInBrowser(QtVariantPropertyManager *manager);
+        virtual void updateBrowserValueFromContainer() = 0;
+
+        QString name() const { return _name; }
+        void setName(const QString & n) { _name = n; if (_property) _property->setPropertyName(n); }
+
+        QString tooltip() const { return _tooltip; }
+        void setTooltip(const QString & tt) { _tooltip = tt; if (_property) _property->setToolTip(tt); }
+
+        bool editable() const { return _editable; }
+        void setEditable(bool e) { _editable = e; if (_property) _property->setEnabled(e); }
+
+        bool remember() const { return _remember; }
+        void setRemember(bool r) { _remember = r; }
+
+        int type() const { return _type; }
+
+        bool visible() const { return _visible; }
+        void setVisible(bool visible) { _visible = visible; }
+
+        QtVariantProperty *propertyInBrowser() { return _property; }
+
+        virtual QVariant valueFromPropertyBrowser() const { return _property ? _property->value() : QVariant(); }
+        virtual void setValueInPropertyBrowser(const QVariant & val) { if (_property) _property->setValue(val); }
+
+    signals:
+        void valueInBrowserChanged(const QVariant & val);
+
+    public slots:
+        virtual void changeValueInContainer(const QVariant & val) = 0;
+    }; // class PropertyBase
+
     /// Base class for objects that can be edited via the property widget.
     class NEUROGUISHARED_EXPORT PropertyObject
         : public QObject
     {
         Q_OBJECT
-
-    public:
-
-        /// Base class for properties of various types.
-        class NEUROGUISHARED_EXPORT PropertyBase
-        {
-        protected:
-            QString _name;
-            QString _tooltip;
-            bool _editable;
-            bool _remember;
-            int _type;
-            bool _visible;
-
-            PropertyObject *_container;
-            QtVariantProperty *_property;
-
-            friend class PropertyObject;
-
-        public:
-            explicit PropertyBase(PropertyObject *container, const QString & name, const QString & tooltip,
-                                  bool editable, int type, bool remember)
-                : _name(name), _tooltip(tooltip),
-                  _editable(editable), _remember(remember),
-                  _type(type), _visible(true),
-                  _container(container), _property(0) {}
-            virtual ~PropertyBase() { delete _property; }
-
-            /// This creates the actual variant property in the property grid.
-            virtual void create(QtVariantPropertyManager *manager);
-            virtual void update() = 0;
-            virtual void valueChanged(const QVariant & value) = 0;
-
-            QString name() const { return _name; }
-            void setName(const QString & n) { _name = n; if (_property) _property->setPropertyName(n); }
-
-            QString tooltip() const { return _tooltip; }
-            void setTooltip(const QString & tt) { _tooltip = tt; if (_property) _property->setToolTip(tt); }
-
-            bool editable() const { return _editable; }
-            void setEditable(bool e) { _editable = e; if (_property) _property->setEnabled(e); }
-
-            bool remember() const { return _remember; }
-            void setRemember(bool r) { _remember = r; }
-
-            int type() const { return _type; }
-
-            bool visible() const { return _visible; }
-            void setVisible(bool visible) { _visible = visible; }
-
-            bool isPropertyFor(QtProperty *underlying) { return underlying == _property; }
-
-            virtual QVariant value() const { return _property ? _property->value() : QVariant(); }
-            virtual void setValue(const QVariant & val) { if (_property) _property->setValue(val); }
-        }; // class PropertyBase
 
     protected:
         bool _updating;
@@ -145,18 +154,20 @@ namespace NeuroGui
                 container->_properties.append(this);
             }
 
-            virtual void update()
+            virtual void updateBrowserValueFromContainer()
             {
                 if (_getter)
                     _property->setValue(QVariant(static_cast<VType>((_typed_container->*_getter)())));
             }
 
-            virtual void valueChanged(const QVariant & value)
+            virtual void changeValueInContainer(const QVariant & value)
             {
                 if (_setter && _getter && value != (_typed_container->*_getter)())
                 {
                     (_typed_container->*_setter)(static_cast<DType>(value.value<VType>()));
                     _typed_container->setChanged(true);
+
+                    emit valueInBrowserChanged(value);
                 }
             }
         }; // class Property
@@ -184,7 +195,7 @@ namespace NeuroGui
 
     public slots:
         /// Handle changes to the property values.
-        virtual void propertyValueChanged(QtProperty *, const QVariant &);
+        virtual void propertyInBrowserChanged(QtProperty *, const QVariant &);
     };
 
 
@@ -205,8 +216,8 @@ namespace NeuroGui
 
             void addSharedProperty(PropertyBase *p);
 
-            virtual void update();
-            virtual void valueChanged(const QVariant &value);
+            virtual void updateBrowserValueFromContainer();
+            virtual void changeValueInContainer(const QVariant &valueFromPropertyBrowser);
         };
 
     public:

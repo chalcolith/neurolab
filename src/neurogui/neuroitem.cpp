@@ -85,6 +85,8 @@ namespace NeuroGui
           _network(network), _id(NEXT_ID++),
           _label_pos(NODE_WIDTH + 4, -1)
     {
+        setObjectName(tr("%1").arg(_id));
+
         setPos(scenePos);
 
         setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -152,9 +154,6 @@ namespace NeuroGui
 
     QString NeuroItem::getTypeName() const
     {
-        if (!_typeNames)
-            _typeNames = new QMap<QString, TypeNameRec>();
-
         QString mangledName(typeid(*this).name());
         return getTypeName(mangledName);
     }
@@ -167,7 +166,7 @@ namespace NeuroGui
         // we don't want to insert empty values
         if (_typeNames->contains(mangledName))
             return (*_typeNames)[mangledName].typeName;
-        return QString("?unknown?");
+        return mangledName;
     }
 
     void NeuroItem::registerItemCreator(const QString & typeName, const QString & menuPath,
@@ -239,11 +238,6 @@ namespace NeuroGui
 
         foreach (QString typeName, keys)
         {
-            // kludge to get rid of mangled names
-            const QString friendlyName = getTypeName(typeName);
-            if (!friendlyName.isEmpty() && _itemCreators->contains(friendlyName))
-                continue;
-
             // get menu text and create function
             const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
             const QString pathName = p.first;
@@ -564,8 +558,8 @@ namespace NeuroGui
         // attach, if possible
         if (itemAtPos)
         {
-            if ((!_connections.contains(itemAtPos) || canAttachTwice(itemAtPos))
-                && canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this))
+            if ((!_connections.contains(itemAtPos) || (canAttachTwice(itemAtPos) && itemAtPos->canBeAttachedToTwice(this)))
+                && (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this)))
             {
                 this->onAttachTo(itemAtPos);
                 itemAtPos->onAttachedBy(this);

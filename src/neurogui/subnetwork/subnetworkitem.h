@@ -90,7 +90,7 @@ namespace NeuroGui
 
     public slots:
         /// Synchronize the item's data with the property editor.
-        virtual void propertyValueChanged(QtProperty *, const QVariant &);
+        virtual void propertyInBrowserChanged(QtProperty *, const QVariant &);
 
     protected:
         virtual void onEnterView() {}

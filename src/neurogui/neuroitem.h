@@ -50,6 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QMap>
 #include <QSet>
 #include <QPair>
+
 #include <typeinfo>
 
 namespace NeuroGui
@@ -180,8 +181,11 @@ namespace NeuroGui
         /// Used to decide when a moving item can attach to another item it collides with.
         virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
 
-        /// Used to determine if an item can attach to another item more than once.
+        /// Used to determine if an item can attach to another item twice.
         virtual bool canAttachTwice(NeuroItem *) const { return false; }
+
+        /// Used to determine if an item can be attached to twice by the same item.
+        virtual bool canBeAttachedToTwice(NeuroItem *) const { return false; }
 
         /// Used to decide if a stationary item can have a moving item attach to it.
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
@@ -409,9 +413,6 @@ namespace NeuroGui
         {
             NeuroItem::registerTypeName(mangledName, typeName, menuPath, uiName);
             NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func, restrict_func);
-
-//            // this is for backwards compatibility with the old file format
-//            NeuroItem::registerItemCreator(mangledName, menuPath, uiName, create_func, restrict_func);
         }
 
         virtual ~NeuroItemRegistrator()

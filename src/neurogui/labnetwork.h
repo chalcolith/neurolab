@@ -189,15 +189,15 @@ namespace NeuroGui
         void exportPDF();
 
     signals:
-        void networkChanged(const QString & title);
+        void networkChanged();
         void propertyObjectChanged(QList<PropertyObject *> property_objects);
         void itemLabelChanged(NeuroItem *, const QString & label);
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
 
-        void preStep();
-        void postStep();
+        void preStep(); ///< Only called once, no matter how many repeats are specified.
+        void postStep(); ///< Called after every repeat.
 
         void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);

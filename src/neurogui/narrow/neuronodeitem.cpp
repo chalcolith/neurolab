@@ -73,6 +73,11 @@ namespace NeuroGui
         return true;
     }
 
+    bool NeuroNodeItemBase::canBeAttachedToTwice(NeuroItem *) const
+    {
+        return true;
+    }
+
     void NeuroNodeItemBase::onAttachedBy(NeuroItem *item)
     {
         NeuroNarrowItem::onAttachedBy(item);

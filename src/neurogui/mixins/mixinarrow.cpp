@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "mixinarrow.h"
 #include "../neuroitem.h"
 #include "../narrow/neurolinkitem.h"
+#include "../narrow/neuronodeitem.h"
 #include "../labscene.h"
 
 #include <cmath>
@@ -113,11 +114,19 @@ namespace NeuroGui
         // calculate control points
         if (_frontLinkTarget && _frontLinkTarget == _backLinkTarget)
         {
-            QVector2D toFront = myFront - myBack;
-            QVector2D toBack = myBack - myFront;
+            if (dynamic_cast<NeuroNodeItem *>(_frontLinkTarget))
+            {
+                QVector2D toFront = myFront - myBack;
+                QVector2D toBack = myBack - myFront;
 
-            c1 = toBack * 2;
-            c2 = toFront * 2;
+                c1 = toBack * 2;
+                c2 = toFront * 2;
+            }
+            else
+            {
+                c1 = myBack + (myFront - myBack) * 0.33;
+                c2 = myBack + (myFront - myBack) * 0.66;
+            }
         }
         else
         {

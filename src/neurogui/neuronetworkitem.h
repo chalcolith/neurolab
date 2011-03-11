@@ -75,8 +75,8 @@ namespace NeuroGui
         /// \deprecated
         virtual Index getOutgoingCellFor(const NeuroItem *) const { return -1; }
 
-        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const { _incoming_cells.clear(); _incoming_cells.append(getIncomingCellFor(item)); return _incoming_cells; }
-        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const { _outgoing_cells.clear(); _outgoing_cells.append(getOutgoingCellFor(item)); return _outgoing_cells; }
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);

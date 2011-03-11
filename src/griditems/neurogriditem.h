@@ -55,7 +55,7 @@ namespace GridItems
         qint32 _num_horiz;
         qint32 _num_vert;
 
-        bool _pattern_dirty;
+        bool _pattern_changed;
 
         QSet<NeuroNetworkItem *> _top_connections, _bottom_connections;
 
@@ -75,6 +75,11 @@ namespace GridItems
 
         virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
         virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
+
+    public slots:
+        void networkChanged();
+        void generateGrid();
+        void resizeScene();
 
     protected:
         virtual void onEnterView();
@@ -98,7 +103,7 @@ namespace GridItems
         virtual void readPointerIds(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version);
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
 
-        void generateGrid();
+        virtual void postLoad();
     };
 
 }

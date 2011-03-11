@@ -121,7 +121,7 @@ namespace NeuroGui
         }
 
         if (updateValue)
-            _delay_property.setValue(QVariant(newDelay));
+            _delay_property.setValueInPropertyBrowser(QVariant(newDelay));
     }
 
     QList<CompactAndItem::Index> CompactAndItem::allCells() const

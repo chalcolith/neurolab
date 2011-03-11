@@ -39,11 +39,13 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "automata_global.h"
 
+#include <QString>
 #include <QVector>
 #include <QStack>
 #include <QMap>
 #include <QSet>
 #include <QDataStream>
+#include <QTextStream>
 #include <QReadWriteLock>
 
 namespace Automata
@@ -283,6 +285,20 @@ namespace Automata
             }
         }
 
+        /// Returns the vector of the indices of all nodes to which their is an edge from the given node.
+        /// \param index The index of the node.
+        const QVector<TIndex> & neighbors(const TIndex & index) const
+        {
+            if (index < _nodes.size())
+            {
+                return _edges[index];
+            }
+            else
+            {
+                throw Common::IndexOverflow();
+            }
+        }
+
         /// Writes the graph's data.  Should be called by derived classes' implementations.
         virtual void writeBinary(QDataStream & ds, const AutomataFileVersion & file_version) const
         {
@@ -366,6 +382,35 @@ namespace Automata
                 ds >> this->_nodes;
                 ds >> this->_edges;
             }
+        }
+
+        void dumpGraph(QTextStream & ts, bool reverse)
+        {
+            ts << "digraph neurolib_network {\n";
+            ts << "  node [shape = circle];\n";
+
+            const TIndex num = _edges.size();
+            for (TIndex i = 0; i < num; ++i)
+            {
+                if (_free_nodes.contains(i))
+                    continue;
+
+                const QVector<TIndex> & neighbors = _edges[i];
+                if (neighbors.size() > 0)
+                {
+                    foreach (const TIndex & nbr, neighbors)
+                    {
+                        if (reverse)
+                            ts << "  N" << nbr << " -> " << "N" << i << "\n";
+                        else
+                            ts << "  N" << i << " -> " << "N" << nbr << "\n";
+                    }
+                }
+                else
+                    ts << "  N" << i << "\n";
+            }
+
+            ts << "}";
         }
     };
 

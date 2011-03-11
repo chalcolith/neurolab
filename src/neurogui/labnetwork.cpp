@@ -95,7 +95,7 @@ namespace NeuroGui
         if (_changed != changed)
         {
             _changed = changed;
-            emit networkChanged(QString());
+            emit networkChanged();
         }
     }
 
