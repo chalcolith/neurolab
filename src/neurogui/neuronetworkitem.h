@@ -81,8 +81,9 @@ namespace NeuroGui
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);
 
-    protected:
         virtual void onDetach(NeuroItem *item);
+
+    protected:
         virtual void cleanup();
 
         virtual void setPenProperties(QPen &pen) const;

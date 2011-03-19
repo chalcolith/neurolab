@@ -93,10 +93,10 @@ namespace NeuroGui
     void LabNetwork::setChanged(bool changed)
     {
         if (_changed != changed)
-        {
             _changed = changed;
+
+        if (changed)
             emit networkChanged();
-        }
     }
 
     LabTreeNode *LabNetwork::treeNode()
@@ -356,6 +356,7 @@ namespace NeuroGui
         }
 
         //
+        ln->actionsEnabled(true);
         return ln;
     }
 
@@ -436,6 +437,7 @@ namespace NeuroGui
         }
 
         setChanged(false);
+        emit actionsEnabled(true);
 
         if (prevRunning)
             start();
@@ -458,7 +460,7 @@ namespace NeuroGui
         if (scene() && view())
         {
             scene()->newItem(typeName, scene()->lastMousePos());
-            setChanged();
+            setChanged(true);
         }
     }
 
@@ -499,7 +501,7 @@ namespace NeuroGui
             }
 
             sc->setItemUnderMouse(0);
-            setChanged();
+            setChanged(true);
         }
     }
 
@@ -758,8 +760,6 @@ namespace NeuroGui
         if (numSteps <= 0)
             return;
 
-        setChanged();
-
         _running = true;
         _current_step = 0;
         _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
@@ -774,8 +774,9 @@ namespace NeuroGui
             emit stepProgressValueChanged(0);
         }
 
-        emit preStep();
         _neuronet->preUpdate();
+        emit stepClicked();
+        emit preStep();
         _future_watcher.setFuture(_neuronet->stepAsync());
     }
 
@@ -789,7 +790,8 @@ namespace NeuroGui
 
         // at the end of three steps, do post steps
         ++_current_step;
-        if ((_current_step % 3) == 0)
+        bool every_three = (_current_step % 3) == 0;
+        if (every_three)
         {
             emit postStep();
             emit stepIncremented();
@@ -809,12 +811,15 @@ namespace NeuroGui
                 emit statusChanged(tr("Done stepping %1 times.").arg(_current_step / 3));
 
             _running = false;
-            setChanged();
+            setChanged(true);
             _tree->updateItemProperties();
+            emit stepFinished();
         }
         else
         {
             _neuronet->preUpdate();
+            if (every_three)
+                emit preStep();
             _future_watcher.setFuture(_neuronet->stepAsync());
 
             // only change the display 2 times a second
@@ -839,8 +844,8 @@ namespace NeuroGui
     void LabNetwork::reset()
     {
         emit statusChanged("");
-        setChanged();
         _tree->reset();
+        setChanged(true);
     }
 
     void LabNetwork::exportPrint()

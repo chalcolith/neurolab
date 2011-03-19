@@ -98,7 +98,7 @@ namespace NeuroGui
         bool changed() const { return _changed; }
 
         /// Sets the dirty state of the network.
-        void setChanged(bool changed = true);
+        virtual void setChanged(bool changed);
 
         /// \return The current subnetwork node.
         LabTreeNode *treeNode();
@@ -196,8 +196,10 @@ namespace NeuroGui
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);
 
-        void preStep(); ///< Only called once, no matter how many repeats are specified.
+        void stepClicked(); ///< Only called once, no matter how many repeats are specified.
+        void preStep(); ///< Called before every step.
         void postStep(); ///< Called after every repeat.
+        void stepFinished(); ///< Only called once, no matter how many repeats are specified.
 
         void stepIncremented();
         void stepProgressRangeChanged(int minimum, int maximum);

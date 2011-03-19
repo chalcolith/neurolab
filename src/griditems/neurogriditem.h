@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace GridItems
 {
 
+    class MultiGridIOItem;
+
     class GRIDITEMSSHARED_EXPORT NeuroGridItem
         : public NeuroGui::SubNetworkItem
     {
@@ -76,8 +78,12 @@ namespace GridItems
         virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
         virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
+        virtual void adjustLinks();
+
     public slots:
         void networkChanged();
+        void networkStepClicked();
+        void networkStepFinished();
         void generateGrid();
         void resizeScene();
 
@@ -104,6 +110,9 @@ namespace GridItems
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
 
         virtual void postLoad();
+
+    private:
+        void adjustIOItem(MultiGridIOItem *gi, bool top);
     };
 
 }

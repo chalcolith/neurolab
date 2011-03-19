@@ -296,7 +296,7 @@ namespace NeuroGui
             }
         }
 
-        sc->network()->setChanged();
+        sc->network()->setChanged(true);
     }
 
     void NeuroNodeItem::toggleFrozen()

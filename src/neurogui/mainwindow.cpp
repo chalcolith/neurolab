@@ -779,7 +779,9 @@ namespace NeuroGui
                 }
                 else
                 {
-                    QString label =_breadCrumbs[i]->label();
+                    QString label = _breadCrumbs[i]->label();
+                    if (i > 0)
+                        label = tr("> ") + label;
 
                     cur = _breadCrumbBar->addAction(label);
                     cur->setCheckable(true);
@@ -919,7 +921,7 @@ namespace NeuroGui
 //            showPrint = true;
 //        }
 
-        _ui->action_Reload_Network->setEnabled(showPrint && _currentNetwork && _currentNetwork->changed() && !_currentNetwork->fname().isEmpty());
+        _ui->action_Reload_Network->setEnabled(_currentNetwork && _currentNetwork->changed() && !_currentNetwork->fname().isEmpty());
         _ui->action_Save->setEnabled(_currentNetwork && _currentNetwork->changed());
         _ui->action_Close->setEnabled(_currentNetwork);
 

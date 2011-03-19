@@ -67,7 +67,6 @@ namespace NeuroGui
         virtual QPointF targetPointFor(const NeuroItem *item) const;
 
     public slots:
-        void preStep();
         void postStep();
 
     protected:

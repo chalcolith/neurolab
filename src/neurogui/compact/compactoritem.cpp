@@ -52,17 +52,11 @@ namespace NeuroGui
         Q_ASSERT(network);
 
         //_shortcut_property.setEditable(false);
-
-        connect(network, SIGNAL(preStep()), this, SLOT(preStep()));
         connect(network, SIGNAL(postStep()), this, SLOT(postStep()));
     }
 
     CompactOrItem::~CompactOrItem()
     {
-        Q_ASSERT(network());
-
-        disconnect(network(), SIGNAL(preStep()), this, SLOT(preStep()));
-        disconnect(network(), SIGNAL(postStep()), this, SLOT(postStep()));
     }
 
     NeuroCell::Index CompactOrItem::getIncomingCellFor(const NeuroItem *item) const
@@ -96,10 +90,6 @@ namespace NeuroGui
         {
             return scenePos();
         }
-    }
-
-    void CompactOrItem::preStep()
-    {
     }
 
     void CompactOrItem::postStep()

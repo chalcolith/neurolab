@@ -145,6 +145,12 @@ namespace NeuroGui
         /// \return The node's ID, for use when saving and loading.
         int id() const { return _id; }
 
+        /// Name of the item type for UI purposes.
+        virtual QString uiName() const;
+
+        /// Sets the items state to changed.
+        virtual void setChanged(bool changed);
+
         /// The label is drawn to the right of the item's scene position.
         /// \return The item's label.
         QString label() const { return _label; }
@@ -307,9 +313,6 @@ namespace NeuroGui
         /// Gets the friendly type name of this item type (if it is a registered type).
         QString getTypeName() const;
 
-        /// Gets a description of the type for UI purposes.
-        virtual QString uiName() const;
-
         /// Gets a friendly type name from the mangled name.
         static QString getTypeName(const QString & mangledName);
 
@@ -346,9 +349,6 @@ namespace NeuroGui
         void labelChanged(NeuroItem *item, const QString & newLabel);
 
     public slots:
-        /// Sets the items state to changed.
-        void setChanged(bool changed = true);
-
         /// Set the item's label.
         void setLabel(const QString & s) { _label = s; emit labelChanged(s); emit labelChanged(this, s); updateShape(); update(); }
 

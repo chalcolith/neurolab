@@ -109,10 +109,10 @@ namespace NeuroGui
         virtual void setValueInPropertyBrowser(const QVariant & val) { if (_property) _property->setValue(val); }
 
     signals:
-        void valueInBrowserChanged(const QVariant & val);
+        void valueInBrowserChanged();
 
     public slots:
-        virtual void changeValueInContainer(const QVariant & val) = 0;
+        virtual bool changeValueInContainer(const QVariant & val) = 0;
     }; // class PropertyBase
 
     /// Base class for objects that can be edited via the property widget.
@@ -160,15 +160,15 @@ namespace NeuroGui
                     _property->setValue(QVariant(static_cast<VType>((_typed_container->*_getter)())));
             }
 
-            virtual void changeValueInContainer(const QVariant & value)
+            virtual bool changeValueInContainer(const QVariant & value)
             {
                 if (_setter && _getter && value != (_typed_container->*_getter)())
                 {
                     (_typed_container->*_setter)(static_cast<DType>(value.value<VType>()));
-                    _typed_container->setChanged(true);
-
-                    emit valueInBrowserChanged(value);
+                    emit valueInBrowserChanged();
+                    return true;
                 }
+                return false;
             }
         }; // class Property
 
@@ -182,7 +182,8 @@ namespace NeuroGui
 
         void setPropertyValue(const QString & propertyName, const QVariant & value);
 
-        virtual QString uiName() const { return tr("?Unknown?"); }
+        virtual QString uiName() const = 0;
+        virtual void setChanged(bool changed) = 0;
 
         /// Add properties to the parent item.
         virtual void buildProperties(QtVariantPropertyManager *manager, QtProperty *parentItem);
@@ -217,7 +218,7 @@ namespace NeuroGui
             void addSharedProperty(PropertyBase *p);
 
             virtual void updateBrowserValueFromContainer();
-            virtual void changeValueInContainer(const QVariant &valueFromPropertyBrowser);
+            virtual bool changeValueInContainer(const QVariant & value);
         };
 
     public:
@@ -225,6 +226,7 @@ namespace NeuroGui
         virtual ~CommonPropertyObject();
 
         virtual QString uiName() const { return tr("Multiple Items"); }
+        virtual void setChanged(bool changed) { }
 
     private:
         void cleanup();

@@ -60,7 +60,6 @@ namespace NeuroGui
             if (p->_property && p->_property->propertyName() == propertyName)
             {
                 p->_property->setValue(value);
-                p->changeValueInContainer(value);
             }
         }
     }
@@ -102,10 +101,13 @@ namespace NeuroGui
         {
             if (p->_property == vprop)
             {
-                changed = true;
-                p->changeValueInContainer(value);
+                changed = p->changeValueInContainer(value);
+                break;
             }
         }
+
+        if (changed)
+            setChanged(true);
     }
 
     void PropertyObject::writeClipboard(QDataStream & ds) const
@@ -300,10 +302,12 @@ namespace NeuroGui
             _property->setValue(all_values[0]);
     }
 
-    void CommonPropertyObject::CommonProperty::changeValueInContainer(const QVariant &value)
+    bool CommonPropertyObject::CommonProperty::changeValueInContainer(const QVariant &value)
     {
+        bool changed = false;
         foreach (PropertyBase *p, _shared_properties)
-            p->changeValueInContainer(value);
+            changed = changed || p->changeValueInContainer(value);
+        return changed;
     }
 
 } // namespace NeuroGui

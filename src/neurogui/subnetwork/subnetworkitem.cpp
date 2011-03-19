@@ -64,6 +64,7 @@ namespace NeuroGui
         if (context == NeuroItem::CREATE_UI)
         {
             makeSubNetwork();
+            setLabelPos(QPointF(rect().left() + rect().width() + 5, 0));
         }
     }
 
@@ -82,7 +83,7 @@ namespace NeuroGui
     {
         if (_label_property.propertyInBrowser() == p && _treeNode)
         {
-            _treeNode->setLabel(tr("> ") + val.toString());
+            _treeNode->setLabel(val.toString());
         }
 
         NeuroNetworkItem::propertyInBrowserChanged(p, val);
@@ -344,6 +345,8 @@ namespace NeuroGui
         QVector2D center(scenePos());
         rememberItems(connections(), center);
         makeSubNetwork();
+
+        setLabelPos(QPointF(rect().left() + rect().width() + 5, 0));
     }
 
     void SubNetworkItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const

@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/labtree.h"
 #include "../neurogui/mainwindow.h"
 #include "gridedgeitem.h"
+#include "multigridioitem.h"
 
 using namespace NeuroGui;
 
@@ -67,13 +68,13 @@ namespace GridItems
             const int top = -height/2;
 
             setRect(QRectF(left, top, width, height));
-            setLabelPos(QPointF(left + width + 5, 0));
-
+            setLabelPos(QPointF(rect().left() + rect().width() + 5, 0));
             treeNode()->setLabel(tr("Grid Item %1").arg(treeNode()->id()));
         }
 
         connect(network, SIGNAL(networkChanged()), this, SLOT(networkChanged()));
-        connect(network, SIGNAL(preStep()), this, SLOT(generateGrid()));
+        connect(network, SIGNAL(stepClicked()), this, SLOT(networkStepClicked()));
+        connect(network, SIGNAL(stepFinished()), this, SLOT(networkStepFinished()));
     }
 
     NeuroGridItem::~NeuroGridItem()
@@ -89,6 +90,18 @@ namespace GridItems
     void NeuroGridItem::networkChanged()
     {
         _pattern_changed = true;
+    }
+
+    void NeuroGridItem::networkStepClicked()
+    {
+        generateGrid();
+    }
+
+    void NeuroGridItem::networkStepFinished()
+    {
+        // this gets set by networkChanged(), but since we've just finished a step,
+        // we don't want to re-generate the grid unless something else changes
+        _pattern_changed = false;
     }
 
     void NeuroGridItem::resizeScene()
@@ -182,8 +195,10 @@ namespace GridItems
 
     bool NeuroGridItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const
     {
-        NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
-        if (!ni) return false;
+        MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+        MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(item);
+
+        if (!link && !gi) return false;
 
         // only allow connections to the top or bottom
         QPointF topLeft = mapToScene(rect().topLeft());
@@ -191,6 +206,25 @@ namespace GridItems
 
         if (pos.y() > topLeft.y() && pos.y() < bottomRight.y())
             return false;
+
+        if (pos.y() <= topLeft.y())
+        {
+            foreach (NeuroNetworkItem *ni, _top_connections)
+            {
+                MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(ni);
+                if (gi)
+                    return false;
+            }
+        }
+        else if (pos.y() >= bottomRight.y())
+        {
+            foreach (NeuroNetworkItem *ni, _bottom_connections)
+            {
+                MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(ni);
+                if (gi)
+                    return false;
+            }
+        }
 
         return true;
     }
@@ -204,11 +238,15 @@ namespace GridItems
         {
             QPointF mousePos = network()->scene()->lastMousePos();
 
-            if (mousePos.y() < scenePos().y())
+            bool top = mousePos.y() < scenePos().y();
+            if (top)
                 _top_connections.insert(ni);
             else
                 _bottom_connections.insert(ni);
 
+            MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(ni);
+            if (gi)
+                adjustIOItem(gi, top);
         }
 
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
@@ -234,6 +272,33 @@ namespace GridItems
         }
 
         NeuroNetworkItem::onDetach(item); // no subconnection items
+    }
+
+    void NeuroGridItem::adjustLinks()
+    {
+        SubNetworkItem::adjustLinks();
+
+        foreach (NeuroNetworkItem *item, _top_connections)
+        {
+            MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(item);
+            if (gi)
+                adjustIOItem(gi, true);
+        }
+
+        foreach (NeuroNetworkItem *item, _bottom_connections)
+        {
+            MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(item);
+            if (gi)
+                adjustIOItem(gi, false);
+        }
+    }
+
+    void NeuroGridItem::adjustIOItem(MultiGridIOItem *gi, bool top)
+    {
+        if (top)
+            gi->setPos(scenePos().x(), scenePos().y() - rect().height()/2 - gi->rect().height()/2);
+        else
+            gi->setPos(scenePos().x(), scenePos().y() + rect().height()/2 + gi->rect().height()/2);
     }
 
     static QMap<NeuroGridItem::Index, NeuroGridItem::Index> &
@@ -545,8 +610,6 @@ namespace GridItems
             ds >> _num_horiz;
             ds >> _num_vert;
         }
-
-        setLabelPos(QPointF(rect().left() + rect().width() + 5, 0));
     }
 
     void NeuroGridItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const

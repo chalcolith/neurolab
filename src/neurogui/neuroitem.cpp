@@ -533,37 +533,20 @@ namespace NeuroGui
         Q_ASSERT(_network != 0);
         Q_ASSERT(_network->scene() != 0);
 
-        _network->setChanged();
-
-        // get topmost item at mouse position that is not the item itself
+        // get topmost item at mouse position that is not the item itself and attach if possible
         QRectF mouseRect(mousePos.x() - TOUCH_LEN, mousePos.y() - TOUCH_LEN, TOUCH_LEN*2, TOUCH_LEN*2);
-        NeuroItem *itemAtPos = 0;
 
-        foreach (QGraphicsItem *gi, _network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder))
+        foreach (QGraphicsItem *item, _network->scene()->items(mouseRect, Qt::IntersectsItemShape, Qt::DescendingOrder))
         {
-            if ((itemAtPos = dynamic_cast<NeuroItem *>(gi)))
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(item);
+            if (ni && ni != this
+                && (!_connections.contains(ni) || (canAttachTwice(ni) && ni->canBeAttachedToTwice(this)))
+                && (canAttachTo(mousePos, ni) && ni->canBeAttachedBy(mousePos, this)))
             {
-                if (itemAtPos == this)
-                {
-                    itemAtPos = 0;
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        // attach, if possible
-        if (itemAtPos)
-        {
-            if ((!_connections.contains(itemAtPos) || (canAttachTwice(itemAtPos) && itemAtPos->canBeAttachedToTwice(this)))
-                && (canAttachTo(mousePos, itemAtPos) && itemAtPos->canBeAttachedBy(mousePos, this)))
-            {
-                this->onAttachTo(itemAtPos);
-                itemAtPos->onAttachedBy(this);
+                this->onAttachTo(ni);
+                ni->onAttachedBy(this);
                 movePos = scenePos();
+                break;
             }
         }
 
