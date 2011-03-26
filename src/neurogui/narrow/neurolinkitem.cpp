@@ -91,12 +91,12 @@ namespace NeuroGui
                 if (i == _cellIndices.size() - 1)
                 {
                     cell->current().setWeight(value);
-                    cell->former().setWeight(value);
+                    //cell->former().setWeight(value);
                 }
                 else
                 {
                     cell->current().setWeight(1.1);
-                    cell->former().setWeight(1.1);
+                    //cell->former().setWeight(1.1);
                 }
             }
         }

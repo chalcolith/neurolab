@@ -89,14 +89,14 @@ namespace NeuroGui
         if (frontwardCell)
         {
             frontwardCell->current().setOutputValue(val);
-            frontwardCell->former().setOutputValue(val);
+            //frontwardCell->former().setOutputValue(val);
         }
 
         NeuroNet::ASYNC_STATE *backwardCell = getCell(_backwardTipCell);
         if (backwardCell)
         {
             backwardCell->current().setOutputValue(val);
-            backwardCell->former().setOutputValue(val);
+            //backwardCell->former().setOutputValue(val);
         }
     }
 

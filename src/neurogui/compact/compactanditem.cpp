@@ -400,7 +400,7 @@ namespace NeuroGui
         if (frontwardCell)
         {
             frontwardCell->current().setWeight(_baseLinkItems.size());
-            frontwardCell->former().setWeight(_baseLinkItems.size());
+            //frontwardCell->former().setWeight(_baseLinkItems.size());
         }
     }
 

@@ -142,6 +142,154 @@ namespace GridItems
         return QList<Index>();
     }
 
+    static void add_edges_in_groups(const QList<NeuroGridItem::Index> & ins, const QList<NeuroGridItem::Index> & outs, NeuroLib::NeuroNet *neuronet, QMap<NeuroGridItem::Index, NeuroGridItem::Index> & edges)
+    {
+        int in_step = 1;
+        int out_step = 1;
+
+        if (ins.size() > outs.size())
+        {
+            in_step = ins.size() / outs.size();
+            if (in_step == 0)
+                in_step = 1;
+        }
+        else if (ins.size() < outs.size())
+        {
+            out_step = outs.size() / ins.size();
+            if (out_step == 0)
+                out_step = 1;
+        }
+
+        int in_pos = 0;
+        int out_pos = 0;
+        int i = 0;
+
+        while (in_pos < ins.size() && out_pos < outs.size())
+        {
+            NeuroGridItem::Index in = ins[in_pos];
+            NeuroGridItem::Index out = outs[out_pos];
+
+            if (in != -1 && out != -1)
+            {
+                edges.insert(in, out);
+                neuronet->addEdge(in, out);
+            }
+
+            ++i;
+            if ((i % in_step) == 0)
+                ++in_pos;
+            if ((i % out_step) == 0)
+                ++out_pos;
+        }
+    }
+
+    void NeuroGridItem::addEdges(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+        NeuroLib::NeuroNet *neuronet = network()->neuronet();
+
+        NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
+        if (ni)
+        {
+            QList<Index> myIns = this->getIncomingCellsFor(item);
+            QList<Index> myOuts = this->getOutgoingCellsFor(item);
+            QList<Index> itemOuts;
+            QList<Index> itemIns;
+
+            MultiGridIOItem *gi;
+            MixinArrow *link;
+
+            // connect in equal proportions to multi io items
+            if ((gi = dynamic_cast<MultiGridIOItem *>(item)))
+            {
+                itemOuts = ni->getOutgoingCellsFor(this);
+                itemIns = ni->getIncomingCellsFor(this);
+
+                if (myIns.size() > 0 && myOuts.size() > 0 && itemOuts.size() > 0 && itemIns.size() > 0)
+                {
+                    // my in to item out
+                    add_edges_in_groups(myIns, itemOuts, neuronet, _edges[ni]);
+
+                    // item in to my out
+                    add_edges_in_groups(itemIns, myOuts, neuronet, _edges[ni]);
+
+                    return; // don't connect up the regular way
+                }
+            }
+
+            // connect to the TARGET of a link instead of the link itself
+            else if ((link = dynamic_cast<MixinArrow *>(item)))
+            {
+                NeuroNetworkItem *tgt;
+
+                if ((link->frontLinkTarget() == this && (tgt = dynamic_cast<NeuroNetworkItem *>(link->backLinkTarget())))
+                    || (link->backLinkTarget() == this && (tgt = dynamic_cast<NeuroNetworkItem *>(link->frontLinkTarget()))))
+                {
+                    itemOuts = tgt->getOutgoingCellsFor(item);
+                    itemIns = tgt->getIncomingCellsFor(item);
+                }
+                else
+                {
+                    itemOuts = ni->getOutgoingCellsFor(this);
+                    itemIns = ni->getIncomingCellsFor(this);
+                }
+            }
+
+            // otherwise
+            else
+            {
+                itemOuts = ni->getOutgoingCellsFor(this);
+                itemIns = ni->getIncomingCellsFor(this);
+            }
+
+            // connect
+            foreach (Index myIn, myIns)
+            {
+                foreach (Index itemOut, itemOuts)
+                {
+                    if (myIn != -1 && itemOut != -1)
+                    {
+                        _edges[ni].insert(myIn, itemOut);
+                        neuronet->addEdge(myIn, itemOut);
+                    }
+                }
+            }
+
+            foreach (Index myOut, myOuts)
+            {
+                foreach (Index itemIn, itemIns)
+                {
+                    if (myOut != -1 && itemIn != -1)
+                    {
+                        _edges[ni].insert(itemIn, myOut);
+                        neuronet->addEdge(itemIn, myOut);
+                    }
+                }
+            }
+        }
+    }
+
+    void NeuroGridItem::removeEdges(NeuroItem *item)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+        NeuroLib::NeuroNet *neuronet = network()->neuronet();
+
+        NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
+        if (ni && _edges.contains(ni))
+        {
+            QMap<Index, Index> & item_edges = _edges[ni];
+            QMap<Index, Index>::const_iterator i = item_edges.constBegin(), end = item_edges.constEnd();
+            while (i != end)
+            {
+                neuronet->removeEdge(i.key(), i.value());
+                ++i;
+            }
+            item_edges.clear();
+        }
+    }
+
     void NeuroGridItem::onEnterView()
     {
         resizeScene();
@@ -599,6 +747,26 @@ namespace GridItems
 
         ds << _num_horiz;
         ds << _num_vert;
+
+        ds << static_cast<quint32>(_edges.size());
+        QMap<NeuroNetworkItem *, QMap<Index, Index> >::const_iterator i = _edges.constBegin(), i_end = _edges.constEnd();
+        while (i != i_end)
+        {
+            if (i.key())
+            {
+                ds << static_cast<IdType>(i.key()->id());
+
+                ds << static_cast<quint32>(i.value().size());
+                QMap<Index, Index>::const_iterator j = i.value().constBegin(), j_end = i.value().constEnd();
+                while (j != j_end)
+                {
+                    ds << j.key();
+                    ds << j.value();
+                    ++j;
+                }
+            }
+            ++i;
+        }
     }
 
     void NeuroGridItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -609,6 +777,30 @@ namespace GridItems
         {
             ds >> _num_horiz;
             ds >> _num_vert;
+
+            _edges.clear();
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_11)
+            {
+                quint32 num_i;
+                ds >> num_i;
+                for (quint32 i = 0; i < num_i; ++i)
+                {
+                    IdType id;
+                    ds >> id;
+                    NeuroNetworkItem *id_ptr = reinterpret_cast<NeuroNetworkItem *>(id);
+                    QMap<Index, Index> & edge_map = _edges[id_ptr];
+
+                    quint32 num_j;
+                    ds >> num_j;
+                    for (quint32 j = 0; j < num_j; ++j)
+                    {
+                        Index key, val;
+                        ds >> key;
+                        ds >> val;
+                        edge_map.insert(key, val);
+                    }
+                }
+            }
         }
     }
 
@@ -687,6 +879,23 @@ namespace GridItems
         }
 
         _bottom_connections = toAdd;
+
+        // edges
+        QMap<NeuroNetworkItem *, QMap<Index, Index> > new_edges;
+        QMap<NeuroNetworkItem *, QMap<Index, Index> >::const_iterator i = _edges.constBegin(), end = _edges.constEnd();
+        while (i != end)
+        {
+            IdType wanted_id = reinterpret_cast<IdType>(i.key());
+            NeuroNetworkItem *wanted_item = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);
+            if (wanted_item)
+                new_edges[wanted_item] = i.value();
+            else
+                throw Common::FileFormatError(tr("Dangling edge node in file: %1").arg(wanted_id));
+
+            ++i;
+        }
+
+        _edges = new_edges;
     }
 
     void NeuroGridItem::postLoad()

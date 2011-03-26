@@ -185,7 +185,7 @@ namespace NeuroGui
                         {
                             NeuroNet::ASYNC_STATE *baseCell = &(*network()->neuronet())[baseOutgoingIndex];
                             baseCell->current().setOutputValue(newValue);
-                            baseCell->former().setOutputValue(newValue);
+                            //baseCell->former().setOutputValue(newValue);
                         }
                     }
                 }
@@ -194,7 +194,7 @@ namespace NeuroGui
             {
                 // inhibit this link's output
                 linkOutgoingCell->current().setOutputValue(0);
-                linkOutgoingCell->former().setOutputValue(0);
+                //linkOutgoingCell->former().setOutputValue(0);
             }
         }
     }

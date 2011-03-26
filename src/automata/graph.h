@@ -315,7 +315,19 @@ namespace Automata
             }
 
             // edges
-            ds << _edges;
+            num = static_cast<quint32>(_edges.size());
+            ds << num;
+            for (quint32 i = 0; i < num; ++i)
+            {
+                const QVector<TIndex> & neighbors = _edges[i];
+                quint32 n_num = static_cast<quint32>(neighbors.size());
+                ds << n_num;
+                for (quint32 j = 0; j < n_num; ++j)
+                {
+                    quint32 index = static_cast<quint32>(neighbors[j]);
+                    ds << index;
+                }
+            }
 
             // free nodes
             num = static_cast<quint32>(_free_nodes.size());
@@ -346,7 +358,29 @@ namespace Automata
                 }
 
                 // edges
-                ds >> _edges;
+                if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_3)
+                {
+                    ds >> num;
+                    _edges.resize(num);
+                    for (quint32 i = 0; i < num; ++i)
+                    {
+                        QVector<TIndex> & neighbors = _edges[i];
+
+                        quint32 n_num;
+                        ds >> n_num;
+                        neighbors.resize(n_num);
+                        for (quint32 j = 0; j < n_num; ++j)
+                        {
+                            quint32 index;
+                            ds >> index;
+                            neighbors[j] = static_cast<TIndex>(index);
+                        }
+                    }
+                }
+                else
+                {
+                    ds >> _edges;
+                }
 
                 _edges_to.clear();
                 for (int from = 0; from < _edges.size(); ++from)

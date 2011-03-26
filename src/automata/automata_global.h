@@ -63,6 +63,7 @@ namespace Automata
         AUTOMATA_FILE_VERSION_OLD = 0,
         AUTOMATA_FILE_VERSION_1   = 1,
         AUTOMATA_FILE_VERSION_2   = 2,
+        AUTOMATA_FILE_VERSION_3   = 3,
         AUTOMATA_NUM_FILE_VERSIONS
     };
 

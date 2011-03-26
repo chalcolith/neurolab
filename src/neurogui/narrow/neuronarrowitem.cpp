@@ -83,12 +83,12 @@ namespace NeuroGui
                 if (i == _cellIndices.size() - 1)
                 {
                     cell->current().setOutputValue(value);
-                    cell->former().setOutputValue(value);
+                    //cell->former().setOutputValue(value);
                 }
                 else
                 {
                     cell->current().setOutputValue(0);
-                    cell->former().setOutputValue(0);
+                    //cell->former().setOutputValue(0);
                 }
             }
         }

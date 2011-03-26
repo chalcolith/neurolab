@@ -312,8 +312,6 @@ namespace GridItems
         connect(&_text_property, SIGNAL(valueInBrowserChanged()), this, SLOT(updateInputBuffer()));
 
         _output_buffer.open(QIODevice::ReadWrite);
-        connect(&_output_buffer, SIGNAL(readyRead()), this, SLOT(bufferReadyRead()));
-
         _output_buffer_stream.setDevice(&_output_buffer);
         _output_buffer_stream.setCodec("UTF-8");
 
@@ -422,7 +420,7 @@ namespace GridItems
                         if (cell)
                         {
                             cell->current().setOutputValue(new_val);
-                            cell->former().setOutputValue(new_val);
+                            //cell->former().setOutputValue(new_val);
                             updateDisplayBuffer(idx, _input_disp_buffer, _input_disp_pos);
                         }
                     }
@@ -483,6 +481,8 @@ namespace GridItems
             char ch = static_cast<char>(highest_index % 256);
             _output_buffer.write(&ch, 1);
 
+            // TODO: if the high bit is not set, read the next char from _output_buffer_stream
+
             if (ch >= ' ' && ch < 127)
                 updateDisplayBuffer(static_cast<quint8>(ch), _output_disp_buffer, _output_disp_pos);
         }
@@ -490,15 +490,6 @@ namespace GridItems
         {
             updateDisplayBuffer(' ', _output_disp_buffer, _output_disp_pos);
         }
-    }
-
-    void TextGridIOItem::bufferReadyRead()
-    {
-        QChar ch;
-        _output_buffer_stream >> ch;
-
-        if (ch >= ' ')
-            _accumulated_output_text.append(ch);
     }
 
     void TextGridIOItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const

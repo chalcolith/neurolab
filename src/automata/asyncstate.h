@@ -138,9 +138,15 @@ namespace Automata
             q0.readBinary(ds, file_version);
             q1.readBinary(ds, file_version);
 
-            if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_1)
+            if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_3)
             {
                 ds >> r;
+            }
+            else if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_1)
+            {
+                quint8 num;
+                ds >> num;
+                r = static_cast<quint16>(r);
             }
             else // if (file_version.automata_version >= Automata::AUTOMATA_FILE_VERSION_OLD)
             {

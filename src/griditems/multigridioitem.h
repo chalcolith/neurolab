@@ -156,7 +156,6 @@ namespace GridItems
         virtual void updateInputBuffer();
         virtual void networkPreStep();
         virtual void networkPostStep();
-        virtual void bufferReadyRead();
 
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;

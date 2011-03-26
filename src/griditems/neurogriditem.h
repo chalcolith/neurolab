@@ -65,6 +65,8 @@ namespace GridItems
         QList<Index> _top_incoming, _top_outgoing; // cells to use for getIncomingCellsFor etc.
         QList<Index> _bot_incoming, _bot_outgoing;
 
+        QMap<NeuroNetworkItem *, QMap<Index, Index> > _edges;
+
     public:
         NeuroGridItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
@@ -77,6 +79,9 @@ namespace GridItems
 
         virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
         virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
+
+        virtual void addEdges(NeuroItem *);
+        virtual void removeEdges(NeuroItem *);
 
         virtual void adjustLinks();
 

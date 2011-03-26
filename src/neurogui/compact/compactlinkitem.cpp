@@ -196,12 +196,12 @@ namespace NeuroGui
                 if (i == (cells.size() - 1))
                 {
                     cell->current().setWeight(value);
-                    cell->former().setWeight(value);
+                    //cell->former().setWeight(value);
                 }
                 else
                 {
                     cell->current().setWeight(1);
-                    cell->former().setWeight(1);
+                    //cell->former().setWeight(1);
                 }
             }
         }
@@ -223,12 +223,12 @@ namespace NeuroGui
                 if (i == cells.size() - 1)
                 {
                     cell->current().setOutputValue(value);
-                    cell->former().setOutputValue(value);
+                    //cell->former().setOutputValue(value);
                 }
                 else
                 {
                     cell->current().setOutputValue(0);
-                    cell->former().setOutputValue(0);
+                    //cell->former().setOutputValue(0);
                 }
             }
         }

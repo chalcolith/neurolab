@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QTextStream>
 #include <QDateTime>
 #include <QVariant>
+#include <QScrollBar>
 
 namespace NeuroGui
 {
@@ -57,7 +58,7 @@ namespace NeuroGui
             reset();
             connect(_network, SIGNAL(itemLabelChanged(NeuroItem*,QString)), this, SLOT(changeItemLabel(NeuroItem*,QString)), Qt::UniqueConnection);
             connect(_network, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deleteItem(NeuroItem*)), Qt::UniqueConnection);
-            connect(_network, SIGNAL(valuesChanged()), this, SLOT(valuesChanged()));
+            connect(_network, SIGNAL(networkChanged()), this, SLOT(valuesChanged()));
             connect(_network, SIGNAL(stepIncremented()), this, SLOT(incrementStep()));
         }
     }
@@ -176,9 +177,17 @@ namespace NeuroGui
             {
                 int columnIndex = _itemColumnIndices[item];
 
-                QTableWidgetItem *wi = new QTableWidgetItem(item->dataValue());
-                disableEdit(wi);
-                _table->setItem(row, columnIndex, wi);
+                QTableWidgetItem *wi = _table->item(row, columnIndex);
+                if (wi)
+                {
+                    wi->setText(item->dataValue());
+                }
+                else
+                {
+                    wi = new QTableWidgetItem(item->dataValue());
+                    _table->setItem(row, columnIndex, wi);
+                    disableEdit(wi);
+                }
             }
 
             setChanged();
@@ -197,6 +206,8 @@ namespace NeuroGui
 
         if (_table->verticalHeaderItem(newRow))
             _table->verticalHeaderItem(newRow)->setText(QString::number(newRow));
+
+        _table->verticalScrollBar()->setValue(_table->verticalScrollBar()->maximum());
     }
 
     static QString csv(const QString & s)

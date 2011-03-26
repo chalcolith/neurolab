@@ -195,7 +195,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setFrozen(frozen);
-            cell->former().setFrozen(frozen);
+            //cell->former().setFrozen(frozen);
         }
     }
 
@@ -211,7 +211,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setWeight(inputs);
-            cell->former().setWeight(inputs);
+            //cell->former().setWeight(inputs);
         }
     }
 
@@ -227,7 +227,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setRun(run);
-            cell->former().setRun(run);
+            //cell->former().setRun(run);
         }
     }
 
@@ -289,7 +289,7 @@ namespace NeuroGui
                         val *= -1;
 
                     cell->current().setOutputValue(val);
-                    cell->former().setOutputValue(val);
+                    //cell->former().setOutputValue(val);
 
                     item->updateProperties();
                 }
@@ -314,7 +314,7 @@ namespace NeuroGui
                     bool val = !cell->current().frozen();
 
                     cell->current().setFrozen(val);
-                    cell->former().setFrozen(val);
+                    //cell->former().setFrozen(val);
 
                     item->updateProperties();
                 }
@@ -369,7 +369,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setPhase(phase);
-            cell->former().setPhase(phase);
+            //cell->former().setPhase(phase);
 
             reset();
         }
@@ -387,7 +387,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setPeak(peak);
-            cell->former().setPeak(peak);
+            //cell->former().setPeak(peak);
 
             reset();
         }
@@ -405,7 +405,7 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setGap(gap);
-            cell->former().setGap(gap);
+            //cell->former().setGap(gap);
 
             reset();
         }
@@ -417,9 +417,9 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setStep(0);
-            cell->former().setStep(0);
+            //cell->former().setStep(0);
             cell->current().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
-            cell->former().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
+            //cell->former().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
 
             updateProperties();
         }

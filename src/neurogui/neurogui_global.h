@@ -76,6 +76,7 @@ namespace NeuroGui
         NEUROLAB_FILE_VERSION_8   = 8,
         NEUROLAB_FILE_VERSION_9   = 9,
         NEUROLAB_FILE_VERSION_10  = 10,
+        NEUROLAB_FILE_VERSION_11  = 11,
         NEUROLAB_NUM_FILE_VERSIONS
     };
 
