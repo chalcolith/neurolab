@@ -66,11 +66,10 @@ namespace Automata
 
     private:
         typedef TState NEIGHBOR;
-        typedef Pool< QVector<NEIGHBOR> > NEIGHBOR_POOL;
+        typedef QVector<NEIGHBOR> NEIGHBOR_VECTOR;
+        typedef Pool<NEIGHBOR_VECTOR> NEIGHBOR_POOL;
 
         NEIGHBOR_POOL _temp_neighbor_pool;
-
-        mutable QReadWriteLock _global_lock;
 
         /// \internal Used in the call to <tt>QtConcurrent::filter()</tt>.
         struct FilterFunctor
@@ -96,7 +95,6 @@ namespace Automata
         /// \param directed Whether or not the automaton's graph is directed.
         Automaton(const int initialCapacity = 0, bool directed = true)
             : Graph<ASYNC_STATE, TIndex>(initialCapacity, directed),
-              _global_lock(QReadWriteLock::Recursive),
               _functor(*this)
         {
         }
@@ -167,91 +165,61 @@ namespace Automata
         /// Implements the asynchronous update operation on a cell in the automaton.
         inline void update(ASYNC_STATE & state)
         {
-            const TIndex & index = state.index;
-            const QVector<TIndex> & neighbors = this->_edges[index];
+            // get a consistent copy of the state
+            ASYNC_STATE state_copy = state;
+            const TIndex & index = state_copy.index;
+
+            // get consistent copies of neighbors' states
+            const QVector<TIndex> & neighbor_indices = this->_edges[index];
+            typename NEIGHBOR_POOL::Item tni(_temp_neighbor_pool);
+            NEIGHBOR_VECTOR *temp_neighbors = tni.data;
+            NEIGHBOR *neighbor_ptrs = 0;
+
+            const int num = neighbor_indices.size();
+            if (num > temp_neighbors->size())
+                temp_neighbors->resize(num);
+            neighbor_ptrs = temp_neighbors->data();
+
+            // get appropriate states of neighbors
+            bool ready_0 = true;
+            bool ready_r = true;
+
+            for (int i = 0; i < num; ++i)
+            {
+                const ASYNC_STATE neighbor = this->_nodes[neighbor_indices[i]];
+
+                ready_0 = ready_0 && neighbor.r != ((0 + 2) % 3);
+                ready_r = ready_r && neighbor.r != ((state_copy.r + 2) % 3);
+
+                if (neighbor.r == 0)
+                    neighbor_ptrs[i] = neighbor.q0;
+                else if (neighbor.r == 1)
+                    neighbor_ptrs[i] = neighbor.q1;
+            }
 
             // update
-            if (state.r == 0)
+            bool do_update = false;
+            if (state_copy.r == 0)
             {
-                // temporary neighbor array
-                typename NEIGHBOR_POOL::Item tni(_temp_neighbor_pool);
-                QVector<NEIGHBOR> *temp_neighbors = tni.data;
-                NEIGHBOR *temp_ptr = 0;
-
-                bool do_update = false;
+                if (ready_0)
                 {
-                    QReadLocker read_lock(&_global_lock);
-
-                    if (isReady(index, 0))
-                    {
-                        do_update = true;
-
-                        const int num = neighbors.size();
-                        if (num > temp_neighbors->size())
-                            temp_neighbors->resize(num);
-                        temp_ptr = temp_neighbors->data();
-
-                        // get appropriate states of neighbors
-                        for (int i = 0; i < num; ++i)
-                        {
-                            const ASYNC_STATE & neighbor = this->_nodes[neighbors[i]];
-
-                            if (neighbor.r == 0)
-                                temp_ptr[i] = neighbor.q0;
-                            else if (neighbor.r == 1)
-                                temp_ptr[i] = neighbor.q1;
-                        }
-                    }
-                }
-
-                // update
-                if (do_update)
-                {
-                    QWriteLocker write_lock(&_global_lock);
-
-                    state.r = 1;
-                    state.q1 = state.q0;
-                    state.q1.update(this, index, state.q0, neighbors, temp_ptr);
+                    state_copy.r = 1;
+                    state_copy.q1 = state_copy.q0;
+                    state_copy.q1.update(this, index, state_copy.q0, neighbor_indices, neighbor_ptrs);
+                    do_update = true;
                 }
             }
             else
             {
-                bool do_update = false;
+                if (ready_r)
                 {
-                    QReadLocker read_lock(&_global_lock);
-                    do_update = isReady(index, state.r);
-                }
-
-                if (do_update)
-                {
-                    QWriteLocker write_lock(&_global_lock);
-                    state.r = (state.r+1) % 3;
+                    state_copy.r = (state_copy.r + 1) % 3;
+                    do_update = true;
                 }
             }
-        }
 
-    private:
-        /// Used for asynchronous updates.
-        /// \return Whether or not a given cell is ready to be updated.
-        inline bool isReady(const TIndex & index, const int & r) const
-        {
-            if (index < this->_nodes.size())
-            {
-                const QVector<TIndex> & neighbors = this->_edges[index];
-
-                const int num = neighbors.size();
-                for (int i = 0; i < num; ++i)
-                {
-                    if (this->_nodes[neighbors[i]].r == ((r+2) % 3))
-                        return false;
-                }
-
-                return true;
-            }
-            else
-            {
-                throw Common::IndexOverflow();
-            }
+            if (do_update)
+                state = state_copy;
         }
 
     }; // class Automaton

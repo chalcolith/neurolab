@@ -47,35 +47,70 @@ namespace Automata
 
     /// Internal state for an asynchronous automaton, which requires two copies of a cell's state,
     /// one for the previous state, and one for the next state.
+    /// Uses a seqlock when copying or assigning to ensure cross-thread consistency.
     /// \param TState A cell's state.
     /// \param TIndex The index type used by the automaton.
     template <typename TState, typename TIndex>
     struct AsyncState
     {
-        TIndex index;
-        TState q0; ///< First copy of the cell's state.
-        TState q1; ///< Second copy of the cell's state.
-        quint8 r;  ///< Used to track asynchronous updates.
+        quint16 _sync_0; ///< First seqlock bookend.
+        TIndex index;    ///< Index in cell array.
+        TState q0;       ///< First copy of the cell's state.
+        TState q1;       ///< Second copy of the cell's state.
+        quint16 r;       ///< Used to track asynchronous updates.
+        quint16 _sync_1; ///< Second seqlock bookend.
 
         //@{
         /// Constructor.
-        AsyncState() : index(static_cast<TIndex>(-1)), r(0) {}
-        AsyncState(const TState & s0, const TState & s1) : index(static_cast<TIndex>(-1)), q0(s0), q1(s1), r(0) {}
-        AsyncState(const AsyncState & state) : index(state.index), q0(state.q0), q1(state.q1), r(state.r) {}
+        AsyncState() : _sync_0(0), index(static_cast<TIndex>(-1)), r(0), _sync_1(0) {}
+        AsyncState(const TState & s0, const TState & s1) : _sync_0(0), index(static_cast<TIndex>(-1)), q0(s0), q1(s1), r(0), _sync_1(0) {}
+
+        /// Copy constructor; makes sure that the data is in a consistent state before it returns.
+        AsyncState(const AsyncState & state)
+            : _sync_0(0), _sync_1(0)
+        {
+            ++_sync_1;
+
+            int sync0, sync1;
+            do
+            {
+                sync0 = state._sync_0;
+                this->r = state.r;
+                this->q1 = state.q1;
+                this->q0 = state.q0;
+                this->index = state.index;
+                sync1 = state._sync_1;
+            }
+            while (sync0 != sync1);
+
+            ++_sync_0;
+        }
+
+        /// Assignment operator.  Increments the synclocks in reverse order so that a read while copying the rest of the data will fail.
+        /// Makes sure that the source data is in a consistent state...
+        AsyncState & operator= (const AsyncState & state)
+        {
+            ++_sync_1;
+
+            int sync0, sync1;
+            do
+            {
+                sync0 = state._sync_0;
+                r = state.r;
+                q1 = state.q1;
+                q0 = state.q0;
+                index = state.index;
+                sync1 = state._sync_1;
+            }
+            while (sync0 != sync1);
+
+            ++_sync_0;
+            return *this;
+        }
         //@}
 
         /// Destructor.
         virtual ~AsyncState() {}
-
-        /// Assignment operator.
-        AsyncState & operator= (const AsyncState & state)
-        {
-            index = state.index;
-            q0 = state.q0;
-            q1 = state.q1;
-            r = state.r;
-            return *this;
-        }
 
         //@{
         /// The current state of the cell.
