@@ -275,7 +275,7 @@ namespace GridItems
 
     //
 
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), GridItems::VERSION)
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), ":/griditems/icons/text_io_item.png", GridItems::VERSION)
 
     TextGridIOItem::TextGridIOItem(NeuroGui::LabNetwork *network, const QPointF &scenePos, const CreateContext &context)
         : MultiGridIOItem(network, scenePos, context),

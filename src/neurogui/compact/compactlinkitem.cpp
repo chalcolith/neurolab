@@ -46,7 +46,7 @@ using namespace NeuroLib;
 namespace NeuroGui
 {
 
-    NEUROITEM_DEFINE_CREATOR(CompactLinkItem, QObject::tr("Abstract"), QObject::tr("Link"));
+    NEUROITEM_DEFINE_CREATOR(CompactLinkItem, QObject::tr("Abstract"), QObject::tr("Link"), ":/icons/compact_link.png");
 
     CompactLinkItem::CompactLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : CompactItem(network, scenePos, context), MixinArrow(this),

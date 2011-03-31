@@ -363,7 +363,7 @@ namespace NeuroGui
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Narrow"), QObject::tr("Excitory Link"));
+    NEUROITEM_DEFINE_CREATOR(NeuroExcitoryLinkItem, QObject::tr("Narrow"), QObject::tr("Excitory Link"), ":/icons/narrow_excitory.png");
 
     NeuroExcitoryLinkItem::NeuroExcitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroLinkItem(network, scenePos, context)
@@ -415,7 +415,7 @@ namespace NeuroGui
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Narrow"), QObject::tr("Inhibitory Link"));
+    NEUROITEM_DEFINE_CREATOR(NeuroInhibitoryLinkItem, QObject::tr("Narrow"), QObject::tr("Inhibitory Link"), ":/icons/narrow_inhibitory.png");
 
     NeuroInhibitoryLinkItem::NeuroInhibitoryLinkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroLinkItem(network, scenePos, context)

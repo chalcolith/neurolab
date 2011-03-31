@@ -39,13 +39,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labtree.h"
 #include "neuroitem.h"
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 
 #include "../neurolib/neuronet.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QVector2D>
 #include <QKeyEvent>
+#include <QMenu>
+#include <QAction>
 
 using namespace NeuroLib;
 
@@ -93,16 +94,6 @@ namespace NeuroGui
     void LabScene::keyReleaseEvent(QKeyEvent *event)
     {
         Q_ASSERT(network());
-
-//        if ((event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) && this->selectedItems().size() > 0)
-//        {
-//            network()->deleteSelected();
-//        }
-//        else
-//        {
-//            QGraphicsScene::keyReleaseEvent(event);
-//        }
-
         QGraphicsScene::keyReleaseEvent(event);
     }
 

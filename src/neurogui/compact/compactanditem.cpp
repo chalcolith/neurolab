@@ -554,7 +554,7 @@ namespace NeuroGui
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(CompactUpwardAndItem, QObject::tr("Abstract"), QObject::tr("AND Node (Upward)"));
-    NEUROITEM_DEFINE_CREATOR(CompactDownwardAndItem, QObject::tr("Abstract"), QObject::tr("AND Node (Downward)"));
+    NEUROITEM_DEFINE_CREATOR(CompactUpwardAndItem, QObject::tr("Abstract"), QObject::tr("AND Node (Upward)"), ":/icons/compact_and_up.png");
+    NEUROITEM_DEFINE_CREATOR(CompactDownwardAndItem, QObject::tr("Abstract"), QObject::tr("AND Node (Downward)"), ":/icons/compact_and_down.png");
 
 } // namespace NeuroGui

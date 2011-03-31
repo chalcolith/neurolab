@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/griditems">
+        <file>icons/grid_connector.png</file>
+        <file>icons/grid_item.png</file>
+        <file>icons/text_io_item.png</file>
+    </qresource>
+</RCC>

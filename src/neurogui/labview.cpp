@@ -36,7 +36,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "labview.h"
 #include "labscene.h"
+#include "labnetwork.h"
 #include "neuroitem.h"
+
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
 
 namespace NeuroGui
 {
@@ -49,6 +54,8 @@ namespace NeuroGui
         setResizeAnchor(QGraphicsView::AnchorViewCenter);
         setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+        setAcceptDrops(true);
 
         setToolTip(tr("Right-click to add new network items."));
     }
@@ -81,6 +88,33 @@ namespace NeuroGui
             NeuroItem *item = dynamic_cast<NeuroItem *>(gi);
             if (item)
                 item->updateProperties();
+        }
+    }
+
+    void LabView::dragMoveEvent(QDragMoveEvent *event)
+    {
+        const QMimeData *mimeData = event->mimeData();
+        if (mimeData && mimeData->hasFormat("application/x-neurolab-item-dnd"))
+            event->accept();
+        else
+            event->ignore();
+    }
+
+    void LabView::dropEvent(QDropEvent *event)
+    {
+        const QMimeData *mimeData = event->mimeData();
+        if (mimeData && mimeData->hasFormat("application/x-neurolab-item-dnd"))
+        {
+            QByteArray itemData = mimeData->data("application/x-neurolab-item-dnd");
+            QDataStream itemStream(&itemData, QIODevice::ReadOnly);
+            QString typeName;
+            itemStream >> typeName;
+
+            LabScene *ls = dynamic_cast<LabScene *>(scene());
+            if (ls && !typeName.isEmpty())
+            {
+                ls->newItem(typeName, event->pos());
+            }
         }
     }
 

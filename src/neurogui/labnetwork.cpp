@@ -228,6 +228,8 @@ namespace NeuroGui
 
         emit propertyObjectChanged(property_objects);
         emit actionsEnabled(true);
+
+        MainWindow::instance()->buildItemList();
     }
 
     void LabNetwork::changeItemLabel(NeuroItem *item, const QString & label)

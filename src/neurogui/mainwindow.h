@@ -141,6 +141,8 @@ namespace NeuroGui
         void setProgressValue(int value);
 
         void setActionsEnabled(bool enabled = true);
+        void clearItemList();
+        void buildItemList();
 
         /// Sets the active subnetwork node.
         void setSubNetwork(LabTreeNode *treeNode);

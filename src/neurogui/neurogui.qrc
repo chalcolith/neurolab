@@ -12,5 +12,16 @@
         <file>icons/printer.png</file>
         <file>icons/arrow_rotate_anticlockwise.png</file>
         <file>icons/cancel.png</file>
+        <file>icons/compact_and_down.png</file>
+        <file>icons/compact_and_up.png</file>
+        <file>icons/compact_link.png</file>
+        <file>icons/compact_or_down.png</file>
+        <file>icons/compact_or_up.png</file>
+        <file>icons/narrow_excitory.png</file>
+        <file>icons/narrow_inhibitory.png</file>
+        <file>icons/narrow_node.png</file>
+        <file>icons/narrow_oscillator.png</file>
+        <file>icons/sub_network.png</file>
+        <file>icons/text_item.png</file>
     </qresource>
 </RCC>

@@ -49,6 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QMenu>
 #include <QPainter>
 #include <QtAlgorithms>
+#include <QSharedPointer>
 
 #include <QtVariantProperty>
 
@@ -74,8 +75,7 @@ namespace NeuroGui
     qreal NeuroItem::HIGHEST_Z_VALUE = 0;
 
     QMap<QString, NeuroItem::TypeNameRec> *NeuroItem::_typeNames = 0;
-    QMap<QString, QPair<QString, NeuroItem::CreateFT> > *NeuroItem::_itemCreators = 0;
-    QMap<QString, NeuroItem::CanCreateFT> *NeuroItem::_itemRestrictors = 0;
+    QMap<QString, NeuroItem::ItemTypeRec> *NeuroItem::_itemCreators = 0;
 
 
     NeuroItem::NeuroItem(LabNetwork *network, const QPointF & scenePos, const CreateContext &)
@@ -148,7 +148,7 @@ namespace NeuroGui
         QString mangledName(typeid(*this).name());
 
         if (_typeNames->contains(mangledName))
-            return (*_typeNames)[mangledName].uiName;
+            return _typeNames->value(mangledName).uiName;
         return QString("?NeuroItem?");
     }
 
@@ -170,19 +170,22 @@ namespace NeuroGui
     }
 
     void NeuroItem::registerItemCreator(const QString & typeName, const QString & menuPath,
-                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc)
+                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc,
+                                        const QString & pixmap)
     {
         if (!_itemCreators)
-            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
-        if (!_itemRestrictors)
-            _itemRestrictors = new QMap<QString, NeuroItem::CanCreateFT>();
+            _itemCreators = new QMap<QString, ItemTypeRec>();
 
         if (!typeName.isNull() && !typeName.isEmpty())
-        {
-            if (createFunc)
-                (*_itemCreators)[typeName] = QPair<QString, CreateFT>(QString("%1|%2").arg(menuPath, uiName), createFunc);
-            if (restrictFunc)
-                (*_itemRestrictors)[typeName] = restrictFunc;
+        {            
+            ItemTypeRec rec;
+            rec.typeName = typeName;
+            rec.menuPath = QString("%1|%2").arg(menuPath, uiName);
+            rec.create = createFunc;
+            rec.can_create = restrictFunc;
+            rec.pixmap = pixmap;
+
+            (*_itemCreators)[typeName] = rec;
         }
     }
 
@@ -190,16 +193,24 @@ namespace NeuroGui
     {
         if (_itemCreators)
             _itemCreators->remove(typeName);
-        if (_itemRestrictors)
-            _itemRestrictors->remove(typeName);
+    }
+
+    QString NeuroItem::getPixmap(const QString &typeName)
+    {
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, ItemTypeRec>();
+
+        if (_itemCreators->contains(typeName))
+            return _itemCreators->value(typeName).pixmap;
+        return QString();
     }
 
     NeuroItem *NeuroItem::create(const QString & name, LabScene *scene, const QPointF & pos, const CreateContext & context)
     {
         if (!_itemCreators)
-            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
+            _itemCreators = new QMap<QString, ItemTypeRec>();
 
-        CreateFT cf = (*_itemCreators)[name].second;
+        CreateFT cf = (*_itemCreators)[name].create;
 
         if (cf)
             return cf(scene, pos, context);
@@ -207,20 +218,118 @@ namespace NeuroGui
         return 0;
     }
 
-    struct ItemTypeLessThan
+    struct ItemRec
     {
-        const QMap<QString, QPair<QString, NeuroItem::CreateFT> > & _item_creators;
+        QListWidgetItem *item;
+        QMap<QString, QSharedPointer<ItemRec> > children;
 
-        ItemTypeLessThan(const QMap<QString, QPair<QString, NeuroItem::CreateFT> > & item_creators)
-            : _item_creators(item_creators)
-        {
-        }
-
-        bool operator() (const QString & a, const QString & b)
-        {
-            return _item_creators[a].first < _item_creators[b].first;
-        }
+        ItemRec() : item(0), children() {}
     };
+
+    static void add_items(QListWidget *itemsList, const QMap<QString, QSharedPointer<ItemRec> > & items)
+    {
+        QList<QString> keys = items.keys();
+        qSort(keys);
+
+        foreach (QString key, keys)
+        {
+            if (items[key]->item)
+                itemsList->addItem(items[key]->item);
+
+            add_items(itemsList, items[key]->children);
+        }
+    }
+
+    void NeuroItem::buildItemList(LabScene *scene, QListWidget *itemsList)
+    {                
+        if (!_itemCreators)
+            _itemCreators = new QMap<QString, ItemTypeRec>();
+
+        // clear
+        itemsList->clear();
+
+        // sort type names
+        QMap<QString, QSharedPointer<ItemRec> > topItems;
+
+        QList<QString> keys = _itemCreators->keys();
+        qSort(keys.begin(), keys.end(), ItemTypeLessThan(*_itemCreators));
+
+        foreach (QString typeName, keys)
+        {
+            ItemTypeRec & itemTypeRec = (*_itemCreators)[typeName];
+            const QString & pathName = itemTypeRec.menuPath;
+            CanCreateFT can_create = itemTypeRec.can_create;
+
+            // skip internal types
+            if (pathName.startsWith("__INTERNAL__"))
+                continue;
+
+#ifndef DEBUG
+            // skip debug classes
+            if (pathName.startsWith("Debug"))
+                continue;
+#endif
+
+            bool enabled = scene->network()->treeNode()->controller()->canCreateNewItem(typeName, QPointF())
+                    && (!can_create || can_create(scene->treeNode()->controller()));
+
+            const QStringList menuPath = pathName.split("|");
+            QMap<QString, QSharedPointer<ItemRec> > *curItems = &topItems;
+            QString indent;
+            for (int j = 0; j < menuPath.size(); ++j)
+            {
+                QListWidgetItem *newItem = 0;
+
+                // make sure we have a record for this name
+                if (!curItems->contains(menuPath[j]))
+                    curItems->insert(menuPath[j], QSharedPointer<ItemRec>(new ItemRec()));
+
+                // are we a leaf?
+                if (j == menuPath.size()-1)
+                {
+                    newItem = new QListWidgetItem();
+
+                    if (enabled)
+                        newItem->setFlags(newItem->flags() | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+                    else
+                        newItem->setFlags(newItem->flags() & !Qt::ItemIsEnabled & !Qt::ItemIsSelectable);
+
+                    if (!itemTypeRec.pixmap.isEmpty())
+                        newItem->setIcon(QIcon(itemTypeRec.pixmap));
+                    newItem->setData(Qt::UserRole, typeName);
+                    (*curItems)[menuPath[j]]->item = newItem;
+                }
+                // we are a node
+                else
+                {
+                    if (!(*curItems)[menuPath[j]]->item)
+                    {
+                        newItem = new QListWidgetItem();
+                        newItem->setFlags(newItem->flags() & !Qt::ItemIsEnabled & !Qt::ItemIsSelectable);
+
+                        QFont font = newItem->font();
+                        font.setBold(true);
+
+                        newItem->setFont(font);
+                        (*curItems)[menuPath[j]]->item = newItem;
+                    }
+
+                    curItems = &(*curItems)[menuPath[j]]->children;
+                }
+
+                // set flags
+                if (newItem)
+                {
+                    newItem->setText(indent + menuPath[j]);
+                }
+
+                indent += "  ";
+            }
+        }
+
+        // add items
+        add_items(itemsList, topItems);
+    }
 
     void NeuroItem::buildNewMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu)
     {
@@ -228,9 +337,7 @@ namespace NeuroGui
         newAction->setEnabled(false);
 
         if (!_itemCreators)
-            _itemCreators = new QMap<QString, QPair<QString, NeuroItem::CreateFT> >();
-        if (!_itemRestrictors)
-            _itemRestrictors = new QMap<QString, NeuroItem::CanCreateFT>();
+            _itemCreators = new QMap<QString, ItemTypeRec>();
 
         // sort type names
         QList<QString> keys = _itemCreators->keys();
@@ -239,10 +346,8 @@ namespace NeuroGui
         foreach (QString typeName, keys)
         {
             // get menu text and create function
-            const QPair<QString, NeuroItem::CreateFT> & p = (*_itemCreators)[typeName];
-            const QString pathName = p.first;
-
-            NeuroItem::CanCreateFT can_create = (*_itemRestrictors)[typeName];
+            const QString pathName = (*_itemCreators)[typeName].menuPath;
+            NeuroItem::CanCreateFT can_create = (*_itemCreators)[typeName].can_create;
 
             // skip internal types
             if (pathName.startsWith("__INTERNAL__"))
@@ -268,7 +373,7 @@ namespace NeuroGui
 
                     bool enabled = scene->network()->treeNode()->controller()->canCreateNewItem(typeName, pos)
                             && (!item || item->canCreateNewOnMe(typeName, pos))
-                            && can_create(scene->treeNode()->controller());
+                            && (!can_create || can_create(scene->treeNode()->controller()));
                     action->setEnabled(enabled);
                 }
                 else

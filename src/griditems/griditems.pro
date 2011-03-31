@@ -60,3 +60,6 @@ win32 {
         -lautomata \
         -lqtpropertybrowser
 }
+
+RESOURCES += \
+    griditems.qrc

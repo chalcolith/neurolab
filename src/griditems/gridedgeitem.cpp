@@ -45,7 +45,7 @@ using namespace NeuroGui;
 namespace GridItems
 {
 
-    NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridEdgeItem, QObject::tr("Grid Items"), QObject::tr("Edge Connector"), GridItems::VERSION, NeuroGridItem)
+    NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridEdgeItem, QObject::tr("Grid Items"), QObject::tr("Edge Connector"), ":/griditems/icons/grid_connector.png", GridItems::VERSION, NeuroGridItem)
 
     GridEdgeItem::GridEdgeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNetworkItem(network, scenePos, context), MixinRemember(this),

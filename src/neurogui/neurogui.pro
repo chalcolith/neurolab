@@ -40,7 +40,8 @@ SOURCES += mainwindow.cpp \
     compact/compactnodeitem.cpp \
     compact/compactoritem.cpp \
     compact/compactanditem.cpp \
-    compact/compactlinkitem.cpp
+    compact/compactlinkitem.cpp \
+    itemslistwidget.cpp
 
 HEADERS += neurogui_global.h \
     mainwindow.h \
@@ -66,7 +67,8 @@ HEADERS += neurogui_global.h \
     compact/compactnodeitem.h \
     compact/compactoritem.h \
     compact/compactanditem.h \
-    compact/compactlinkitem.h
+    compact/compactlinkitem.h \
+    itemslistwidget.h
 
 FORMS += mainwindow.ui \
     filedirtydialog.ui \

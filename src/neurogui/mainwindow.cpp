@@ -340,6 +340,19 @@ namespace NeuroGui
             filterActions();
     }
 
+    void MainWindow::clearItemList()
+    {
+        _ui->itemsList->clear();
+    }
+
+    void MainWindow::buildItemList()
+    {
+        if (_currentNetwork && _currentNetwork->scene())
+        {
+            NeuroItem::buildItemList(_currentNetwork->scene(), _ui->itemsList);
+        }
+    }
+
     void MainWindow::closeEvent(QCloseEvent *event)
     {
         if (_currentNetwork && _currentNetwork->running())
@@ -646,6 +659,9 @@ namespace NeuroGui
 
             delete _currentNetwork;
             _currentNetwork = 0;
+
+            //
+            clearItemList();
         }
 
         if (network)
@@ -662,6 +678,9 @@ namespace NeuroGui
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressValueChanged(int)), this, SLOT(setProgressValue(int)), Qt::UniqueConnection);
+
+            //
+            buildItemList();
         }
         else
         {

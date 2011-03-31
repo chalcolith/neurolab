@@ -227,7 +227,23 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="itemsContents"/>
+   <widget class="QWidget" name="itemsContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="ItemsListWidget" name="itemsList">
+       <property name="minimumSize">
+        <size>
+         <width>240</width>
+         <height>240</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>You can drag network items from here to the editing area.</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="action_Open">
    <property name="icon">
@@ -516,6 +532,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ItemsListWidget</class>
+   <extends>QListWidget</extends>
+   <header>../../src/neurogui/itemslistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="neurogui.qrc"/>
  </resources>

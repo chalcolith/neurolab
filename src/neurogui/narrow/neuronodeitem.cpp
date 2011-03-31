@@ -161,7 +161,7 @@ namespace NeuroGui
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow"), QObject::tr("Node"));
+    NEUROITEM_DEFINE_CREATOR(NeuroNodeItem, QObject::tr("Narrow"), QObject::tr("Node"), ":/icons/narrow_node.png");
 
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNodeItemBase(network, scenePos, context),
@@ -325,7 +325,7 @@ namespace NeuroGui
 
     //////////////////////////////////////////////////////////////////
 
-    NEUROITEM_DEFINE_CREATOR(NeuroOscillatorItem, QObject::tr("Narrow"), QObject::tr("Oscillator"));
+    NEUROITEM_DEFINE_CREATOR(NeuroOscillatorItem, QObject::tr("Narrow"), QObject::tr("Oscillator"), ":/icons/narrow_oscillator.png");
 
     NeuroOscillatorItem::NeuroOscillatorItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNodeItemBase(network, scenePos, context),

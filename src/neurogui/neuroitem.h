@@ -42,6 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "labtree.h"
 
 #include <QApplication>
+#include <QListWidget>
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QPen>
@@ -242,6 +243,9 @@ namespace NeuroGui
         /// Adds actions to the context menu depending on the current item.
         static void buildActionMenu(LabScene *scene, NeuroItem *item, const QPointF & pos, QMenu & menu);
 
+        /// Adds items to the item sidebar.
+        static void buildItemList(LabScene *scene, QListWidget *itemsList);
+
         //@}
 
         /// \name Drawing and Collision
@@ -320,6 +324,8 @@ namespace NeuroGui
         static void registerTypeName(const QString & mangledName, const QString & friendlyName,
                                      const QString & menuPath, const QString & uiName);
 
+        static QString getPixmap(const QString & typeName);
+
         /// Function type for static item creator objects.
         typedef NeuroItem * (*CreateFT) (LabScene *scene, const QPointF & pos, const CreateContext & context);
 
@@ -331,7 +337,8 @@ namespace NeuroGui
 
         /// Registers an item type creator with the global item broker.
         static void registerItemCreator(const QString & typeName, const QString & menuPath,
-                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc);
+                                        const QString & uiName, CreateFT createFunc, CanCreateFT restrictFunc,
+                                        const QString & pixmap);
 
         /// Unregisters an item type creator from the global item broker.
         static void removeItemCreator(const QString & typeName);
@@ -387,11 +394,32 @@ namespace NeuroGui
         /// Maps mangled names to friendly type names.
         static QMap<QString, TypeNameRec> *_typeNames;
 
-        /// Registers item creator functions.
-        static QMap<QString, QPair<QString, CreateFT> > *_itemCreators;
+        struct ItemTypeRec
+        {
+            QString typeName;
+            QString menuPath;
+            CreateFT create;
+            CanCreateFT can_create;
+            QString pixmap;
+        };
 
-        /// Registers item restrictor functions.
-        static QMap<QString, CanCreateFT> *_itemRestrictors;
+        /// Registers item creator functions.
+        static QMap<QString, ItemTypeRec> *_itemCreators;
+
+        struct ItemTypeLessThan
+        {
+            const QMap<QString, ItemTypeRec> & _item_creators;
+
+            ItemTypeLessThan(const QMap<QString, ItemTypeRec> & item_creators)
+                : _item_creators(item_creators)
+            {
+            }
+
+            bool operator() (const QString & a, const QString & b)
+            {
+                return _item_creators[a].menuPath < _item_creators[b].menuPath;
+            }
+        };
 
         //@}
     };
@@ -408,11 +436,12 @@ namespace NeuroGui
     public:
         NeuroItemRegistrator(const QString & typeName, const QString & mangledName,
                              const QString & menuPath, const QString & uiName,
-                             NeuroItem::CreateFT create_func, NeuroItem::CanCreateFT restrict_func)
+                             NeuroItem::CreateFT create_func, NeuroItem::CanCreateFT restrict_func,
+                             const QString & pixmap = QString())
             : _typeName(typeName), _mangledName(mangledName)
         {
             NeuroItem::registerTypeName(mangledName, typeName, menuPath, uiName);
-            NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func, restrict_func);
+            NeuroItem::registerItemCreator(typeName, menuPath, uiName, create_func, restrict_func, pixmap);
         }
 
         virtual ~NeuroItemRegistrator()
@@ -432,8 +461,8 @@ namespace NeuroGui
     /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.  It will also check that the version of the plugin is correct.
     /// You can restrict the item to be created only in subnetworks of the given tree node controller type.
-#define NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion, ControllerType) \
-    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_, &TypeName::_can_create_); \
+#define NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroLabVersion, ControllerType) \
+    NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_, &TypeName::_can_create_, PixMap); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
         if (NeuroGui::VERSION != NeuroLabVersion) \
@@ -450,11 +479,11 @@ namespace NeuroGui
 
     /// Use this macro in a plugin source file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.  It will also check that the version of the plugin is correct.
-#define NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion) NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroLabVersion, NeuroGui::LabTreeNodeController)
+#define NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroLabVersion) NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroLabVersion, NeuroGui::LabTreeNodeController)
 
     /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.
-#define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName) NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, NeuroGui::VERSION)
+#define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName, PixMap) NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroGui::VERSION)
 
 } // namespace NeuroGui
 

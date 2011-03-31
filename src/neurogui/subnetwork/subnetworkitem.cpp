@@ -50,7 +50,7 @@ using namespace NeuroLib;
 namespace NeuroGui
 {
 
-    NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc"), QObject::tr("Sub-Network"));
+    NEUROITEM_DEFINE_CREATOR(SubNetworkItem, QObject::tr("Misc"), QObject::tr("Sub-Network"), ":/icons/sub_network.png");
 
     SubNetworkItem::SubNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNetworkItem(network, scenePos, context), MixinRemember(this), LabTreeNodeController(),
