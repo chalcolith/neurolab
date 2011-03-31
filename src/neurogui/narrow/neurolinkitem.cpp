@@ -170,7 +170,8 @@ namespace NeuroGui
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
         NeuroNarrowItem::setPenProperties(pen);
-        setPenGradient(pen, _line);
+        if (_override_index == -1)
+            setPenGradient(pen, _line);
     }
 
     void NeuroLinkItem::setPenGradient(QPen &pen, const QLineF &line) const
@@ -236,12 +237,12 @@ namespace NeuroGui
     NeuroCell::Index NeuroLinkItem::getIncomingCellFor(const NeuroItem *item) const
     {
         const NeuroInhibitoryLinkItem *inhibit = dynamic_cast<const NeuroInhibitoryLinkItem *>(item);
-        return (item == _backLinkTarget || inhibit != 0) ? _cellIndices.first() : -1;
+        return (item == _backLinkTarget || inhibit != 0) && _cellIndices.size() > 0 ? _cellIndices.first() : -1;
     }
 
     NeuroCell::Index NeuroLinkItem::getOutgoingCellFor(const NeuroItem *item) const
     {
-        return item == _frontLinkTarget ? _cellIndices.last() : -1;
+        return item == _frontLinkTarget && _cellIndices.size() > 0 ? _cellIndices.last() : -1;
     }
 
     bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item) const

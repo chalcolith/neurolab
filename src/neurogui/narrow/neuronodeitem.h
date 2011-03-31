@@ -82,8 +82,8 @@ namespace NeuroGui
 
     protected:
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return _cellIndices.first(); }
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.last(); }
+        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return _cellIndices.size() > 0 ? _cellIndices.first() : -1; }
+        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.size() > 0 ? _cellIndices.last() : -1; }
 
         virtual QVector2D getAttachPos(const QVector2D &);
 

@@ -228,6 +228,9 @@ namespace GridItems
                 {
                     itemOuts = tgt->getOutgoingCellsFor(item);
                     itemIns = tgt->getIncomingCellsFor(item);
+
+                    if (itemIns.size() > 0)
+                        ni->setOverrideIndex(itemIns.first());
                 }
                 else
                 {
@@ -279,6 +282,8 @@ namespace GridItems
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni && _edges.contains(ni))
         {
+            ni->setOverrideIndex(-1);
+
             QMap<Index, Index> & item_edges = _edges[ni];
             QMap<Index, Index>::const_iterator i = item_edges.constBegin(), end = item_edges.constEnd();
             while (i != end)
@@ -901,6 +906,7 @@ namespace GridItems
     void NeuroGridItem::postLoad()
     {
         SubNetworkItem::postLoad();
+        generateGrid();
     }
 
 } // namespace GridItems

@@ -84,7 +84,7 @@ namespace NeuroGui
         /// \see CompactLinkItem::weight()
         void setWeight(const NeuroLib::NeuroCell::Value & value);
 
-        virtual NeuroLib::NeuroCell::Value outputValue() const { return qMax(frontwardOutputValue(), backwardOutputValue()); }
+        virtual NeuroLib::NeuroCell::Value outputValue() const;
         virtual void setOutputValue(const NeuroLib::NeuroCell::Value & val) { setFrontwardOutputValue(val); setBackwardOutputValue(val); }
 
         /// Output value of the frontward chain.

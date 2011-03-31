@@ -186,6 +186,18 @@ namespace NeuroGui
         setWeightAux(_backward_cells, value);
     }
 
+    CompactLinkItem::Value CompactLinkItem::outputValue() const
+    {
+        if (_override_index != -1)
+        {
+            const NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
+            if (cell)
+                return cell->current().outputValue();
+        }
+
+        return qMax(frontwardOutputValue(), backwardOutputValue());
+    }
+
     void CompactLinkItem::setWeightAux(QList<NeuroLib::NeuroCell::Index> &cells, const NeuroLib::NeuroCell::Value &value)
     {
         for (int i = 0; i < cells.size(); ++i)
@@ -396,7 +408,9 @@ namespace NeuroGui
     void CompactLinkItem::setPenProperties(QPen &pen) const
     {
         CompactItem::setPenProperties(pen);
-        setPenGradient(pen, _line);
+
+        if (_override_index == -1)
+            setPenGradient(pen, _line);
     }
 
     void CompactLinkItem::setPenGradient(QPen &pen, const QLineF &line) const

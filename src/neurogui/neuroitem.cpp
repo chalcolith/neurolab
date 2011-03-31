@@ -177,7 +177,7 @@ namespace NeuroGui
             _itemCreators = new QMap<QString, ItemTypeRec>();
 
         if (!typeName.isNull() && !typeName.isEmpty())
-        {            
+        {
             ItemTypeRec rec;
             rec.typeName = typeName;
             rec.menuPath = QString("%1|%2").arg(menuPath, uiName);
@@ -241,7 +241,7 @@ namespace NeuroGui
     }
 
     void NeuroItem::buildItemList(LabScene *scene, QListWidget *itemsList)
-    {                
+    {
         if (!_itemCreators)
             _itemCreators = new QMap<QString, ItemTypeRec>();
 
@@ -483,8 +483,12 @@ namespace NeuroGui
         _shapePath.setFillRule(Qt::WindingFill);
 
         // add texts
-        if (!_label.isNull() && !_label.isEmpty())
+#if defined(DEBUG)
+        _texts.append(TextPathRec(_label_pos, QString("%1 (%2)").arg(_label).arg(id())));
+#else
+        if (!_label.isEmpty())
             _texts.append(TextPathRec(_label_pos, _label));
+#endif
 
         foreach (const TextPathRec & rec, _texts)
             _shapePath.addText(rec.pos, rec.font, rec.text);
@@ -730,6 +734,8 @@ namespace NeuroGui
             ds >> n;
             _id = n;
         }
+
+        setObjectName(tr("%1").arg(_id));
 
         if (_id >= NEXT_ID)
             NEXT_ID = _id + 1;

@@ -275,6 +275,67 @@ namespace GridItems
 
     //
 
+    UTF8Buffer::UTF8Buffer()
+        : _array(), _buffer(&_array), _stream(&_buffer), _bytes_left(-1)
+    {
+        _buffer.open(QIODevice::ReadWrite);
+        _stream.setCodec("UTF-8");
+    }
+
+    UTF8Buffer::~UTF8Buffer()
+    {
+        _buffer.close();
+    }
+
+    void UTF8Buffer::writeByte(quint8 b)
+    {
+        char ch = static_cast<char>(b);
+        _buffer.write(&ch, 1);
+
+        if ((b & 0xFC) == 0xFC)
+            _bytes_left = 5;
+        else if ((b & 0xF8) == 0xF8)
+            _bytes_left = 4;
+        else if ((b & 0xF0) == 0xF0)
+            _bytes_left = 3;
+        else if ((b & 0xE0) == 0xE0)
+            _bytes_left = 2;
+        else if ((b & 0xC0) == 0xC0)
+            _bytes_left = 1;
+        else if ((b & 0x80) == 0x80)
+            --_bytes_left;
+        else
+            _bytes_left = 0;
+    }
+
+    QChar UTF8Buffer::readChar()
+    {
+        if (!_buffer.atEnd())
+        {
+            QChar ch;
+            _stream >> ch;
+            return ch;
+        }
+        return QChar(0);
+    }
+
+    void UTF8Buffer::reset()
+    {
+        setData(QByteArray());
+    }
+
+    void UTF8Buffer::setData(const QByteArray &data)
+    {
+        _buffer.close();
+        _array = data;
+        _buffer.open(QIODevice::ReadWrite);
+        _stream.seek(0);
+        _bytes_left = -1;
+    }
+
+
+    //
+
     NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), ":/griditems/icons/text_io_item.png", GridItems::VERSION)
 
     TextGridIOItem::TextGridIOItem(NeuroGui::LabNetwork *network, const QPointF &scenePos, const CreateContext &context)
@@ -290,10 +351,12 @@ namespace GridItems
                               tr("Output Threshold"), tr("Output cells must be above this value to trigger output.")),
           _text_property(this, &TextGridIOItem::inputText, &TextGridIOItem::setInputText,
                          tr("Input Text"), tr("Text for input to the IO item.")),
-          _input_buffer(), _input_array(), _output_buffer(), _output_buffer_stream(),
+          _to_grid(), _from_grid(),
           _input_disp_buffer(10), _input_disp_pos(0), _output_disp_buffer(10), _output_disp_pos(0),
           _cur_step(0)
     {
+        _value_property.setVisible(false);
+
         _incoming_cells.reserve(256);
         _outgoing_cells.reserve(256);
 
@@ -307,14 +370,8 @@ namespace GridItems
                 _outgoing_cells.append(network->neuronet()->addNode(cell));
         }
 
-        _text_property.setEditable(false);
-        updateInputBuffer();
-        connect(&_text_property, SIGNAL(valueInBrowserChanged()), this, SLOT(updateInputBuffer()));
-
-        _output_buffer.open(QIODevice::ReadWrite);
-        _output_buffer_stream.setDevice(&_output_buffer);
-        _output_buffer_stream.setCodec("UTF-8");
-
+        resetInputText();
+        connect(&_text_property, SIGNAL(valueInBrowserChanged()), this, SLOT(resetInputText()));
         connect(network, SIGNAL(preStep()), this, SLOT(networkPreStep()));
         connect(network, SIGNAL(postStep()), this, SLOT(networkPostStep()));
 
@@ -326,8 +383,7 @@ namespace GridItems
 
     TextGridIOItem::~TextGridIOItem()
     {
-        _input_buffer.close();
-        _output_buffer.close();
+        _to_grid.close();
     }
 
     QString TextGridIOItem::dataValue() const
@@ -339,40 +395,43 @@ namespace GridItems
     {
         MultiGridIOItem::addToShape(drawPath, texts);
 
-        const QVector<QChar> & v = _bottom_item ? _input_disp_buffer : _output_disp_buffer;
-        const int num = v.size();
-        int p = _bottom_item ? _input_disp_pos : _output_disp_pos;
-        p = (p + 1) % num;
+        const int num = qMin(_input_disp_buffer.size(), _output_disp_buffer.size());
+        int input_p = _input_disp_pos;
+        int output_p = _output_disp_pos;
+
+        input_p = (input_p + 1) % num;
+        output_p = (output_p + 1) % num;
 
         for (int i = 0; i < num; ++i)
         {
-            QChar ch = v[(p + i) % num];
-            QString str(ch);
-
             qreal pct = static_cast<qreal>(i) / static_cast<qreal>(num);
             QColor col = lerp(QColor(0xff, 0xff, 0xff), QColor(0, 0, 0), pct);
 
             qreal buf = static_cast<qreal>(rect().width()) / 8.0;
             qreal w = static_cast<qreal>(rect().width()) - buf*2;
-            qreal y = 4;
             qreal x = -w/2.0 + w * static_cast<qreal>(i) / static_cast<qreal>(num);
+            qreal y = -2;
 
             QPen pen;
             pen.setColor(col);
-            texts.append(TextPathRec(QPointF(x, y), str, QApplication::font(), pen));
+
+            QChar ch = _input_disp_buffer[(input_p + i) % num];
+            texts.append(TextPathRec(QPointF(x, y), QString(ch), QApplication::font(), pen));
+
+            y = 6;
+            ch = _output_disp_buffer[(output_p + i) % num];
+            texts.append(TextPathRec(QPointF(x, y), QString(ch), QApplication::font(), pen));
         }
     }
 
     void TextGridIOItem::onAttachTo(NeuroItem *item)
     {
         MultiGridIOItem::onAttachTo(item);
-        _text_property.setEditable(_bottom_item != 0);
     }
 
     void TextGridIOItem::onDetach(NeuroItem *item)
     {
         MultiGridIOItem::onDetach(item);
-        _text_property.setEditable(false);
     }
 
     void TextGridIOItem::updateDisplayBuffer(QChar ch, QVector<QChar> &v, int &pos)
@@ -384,14 +443,14 @@ namespace GridItems
         }
     }
 
-    void TextGridIOItem::updateInputBuffer()
+    void TextGridIOItem::resetInputText()
     {
-        _input_buffer.close();
+        _to_grid.close();
 
         QTextCodec *codec = QTextCodec::codecForName("UTF-8"); // freed in library
-        _input_array = codec->fromUnicode(_input_text);
-        _input_buffer.setData(_input_array);
-        _input_buffer.open(QIODevice::ReadOnly);
+        QByteArray array = codec->fromUnicode(_input_text);
+        _to_grid.setData(array);
+        _to_grid.open(QIODevice::ReadOnly);
     }
 
     void TextGridIOItem::networkPreStep()
@@ -402,29 +461,19 @@ namespace GridItems
             new_val = 1;
         ++_cur_step;
 
-        // get the next UTF-8 byte from the input, and set the corresponding output cell's value
-        if (_input_buffer.isOpen())
-        {
-            if (_repeat_input && _input_buffer.atEnd())
-                _input_buffer.seek(0);
+        // get the next UTF-8 byte from the input text, and set the corresponding output cell's value
+        if (_repeat_input && _to_grid.atEnd())
+            resetInputText();
 
-            if (!_input_buffer.atEnd())
+        char ch;
+        if (!_to_grid.atEnd() && _to_grid.read(&ch, 1) == 1)
+        {
+            quint8 idx = static_cast<quint8>(ch);
+            NeuroLib::NeuroNet::ASYNC_STATE *cell;
+            if (idx < _outgoing_cells.size() && (cell = getCell(_outgoing_cells[idx])))
             {
-                char ch;
-                if (_input_buffer.read(&ch, 1))
-                {
-                    quint8 idx = static_cast<quint8>(ch);
-                    if (idx < _outgoing_cells.size())
-                    {
-                        NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(_outgoing_cells[idx]);
-                        if (cell)
-                        {
-                            cell->current().setOutputValue(new_val);
-                            //cell->former().setOutputValue(new_val);
-                            updateDisplayBuffer(idx, _input_disp_buffer, _input_disp_pos);
-                        }
-                    }
-                }
+                cell->current().setOutputValue(new_val);
+                updateDisplayBuffer(idx, _input_disp_buffer, _input_disp_pos);
             }
         }
     }
@@ -467,26 +516,28 @@ namespace GridItems
                         highest_output = val;
                         highest_index = i;
                     }
-
-                    if (i >= ' ' && i < 127)
-                        _step_output_text.append(static_cast<QChar>(i));
                 }
             }
         }
         deviation = ::sqrt(deviation / num);
 
         // if there's an outlier, add it
+        bool add_space = true;
         if (highest_index != -1 && (highest_output - avg) > deviation)
         {
-            char ch = static_cast<char>(highest_index % 256);
-            _output_buffer.write(&ch, 1);
+            quint8 idx = static_cast<quint8>(highest_index % 256);
+            _from_grid.writeByte(idx);
 
-            // TODO: if the high bit is not set, read the next char from _output_buffer_stream
-
-            if (ch >= ' ' && ch < 127)
-                updateDisplayBuffer(static_cast<quint8>(ch), _output_disp_buffer, _output_disp_pos);
+            if (_from_grid.canRead())
+            {
+                QChar ch = _from_grid.readChar();
+                _step_output_text.append(ch);
+                updateDisplayBuffer(ch, _output_disp_buffer, _output_disp_pos);
+                add_space = false;
+            }
         }
-        else
+
+        if (add_space)
         {
             updateDisplayBuffer(' ', _output_disp_buffer, _output_disp_pos);
         }
@@ -521,7 +572,7 @@ namespace GridItems
     {
         MultiGridIOItem::postLoad();
         _text_property.setEditable(_bottom_item != 0);
-        updateInputBuffer();
+        resetInputText();
     }
 
 } // namespace GridItems

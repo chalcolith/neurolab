@@ -69,8 +69,21 @@ namespace NeuroGui
 
     NeuroCell::Value NeuroNarrowItem::outputValue() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
-        return cell ? cell->current().outputValue() : 0.0f;
+        if (_override_index != -1)
+        {
+            const NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
+            if (cell)
+                return cell->current().outputValue();
+        }
+
+        if (_cellIndices.size() > 0)
+        {
+            const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.last());
+            if (cell)
+                return cell->current().outputValue();
+        }
+
+        return 0;
     }
 
     void NeuroNarrowItem::setOutputValue(const NeuroLib::NeuroCell::Value & value)

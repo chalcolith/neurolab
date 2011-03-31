@@ -44,9 +44,10 @@ namespace NeuroGui
 
     NeuroNetworkItem::NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
-        _value_property(this, &NeuroNetworkItem::outputValue, &NeuroNetworkItem::setOutputValue,
-                        tr("Output Value"),
-                        tr("The output value of the node or link, calculated from the values of its inputs in the previous step."))
+          _value_property(this, &NeuroNetworkItem::outputValue, &NeuroNetworkItem::setOutputValue,
+              tr("Output Value"),
+              tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
+          _override_index(-1)
     {
     }
 

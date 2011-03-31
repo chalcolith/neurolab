@@ -185,13 +185,13 @@ namespace NeuroGui
 
     bool NeuroNodeItem::frozen() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().frozen() : false;
     }
 
     void NeuroNodeItem::setFrozen(const bool & frozen)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setFrozen(frozen);
@@ -201,13 +201,13 @@ namespace NeuroGui
 
     NeuroCell::Value NeuroNodeItem::inputs() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().weight() : 0;
     }
 
     void NeuroNodeItem::setInputs(const NeuroLib::NeuroCell::Value & inputs)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setWeight(inputs);
@@ -217,13 +217,13 @@ namespace NeuroGui
 
     NeuroCell::Value NeuroNodeItem::run() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().run() : 0;
     }
 
     void NeuroNodeItem::setRun(const NeuroLib::NeuroCell::Value & run)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setRun(run);
@@ -359,13 +359,13 @@ namespace NeuroGui
 
     NeuroCell::Step NeuroOscillatorItem::phase() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().phase() : 0;
     }
 
     void NeuroOscillatorItem::setPhase(const NeuroLib::NeuroCell::Step & phase)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setPhase(phase);
@@ -377,13 +377,13 @@ namespace NeuroGui
 
     NeuroCell::Step NeuroOscillatorItem::peak() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().peak() : 0;
     }
 
     void NeuroOscillatorItem::setPeak(const NeuroLib::NeuroCell::Step & peak)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setPeak(peak);
@@ -395,13 +395,13 @@ namespace NeuroGui
 
     NeuroCell::Step NeuroOscillatorItem::gap() const
     {
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         return cell ? cell->current().gap() : 0;
     }
 
     void NeuroOscillatorItem::setGap(const NeuroLib::NeuroCell::Step & gap)
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setGap(gap);
@@ -413,7 +413,7 @@ namespace NeuroGui
 
     void NeuroOscillatorItem::reset()
     {
-        NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setStep(0);
@@ -430,7 +430,7 @@ namespace NeuroGui
         NeuroNarrowItem::addToShape(drawPath, texts);
         drawPath.addEllipse(rect());
 
-        const NeuroNet::ASYNC_STATE *cell = getCell(_cellIndices.first());
+        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             texts.append(TextPathRec(QPointF(-8, 4), QString("%1/%2").arg(cell->current().peak()).arg(cell->current().gap())));

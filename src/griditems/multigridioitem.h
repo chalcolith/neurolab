@@ -47,7 +47,7 @@ namespace GridItems
 {
 
     /// Allows for multiple inputs / outputs for a grid item.
-    class MultiGridIOItem
+    class GRIDITEMSSHARED_EXPORT MultiGridIOItem
         : public NeuroGui::NeuroNetworkItem
     {
         Q_OBJECT
@@ -88,7 +88,27 @@ namespace GridItems
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap);
     };
 
-    class TextGridIOItem
+    class GRIDITEMSSHARED_EXPORT UTF8Buffer
+    {
+        QByteArray _array;
+        QBuffer _buffer;
+        QTextStream _stream;
+        int _bytes_left;
+
+    public:
+        UTF8Buffer();
+        virtual ~UTF8Buffer();
+
+        void writeByte(quint8 b);
+        bool atEnd() const { return _buffer.atEnd(); }
+        bool canRead() const { return _bytes_left == 0 && !_buffer.atEnd(); }
+        QChar readChar();
+
+        void setData(const QByteArray &data);
+        void reset();
+    };
+
+    class GRIDITEMSSHARED_EXPORT TextGridIOItem
         : public MultiGridIOItem
     {
         Q_OBJECT
@@ -110,13 +130,10 @@ namespace GridItems
 
         Property<TextGridIOItem, QVariant::String, QString, QString> _text_property;
 
-        QBuffer _input_buffer;
-        QByteArray _input_array;
+        QBuffer _to_grid;
+        UTF8Buffer _from_grid;
 
         QString _step_output_text;
-        QBuffer _output_buffer;
-        QTextStream _output_buffer_stream;
-        QString _accumulated_output_text;
 
         QVector<QChar> _input_disp_buffer;
         mutable int _input_disp_pos;
@@ -153,7 +170,7 @@ namespace GridItems
         virtual void onDetach(NeuroItem *item);
 
     public slots:
-        virtual void updateInputBuffer();
+        virtual void resetInputText();
         virtual void networkPreStep();
         virtual void networkPostStep();
 
