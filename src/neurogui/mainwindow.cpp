@@ -407,7 +407,7 @@ namespace NeuroGui
             switch (fdd.result())
             {
             case FileDirtyDialog::SAVE:
-                if (!saveNetwork())
+                if (!saveNetwork(false))
                     return false;
                 break;
             case FileDirtyDialog::DISCARD:
@@ -466,13 +466,13 @@ namespace NeuroGui
         return false;
     }
 
-    bool MainWindow::saveNetwork()
+    bool MainWindow::saveNetwork(bool saveAs)
     {
         setStatus("");
 
         try
         {
-            if (_currentNetwork && _currentNetwork->save(false))
+            if (_currentNetwork && _currentNetwork->save(saveAs))
             {
                 setStatus(tr("Saved %1").arg(_currentNetwork->fname()));
                 setTitle();
@@ -503,7 +503,7 @@ namespace NeuroGui
                 switch (fdd.result())
                 {
                 case FileDirtyDialog::SAVE:
-                    if (!saveNetwork())
+                    if (!saveNetwork(false))
                         return false;
                     break;
                 case FileDirtyDialog::DISCARD:
@@ -1025,7 +1025,19 @@ void NeuroGui::MainWindow::on_action_Save_triggered()
 {
     try
     {
-        saveNetwork();
+        saveNetwork(false);
+    }
+    catch (Common::Exception & e)
+    {
+        QMessageBox::critical(this, tr("Error"), e.message());
+    }
+}
+
+void NeuroGui::MainWindow::on_action_Save_Network_As_triggered()
+{
+    try
+    {
+        saveNetwork(true);
     }
     catch (Common::Exception & e)
     {
@@ -1403,5 +1415,4 @@ void NeuroGui::MainWindow::on_action_Cancel_triggered()
         QMessageBox::critical(this, tr("Error"), e.message());
     }
 }
-
 

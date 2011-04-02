@@ -143,4 +143,49 @@ namespace NeuroLib
         }
     }
 
+    void NeuroNet::dumpGraph(QTextStream & ts, bool reverse)
+    {
+        ts << "digraph neurolib_network {\n";
+        ts << "  graph [overlap = false];\n";
+        ts << "  node [shape = circle];\n";
+
+        const NeuroCell::Index num = _edges.size();
+        for (NeuroCell::Index i = 0; i < num; ++i)
+        {
+            if (_free_nodes.contains(i))
+            {
+                ts << "  N" << i << " [color=\"green\"]" << "\n";
+                continue;
+            }
+
+            const QVector<NeuroCell::Index> & neighbors = _edges[i];
+            if (neighbors.size() > 0)
+            {
+                if (_nodes[i].q0.outputValue() > 0.5)
+                    ts << "  N" << i << " [color=\"red\"]" << "\n";
+
+                foreach (const NeuroCell::Index & nbr, neighbors)
+                {
+                    if (_free_nodes.contains(nbr))
+                        continue;
+
+                    if (reverse)
+                        ts << "  N" << nbr << " -> " << "N" << i << "\n";
+                    else
+                        ts << "  N" << i << " -> " << "N" << nbr << "\n";
+                }
+            }
+            else
+            {
+                if (_nodes[i].q0.outputValue() > 0.5)
+                    ts << "  N" << i << " [color=\"red\"]" << "\n";
+                else
+                    ts << "  N" << i << "\n";
+            }
+        }
+
+        ts << "}";
+    }
+
+
 } // namespace NeuroLib

@@ -96,7 +96,7 @@ namespace Automata
 
             TIndex index;
 
-            if (_free_nodes.size() > 0)
+            if (!_free_nodes.isEmpty())
             {
                 index = _free_nodes.pop();
                 _nodes[index] = node;
@@ -119,6 +119,11 @@ namespace Automata
 
             if (index < _edges.size())
             {
+#ifdef DEBUG
+                if (_free_nodes.contains(index))
+                    throw Common::Exception("You cannot remove a node that does not exist.");
+#endif
+
                 _edges[index].resize(0);
 
                 foreach (TIndex src, _edges_to[index])
@@ -416,35 +421,6 @@ namespace Automata
                 ds >> this->_nodes;
                 ds >> this->_edges;
             }
-        }
-
-        void dumpGraph(QTextStream & ts, bool reverse)
-        {
-            ts << "digraph neurolib_network {\n";
-            ts << "  node [shape = circle];\n";
-
-            const TIndex num = _edges.size();
-            for (TIndex i = 0; i < num; ++i)
-            {
-                if (_free_nodes.contains(i))
-                    continue;
-
-                const QVector<TIndex> & neighbors = _edges[i];
-                if (neighbors.size() > 0)
-                {
-                    foreach (const TIndex & nbr, neighbors)
-                    {
-                        if (reverse)
-                            ts << "  N" << nbr << " -> " << "N" << i << "\n";
-                        else
-                            ts << "  N" << i << " -> " << "N" << nbr << "\n";
-                    }
-                }
-                else
-                    ts << "  N" << i << "\n";
-            }
-
-            ts << "}";
         }
     };
 

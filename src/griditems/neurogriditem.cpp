@@ -40,6 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/labview.h"
 #include "../neurogui/labtree.h"
 #include "../neurogui/mainwindow.h"
+#include "../neurogui/narrow/neurolinkitem.h"
 #include "gridedgeitem.h"
 #include "multigridioitem.h"
 
@@ -102,6 +103,18 @@ namespace GridItems
         // this gets set by networkChanged(), but since we've just finished a step,
         // we don't want to re-generate the grid unless something else changes
         _pattern_changed = false;
+
+#ifdef DEBUG
+        // dump graph
+        {
+            QFile file("neuronet_after_step.gv");
+            if (file.open(QIODevice::WriteOnly))
+            {
+                QTextStream ts(&file);
+                network()->neuronet()->dumpGraph(ts, true);
+            }
+        }
+#endif
     }
 
     void NeuroGridItem::resizeScene()
@@ -144,42 +157,21 @@ namespace GridItems
 
     static void add_edges_in_groups(const QList<NeuroGridItem::Index> & ins, const QList<NeuroGridItem::Index> & outs, NeuroLib::NeuroNet *neuronet, QMap<NeuroGridItem::Index, NeuroGridItem::Index> & edges)
     {
-        int in_step = 1;
-        int out_step = 1;
+        const int max = qMax(ins.size(), outs.size());
+        const int min = qMin(ins.size(), outs.size());
+        const bool in_max = ins.size() >= outs.size();
+        const int step = max == min ? 1 : (max / min) + 1;
 
-        if (ins.size() > outs.size())
+        for (int i = 0; i < max; ++i)
         {
-            in_step = ins.size() / outs.size();
-            if (in_step == 0)
-                in_step = 1;
-        }
-        else if (ins.size() < outs.size())
-        {
-            out_step = outs.size() / ins.size();
-            if (out_step == 0)
-                out_step = 1;
-        }
-
-        int in_pos = 0;
-        int out_pos = 0;
-        int i = 0;
-
-        while (in_pos < ins.size() && out_pos < outs.size())
-        {
-            NeuroGridItem::Index in = ins[in_pos];
-            NeuroGridItem::Index out = outs[out_pos];
+            NeuroGridItem::Index in = ins[in_max ? i : i/step];
+            NeuroGridItem::Index out = outs[!in_max ? i : i/step];
 
             if (in != -1 && out != -1)
             {
                 edges.insert(in, out);
                 neuronet->addEdge(in, out);
             }
-
-            ++i;
-            if ((i % in_step) == 0)
-                ++in_pos;
-            if ((i % out_step) == 0)
-                ++out_pos;
         }
     }
 
@@ -206,16 +198,13 @@ namespace GridItems
                 itemOuts = ni->getOutgoingCellsFor(this);
                 itemIns = ni->getIncomingCellsFor(this);
 
-                if (myIns.size() > 0 && myOuts.size() > 0 && itemOuts.size() > 0 && itemIns.size() > 0)
-                {
-                    // my in to item out
+                if (myIns.size() > 0 && itemOuts.size() > 0)
                     add_edges_in_groups(myIns, itemOuts, neuronet, _edges[ni]);
 
-                    // item in to my out
+                if (itemIns.size() > 0 && myOuts.size() > 0)
                     add_edges_in_groups(itemIns, myOuts, neuronet, _edges[ni]);
 
-                    return; // don't connect up the regular way
-                }
+                return; // don't connect up the regular way
             }
 
             // connect to the TARGET of a link instead of the link itself
@@ -474,19 +463,20 @@ namespace GridItems
         if (!neuronet)
             return;
 
-        // clear outside edges
-        foreach (NeuroItem *item, connections())
-            removeEdges(item);
-
         // set status; this might take a while
         MainWindow::instance()->setStatus(tr("Generating neural network grid..."));
         QApplication::setOverrideCursor(Qt::WaitCursor);
 
-        // delete all existing used cells from the automaton
+        // clear outside edges
+        foreach (NeuroItem *item, connections())
+            removeEdges(item);
+
+        // delete all existing used cells from the automaton (this will also delete edges)
         foreach (const Index & index, _all_grid_cells)
         {
             neuronet->removeNode(index);
         }
+        _all_grid_cells.clear();
 
         // get all cells used by all items
         QSet<Index> all_pattern_cells;
@@ -524,38 +514,48 @@ namespace GridItems
                     NeuroNetworkItem *cxni = dynamic_cast<NeuroNetworkItem *>(cx);
                     if (cxni)
                     {
+                        NeuroLinkItem *cl = dynamic_cast<NeuroLinkItem *>(cx);
+
                         if (ei->isVertical())
                         {
                             if (ei->isConnectedToTop(cxni))
                             {
-                                foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
-                                    top_outgoing_to_bottom_incoming.back().first.insert(idx);
-                                foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
-                                    bottom_outgoing_to_top_incoming.back().second.insert(idx);
+                                if (!cl || cl->line().p2().y() < cl->line().p1().y())
+                                    foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
+                                        top_outgoing_to_bottom_incoming.back().first.insert(idx);
+                                if (!cl || cl->line().p2().y() > cl->line().p1().y())
+                                    foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
+                                        bottom_outgoing_to_top_incoming.back().second.insert(idx);
                             }
                             if (ei->isConnectedToBottom(cxni))
                             {
-                                foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
-                                    bottom_outgoing_to_top_incoming.back().first.insert(idx);
-                                foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
-                                    top_outgoing_to_bottom_incoming.back().second.insert(idx);
+                                if (!cl || cl->line().p2().y() > cl->line().p1().y())
+                                    foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
+                                        bottom_outgoing_to_top_incoming.back().first.insert(idx);
+                                if (!cl || cl->line().p2().y() < cl->line().p1().y())
+                                    foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
+                                        top_outgoing_to_bottom_incoming.back().second.insert(idx);
                             }
                         }
                         else
                         {
                             if (ei->isConnectedToLeft(cxni))
                             {
-                                foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
-                                    left_outgoing_to_right_incoming.back().first.insert(idx);
-                                foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
-                                    right_outgoing_to_left_incoming.back().second.insert(idx);
+                                if (!cl || cl->line().p2().x() < cl->line().p1().x())
+                                    foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
+                                        left_outgoing_to_right_incoming.back().first.insert(idx);
+                                if (!cl || cl->line().p2().x() > cl->line().p1().x())
+                                    foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
+                                        right_outgoing_to_left_incoming.back().second.insert(idx);
                             }
                             if (ei->isConnectedToRight(cxni))
                             {
-                                foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
-                                    right_outgoing_to_left_incoming.back().first.insert(idx);
-                                foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
-                                    left_outgoing_to_right_incoming.back().second.insert(idx);
+                                if (!cl || cl->line().p2().x() > cl->line().p1().x())
+                                    foreach (const Index & idx, cxni->getOutgoingCellsFor(ei))
+                                        right_outgoing_to_left_incoming.back().first.insert(idx);
+                                if (!cl || cl->line().p2().x() < cl->line().p1().x())
+                                    foreach (const Index & idx, cxni->getIncomingCellsFor(ei))
+                                        left_outgoing_to_right_incoming.back().second.insert(idx);
                             }
                         }
                     }
@@ -736,7 +736,7 @@ namespace GridItems
 #ifdef DEBUG
         // dump graph
         {
-            QFile file("neuronet.gv");
+            QFile file("neuronet_after_gen.gv");
             if (file.open(QIODevice::WriteOnly))
             {
                 QTextStream ts(&file);

@@ -111,6 +111,8 @@ namespace NeuroLib
         virtual void writeBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version);
 
+        void dumpGraph(QTextStream & ts, bool reverse);
+
     private:
         QList<PostUpdateRec> _postUpdates;
         QReadWriteLock _postUpdatesLock;

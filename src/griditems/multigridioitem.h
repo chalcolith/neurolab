@@ -90,9 +90,9 @@ namespace GridItems
 
     class GRIDITEMSSHARED_EXPORT UTF8Buffer
     {
-        QByteArray _array;
         QBuffer _buffer;
         QTextStream _stream;
+        qint64 _read_pos;
         int _bytes_left;
 
     public:
@@ -113,6 +113,8 @@ namespace GridItems
     {
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
+
+        static const int NUM_CONNECTIONS;
 
         bool _repeat_input;
         qint16 _input_spike;

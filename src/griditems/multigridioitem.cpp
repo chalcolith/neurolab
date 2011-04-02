@@ -276,9 +276,10 @@ namespace GridItems
     //
 
     UTF8Buffer::UTF8Buffer()
-        : _array(), _buffer(&_array), _stream(&_buffer), _bytes_left(-1)
+        : _read_pos(0), _bytes_left(-1)
     {
         _buffer.open(QIODevice::ReadWrite);
+        _stream.setDevice(&_buffer);
         _stream.setCodec("UTF-8");
     }
 
@@ -289,6 +290,8 @@ namespace GridItems
 
     void UTF8Buffer::writeByte(quint8 b)
     {
+        _buffer.seek(_buffer.buffer().size());
+
         char ch = static_cast<char>(b);
         _buffer.write(&ch, 1);
 
@@ -306,14 +309,18 @@ namespace GridItems
             --_bytes_left;
         else
             _bytes_left = 0;
+
+        _buffer.seek(_read_pos);
     }
 
     QChar UTF8Buffer::readChar()
     {
-        if (!_buffer.atEnd())
+        if (_bytes_left == 0 && !_buffer.atEnd())
         {
             QChar ch;
             _stream >> ch;
+            _read_pos = _buffer.pos();
+
             return ch;
         }
         return QChar(0);
@@ -327,16 +334,19 @@ namespace GridItems
     void UTF8Buffer::setData(const QByteArray &data)
     {
         _buffer.close();
-        _array = data;
+        _buffer.setData(data);
         _buffer.open(QIODevice::ReadWrite);
-        _stream.seek(0);
+        _stream.setDevice(&_buffer);
+        _stream.setCodec("UTF-8");
+        _read_pos = 0;
         _bytes_left = -1;
     }
 
 
     //
-
     NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), ":/griditems/icons/text_io_item.png", GridItems::VERSION)
+
+    const int TextGridIOItem::NUM_CONNECTIONS = 256;
 
     TextGridIOItem::TextGridIOItem(NeuroGui::LabNetwork *network, const QPointF &scenePos, const CreateContext &context)
         : MultiGridIOItem(network, scenePos, context),
@@ -357,16 +367,16 @@ namespace GridItems
     {
         _value_property.setVisible(false);
 
-        _incoming_cells.reserve(256);
-        _outgoing_cells.reserve(256);
+        _incoming_cells.reserve(NUM_CONNECTIONS);
+        _outgoing_cells.reserve(NUM_CONNECTIONS);
 
         if (context == NeuroItem::CREATE_UI)
         {
             NeuroLib::NeuroCell cell(NeuroLib::NeuroCell::NODE);
 
-            for (int i = 0; i < 256; ++i)
+            for (int i = 0; i < NUM_CONNECTIONS; ++i)
                 _incoming_cells.append(network->neuronet()->addNode(cell));
-            for (int i = 0; i < 256; ++i)
+            for (int i = 0; i < NUM_CONNECTIONS; ++i)
                 _outgoing_cells.append(network->neuronet()->addNode(cell));
         }
 
@@ -418,7 +428,7 @@ namespace GridItems
             QChar ch = _input_disp_buffer[(input_p + i) % num];
             texts.append(TextPathRec(QPointF(x, y), QString(ch), QApplication::font(), pen));
 
-            y = 6;
+            y = 8;
             ch = _output_disp_buffer[(output_p + i) % num];
             texts.append(TextPathRec(QPointF(x, y), QString(ch), QApplication::font(), pen));
         }
@@ -468,9 +478,9 @@ namespace GridItems
         char ch;
         if (!_to_grid.atEnd() && _to_grid.read(&ch, 1) == 1)
         {
-            quint8 idx = static_cast<quint8>(ch);
+            quint8 idx = static_cast<quint8>(ch) % _outgoing_cells.size();
             NeuroLib::NeuroNet::ASYNC_STATE *cell;
-            if (idx < _outgoing_cells.size() && (cell = getCell(_outgoing_cells[idx])))
+            if ((cell = getCell(_outgoing_cells[idx])))
             {
                 cell->current().setOutputValue(new_val);
                 updateDisplayBuffer(idx, _input_disp_buffer, _input_disp_pos);
@@ -485,9 +495,9 @@ namespace GridItems
         // calculate average
         const int num = _incoming_cells.size();
         double avg = 0;
-        for (int i = 0; i < _incoming_cells.size(); ++i)
+        for (int i = 0; i < num; ++i)
         {
-            NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(i);
+            NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(_incoming_cells[i]);
             if (cell)
             {
                 double val = cell->current().outputValue();
@@ -502,7 +512,7 @@ namespace GridItems
         int highest_index = -1;
         for (int i = 0; i < num; ++i)
         {
-            NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(i);
+            NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(_incoming_cells[i]);
             if (cell)
             {
                 double val = cell->current().outputValue();
@@ -526,11 +536,16 @@ namespace GridItems
         if (highest_index != -1 && (highest_output - avg) > deviation)
         {
             quint8 idx = static_cast<quint8>(highest_index % 256);
+
             _from_grid.writeByte(idx);
 
             if (_from_grid.canRead())
             {
                 QChar ch = _from_grid.readChar();
+#ifdef DEBUG
+                if (ch < ' ')
+                    ch = QChar(ch.unicode() + 0x03b1); // alpha
+#endif
                 _step_output_text.append(ch);
                 updateDisplayBuffer(ch, _output_disp_buffer, _output_disp_pos);
                 add_space = false;
@@ -571,7 +586,6 @@ namespace GridItems
     void TextGridIOItem::postLoad()
     {
         MultiGridIOItem::postLoad();
-        _text_property.setEditable(_bottom_item != 0);
         resetInputText();
     }
 

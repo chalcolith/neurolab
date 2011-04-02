@@ -169,7 +169,7 @@ namespace NeuroGui
 
         bool newNetwork();
         bool openNetwork(const QString & fname = QString());
-        bool saveNetwork();
+        bool saveNetwork(bool saveAs);
         bool closeNetwork();
         bool reloadNetwork();
 
@@ -191,6 +191,7 @@ namespace NeuroGui
         void on_action_New_triggered();
         void on_action_Open_triggered();
         void on_action_Save_triggered();
+        void on_action_Save_Network_As_triggered();
         void on_action_Reload_Network_triggered();
         void on_action_Close_triggered();
         void on_action_Quit_triggered();
