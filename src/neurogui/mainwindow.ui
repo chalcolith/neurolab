@@ -74,8 +74,14 @@
      <addaction name="action_PS"/>
      <addaction name="action_PDF"/>
     </widget>
+    <widget class="QMenu" name="menuRecent_Networks">
+     <property name="title">
+      <string>Recent Networks</string>
+     </property>
+    </widget>
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
+    <addaction name="menuRecent_Networks"/>
     <addaction name="action_Save"/>
     <addaction name="action_Save_Network_As"/>
     <addaction name="action_Reload_Network"/>

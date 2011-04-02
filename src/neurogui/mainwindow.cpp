@@ -280,6 +280,19 @@ namespace NeuroGui
         move(settings.value("pos", QPoint(10, 10)).toPoint());
         restoreState(settings.value("status", QByteArray()).toByteArray(), NEUROLAB_APP_VERSION());
         LAST_DIRECTORY = QDir(settings.value("last_dir", QVariant(LAST_DIRECTORY.absolutePath())).toString());
+
+        const int num_recent = settings.value("num_recent").toInt();
+        _recentFilenames.clear();
+
+        for (int i = 0; i < num_recent; ++i)
+        {
+            QString key = QString("recent_%1").arg(i);
+            QString val = settings.value(key).toString();
+
+            if (!val.isEmpty())
+                _recentFilenames.insert(val);
+        }
+
         settings.endGroup();
     }
 
@@ -291,6 +304,16 @@ namespace NeuroGui
         settings.setValue("pos", pos());
         settings.setValue("status", saveState(NEUROLAB_APP_VERSION()));
         settings.setValue("last_dir", QVariant(LAST_DIRECTORY.absolutePath()));
+
+        const int num_recent = _recentFilenames.size();
+        settings.setValue("num_recent", num_recent);
+        int i = 0;
+        foreach (const QString & fname, _recentFilenames)
+        {
+            QString key = QString("recent_%1").arg(i++);
+            settings.setValue(key, fname);
+        }
+
         settings.endGroup();
     }
 
@@ -455,6 +478,14 @@ namespace NeuroGui
             {
                 setNetwork(newNetwork);
                 setStatus(tr("Opened %1").arg(newNetwork->fname()));
+
+                if (!_currentNetwork->fullPath().isEmpty())
+                {
+                    while (_recentFilenames.size() >= 5)
+                        _recentFilenames.remove(*_recentFilenames.begin());
+                    _recentFilenames.insert(_currentNetwork->fullPath());
+                }
+
                 return true;
             }
             catch (Common::Exception & le)
@@ -474,6 +505,13 @@ namespace NeuroGui
         {
             if (_currentNetwork && _currentNetwork->save(saveAs))
             {
+                if (!_currentNetwork->fullPath().isEmpty())
+                {
+                    while (_recentFilenames.size() >= 5)
+                        _recentFilenames.remove(*_recentFilenames.begin());
+                    _recentFilenames.insert(_currentNetwork->fullPath());
+                }
+
                 setStatus(tr("Saved %1").arg(_currentNetwork->fname()));
                 setTitle();
                 return true;
@@ -927,7 +965,7 @@ namespace NeuroGui
     }
 
     void MainWindow::filterFileMenu()
-    {
+    {                
         bool showPrint = false;
         bool showExport = false;
         if (_ui->tabWidget->currentWidget() == _ui->networkTab && _currentNetwork && _currentNetwork->items().size() > 0)
@@ -955,6 +993,50 @@ namespace NeuroGui
         bool showData = _currentDataFile;
         _ui->action_Save_Data_Set->setEnabled(showData);
         _ui->action_Close_Data_Set->setEnabled(showData);
+
+        // recent files
+        QSet<QString> already_present;
+        QSet<QAction *> to_remove;
+        foreach (QAction *action, _ui->menuRecent_Networks->actions())
+        {
+            QString fname = action->data().toString();
+            if (_recentFilenames.contains(fname))
+                already_present.insert(fname);
+            else
+                to_remove.insert(action);
+        }
+
+        foreach (QAction *action, to_remove)
+            _ui->menuRecent_Networks->removeAction(action);
+
+        foreach (QString fname, _recentFilenames - already_present)
+        {
+            QAction *action = _ui->menuRecent_Networks->addAction(fname);
+            action->setData(fname);
+
+            connect(action, SIGNAL(triggered()), this, SLOT(openRecentTriggered()));
+        }
+    }
+
+    void MainWindow::openRecentTriggered()
+    {
+        QAction *action = qobject_cast<QAction *>(sender());
+        if (action)
+        {
+            QString fname = action->data().toString();
+            if (!fname.isEmpty())
+            {
+                try
+                {
+                    if (!openNetwork(fname) && !_currentNetwork)
+                        closeNetwork();
+                }
+                catch (Common::Exception & e)
+                {
+                    QMessageBox::critical(this, tr("Error"), e.message());
+                }
+            }
+        }
     }
 
     void MainWindow::filterEditMenu()
@@ -989,7 +1071,7 @@ void NeuroGui::MainWindow::on_action_Open_triggered()
     try
     {
         if (!openNetwork() && !_currentNetwork)
-            newNetwork();
+            closeNetwork();
     }
     catch (Common::Exception & e)
     {

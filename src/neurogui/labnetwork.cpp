@@ -274,12 +274,16 @@ namespace NeuroGui
         }
 
         QString base_fname = nln_fname.endsWith(".nln", Qt::CaseInsensitive) ? nln_fname.left(nln_fname.length() - 4) : nln_fname;
-        QString network_fname = base_fname + ".nnn";
+        QString nnn_fname = base_fname + ".nnn";
 
-        if (!(QFile::exists(nln_fname) && QFile::exists(network_fname)))
+        if (!QFile::exists(nln_fname))
         {
-            QMessageBox::critical(0, tr("Missing Network File"), tr("The corresponding network data file (.NNN) is missing."));
-            return 0;
+            throw Common::IOError(tr("NeuroLab Network file %1 does not exist.").arg(nln_fname));
+        }
+
+        if (!QFile::exists(nnn_fname))
+        {
+            throw Common::IOError(tr("NeuroLab Network Automaton file %1 is missing.").arg(nnn_fname));
         }
 
         // read network
@@ -287,7 +291,7 @@ namespace NeuroGui
         ln->_fname = nln_fname;
 
         {
-            QFile file(network_fname);
+            QFile file(nnn_fname);
             if (file.open(QIODevice::ReadOnly))
             {
                 try
@@ -302,7 +306,7 @@ namespace NeuroGui
                 catch (...)
                 {
                     delete ln;
-                    throw Common::IOError(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(network_fname));
+                    throw Common::IOError(tr("Network file %1 is not compatible with this version of NeuroLab.").arg(nnn_fname));
                 }
             }
             else

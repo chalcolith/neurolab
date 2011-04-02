@@ -105,6 +105,8 @@ namespace NeuroGui
         QMap<QString, QList<PropertyBase *> > _rememberedProperties; ///< Remembered values for properties.
         bool _rememberProperties;
 
+        QSet<QString> _recentFilenames;
+
     public:
         /// Constructor.
         /// \param parent Parent widget (should normally be 0).
@@ -186,10 +188,12 @@ namespace NeuroGui
         void filterEditMenu();
         void filterFileMenu();
 
+        void openRecentTriggered();
+
         void on_action_About_NeuroLab_triggered();
         void on_action_Manual_triggered();
         void on_action_New_triggered();
-        void on_action_Open_triggered();
+        void on_action_Open_triggered();                
         void on_action_Save_triggered();
         void on_action_Save_Network_As_triggered();
         void on_action_Reload_Network_triggered();
