@@ -24,10 +24,11 @@ set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
 set DISTRIB_DIR=..\distrib
 
 for /f usebackq %%i in (`dir /b /od C:\Qt\*`) do set QT_DIST_DIR=C:\Qt\%%i
-set QTDIR=%QT_DIST_DIR%\qt
+set QTDIR=%QT_DIST_DIR%
+set MINGW_DIR=C:\Qt\QtCreator-2.1.0\MinGW
 set QMAKESPEC=win32-g++
 
-echo determining qt path
+echo determining qt path...
 qmake --version
 if ERRORLEVEL 1 call :setpath
 echo done setting build settings.
@@ -39,23 +40,26 @@ if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM Update
-echo updating...
-hg -q update
-if ERRORLEVEL 1 goto error
+REM echo updating...
+REM hg pull -u
+REM if ERRORLEVEL 1 goto error
 
 REM ------------------------------------------------------------------
 REM Build Tools
+echo building incversion...
 call :build utils\incversion incversion.pro
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM Increment version if necessary
+echo incrementing version if necessary...
 call :bumpdlls
 if "%1" == "-bump" call :bump
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM get version
+echo getting version...
 if "%1" == "-v" goto manualversion
 for /f usebackq %%v in (`utils\incversion\release\incversion.exe -nobump version.txt`) do set NEUROLAB_VERSION=%%v
 if ERRORLEVEL 1 goto error
@@ -67,18 +71,21 @@ echo version is %NEUROLAB_VERSION%
 
 REM ------------------------------------------------------------------
 REM hg id
+echo getting hg id...
 for /f usebackq %%i in (`hg -q id`) do set HG_ID=%%i
 if ERRORLEVEL 1 goto error
 echo hg id is %HG_ID%
 
 REM ------------------------------------------------------------------
 REM build NeuroLab
+echo build neurolab...
 if not exist "%SHADOW_DIR%" mkdir "%SHADOW_DIR%"
 call :build "%SHADOW_DIR%" ..\src\neurolab_all.pro
 if ERRORLEVEL 1 goto :EOF
 
 REM ------------------------------------------------------------------
 REM create release directory
+echo create release directory...
 if not exist "%DISTRIB_DIR%\zips" mkdir "%DISTRIB_DIR%\zips"
 set RELEASE_DIR=%DISTRIB_DIR%\%NEUROLAB_VERSION%-%HG_ID%
 
@@ -105,16 +112,16 @@ call :copyfile ..\doc\manual.pdf %RELEASE_DIR%\NeuroLab_UserManual.pdf
 if ERRORLEVEL 1 goto :EOF
 
 echo copying samples...
-xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples > %TEMP%\deploy.log
-xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples > %TEMP%\deploy.log
+xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples 
+xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples 
 if ERRORLEVEL 1 goto :EOF
 
 echo copying libraries...
-call :copyfile "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
-call :copyfile "%QT_DIST_DIR%\mingw\bin\mingwm10.dll" %RELEASE_DIR%
-call :copyfile "%QT_DIST_DIR%\qt\bin\qtcore4.dll" %RELEASE_DIR%
-call :copyfile "%QT_DIST_DIR%\qt\bin\qtgui4.dll" %RELEASE_DIR%
-call :copyfile "%QT_DIST_DIR%\qt\bin\qtsvg4.dll" %RELEASE_DIR%
+call :copyfile "%MINGW_DIR%\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
+call :copyfile "%MINGW_DIR%\bin\mingwm10.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\bin\qtcore4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\bin\qtgui4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\bin\qtsvg4.dll" %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
 echo copying program...
@@ -142,8 +149,8 @@ REM functions
 
 :setpath
 pushd .
-echo adding %QT_DIST_DIR%\qt\bin and %QT_DIST_DIR%\mingw\bin to path
-set PATH=%QT_DIST_DIR%\qt\bin;%QT_DIST_DIR%\mingw\bin;%PATH%
+echo adding %QT_DIST_DIR%\bin and %MINGW_DIR%\bin to path
+set PATH=%QT_DIST_DIR%\bin;%MINGW_DIR%\bin;%PATH%
 set ERRORLEVEL=0
 popd
 goto :EOF
@@ -165,7 +172,7 @@ set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
 echo deleting existing zip
 if exist "%ZIPFILE%" del /q "%ZIPFILE%"
 echo making zip %ZIPFILE%
-..\..\src\thirdparty\zip-3.0-bin\bin\zip -r "%ZIPFILE%" * > %TEMP%\deploy.log
+..\..\src\thirdparty\zip-3.0-bin\bin\zip -r "%ZIPFILE%" * 
 if ERRORLEVEL 1 goto error
 echo made %ZIPFILE%
 popd
@@ -175,7 +182,7 @@ REM ----------------------------
 :copyfile
 pushd .
 REM echo copy /y "%1" "%2"
-copy /y "%1" "%2" > %TEMP%\deploy.log
+copy /y "%1" "%2" 
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
@@ -183,11 +190,11 @@ goto :EOF
 REM ----------------------------
 :bumpdlls
 pushd .
-copy /y "%QT_DIST_DIR%\mingw\bin\libgcc_s_dw2-1.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%MINGW_DIR%\bin\libgcc_s_dw2-1.dll" utils\incversion\release 
 if ERRORLEVEL 1 goto error
-copy /y "%QT_DIST_DIR%\mingw\bin\mingwm10.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%MINGW_DIR%\bin\mingwm10.dll" utils\incversion\release 
 if ERRORLEVEL 1 goto error
-copy /y "%QT_DIST_DIR%\qt\bin\qtcore4.dll" utils\incversion\release > "%TEMP%\deploy.log"
+copy /y "%QT_DIST_DIR%\bin\qtcore4.dll" utils\incversion\release 
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
@@ -220,7 +227,7 @@ goto :EOF
 REM ----------------------------
 echo running qmake in %1...
 pushd "%1"
-"%QT_DIST_DIR%\qt\bin\qmake.exe" "%2" -spec %QMAKESPEC% -r CONFIG-=debug CONFIG+=release
+"%QT_DIST_DIR%\bin\qmake.exe" "%2" -spec %QMAKESPEC% -r CONFIG-=debug CONFIG+=release
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
@@ -229,7 +236,7 @@ REM ----------------------------
 :make
 echo running make in %1...
 pushd "%1"
-"%QT_DIST_DIR%\mingw\bin\mingw32-make.exe"
+"%MINGW_DIR%\bin\mingw32-make.exe"
 if ERRORLEVEL 1 goto error
 popd
 goto :EOF
