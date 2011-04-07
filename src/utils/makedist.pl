@@ -78,7 +78,7 @@ if ($is_darwin)
 }
 else
 {
-    &run("cp $qt_base_dir/qt/LICENSE.LGPL $release_dir/licenses/qt/LICENSE.LGPL");
+    &run("cp $qt_base_dir/../../../../Licenses/NQSThirdPartyAgreement.txt $release_dir/licenses/qt");
 }
 
 &run("cp thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/LICENSE.LGPL $release_dir/licenses/qtpropertybrowser/LICENSE.LGPL");
@@ -102,9 +102,9 @@ if ($is_darwin)
 }
 else
 {
-    &run("cp -a $qt_base_dir/qt/lib/libQtCore.so* $release_dir");
-    &run("cp -a $qt_base_dir/qt/lib/libQtSvg.so* $release_dir");
-    &run("cp -a $qt_base_dir/qt/lib/libQtGui.so* $release_dir");
+    &run("cp -a $qt_base_dir/lib/libQtCore.so* $release_dir");
+    &run("cp -a $qt_base_dir/lib/libQtSvg.so* $release_dir");
+    &run("cp -a $qt_base_dir/lib/libQtGui.so* $release_dir");
 
     &run("cp -a $build_dir/release/* $release_dir");
 

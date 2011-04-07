@@ -57,7 +57,7 @@ namespace NeuroGui
 
         setAcceptDrops(true);
 
-        setToolTip(tr("Right-click to add new network items."));
+        setToolTip(tr("Drag network items from the item palette, or right-click to add new network items from a menu."));
     }
 
     LabView::~LabView()
