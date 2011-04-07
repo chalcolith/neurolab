@@ -21,7 +21,7 @@ print "cleaning...\n";
 unlink 'utils/incversion/incversion';
 
 print "updating...\n";
-&run('hg -q update');
+&run('hg -q pull -u');
 
 &build('utils/incversion', 'incversion.pro');
 
