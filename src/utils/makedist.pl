@@ -3,7 +3,7 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '/opt/QtSDK/Desktop/Qt/472/gcc/bin/qmake';
+my $qt_base_dir = '/opt/QtSDK/Desktop/Qt/473/gcc';
 
 my $cwd = getcwd();
 if ($cwd =~ /^(.*src)/)
@@ -143,7 +143,7 @@ sub build
 
     my $cmd = $is_darwin
         ? "qmake $project -spec macx-g++ CONFIG-=debug CONFIG+=release"
-        : "$qt_base_dir/qt/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
+        : "$qt_base_dir/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
 
     my $retval = system($cmd);
     $retval = system('make') if $retval == 0;
