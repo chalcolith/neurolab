@@ -3,12 +3,12 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '/opt/qtsdk-2010.05';
+my $qt_base_dir = '/opt/QtSDK/Desktop/Qt/472/gcc/bin/qmake';
 
 my $cwd = getcwd();
-if ($cwd =~ /utils$/)
+if ($cwd =~ /^(.*src)/)
 {
-    chdir('..');
+    chdir($1);
     $cwd = getcwd();
 }
 

@@ -49,10 +49,10 @@ not have spaces in its path.
 
 Once you have installed the Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator.
 
-In order to be able to debug and run the program from
-within Qt Creator, you will need to go to the Projects pane, and in the Run Settings create a custom executable that points to the
-actual executable in <tt>neurolab_all-build-desktop/debug</tt> as opposed to <tt>neurolab_all-build-desktop/neurolab/debug</tt>, as Qt Creator 2
-doesn't parse the <tt>.pro</tt> file correctly.
+\subsection building_linux Building on Linux
+
+On Linux you will need to add or modify the build variable LD_LIBRARY_PATH to include "." before you will be able to run NeuroLab
+from the debugger.
 
 \subsection building_osx Building on Mac OS X
 

@@ -95,7 +95,7 @@ namespace NeuroGui
         if (!vprop)
             return;
 
-        bool changed;
+        bool changed = false;
 
         foreach (PropertyBase *p, _properties)
         {

@@ -226,7 +226,7 @@ namespace NeuroGui
         virtual ~CommonPropertyObject();
 
         virtual QString uiName() const { return tr("Multiple Items"); }
-        virtual void setChanged(bool changed) { }
+        virtual void setChanged(bool) { }
 
     private:
         void cleanup();
