@@ -85,7 +85,7 @@ namespace NeuroGui
 
         /// Get the appropriate relative position for an attached item.
         /// \param pos The original position (in this item's frame).
-        virtual QVector2D getAttachPos(const QVector2D & pos) = 0;
+        virtual QVector2D getAttachPos(MixinArrow *link, const QVector2D & pos) = 0;
 
         void writeClipboard(QDataStream & ds, const QMap<int, int> & id_map) const;
         void readClipboard(QDataStream & ds, const QMap<int, NeuroItem *> & id_map);

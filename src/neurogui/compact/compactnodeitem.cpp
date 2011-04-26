@@ -111,9 +111,9 @@ namespace NeuroGui
     bool CompactNodeItem::posOnTip(const QPointF &p) const
     {
         if (_direction == UPWARD)
-            return p.y() > 0;
+            return p.y() >= 0;
         else
-            return p.y() <= 0;
+            return p.y() < 0;
     }
 
     bool CompactNodeItem::scenePosOnTip(const QPointF &p) const

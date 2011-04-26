@@ -79,7 +79,7 @@ namespace NeuroGui
         virtual void setBrushProperties(QBrush &brush) const;
 
         virtual void adjustLinks();
-        virtual QVector2D getAttachPos(const QVector2D &);
+        virtual QVector2D getAttachPos(MixinArrow *link, const QVector2D &);
 
         virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
         virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> &id_map);

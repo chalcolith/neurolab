@@ -124,7 +124,7 @@ namespace NeuroGui
             }
             else
             {
-                front = getAttachPos(toPos);
+                front = getAttachPos(link, toPos);
                 _incomingAttachments[link] = front;
             }
         }
@@ -137,7 +137,7 @@ namespace NeuroGui
             }
             else
             {
-                back = getAttachPos(toPos);
+                back = getAttachPos(link, toPos);
                 _outgoingAttachments[link] = back;
             }
         }

@@ -111,7 +111,7 @@ namespace NeuroGui
         MixinRemember::adjustLinks();
     }
 
-    QVector2D NeuroNodeItemBase::getAttachPos(const QVector2D & pos)
+    QVector2D NeuroNodeItemBase::getAttachPos(MixinArrow *, const QVector2D & pos)
     {
         return pos.normalized() * (NeuroNarrowItem::NODE_WIDTH/2.0 + 2.0);
     }

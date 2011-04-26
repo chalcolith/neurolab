@@ -255,7 +255,7 @@ namespace NeuroGui
         MixinRemember::adjustLinks();
     }
 
-    QVector2D SubNetworkItem::getAttachPos(const QVector2D & pos)
+    QVector2D SubNetworkItem::getAttachPos(MixinArrow *, const QVector2D & pos)
     {
         // just extend beyond us and clip
         QVector2D newPos = pos.normalized() * (_rect.width() + _rect.height());

@@ -73,7 +73,7 @@ namespace GridItems
 
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
         virtual bool canBeAttachedToTwice(NeuroItem *) const;
-        virtual QVector2D getAttachPos(const QVector2D &pos);
+        virtual QVector2D getAttachPos(NeuroGui::MixinArrow *link, const QVector2D &pos);
         virtual void onAttachedBy(NeuroItem *item);
         virtual void onDetach(NeuroItem *item);
 

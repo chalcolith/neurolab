@@ -109,7 +109,7 @@ namespace GridItems
         return true;
     }
 
-    QVector2D GridEdgeItem::getAttachPos(const QVector2D &pos)
+    QVector2D GridEdgeItem::getAttachPos(MixinArrow *, const QVector2D &pos)
     {
         return pos;
     }

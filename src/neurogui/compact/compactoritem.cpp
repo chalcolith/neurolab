@@ -204,7 +204,7 @@ namespace NeuroGui
         if (dynamic_cast<MixinArrow *>(item) && item != _tipLinkItem)
         {
             if (scenePosOnTip(pos))
-                return _tipLinkItem == 0;
+                return qAbs(mapFromScene(pos).x()) < getRadius() * 0.5 &&  _tipLinkItem == 0;
             else
                 return !_baseLinkItems.contains(item);
         }
@@ -288,20 +288,23 @@ namespace NeuroGui
         MixinRemember::adjustLinks();
     }
 
-    QVector2D CompactOrItem::getAttachPos(const QVector2D & pos)
+    QVector2D CompactOrItem::getAttachPos(MixinArrow *link, const QVector2D & pos)
     {
         qreal x = 0, y;
 
-        if (pos.y() <= 0)
-            y = -2;
+        if (link == dynamic_cast<MixinArrow *>(_tipLinkItem))
+        {
+            if (pos.y() <= 0)
+                y = -2;
+            else
+                y = 2;
+        }
         else
-            y = 2;
-
-        if (!posOnTip(pos.toPointF()))
         {
             qreal radius = getRadius();
             if (qAbs(pos.x()) > radius/3.0f)
                 x = radius * qBound(-1.0, pos.x(), 1.0) * 0.5f;
+            y = getTip() * -0.25;
         }
 
         return QVector2D(x, y);

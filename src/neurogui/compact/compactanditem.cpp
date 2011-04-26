@@ -460,7 +460,7 @@ namespace NeuroGui
         }
     }
 
-    QVector2D CompactAndItem::getAttachPos(const QVector2D & pos)
+    QVector2D CompactAndItem::getAttachPos(MixinArrow *, const QVector2D & pos)
     {
         qreal x = 0;
         qreal y = posOnTip(pos.toPointF()) ? getTip() : -getTip();

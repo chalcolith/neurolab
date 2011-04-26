@@ -106,7 +106,7 @@ namespace NeuroGui
         virtual void onDetach(NeuroItem *);
 
         virtual void adjustLinks();
-        virtual QVector2D getAttachPos(const QVector2D &);
+        virtual QVector2D getAttachPos(MixinArrow *, const QVector2D &);
 
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
