@@ -3,5 +3,6 @@
         <file>icons/grid_connector.png</file>
         <file>icons/grid_item.png</file>
         <file>icons/text_io_item.png</file>
+        <file>icons/multi_link.png</file>
     </qresource>
 </RCC>

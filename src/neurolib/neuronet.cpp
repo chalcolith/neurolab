@@ -154,7 +154,7 @@ namespace NeuroLib
         {
             if (_free_nodes.contains(i))
             {
-                ts << "  N" << i << " [color=\"green\"]" << "\n";
+//                ts << "  N" << i << " [color=\"green\"]" << "\n";
                 continue;
             }
 
@@ -177,10 +177,10 @@ namespace NeuroLib
             }
             else
             {
-                if (_nodes[i].q0.outputValue() > 0.5)
-                    ts << "  N" << i << " [color=\"red\"]" << "\n";
-                else
-                    ts << "  N" << i << "\n";
+//                if (_nodes[i].q0.outputValue() > 0.5)
+//                    ts << "  N" << i << " [color=\"red\"]" << "\n";
+//                else
+//                    ts << "  N" << i << "\n";
             }
         }
 

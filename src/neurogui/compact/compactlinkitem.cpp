@@ -186,6 +186,21 @@ namespace NeuroGui
         setWeightAux(_backward_cells, value);
     }
 
+    void CompactLinkItem::setWeightAux(QList<NeuroLib::NeuroCell::Index> &cells, const NeuroLib::NeuroCell::Value &value)
+    {
+        for (int i = 0; i < cells.size(); ++i)
+        {
+            NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
+            if (cell)
+            {
+                if (i == (cells.size() - 1))
+                    cell->current().setWeight(value);
+                else
+                    cell->current().setWeight(NeuroCell::DEFAULT_LINK_WEIGHT);
+            }
+        }
+    }
+
     CompactLinkItem::Value CompactLinkItem::outputValue() const
     {
         if (_override_index != -1)
@@ -196,27 +211,6 @@ namespace NeuroGui
         }
 
         return qMax(frontwardOutputValue(), backwardOutputValue());
-    }
-
-    void CompactLinkItem::setWeightAux(QList<NeuroLib::NeuroCell::Index> &cells, const NeuroLib::NeuroCell::Value &value)
-    {
-        for (int i = 0; i < cells.size(); ++i)
-        {
-            NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
-            if (cell)
-            {
-                if (i == (cells.size() - 1))
-                {
-                    cell->current().setWeight(value);
-                    //cell->former().setWeight(value);
-                }
-                else
-                {
-                    cell->current().setWeight(1);
-                    //cell->former().setWeight(1);
-                }
-            }
-        }
     }
 
     NeuroCell::Value CompactLinkItem::outputValueAux(const QList<NeuroCell::Index> & cells) const
@@ -231,18 +225,7 @@ namespace NeuroGui
         {
             NeuroNet::ASYNC_STATE *cell = getCell(cells[i]);
             if (cell)
-            {
-                if (i == cells.size() - 1)
-                {
-                    cell->current().setOutputValue(value);
-                    //cell->former().setOutputValue(value);
-                }
-                else
-                {
-                    cell->current().setOutputValue(0);
-                    //cell->former().setOutputValue(0);
-                }
-            }
+                cell->current().setOutputValue(i == cells.size() - 1 ? value : 0);
         }
     }
 

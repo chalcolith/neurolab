@@ -16,12 +16,16 @@ DEFINES += GRIDITEMS_LIBRARY
 
 SOURCES += neurogriditem.cpp \
            gridedgeitem.cpp \
-           multigridioitem.cpp
+           multigridioitem.cpp \
+           multilink.cpp \
+           multiitem.cpp
 
 HEADERS += griditems_global.h \
            neurogriditem.h\
            gridedgeitem.h \
-           multigridioitem.h
+           multigridioitem.h \
+           multilink.h \
+           multiitem.h
 
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) {

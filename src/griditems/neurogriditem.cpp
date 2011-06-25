@@ -57,8 +57,8 @@ namespace GridItems
 
     NeuroGridItem::NeuroGridItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : SubNetworkItem(network, scenePos, context),
-          _horizontal_property(this, &NeuroGridItem::horizontalCols, &NeuroGridItem::setHorizontalCols, tr("Horizontal Repeats")),
-          _vertical_property(this, &NeuroGridItem::verticalRows, &NeuroGridItem::setVerticalRows, tr("Vertical Repeats")),
+          _horizontal_property(this, &NeuroGridItem::horizontalCols, &NeuroGridItem::setHorizontalCols, tr("Width")),
+          _vertical_property(this, &NeuroGridItem::verticalRows, &NeuroGridItem::setVerticalRows, tr("Height")),
           _num_horiz(1), _num_vert(1), _pattern_changed(true)
     {
         if (context == NeuroItem::CREATE_UI)
@@ -181,6 +181,8 @@ namespace GridItems
         Q_ASSERT(network()->neuronet());
         NeuroLib::NeuroNet *neuronet = network()->neuronet();
 
+        removeEdges(item);
+
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni)
         {
@@ -189,11 +191,11 @@ namespace GridItems
             QList<Index> itemOuts;
             QList<Index> itemIns;
 
-            MultiGridIOItem *gi;
+            MultiItem *gi;
             MixinArrow *link;
 
-            // connect in equal proportions to multi io items
-            if ((gi = dynamic_cast<MultiGridIOItem *>(item)))
+            // connect in equal proportions to multi items
+            if ((gi = dynamic_cast<MultiItem *>(item)))
             {
                 itemOuts = ni->getOutgoingCellsFor(this);
                 itemIns = ni->getIncomingCellsFor(this);
@@ -338,9 +340,9 @@ namespace GridItems
     bool NeuroGridItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const
     {
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-        MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(item);
+        MultiItem *mi = dynamic_cast<MultiItem *>(item);
 
-        if (!link && !gi) return false;
+        if (!link && !mi) return false;
 
         // only allow connections to the top or bottom
         QPointF topLeft = mapToScene(rect().topLeft());
@@ -353,8 +355,8 @@ namespace GridItems
         {
             foreach (NeuroNetworkItem *ni, _top_connections)
             {
-                MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(ni);
-                if (gi)
+                mi = dynamic_cast<MultiItem *>(ni);
+                if (mi)
                     return false;
             }
         }
@@ -362,8 +364,8 @@ namespace GridItems
         {
             foreach (NeuroNetworkItem *ni, _bottom_connections)
             {
-                MultiGridIOItem *gi = dynamic_cast<MultiGridIOItem *>(ni);
-                if (gi)
+                mi = dynamic_cast<MultiItem *>(ni);
+                if (mi)
                     return false;
             }
         }

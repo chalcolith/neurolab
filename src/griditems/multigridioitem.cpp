@@ -50,8 +50,9 @@ namespace GridItems
 {
 
     MultiGridIOItem::MultiGridIOItem(NeuroGui::LabNetwork *network, const QPointF &scenePos, const CreateContext &context)
-        : NeuroNetworkItem(network, scenePos, context),
-          _top_item(0), _bottom_item(0)
+        : MultiItem(network, scenePos, context),
+          _top_item(0), _bottom_item(0),
+          _width_property(this, &MultiGridIOItem::width, &MultiGridIOItem::setWidth, tr("Width"))
     {
         if (context == NeuroItem::CREATE_UI)
         {
@@ -65,6 +66,48 @@ namespace GridItems
 
     MultiGridIOItem::~MultiGridIOItem()
     {
+    }
+
+    void MultiGridIOItem::setWidth(const int & w)
+    {
+        Q_ASSERT(network());
+        Q_ASSERT(network()->neuronet());
+
+        int new_width = w;
+        bool update_property = false;
+
+        if (new_width < 1)
+        {
+            new_width = 1;
+            update_property = true;
+        }
+
+        if (new_width != width())
+        {
+            foreach (NeuroItem *item, connections())
+                removeEdges(item);
+
+            while (new_width > width())
+            {
+                NeuroLib::NeuroCell cell(NeuroLib::NeuroCell::NODE);
+                _incoming_cells.append(network()->neuronet()->addNode(cell));
+                _outgoing_cells.append(network()->neuronet()->addNode(cell));
+            }
+
+            while (new_width < width())
+            {
+                network()->neuronet()->removeNode(_incoming_cells.last());
+                _incoming_cells.removeLast();
+                network()->neuronet()->removeNode(_outgoing_cells.last());
+                _outgoing_cells.removeLast();
+            }
+
+            foreach (NeuroItem *item, connections())
+                addEdges(item);
+        }
+
+        if (update_property)
+            _width_property.setValueInPropertyBrowser(QVariant(new_width));
     }
 
     bool MultiGridIOItem::handleMove(const QPointF &mousePos, QPointF &movePos)
@@ -171,7 +214,7 @@ namespace GridItems
 
     void MultiGridIOItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
     {
-        NeuroNetworkItem::addToShape(drawPath, texts);
+        MultiItem::addToShape(drawPath, texts);
         drawPath.addRect(_rect);
 
         if (_top_item || _bottom_item)
@@ -190,7 +233,7 @@ namespace GridItems
 
     void MultiGridIOItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
-        NeuroNetworkItem::writeBinary(ds, file_version);
+        MultiItem::writeBinary(ds, file_version);
         ds << _rect;
 
         quint32 num = _incoming_cells.size();
@@ -206,7 +249,7 @@ namespace GridItems
 
     void MultiGridIOItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroNetworkItem::readBinary(ds, file_version);
+        MultiItem::readBinary(ds, file_version);
         ds >> _rect;
         setLabelPos(QPointF(rect().left() + rect().width() + 5, 0));
 
@@ -232,7 +275,7 @@ namespace GridItems
 
     void MultiGridIOItem::writePointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
-        NeuroNetworkItem::writePointerIds(ds, file_version);
+        MultiItem::writePointerIds(ds, file_version);
 
         IdType id = _top_item ? _top_item->id() : 0;
         ds << id;
@@ -243,7 +286,7 @@ namespace GridItems
 
     void MultiGridIOItem::readPointerIds(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
-        NeuroNetworkItem::readPointerIds(ds, file_version);
+        MultiItem::readPointerIds(ds, file_version);
 
         IdType id;
         ds >> id;
@@ -366,18 +409,14 @@ namespace GridItems
           _cur_step(0)
     {
         _value_property.setVisible(false);
+        _width_property.setEditable(false);
 
         _incoming_cells.reserve(NUM_CONNECTIONS);
         _outgoing_cells.reserve(NUM_CONNECTIONS);
 
         if (context == NeuroItem::CREATE_UI)
         {
-            NeuroLib::NeuroCell cell(NeuroLib::NeuroCell::NODE);
-
-            for (int i = 0; i < NUM_CONNECTIONS; ++i)
-                _incoming_cells.append(network->neuronet()->addNode(cell));
-            for (int i = 0; i < NUM_CONNECTIONS; ++i)
-                _outgoing_cells.append(network->neuronet()->addNode(cell));
+            setWidth(NUM_CONNECTIONS);
         }
 
         resetInputText();
@@ -479,10 +518,22 @@ namespace GridItems
         if (!_to_grid.atEnd() && _to_grid.read(&ch, 1) == 1)
         {
             quint8 idx = static_cast<quint8>(ch) % _outgoing_cells.size();
+
+#ifdef DEBUG
+            if (NUM_CONNECTIONS < 256 && ch >= 'a')
+                idx = (static_cast<quint8>(ch) - 'a') % _outgoing_cells.size();
+#endif
+
             NeuroLib::NeuroNet::ASYNC_STATE *cell;
             if ((cell = getCell(_outgoing_cells[idx])))
             {
                 cell->current().setOutputValue(new_val);
+
+#ifdef DEBUG
+                if (NUM_CONNECTIONS < 256 && idx < 'a')
+                    idx += 'a';
+#endif
+
                 updateDisplayBuffer(idx, _input_disp_buffer, _input_disp_pos);
             }
         }
@@ -536,6 +587,11 @@ namespace GridItems
         if (highest_index != -1 && (highest_output - avg) > deviation)
         {
             quint8 idx = static_cast<quint8>(highest_index % 256);
+
+#ifdef DEBUG
+            if (NUM_CONNECTIONS < 256)
+                idx += 'a';
+#endif
 
             _from_grid.writeByte(idx);
 

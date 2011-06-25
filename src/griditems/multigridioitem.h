@@ -38,7 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "griditems_global.h"
-#include "../neurogui/neuronetworkitem.h"
+#include "multiitem.h"
 
 #include <QBuffer>
 #include <QTextStream>
@@ -48,7 +48,7 @@ namespace GridItems
 
     /// Allows for multiple inputs / outputs for a grid item.
     class GRIDITEMSSHARED_EXPORT MultiGridIOItem
-        : public NeuroGui::NeuroNetworkItem
+        : public MultiItem
     {
         Q_OBJECT
 
@@ -58,12 +58,17 @@ namespace GridItems
         NeuroGui::NeuroNetworkItem *_top_item, *_bottom_item;
         QList<Index> _incoming_cells, _outgoing_cells;
 
+        Property<MultiGridIOItem, QVariant::Int, int, int> _width_property;
+
     public:
         MultiGridIOItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~MultiGridIOItem();
 
         const QRectF & rect() const { return _rect; }
         void setRect(const QRectF & r) { _rect = r; }
+
+        virtual int width() const { return _incoming_cells.size(); }
+        virtual void setWidth(const int &);
 
         virtual Value outputValue() const { return 0; }
         virtual void setOutputValue(const Value &) { }
