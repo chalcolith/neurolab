@@ -131,6 +131,10 @@ namespace NeuroGui
 
         static QDir LAST_DIRECTORY;
 
+        QMenu *fileMenu();
+        QMenu *viewMenu();
+        QMenu *toolBarsMenu();
+
     protected:
         /// Handles attempts to close the window.
         virtual void closeEvent(QCloseEvent *);
@@ -193,7 +197,7 @@ namespace NeuroGui
         void on_action_About_NeuroLab_triggered();
         void on_action_Manual_triggered();
         void on_action_New_triggered();
-        void on_action_Open_triggered();                
+        void on_action_Open_triggered();
         void on_action_Save_triggered();
         void on_action_Save_Network_As_triggered();
         void on_action_Reload_Network_triggered();
@@ -227,7 +231,22 @@ namespace NeuroGui
         void on_action_Zoom_In_triggered();
         void on_action_Network_Items_triggered();
         void on_action_SubmitBug_triggered();
-    };
+    }; // class MainWindow
+
+    class NEUROGUISHARED_EXPORT Plugin
+    {
+        static QList<Plugin *> loaded_plugins;
+
+    protected:
+        Plugin(const QString & name, const QString & version);
+        virtual ~Plugin();
+    public:
+        virtual void initialize() = 0;
+        virtual void cleanup() = 0;
+
+        static void init_all();
+        static void cleanup_all();
+    }; // class PluginInit
 
 } // namespace NeuroGui
 

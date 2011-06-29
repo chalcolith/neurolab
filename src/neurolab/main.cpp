@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Balafon");
     QCoreApplication::setOrganizationDomain("balafon.net");
     QCoreApplication::setApplicationName(QObject::tr("NeuroLab"));
-    QCoreApplication::setApplicationVersion(NeuroGui::VERSION);
+    QCoreApplication::setApplicationVersion(NeuroGui::VERSION());
 
     QApplication application(argc, argv);
 

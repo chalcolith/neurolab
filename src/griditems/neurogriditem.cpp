@@ -49,11 +49,16 @@ using namespace NeuroGui;
 namespace GridItems
 {
 
-    const QString
+    const QString & VERSION()
+    {
+        static const QString
 #include "../version.txt"
-    ;
+        ;
 
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(NeuroGridItem, QString("Grid Items"), QObject::tr("Grid Item"), ":/griditems/icons/grid_item.png", GridItems::VERSION)
+        return VERSION;
+    }
+
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(NeuroGridItem, QString("Grid Items"), QObject::tr("Grid Item"), ":/griditems/icons/grid_item.png", GridItems::VERSION())
 
     NeuroGridItem::NeuroGridItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : SubNetworkItem(network, scenePos, context),

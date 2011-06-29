@@ -51,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace NeuroGui
 {
 
-    extern NEUROGUISHARED_EXPORT const QString VERSION;
+    extern NEUROGUISHARED_EXPORT const QString & VERSION();
 
     struct NEUROGUISHARED_EXPORT NeuroLabFileVersion
     {

@@ -71,9 +71,13 @@ void gwt_break()
 namespace NeuroGui
 {
 
-    const QString
+    const QString & VERSION()
+    {
+        static const QString
 #include "../version.txt"
-    ;
+        ;
+        return VERSION;
+    }
 
     MainWindow *MainWindow::_instance = 0;
 
@@ -107,11 +111,12 @@ namespace NeuroGui
         _ui->setupUi(this);
         this->setupUi();
 
-        // load plugins
-        loadPlugins();
-
         // set up connections
         setupConnections();
+
+        // load plugins
+        loadPlugins();
+        Plugin::init_all();
 
         // read state from settings
         loadStateSettings();
@@ -142,6 +147,21 @@ namespace NeuroGui
     MainWindow *MainWindow::instance()
     {
         return _instance;
+    }
+
+    QMenu *MainWindow::fileMenu()
+    {
+        return _ui->menu_File;
+    }
+
+    QMenu *MainWindow::viewMenu()
+    {
+        return _ui->menu_View;
+    }
+
+    QMenu *MainWindow::toolBarsMenu()
+    {
+        return _ui->menuToolbars;
     }
 
     void MainWindow::setupUi()
@@ -263,7 +283,7 @@ namespace NeuroGui
 
     static int NEUROLAB_APP_VERSION()
     {
-        QStringList nums = VERSION.split(".");
+        QStringList nums = VERSION().split(".");
         int result = 0;
         for (int i = 0; i < nums.length(); ++i)
         {
@@ -385,7 +405,10 @@ namespace NeuroGui
         else
         {
             if (closeNetwork())
+            {
                 saveStateSettings();
+                Plugin::cleanup_all();
+            }
             else
                 event->ignore();
         }
@@ -965,7 +988,7 @@ namespace NeuroGui
     }
 
     void MainWindow::filterFileMenu()
-    {                
+    {
         bool showPrint = false;
         bool showExport = false;
         if (_ui->tabWidget->currentWidget() == _ui->networkTab && _currentNetwork && _currentNetwork->items().size() > 0)
@@ -1047,6 +1070,35 @@ namespace NeuroGui
         _ui->action_Copy->setEnabled(showEditOps);
         _ui->action_Paste->setEnabled(_currentNetwork && _currentNetwork->canPaste());
         _ui->action_Delete->setEnabled(showEditOps);
+    }
+
+
+    /////////////////////////////////////////////////////////////////
+
+    QList<Plugin *> Plugin::loaded_plugins;
+
+    Plugin::Plugin(const QString & name, const QString & version)
+    {
+        if (version != NeuroGui::VERSION())
+            throw Common::Exception(QObject::tr("Plugin %1 is out of date.  It has version %2, and the version of NeuroLab you are using is %3.").arg(name).arg(version).arg(NeuroGui::VERSION()));
+
+        loaded_plugins.append(this);
+    }
+
+    Plugin::~Plugin()
+    {
+    }
+
+    void Plugin::init_all()
+    {
+        foreach (Plugin *plugin, loaded_plugins)
+            plugin->initialize();
+    }
+
+    void Plugin::cleanup_all()
+    {
+        foreach (Plugin *plugin, loaded_plugins)
+            plugin->cleanup();
     }
 
 } // namespace NeuroGui
@@ -1317,7 +1369,7 @@ void NeuroGui::MainWindow::on_action_About_NeuroLab_triggered()
     try
     {
         NeuroGui::AboutDialog about(this);
-        about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroGui::VERSION));
+        about.setLabel(tr("Neurocognitive Linguistics Laboratory v%1").arg(NeuroGui::VERSION()));
         about.exec();
     }
     catch (Common::Exception & e)

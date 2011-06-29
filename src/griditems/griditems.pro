@@ -1,5 +1,6 @@
 CONFIG += debug_and_release
 QT += gui
+QT += opengl
 
 TARGET = griditems
 TEMPLATE = lib
@@ -18,14 +19,18 @@ SOURCES += neurogriditem.cpp \
            gridedgeitem.cpp \
            multigridioitem.cpp \
            multilink.cpp \
-           multiitem.cpp
+           multiitem.cpp \
+    gridsplugin.cpp \
+    gridviewer.cpp
 
 HEADERS += griditems_global.h \
            neurogriditem.h\
            gridedgeitem.h \
            multigridioitem.h \
            multilink.h \
-           multiitem.h
+           multiitem.h \
+    gridsplugin.h \
+    gridviewer.h
 
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) {

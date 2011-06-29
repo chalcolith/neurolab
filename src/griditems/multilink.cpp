@@ -45,7 +45,7 @@ using namespace NeuroLib;
 namespace GridItems
 {
 
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(MultiLink, QObject::tr("Grid Items"), QObject::tr("Multi-Link"), ":/griditems/icons/multi_link.png", GridItems::VERSION)
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(MultiLink, QObject::tr("Grid Items"), QObject::tr("Multi-Link"), ":/griditems/icons/multi_link.png", GridItems::VERSION())
 
     MultiLink::MultiLink(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : MultiItem(network, scenePos, context), MixinArrow(this),

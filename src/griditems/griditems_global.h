@@ -47,7 +47,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace GridItems
 {
-    extern GRIDITEMSSHARED_EXPORT const QString VERSION;
-}
+
+    extern GRIDITEMSSHARED_EXPORT const QString & VERSION();
+
+} // namespace GridItems
 
 #endif // GRIDITEMS_GLOBAL_H

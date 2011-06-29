@@ -465,8 +465,8 @@ namespace NeuroGui
     NeuroGui::NeuroItemRegistrator TypeName::_static_registrator(#TypeName, typeid(TypeName).name(), MenuPath, UIName, &TypeName::_create_, &TypeName::_can_create_, PixMap); \
     NeuroGui::NeuroItem *TypeName::_create_(NeuroGui::LabScene *scene, const QPointF & scenePos, const NeuroItem::CreateContext & context) \
     { \
-        if (NeuroGui::VERSION != NeuroLabVersion) \
-            throw Common::Exception(QObject::tr("The plugin that provides the %1 item is out of date.  It was built for NeuroLab version %2, and this is version %3").arg(UIName).arg(NeuroLabVersion).arg(NeuroGui::VERSION)); \
+        if (NeuroGui::VERSION() != NeuroLabVersion) \
+            throw Common::Exception(QObject::tr("The plugin that provides the %1 item is out of date.  It was built for NeuroLab version %2, and this is version %3").arg(UIName).arg(NeuroLabVersion).arg(NeuroGui::VERSION())); \
         if (!(scene && scene->network() && scene->network()->neuronet())) \
             return 0; \
         NeuroItem *item = new TypeName(scene->network(), scenePos, context); \
@@ -483,7 +483,7 @@ namespace NeuroGui
 
     /// Use this macro in the source file for a class derived from \ref NeuroGui::NeuroItem
     /// in order to have it show up in the context menu.
-#define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName, PixMap) NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroGui::VERSION)
+#define NEUROITEM_DEFINE_CREATOR(TypeName, MenuPath, UIName, PixMap) NEUROITEM_DEFINE_PLUGIN_CREATOR(TypeName, MenuPath, UIName, PixMap, NeuroGui::VERSION())
 
 } // namespace NeuroGui
 

@@ -387,7 +387,7 @@ namespace GridItems
 
 
     //
-    NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), ":/griditems/icons/text_io_item.png", GridItems::VERSION)
+    NEUROITEM_DEFINE_PLUGIN_CREATOR(TextGridIOItem, QObject::tr("Grid Items"), QObject::tr("Text IO Item"), ":/griditems/icons/text_io_item.png", GridItems::VERSION())
 
     const int TextGridIOItem::NUM_CONNECTIONS = 256;
 
