@@ -139,6 +139,18 @@ namespace NeuroGui
         /// Handles attempts to close the window.
         virtual void closeEvent(QCloseEvent *);
 
+    signals:
+        void newNetworkOpened(LabNetwork *);
+        void newDataFileOpened(LabDataFile *);
+
+        void itemSelected(NeuroItem *);
+        void itemDeleted(NeuroItem *);
+
+        void stepClicked();
+        void preStep();
+        void postStep();
+        void stepFinished();
+
     public slots:
         /// Sets the title of the window to the given string plus the current network's filename and dirty status.
         void setTitle(const QString & title = QString());
@@ -161,7 +173,14 @@ namespace NeuroGui
 
         void createdItem(NeuroItem *);
         void propertyValueChanged(QtProperty *, const QVariant &);
+
+        void selectedItem(NeuroItem *);
         void deletedItem(NeuroItem *);
+
+        void clickedStep();
+        void stepPre();
+        void stepPost();
+        void finishedStep();
 
         void filterActions();
 
@@ -204,9 +223,6 @@ namespace NeuroGui
         void on_action_Close_triggered();
         void on_action_Quit_triggered();
         void on_action_Sidebar_triggered();
-        void on_action_Main_Toolbar_triggered();
-        void on_action_View_Toolbar_triggered();
-        void on_action_Simulation_Toolbar_triggered();
         void on_action_Start_triggered();
         void on_action_Stop_triggered();
         void on_action_Step_triggered();

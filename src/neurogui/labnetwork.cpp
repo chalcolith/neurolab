@@ -229,6 +229,15 @@ namespace NeuroGui
         emit propertyObjectChanged(property_objects);
         emit actionsEnabled(true);
 
+        if (items.size() > 0)
+        {
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(items[0]);
+            if (items.size() == 1 && ni)
+                emit itemSelected(ni);
+            else
+                emit itemSelected(0);
+        }
+
         MainWindow::instance()->buildItemList();
     }
 

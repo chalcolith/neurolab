@@ -67,8 +67,10 @@ namespace GridItems
         QSettings settings;
         settings.beginGroup("GridsPlugin");
         bool visible = settings.value("visible").toBool();
-        _grid_viewer_dock_widget->setVisible(visible);
+        _dock_widget->setVisible(visible);
         settings.endGroup();
+
+        _viewer->loadSettings(settings);
     }
 
     void GridsPlugin::cleanup()
@@ -76,16 +78,18 @@ namespace GridItems
         // save settings
         QSettings settings;
         settings.beginGroup("GridsPlugin");
-        bool visible = _grid_viewer_dock_widget->isVisible();
+        bool visible = _dock_widget->isVisible();
         settings.setValue("visible", visible);
         settings.endGroup();
+
+        _viewer->saveSettings(settings);
     }
 
     void GridsPlugin::initDockWidget()
     {
         // create and add doc widget
-        _grid_viewer_dock_widget = new QDockWidget(QObject::tr("Grid Viewer"));
-        _grid_viewer_dock_widget->setAllowedAreas(Qt::RightDockWidgetArea);
+        _dock_widget = new QDockWidget(QObject::tr("Grid Viewer"));
+        _dock_widget->setAllowedAreas(Qt::RightDockWidgetArea);
 
         QGLFormat format;
         format.setVersion(2, 1);
@@ -99,21 +103,21 @@ namespace GridItems
         format.setDirectRendering(true);
         format.setOverlay(false);
 
-        GridViewer *viewer = new GridViewer(format);
-        viewer->setMinimumSize(250, 0);
+        _viewer = new GridViewer(format);
+        _viewer->setMinimumSize(250, 0);
 
         QVBoxLayout *layout = new QVBoxLayout();
-        layout->addWidget(viewer);
+        layout->addWidget(_viewer);
 
         QWidget *widget = new QWidget();
         widget->setLayout(layout);
 
-        _grid_viewer_dock_widget->setWidget(widget);
+        _dock_widget->setWidget(widget);
 
-        NeuroGui::MainWindow::instance()->addDockWidget(Qt::RightDockWidgetArea, _grid_viewer_dock_widget);
+        NeuroGui::MainWindow::instance()->addDockWidget(Qt::RightDockWidgetArea, _dock_widget);
 
         // add to view menu
-        NeuroGui::MainWindow::instance()->toolBarsMenu()->addAction(_grid_viewer_dock_widget->toggleViewAction());
+        NeuroGui::MainWindow::instance()->toolBarsMenu()->addAction(_dock_widget->toggleViewAction());
     }
 
 } // namespace GridItems

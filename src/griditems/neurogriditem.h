@@ -40,6 +40,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "griditems_global.h"
 #include "../neurogui/subnetwork/subnetworkitem.h"
 
+#include <QVector>
+
 namespace GridItems
 {
 
@@ -67,6 +69,15 @@ namespace GridItems
 
         QMap<NeuroNetworkItem *, QMap<Index, Index> > _edges;
 
+        QVector<float> _gl_line_array;
+        QVector<float> _gl_point_array;
+
+        QMap<Index, int> _gl_line_colors;
+        QMap<Index, int> _gl_point_colors;
+
+        QVector<float> _gl_line_color_array;
+        QVector<float> _gl_point_color_array;
+
     public:
         NeuroGridItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroGridItem();
@@ -76,6 +87,11 @@ namespace GridItems
 
         qint32 verticalRows() const { return _num_vert; }
         void setVerticalRows(const qint32 & num) { _num_vert = num; }
+
+        const QVector<float> & glLineArray() const { return _gl_line_array; }
+        const QVector<float> & glPointArray() const { return _gl_point_array; }
+        const QVector<float> & glLineColorArray() const { return _gl_line_color_array; }
+        const QVector<float> & glPointColorArray() const { return _gl_point_color_array; }
 
         virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
         virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
@@ -88,6 +104,7 @@ namespace GridItems
     public slots:
         void networkChanged();
         void networkStepClicked();
+        void networkPostStep();
         void networkStepFinished();
         void generateGrid();
         void resizeScene();

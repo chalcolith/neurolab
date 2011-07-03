@@ -44,6 +44,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "gridedgeitem.h"
 #include "multigridioitem.h"
 
+#include <cmath>
+
 using namespace NeuroGui;
 
 namespace GridItems
@@ -101,6 +103,49 @@ namespace GridItems
     void NeuroGridItem::networkStepClicked()
     {
         generateGrid();
+    }
+
+    void NeuroGridItem::networkPostStep()
+    {
+        // copy colors
+        foreach (Index cell_index, _all_grid_cells)
+        {
+            if (_gl_line_colors.contains(cell_index))
+            {
+                NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(cell_index);
+                if (cell)
+                {
+                    int color_index = _gl_line_colors[cell_index];
+
+                    qreal t = qBound(0.0f, cell->current().outputValue(), 1.0f);
+                    QColor color = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
+
+                    // two vertices for lines
+                    _gl_line_color_array[color_index++] = color.redF();
+                    _gl_line_color_array[color_index++] = color.greenF();
+                    _gl_line_color_array[color_index++] = color.blueF();
+                    _gl_line_color_array[color_index++] = color.redF();
+                    _gl_line_color_array[color_index++] = color.greenF();
+                    _gl_line_color_array[color_index++] = color.blueF();
+                }
+            }
+            else if (_gl_point_colors.contains(cell_index))
+            {
+                NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(cell_index);
+                if (cell)
+                {
+                    int color_index = _gl_line_colors[cell_index];
+
+                    qreal t = qBound(0.0f, cell->current().outputValue(), 1.0f);
+                    QColor color = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
+
+                    // two vertices for lines
+                    _gl_line_color_array[color_index++] = color.redF();
+                    _gl_line_color_array[color_index++] = color.greenF();
+                    _gl_line_color_array[color_index++] = color.blueF();
+                }
+            }
+        }
     }
 
     void NeuroGridItem::networkStepFinished()
@@ -456,6 +501,46 @@ namespace GridItems
         return all_copies[(row * num_cols) + col];
     }
 
+    static void set_gl_vertex(int vertex_index, QVector<float> & vertices, QVector<float> & colors,
+                              QMap<NeuroGridItem::Index, int> & color_index, NeuroGridItem::Index cell_index, const QPointF & pt,
+                              float min_x, float max_x, float min_y, float max_y,
+                              int col, int row, int num_cols, int num_rows)
+    {
+        float x, y, z;
+
+        float pat_x = (pt.x() - min_x) / (max_x - min_x);
+        float pat_y = (pt.y() - min_y) / (max_y - min_y);
+
+        if (num_cols > 1)
+        {
+            float cyl_phi = (col + pat_x) * M_PI * 2 / num_cols;
+            float cyl_y = 2 - (row + pat_y) * 4 / num_rows;
+
+            x = ::cos(cyl_phi);
+            y = cyl_y;
+            z = ::sin(cyl_phi);
+        }
+        else
+        {
+            x = -1 + pat_x * 2;
+            y = 1 - pat_y * 2;
+            z = 0;
+        }
+
+        if (cell_index != -1)
+            color_index[cell_index] = vertex_index;
+
+        vertices[vertex_index + 0] = x;
+        vertices[vertex_index + 1] = y;
+        vertices[vertex_index + 2] = z;
+
+        colors[vertex_index + 0] = 0;
+        colors[vertex_index + 1] = 0;
+        colors[vertex_index + 2] = 0;
+
+        vertex_index += 3;
+    }
+
     void NeuroGridItem::generateGrid()
     {
         if (!_pattern_changed)
@@ -495,16 +580,49 @@ namespace GridItems
         QList<ConnectSets> left_outgoing_to_right_incoming;
         QList<ConnectSets> right_outgoing_to_left_incoming;
 
+        // map pattern cells to 2d pattern positions
+        QMap<Index, QLineF> pattern_cells_to_lines;
+        QMap<Index, QPointF> pattern_cells_to_points;
+
         // collect all cells in the pattern and cells on the edges
         foreach (QGraphicsItem *item, treeNode()->scene()->items())
         {
             NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
             if (ni)
             {
+                QVector2D back, front;
+                MixinArrow *link = dynamic_cast<MixinArrow *>(item);
+                if (link)
+                {
+                    QLineF line = link->line();
+
+                    back = QVector2D(line.p1());
+                    front = QVector2D(line.p2());
+                }
+
+                const int num_cells = ni->allCells().size();
+
+                int i = 0;
                 foreach (Index index, ni->allCells())
                 {
                     if (index != -1)
+                    {
                         all_pattern_cells.insert(index);
+
+                        if (link)
+                        {
+                            QVector2D my_back = back + (front - back) * ((double)i / (double)num_cells);
+                            QVector2D my_front = back + (front - back) * ((double)(i+1) / (double)num_cells);
+
+                            pattern_cells_to_lines[index] = QLineF(my_back.toPointF(), my_front.toPointF());
+                        }
+                        else
+                        {
+                            pattern_cells_to_points[index] = item->scenePos();
+                        }
+                    }
+
+                    ++i;
                 }
             }
 
@@ -570,7 +688,42 @@ namespace GridItems
             }
         }
 
+        // get min and max extents of pattern positions
+        float min_x, max_x;
+        float min_y, max_y;
+
+        foreach (QLineF line, pattern_cells_to_lines)
+        {
+            QPointF back = line.p1();
+            min_x = qMin(min_x, (float)back.x());
+            max_x = qMax(max_x, (float)back.x());
+            min_y = qMin(min_y, (float)back.y());
+            max_y = qMax(max_y, (float)back.y());
+
+            QPointF front = line.p2();
+            min_x = qMin(min_x, (float)front.x());
+            max_x = qMax(max_x, (float)front.x());
+            min_y = qMin(min_y, (float)front.y());
+            max_y = qMax(max_y, (float)front.y());
+        }
+
+        foreach (QPointF pt, pattern_cells_to_points)
+        {
+            min_x = qMin(min_x, (float)pt.x());
+            max_x = qMax(max_x, (float)pt.x());
+            min_y = qMin(min_y, (float)pt.y());
+            max_y = qMax(max_y, (float)pt.y());
+        }
+
         // make copies of the pattern for each grid square
+        _gl_line_array.resize(_num_vert * _num_horiz * pattern_cells_to_lines.size() * 6);
+        _gl_line_color_array.resize(_num_vert * _num_horiz * pattern_cells_to_lines.size() * 6);
+        _gl_point_array.resize(_num_vert * _num_horiz * pattern_cells_to_points.size() * 3);
+        _gl_point_color_array.resize(_num_vert * _num_horiz * pattern_cells_to_points.size() * 3);
+
+        int line_index = 0;
+        int point_index = 0;
+
         QVector<QMap<Index, Index> > pattern_to_all_copies(_num_vert * _num_horiz);
 
         for (int row = 0; row < _num_vert; ++row)
@@ -587,9 +740,24 @@ namespace GridItems
                         Index copy_index = neuronet->addNode((*neuronet)[pat_index].current());
                         _all_grid_cells.insert(copy_index);
                         pat_to_copy[pat_index] = copy_index;
+
+                        // we want the overall height to be 4, and the width to be 2
+                        if (pattern_cells_to_lines.contains(pat_index))
+                        {
+                            const QLineF ln = pattern_cells_to_lines[pat_index];
+                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array, _gl_line_colors, pat_index, ln.p1(),
+                                          min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
+                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array, _gl_line_colors, -1, ln.p2(),
+                                          min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
+                        }
+                        else if (pattern_cells_to_points.contains(pat_index))
+                        {
+                            const QPointF pt = pattern_cells_to_points[pat_index];
+                            set_gl_vertex(point_index, _gl_point_array, _gl_point_color_array, _gl_point_colors, pat_index, pt,
+                                          min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
+                        }
                     }
                 }
-
             }
         }
 

@@ -192,6 +192,7 @@ namespace NeuroGui
         void networkChanged();
         void propertyObjectChanged(QList<PropertyObject *> property_objects);
         void itemLabelChanged(NeuroItem *, const QString & label);
+        void itemSelected(NeuroItem *);
         void itemDeleted(NeuroItem *);
         void actionsEnabled(bool enabled);
         void statusChanged(const QString & status);

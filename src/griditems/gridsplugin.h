@@ -45,12 +45,15 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace GridItems
 {
 
+    class GridViewer;
+
     class GRIDITEMSSHARED_EXPORT GridsPlugin
         : public NeuroGui::Plugin
     {
         static GridsPlugin *_instance;
 
-        QDockWidget *_grid_viewer_dock_widget;
+        QDockWidget *_dock_widget;
+        GridViewer *_viewer;
 
     public:
         GridsPlugin();

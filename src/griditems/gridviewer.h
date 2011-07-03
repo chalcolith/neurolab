@@ -38,7 +38,12 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "griditems_global.h"
+#include "neurogriditem.h"
+
 #include <QGLWidget>
+#include <QSettings>
+
+using namespace NeuroGui;
 
 namespace GridItems
 {
@@ -47,14 +52,34 @@ namespace GridItems
         : public QGLWidget
     {
         Q_OBJECT
+
+        qreal _distance;
+        qreal _angle;
+
+        QPointF _last_mouse_pos;
+
+        NeuroGridItem *_grid_item;
+
     public:
         explicit GridViewer(const QGLFormat & format, QWidget *parent = 0);
         virtual ~GridViewer();
+
+        void loadSettings(QSettings &);
+        void saveSettings(QSettings &);
+
+    public slots:
+        void selectedItem(NeuroItem *);
+        void postStep();
 
     protected:
         virtual void initializeGL();
         virtual void resizeGL(int w, int h);
         virtual void paintGL();
+
+        virtual void mousePressEvent(QMouseEvent *);
+        virtual void mouseMoveEvent(QMouseEvent *);
+        virtual void mouseReleaseEvent(QMouseEvent *);
+        virtual void wheelEvent(QWheelEvent *);
     };
 
 } // namespace GridItems

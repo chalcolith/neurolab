@@ -65,7 +65,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuExport_to">
+    <widget class="QMenu" name="menu_Export_to">
      <property name="title">
       <string>Export to</string>
      </property>
@@ -74,14 +74,14 @@
      <addaction name="action_PS"/>
      <addaction name="action_PDF"/>
     </widget>
-    <widget class="QMenu" name="menuRecent_Networks">
+    <widget class="QMenu" name="menu_Recent_Networks">
      <property name="title">
       <string>Recent Networks</string>
      </property>
     </widget>
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
-    <addaction name="menuRecent_Networks"/>
+    <addaction name="menu_Recent_Networks"/>
     <addaction name="action_Save"/>
     <addaction name="action_Save_Network_As"/>
     <addaction name="action_Reload_Network"/>
@@ -92,7 +92,7 @@
     <addaction name="action_Close_Data_Set"/>
     <addaction name="separator"/>
     <addaction name="action_Print"/>
-    <addaction name="menuExport_to"/>
+    <addaction name="menu_Export_to"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -100,22 +100,19 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuToolbars">
+    <widget class="QMenu" name="menu_Toolbars">
      <property name="title">
       <string>Toolbars</string>
      </property>
-     <addaction name="action_Main_Toolbar"/>
-     <addaction name="action_View_Toolbar"/>
-     <addaction name="action_Simulation_Toolbar"/>
     </widget>
     <addaction name="action_Sidebar"/>
     <addaction name="action_Network_Items"/>
-    <addaction name="menuToolbars"/>
+    <addaction name="menu_Toolbars"/>
     <addaction name="separator"/>
     <addaction name="action_Zoom_In"/>
     <addaction name="action_Zoom_Out"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_Help">
     <property name="title">
      <string>Help</string>
     </property>
@@ -134,7 +131,7 @@
     <addaction name="separator"/>
     <addaction name="action_Select_All"/>
    </widget>
-   <widget class="QMenu" name="menuSimulation">
+   <widget class="QMenu" name="menu_Simulation">
     <property name="title">
      <string>Simulation</string>
     </property>
@@ -145,8 +142,8 @@
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
-   <addaction name="menuSimulation"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_Simulation"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="windowTitle">
@@ -447,22 +444,6 @@
     <string>PDF (Portable Document Format)</string>
    </property>
   </action>
-  <action name="action_Main_Toolbar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Main</string>
-   </property>
-  </action>
-  <action name="action_View_Toolbar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>View</string>
-   </property>
-  </action>
   <action name="action_Zoom_In">
    <property name="icon">
     <iconset>
@@ -481,14 +462,6 @@
    </property>
    <property name="text">
     <string>Zoom Out</string>
-   </property>
-  </action>
-  <action name="action_Simulation_Toolbar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Simulation</string>
    </property>
   </action>
   <action name="action_Reload_Network">

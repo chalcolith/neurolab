@@ -161,7 +161,7 @@ namespace NeuroGui
 
     QMenu *MainWindow::toolBarsMenu()
     {
-        return _ui->menuToolbars;
+        return _ui->menu_Toolbars;
     }
 
     void MainWindow::setupUi()
@@ -173,6 +173,14 @@ namespace NeuroGui
         sidebarLayout->addWidget(_propertyEditor = new QtTreePropertyBrowser(this));
         _propertyEditor->setFactoryForManager(_propertyManager, _propertyFactory);
         _propertyEditor->setMinimumWidth(210);
+
+        _ui->menu_Toolbars->addAction(_ui->mainToolBar->toggleViewAction());
+        _ui->menu_Toolbars->addAction(_ui->viewToolbar->toggleViewAction());
+        _ui->menu_Toolbars->addAction(_ui->simulationToolbar->toggleViewAction());
+        _ui->menu_Toolbars->addSeparator();
+
+        _ui->menu_Toolbars->addAction(_ui->propertiesDockWidget->toggleViewAction());
+        _ui->menu_Toolbars->addAction(_ui->itemsDockWidget->toggleViewAction());
 
         // zoom spinbox
         _zoomSpinBox = new QSpinBox(this);
@@ -195,8 +203,6 @@ namespace NeuroGui
         _stepProgressBar->reset();
         _ui->statusBar->addPermanentWidget(_stepProgressBar);
 
-        //_ui->tabWidget->setTabText(1, "");
-
         // network tab widget
         _networkLayout = new QVBoxLayout(_ui->networkTab);
 
@@ -214,10 +220,6 @@ namespace NeuroGui
 
         connect(_ui->propertiesDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Sidebar, SLOT(setChecked(bool)), Qt::UniqueConnection);
         connect(_ui->itemsDockWidget, SIGNAL(visibilityChanged(bool)), _ui->action_Network_Items, SLOT(setChecked(bool)), Qt::UniqueConnection);
-
-        connect(_ui->mainToolBar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Main_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_ui->viewToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_View_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
-        connect(_ui->simulationToolbar->toggleViewAction(), SIGNAL(toggled(bool)), _ui->action_Simulation_Toolbar, SLOT(setChecked(bool)), Qt::UniqueConnection);
 
         connect(_zoomSpinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomValueChanged(int)), Qt::UniqueConnection);
 
@@ -619,6 +621,7 @@ namespace NeuroGui
         _ui->tabWidget->setTabText(1, tr("Collecting Data"));
         _ui->dataTableWidget->setToolTip(tr("Nodes with labels will be recorded here."));
         _currentDataFile = new NeuroGui::LabDataFile(_currentNetwork, _ui->dataTableWidget, this);
+        emit newDataFileOpened(_currentDataFile);
         return true;
     }
 
@@ -710,7 +713,14 @@ namespace NeuroGui
             disconnect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)));
             disconnect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
                        this, SLOT(setPropertyObjects(QList<PropertyObject*>)));
+
+            disconnect(_currentNetwork, SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
             disconnect(_currentNetwork, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
+
+            disconnect(_currentNetwork, SIGNAL(stepClicked()), this, SLOT(clickedStep()));
+            disconnect(_currentNetwork, SIGNAL(preStep()), this, SLOT(stepPre()));
+            disconnect(_currentNetwork, SIGNAL(postStep()), this, SLOT(stepPost()));
+            disconnect(_currentNetwork, SIGNAL(stepFinished()), this, SLOT(finishedStep()));
 
             disconnect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)));
             disconnect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)));
@@ -734,7 +744,14 @@ namespace NeuroGui
             connect(_currentNetwork, SIGNAL(statusChanged(QString)), this, SLOT(setStatus(QString)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(propertyObjectChanged(QList<PropertyObject*>)),
                     this, SLOT(setPropertyObjects(QList<PropertyObject*>)), Qt::UniqueConnection);
+
+            connect(_currentNetwork, SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
             connect(_currentNetwork, SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
+
+            connect(_currentNetwork, SIGNAL(stepClicked()), this, SLOT(clickedStep()));
+            connect(_currentNetwork, SIGNAL(preStep()), this, SLOT(stepPre()));
+            connect(_currentNetwork, SIGNAL(postStep()), this, SLOT(stepPost()));
+            connect(_currentNetwork, SIGNAL(stepFinished()), this, SLOT(finishedStep()));
 
             connect(_currentNetwork, SIGNAL(actionsEnabled(bool)), this, SLOT(setActionsEnabled(bool)), Qt::UniqueConnection);
             connect(_currentNetwork, SIGNAL(stepProgressRangeChanged(int,int)), this, SLOT(setProgressRange(int, int)), Qt::UniqueConnection);
@@ -758,6 +775,8 @@ namespace NeuroGui
         {
             _breadCrumbBar->setVisible(_currentNetwork != 0);
         }
+
+        emit newNetworkOpened(_currentNetwork);
     }
 
     void MainWindow::setSubNetwork(LabTreeNode *treeNode)
@@ -953,10 +972,36 @@ namespace NeuroGui
         }
     }
 
+    void MainWindow::selectedItem(NeuroItem *item)
+    {
+        emit itemSelected(item);
+    }
+
     void MainWindow::deletedItem(NeuroItem *item)
     {
         QString typeName(typeid(*item).name());
         _rememberedProperties.remove(typeName);
+        emit itemDeleted(item);
+    }
+
+    void MainWindow::clickedStep()
+    {
+        emit stepClicked();
+    }
+
+    void MainWindow::stepPre()
+    {
+        emit preStep();
+    }
+
+    void MainWindow::stepPost()
+    {
+        emit postStep();
+    }
+
+    void MainWindow::finishedStep()
+    {
+        emit stepFinished();
     }
 
     /// Remembers the properties for the last selected instance of a particular class.
@@ -1007,7 +1052,7 @@ namespace NeuroGui
 
         _ui->action_Print->setEnabled(showPrint);
 
-        _ui->menuExport_to->setEnabled(showExport);
+        _ui->menu_Export_to->setEnabled(showExport);
         _ui->action_SVG->setEnabled(showExport);
         _ui->action_PNG->setEnabled(showExport);
         _ui->action_PS->setEnabled(showExport);
@@ -1020,7 +1065,7 @@ namespace NeuroGui
         // recent files
         QSet<QString> already_present;
         QSet<QAction *> to_remove;
-        foreach (QAction *action, _ui->menuRecent_Networks->actions())
+        foreach (QAction *action, _ui->menu_Recent_Networks->actions())
         {
             QString fname = action->data().toString();
             if (_recentFilenames.contains(fname))
@@ -1030,11 +1075,11 @@ namespace NeuroGui
         }
 
         foreach (QAction *action, to_remove)
-            _ui->menuRecent_Networks->removeAction(action);
+            _ui->menu_Recent_Networks->removeAction(action);
 
         foreach (QString fname, _recentFilenames - already_present)
         {
-            QAction *action = _ui->menuRecent_Networks->addAction(fname);
+            QAction *action = _ui->menu_Recent_Networks->addAction(fname);
             action->setData(fname);
 
             connect(action, SIGNAL(triggered()), this, SLOT(openRecentTriggered()));
@@ -1208,43 +1253,6 @@ void NeuroGui::MainWindow::on_action_Network_Items_triggered()
     try
     {
         _ui->itemsDockWidget->toggleViewAction()->trigger();
-    }
-    catch (Common::Exception & e)
-    {
-        QMessageBox::critical(this, tr("Error"), e.message());
-    }
-}
-
-void NeuroGui::MainWindow::on_action_Main_Toolbar_triggered()
-{
-    try
-    {
-        _ui->mainToolBar->toggleViewAction()->trigger();
-    }
-    catch (Common::Exception & e)
-    {
-        QMessageBox::critical(this, tr("Error"), e.message());
-    }
-}
-
-void NeuroGui::MainWindow::on_action_View_Toolbar_triggered()
-{
-    try
-    {
-        _ui->viewToolbar->toggleViewAction()->trigger();
-    }
-    catch (Common::Exception & e)
-    {
-        QMessageBox::critical(this, tr("Error"), e.message());
-    }
-}
-
-
-void NeuroGui::MainWindow::on_action_Simulation_Toolbar_triggered()
-{
-    try
-    {
-        _ui->simulationToolbar->toggleViewAction()->trigger();
     }
     catch (Common::Exception & e)
     {
