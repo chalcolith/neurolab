@@ -65,8 +65,8 @@ namespace GridItems
     void GridViewer::loadSettings(QSettings & settings)
     {
         settings.beginGroup("GridViewer.View");
-        _distance = settings.value("distance", _distance).toReal();
-        _angle = settings.value("angle", _angle).toReal();
+        //_distance = settings.value("distance", _distance).toReal();
+        //_angle = settings.value("angle", _angle).toReal();
         settings.endGroup();
     }
 
@@ -96,6 +96,7 @@ namespace GridItems
         glEnable(GL_DEPTH_TEST);
 
         glEnable(GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glEnable(GL_POINT_SMOOTH);
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
@@ -104,16 +105,18 @@ namespace GridItems
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
         glEnable(GL_FOG);
+        glFogf (GL_FOG_DENSITY, 0.35);
         glHint(GL_FOG_HINT, GL_NICEST);
         glFogi(GL_FOG_MODE, GL_LINEAR);
-        static GLfloat fc[4] = { 0.5, 0.5, 0.5, 1.0 };
+        static GLfloat fc[4] = { 0.5, 0.5, 0.5, 0.5 };
         glFogfv(GL_FOG_COLOR, fc);
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
 
         glClearColor(1.0, 1.0, 1.0, 1.0);
-        glPointSize(3.0);
+        glPointSize(3.5);
+        glLineWidth(1.0);
     }
 
     void GridViewer::resizeGL(int w, int h)
@@ -122,9 +125,10 @@ namespace GridItems
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(60, (double) w / (double) h, 0.1, MAX_DISTANCE);
+        gluPerspective(60, (double) w / (double) h, 0.1, MAX_DISTANCE + 1.5);
     }
 
+#ifdef DEBUG
     static void draw_cube()
     {
         // front
@@ -163,31 +167,40 @@ namespace GridItems
         glVertex3d(1, -1, -1);
         glEnd();
     }
+#endif
 
     void GridViewer::paintGL()
     {
-        glFogf(GL_FOG_START, _distance + 2.0);
-        glFogf(GL_FOG_END, _distance - 1.0);
+        glFogf(GL_FOG_START, _distance - 1.0);
+        glFogf(GL_FOG_END, _distance + 1.0);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glTranslated(0, 0, -_distance);
-        glRotated(_angle, 0, 1, 0);
+        glRotated(_angle, 0, 1, 0.01);
 
-        glColor3f(1, 1, 1);
+#ifdef DEBUG
+        glColor3f(0, 0, 0);
         draw_cube();
+#endif
 
         if (_grid_item)
         {
-            glVertexPointer(3, GL_FLOAT, 0, _grid_item->glPointArray().data());
-            glColorPointer(3, GL_FLOAT, 0, _grid_item->glPointColorArray().data());
-            glDrawArrays(GL_POINTS, 0, _grid_item->glPointArray().size() / 3);
+            if (_grid_item->glPointArray().size() > 0)
+            {
+                glVertexPointer(3, GL_FLOAT, 0, _grid_item->glPointArray().data());
+                glColorPointer(3, GL_FLOAT, 0, _grid_item->glPointColorArray().data());
+                glDrawArrays(GL_POINTS, 0, _grid_item->glPointArray().size() / 3);
+            }
 
-            glVertexPointer(3, GL_FLOAT, 0, _grid_item->glLineArray().data());
-            glColorPointer(3, GL_FLOAT, 0, _grid_item->glLineColorArray().data());
-            glDrawArrays(GL_LINES, 0, _grid_item->glLineArray().size() / 3);
+            if (_grid_item->glLineArray().size() > 0)
+            {
+                glVertexPointer(3, GL_FLOAT, 0, _grid_item->glLineArray().data());
+                glColorPointer(3, GL_FLOAT, 0, _grid_item->glLineColorArray().data());
+                glDrawArrays(GL_LINES, 0, _grid_item->glLineArray().size() / 3);
+            }
         }
     }
 

@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "multigridioitem.h"
 
 #include <cmath>
+#include <cfloat>
 
 using namespace NeuroGui;
 
@@ -501,7 +502,7 @@ namespace GridItems
         return all_copies[(row * num_cols) + col];
     }
 
-    static void set_gl_vertex(int vertex_index, QVector<float> & vertices, QVector<float> & colors,
+    static void set_gl_vertex(int & vertex_index, QVector<float> & vertices, QVector<float> & colors,
                               QMap<NeuroGridItem::Index, int> & color_index, NeuroGridItem::Index cell_index, const QPointF & pt,
                               float min_x, float max_x, float min_y, float max_y,
                               int col, int row, int num_cols, int num_rows)
@@ -514,16 +515,16 @@ namespace GridItems
         if (num_cols > 1)
         {
             float cyl_phi = (col + pat_x) * M_PI * 2 / num_cols;
-            float cyl_y = 2 - (row + pat_y) * 4 / num_rows;
+            float cyl_y = num_rows > 1 ? 2.0 - (row + pat_y) * 4 / num_rows : 0;
 
             x = ::cos(cyl_phi);
             y = cyl_y;
-            z = ::sin(cyl_phi);
+            z = -::sin(cyl_phi);
         }
         else
         {
             x = -1 + pat_x * 2;
-            y = 1 - pat_y * 2;
+            y = num_rows > 1 ? 2.0 - pat_y * 4 / num_rows : 0;
             z = 0;
         }
 
@@ -689,8 +690,8 @@ namespace GridItems
         }
 
         // get min and max extents of pattern positions
-        float min_x, max_x;
-        float min_y, max_y;
+        float min_x = FLT_MAX, max_x = FLT_MIN;
+        float min_y = FLT_MAX, max_y = FLT_MIN;
 
         foreach (QLineF line, pattern_cells_to_lines)
         {
@@ -713,6 +714,17 @@ namespace GridItems
             max_x = qMax(max_x, (float)pt.x());
             min_y = qMin(min_y, (float)pt.y());
             max_y = qMax(max_y, (float)pt.y());
+        }
+
+        if ((max_x - min_x) < 1)
+        {
+            max_x = min_x + 1;
+            min_x = max_x - 2;
+        }
+        if ((max_y - min_y) < 1)
+        {
+            max_y = min_y + 1;
+            min_y = max_y - 2;
         }
 
         // make copies of the pattern for each grid square
