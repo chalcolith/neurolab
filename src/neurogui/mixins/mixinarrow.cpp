@@ -133,16 +133,18 @@ namespace NeuroGui
             c1 = myBack + (myFront - myBack) * 0.33;
             c2 = myBack + (myFront - myBack) * 0.66;
 
+            qreal max_c_len = (myFront - myBack).length() / 2;
+
             if (_backLinkTarget)
             {
                 QVector2D center(_backLinkTarget->targetPointFor(_self));
                 QVector2D toBack = QVector2D(line().p1()) - center;
                 qreal len = toBack.length();
                 toBack.normalize();
-                toBack *= qMax(len * 3, static_cast<qreal>(NeuroItem::NODE_WIDTH));
+                toBack *= qMin(max_c_len, qMax(len * 3, static_cast<qreal>(NeuroItem::NODE_WIDTH)));
 
                 c1 = (center + toBack) - myPos;
-            }
+            }                       
 
             if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
             {
@@ -150,7 +152,7 @@ namespace NeuroGui
                 QVector2D toFront = QVector2D(line().p2()) - center;
                 qreal len = toFront.length();
                 toFront.normalize();
-                toFront *= qMax(len * 3, static_cast<qreal>(NeuroItem::NODE_WIDTH));
+                toFront *= qMin(max_c_len, qMax(len * 3, static_cast<qreal>(NeuroItem::NODE_WIDTH)));
 
                 c2 = (center + toFront) - myPos;
             }
