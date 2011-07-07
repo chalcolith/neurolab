@@ -84,16 +84,10 @@ namespace GridItems
     {
     }
 
-    bool GridEdgeItem::handleMove(const QPointF &mousePos, QPointF &movePos)
+    bool GridEdgeItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
-        const QRectF sceneRect = this->network()->view()->sceneRect();
-
-        movePos = mousePos;
-
-        if (_vertical)
-            movePos.setY((sceneRect.top() + sceneRect.bottom()) / 2.0);
-        else
-            movePos.setX((sceneRect.left() + sceneRect.right()) / 2.0);
+        movePos = scenePos();
+        movePos.setX(mousePos.x());
 
         return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
@@ -172,17 +166,17 @@ namespace GridItems
         {
             QPointF connect_pos(item->scenePos());
             if (_incomingAttachments.contains(link))
-                connect_pos = mapToScene(_incomingAttachments[link].toPoint());
+                connect_pos = mapToScene(_incomingAttachments[link].toPointF());
             else if (_outgoingAttachments.contains(link))
-                connect_pos = mapToScene(_outgoingAttachments[link].toPoint());
+                connect_pos = mapToScene(_outgoingAttachments[link].toPointF());
 
             QVector2D to_pt1 = _point1 - QVector2D(connect_pos);
             QVector2D to_pt2 = _point2 - QVector2D(connect_pos);
 
             if (to_pt1.lengthSquared() < to_pt2.lengthSquared())
-                return _point1.toPoint();
+                return _point1.toPointF();
             else
-                return _point2.toPoint();
+                return _point2.toPointF();
         }
         else
         {
@@ -197,6 +191,10 @@ namespace GridItems
     void GridEdgeItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
     {
         NeuroNetworkItem::addToShape(drawPath, texts);
+
+        // don't bother when we are not visible
+        if (this->scene() != this->network()->scene())
+            return;
 
         const QRectF sceneRect = this->network()->view()->sceneRect();
         const QRect viewRect = this->network()->view()->rect();
@@ -286,6 +284,11 @@ namespace GridItems
     void GridEdgeItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
     {
         NeuroNetworkItem::readBinary(ds, file_version);
+
+        if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_12)
+        {
+
+        }
 
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_10)
         {

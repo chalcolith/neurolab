@@ -193,7 +193,6 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setWeight(inputs);
-            //cell->former().setWeight(inputs);
         }
     }
 
@@ -209,7 +208,6 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setRun(run);
-            //cell->former().setRun(run);
         }
     }
 
@@ -276,8 +274,6 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setPhase(phase);
-            //cell->former().setPhase(phase);
-
             reset();
         }
     }
@@ -294,8 +290,6 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setPeak(peak);
-            //cell->former().setPeak(peak);
-
             reset();
         }
     }
@@ -312,8 +306,6 @@ namespace NeuroGui
         if (cell)
         {
             cell->current().setGap(gap);
-            //cell->former().setGap(gap);
-
             reset();
         }
     }
