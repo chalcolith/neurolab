@@ -98,7 +98,6 @@ namespace NeuroGui
         Q_OBJECT
         NEUROITEM_DECLARE_CREATOR
 
-        Property<NeuroNodeItem, QVariant::Bool, bool, bool> _frozen_property;
         Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _inputs_property;
         Property<NeuroNodeItem, QVariant::Double, double, NeuroLib::NeuroCell::Value> _run_property;
 
@@ -106,29 +105,15 @@ namespace NeuroGui
         explicit NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNodeItem();
 
-        bool frozen() const;
-        void setFrozen(const bool & f);
-
         NeuroLib::NeuroCell::Value inputs() const;
         void setInputs(const NeuroLib::NeuroCell::Value &);
 
         NeuroLib::NeuroCell::Value run() const;
         void setRun(const NeuroLib::NeuroCell::Value &);
 
-    public slots:
-        virtual void reset();
-
-        /// Toggles the output value of the item between 0 and 1.
-        virtual void toggleActivated();
-
-        /// Toggles whether or not the item is frozen (i.e. whether or not its output value will change during a time step).
-        virtual void toggleFrozen();
-
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
         virtual void setPenProperties(QPen &pen) const;
-
-        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &);
     };
 
 

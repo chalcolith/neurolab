@@ -111,9 +111,6 @@ namespace NeuroGui
         virtual Index getIncomingCellFor(const NeuroItem *) const;
         virtual Index getOutgoingCellFor(const NeuroItem *) const;
 
-    public slots:
-        virtual void reset();
-
     protected:
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);
         virtual void adjustLinks();

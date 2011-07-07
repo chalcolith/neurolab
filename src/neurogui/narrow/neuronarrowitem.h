@@ -76,9 +76,6 @@ namespace NeuroGui
 
         virtual void writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const;
         virtual void readClipboard(QDataStream &ds, const QMap<int, NeuroItem *> & id_map);
-
-    public slots:
-        virtual void reset();
     };
 
 }

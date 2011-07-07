@@ -255,12 +255,6 @@ namespace NeuroGui
         return -1;
     }
 
-    void CompactLinkItem::reset()
-    {
-        setFrontwardOutputValue(0);
-        setBackwardOutputValue(0);
-    }
-
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
     {
         // move line

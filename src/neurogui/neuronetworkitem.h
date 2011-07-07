@@ -48,11 +48,14 @@ namespace NeuroGui
     class NEUROGUISHARED_EXPORT NeuroNetworkItem
         : public NeuroItem
     {
+        Q_OBJECT
+
     public:
         typedef NeuroLib::NeuroCell::Index Index;
         typedef NeuroLib::NeuroCell::Value Value;
 
     protected:
+        Property<NeuroNetworkItem, QVariant::Bool, bool, bool> _frozen_property;
         Property<NeuroNetworkItem, QVariant::Double, double, Value> _value_property;
 
         mutable QList<Index> _incoming_cells; // these are just for convenience;
@@ -68,6 +71,9 @@ namespace NeuroGui
 
         virtual Value outputValue() const = 0;
         virtual void setOutputValue(const Value &) = 0;
+
+        bool frozen() const;
+        void setFrozen(const bool & f);
 
         void setOverrideIndex(const Index & idx) { _override_index = idx; }
 
@@ -87,8 +93,18 @@ namespace NeuroGui
 
         virtual void onDetach(NeuroItem *item);
 
-    protected:
+    public slots:
+        virtual void reset();
         virtual void cleanup();
+
+        /// Toggles the output value of the item between 0 and 1.
+        virtual void toggleActivated();
+
+        /// Toggles whether or not the item is frozen (i.e. whether or not its output value will change during a time step).
+        virtual void toggleFrozen();
+
+    protected:
+        virtual void buildActionMenu(LabScene *, const QPointF &, QMenu &);
 
         virtual void setPenProperties(QPen &pen) const;
 

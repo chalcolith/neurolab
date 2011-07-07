@@ -35,7 +35,12 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "neuronetworkitem.h"
+#include "narrow/neurolinkitem.h"
+
 #include "labnetwork.h"
+#include "labscene.h"
+
+#include <QMenu>
 
 using namespace NeuroLib;
 
@@ -44,6 +49,7 @@ namespace NeuroGui
 
     NeuroNetworkItem::NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroItem(network, scenePos, context),
+          _frozen_property(this, &NeuroNetworkItem::frozen, &NeuroNetworkItem::setFrozen, tr("Frozen")),
           _value_property(this, &NeuroNetworkItem::outputValue, &NeuroNetworkItem::setOutputValue,
               tr("Output Value"),
               tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
@@ -55,6 +61,41 @@ namespace NeuroGui
     {
     }
 
+    bool NeuroNetworkItem::frozen() const
+    {
+        QList<Index> cells = allCells();
+        const NeuroNet::ASYNC_STATE *cell = cells.size() > 0 ? getCell(cells.first()) : 0;
+        return cell ? cell->current().frozen() : false;
+    }
+
+    void NeuroNetworkItem::setFrozen(const bool & frozen)
+    {
+        foreach (Index index, allCells())
+        {
+            NeuroNet::ASYNC_STATE *cell = getCell(index);
+            if (cell)
+                cell->current().setFrozen(frozen);
+        }
+
+        setChanged(true);
+    }
+
+    void NeuroNetworkItem::buildActionMenu(LabScene *, const QPointF &, QMenu & menu)
+    {
+        menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
+        menu.addAction(tr("Freeze/Unfreeze"), this, SLOT(toggleFrozen()));
+    }
+
+    void NeuroNetworkItem::reset()
+    {
+        if (!frozen())
+        {
+            setOutputValue(0);
+            updateProperties();
+            setChanged(true);
+        }
+    }
+
     void NeuroNetworkItem::cleanup()
     {
         // we need to do this before the connections are broken
@@ -64,6 +105,48 @@ namespace NeuroGui
         }
 
         NeuroItem::cleanup();
+    }
+
+    void NeuroNetworkItem::toggleActivated()
+    {
+        LabScene *sc = dynamic_cast<LabScene *>(scene());
+        Q_ASSERT(sc);
+
+        QList<QGraphicsItem *> items = sc->selectedItems();
+        if (sc->itemUnderMouse() && !items.contains(sc->itemUnderMouse()))
+            items.append(sc->itemUnderMouse());
+
+        foreach (QGraphicsItem *gi, items)
+        {
+            NeuroNetworkItem *item = dynamic_cast<NeuroNetworkItem *>(gi);
+            if (item)
+            {
+                NeuroCell::Value val = qAbs(item->outputValue()) < 0.01f ? 1 : 0;
+
+                if ((dynamic_cast<NeuroInhibitoryLinkItem *>(item)))
+                    val = -val;
+
+                item->setOutputValue(val);
+                item->updateProperties();
+                item->setChanged(true);
+            }
+        }
+    }
+
+    void NeuroNetworkItem::toggleFrozen()
+    {
+        Q_ASSERT(scene());
+
+        foreach (QGraphicsItem *gi, scene()->selectedItems())
+        {
+            NeuroNetworkItem *item = dynamic_cast<NeuroNetworkItem *>(gi);
+            if (item)
+            {
+                item->setFrozen(!item->frozen());
+                item->updateProperties();
+                item->setChanged(true);
+            }
+        }
     }
 
     QString NeuroNetworkItem::dataValue() const

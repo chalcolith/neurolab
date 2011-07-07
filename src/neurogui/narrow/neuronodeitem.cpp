@@ -41,7 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QVector2D>
 #include <QApplication>
-#include <QMenu>
 
 #include <QtVariantProperty>
 
@@ -165,7 +164,6 @@ namespace NeuroGui
 
     NeuroNodeItem::NeuroNodeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNodeItemBase(network, scenePos, context),
-        _frozen_property(this, &NeuroNodeItem::frozen, &NeuroNodeItem::setFrozen, tr("Frozen")),
         _inputs_property(this, &NeuroNodeItem::inputs, &NeuroNodeItem::setInputs,
                          tr("Input Threshold"), tr("How large an input signal will it take to fully activate the node.")),
         _run_property(this, &NeuroNodeItem::run, &NeuroNodeItem::setRun,
@@ -181,22 +179,6 @@ namespace NeuroGui
 
     NeuroNodeItem::~NeuroNodeItem()
     {
-    }
-
-    bool NeuroNodeItem::frozen() const
-    {
-        const NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
-        return cell ? cell->current().frozen() : false;
-    }
-
-    void NeuroNodeItem::setFrozen(const bool & frozen)
-    {
-        NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
-        if (cell)
-        {
-            cell->current().setFrozen(frozen);
-            //cell->former().setFrozen(frozen);
-        }
     }
 
     NeuroCell::Value NeuroNodeItem::inputs() const
@@ -245,81 +227,6 @@ namespace NeuroGui
 
         if (frozen())
             pen.setColor(lerp(pen.color(), Qt::gray, 0.5f));
-    }
-
-    void NeuroNodeItem::buildActionMenu(LabScene *, const QPointF &, QMenu & menu)
-    {
-        menu.addAction(tr("Activate/Deactivate"), this, SLOT(toggleActivated()));
-        menu.addAction(tr("Freeze/Unfreeze"), this, SLOT(toggleFrozen()));
-    }
-
-    void NeuroNodeItem::reset()
-    {
-        if (!frozen())
-        {
-            setOutputValue(0);
-            updateProperties();
-        }
-    }
-
-    void NeuroNodeItem::toggleActivated()
-    {
-        LabScene *sc = dynamic_cast<LabScene *>(scene());
-        Q_ASSERT(sc);
-
-        QList<QGraphicsItem *> items = sc->selectedItems();
-        if (sc->itemUnderMouse() && !items.contains(sc->itemUnderMouse()))
-            items.append(sc->itemUnderMouse());
-
-        foreach (QGraphicsItem *gi, items)
-        {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(gi);
-            if (item)
-            {
-                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
-
-                if (cell)
-                {
-                    NeuroCell::Value val = 0;
-
-                    if (qAbs(cell->current().outputValue()) < 0.01f)
-                        val = 1;
-
-                    if (cell->current().weight() < 0)
-                        val *= -1;
-
-                    cell->current().setOutputValue(val);
-                    //cell->former().setOutputValue(val);
-
-                    item->updateProperties();
-                }
-            }
-        }
-
-        sc->network()->setChanged(true);
-    }
-
-    void NeuroNodeItem::toggleFrozen()
-    {
-        Q_ASSERT(scene());
-
-        foreach (QGraphicsItem *gi, scene()->selectedItems())
-        {
-            NeuroNodeItem *item = dynamic_cast<NeuroNodeItem *>(gi);
-            if (item)
-            {
-                NeuroNet::ASYNC_STATE *cell = item->getCell(_cellIndices.last());
-                if (cell)
-                {
-                    bool val = !cell->current().frozen();
-
-                    cell->current().setFrozen(val);
-                    //cell->former().setFrozen(val);
-
-                    item->updateProperties();
-                }
-            }
-        }
     }
 
 
@@ -413,15 +320,17 @@ namespace NeuroGui
 
     void NeuroOscillatorItem::reset()
     {
+        if (frozen())
+            return;
+
         NeuroNet::ASYNC_STATE *cell = _cellIndices.size() > 0 ? getCell(_cellIndices.first()) : 0;
         if (cell)
         {
             cell->current().setStep(0);
-            //cell->former().setStep(0);
             cell->current().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
-            //cell->former().setOutputValue(cell->current().phase() == 0 ? 1 : 0);
 
             updateProperties();
+            setChanged(true);
         }
     }
 

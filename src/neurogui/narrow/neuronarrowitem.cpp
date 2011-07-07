@@ -107,12 +107,6 @@ namespace NeuroGui
         }
     }
 
-    void NeuroNarrowItem::reset()
-    {
-        setOutputValue(0);
-        updateProperties();
-    }
-
     void NeuroNarrowItem::writeClipboard(QDataStream &ds, const QMap<int, int> &id_map) const
     {
         NeuroNetworkItem::writeClipboard(ds, id_map);

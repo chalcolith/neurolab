@@ -69,7 +69,7 @@ namespace GridItems
         virtual void setWeight(const Value &);
 
         virtual Value outputValue() const;
-        virtual void setOutputValue(const Value &) {}
+        virtual void setOutputValue(const Value &);
 
         virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
         virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;

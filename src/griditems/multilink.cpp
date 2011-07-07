@@ -323,6 +323,39 @@ namespace GridItems
         return max;
     }
 
+    void MultiLink::setOutputValue(const Value & val)
+    {
+        if (_override_index != -1)
+        {
+            NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
+            if (cell)
+                cell->current().setOutputValue(val);
+            return;
+        }
+
+        foreach (QList<Index> line, _frontward_lines)
+        {
+            if (line.size() > 0)
+            {
+                NeuroNet::ASYNC_STATE *cell = getCell(line.last());
+                if (cell)
+                    cell->current().setOutputValue(val);
+            }
+        }
+
+        foreach (QList<Index> line, _backward_lines)
+        {
+            if (line.size() > 0)
+            {
+                NeuroNet::ASYNC_STATE *cell = getCell(line.last());
+                if (cell)
+                    cell->current().setOutputValue(val);
+            }
+        }
+
+        setChanged(true);
+    }
+
     QList<MultiLink::Index> MultiLink::getIncomingCellsFor(const NeuroItem *item) const
     {
         QList<Index> results;
