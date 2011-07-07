@@ -141,9 +141,7 @@ sub build
 
     chdir $path or die "Unable to cd to $path: $!\n";
 
-    my $cmd = $is_darwin
-        ? "qmake $project -spec macx-g++ CONFIG-=debug CONFIG+=release"
-        : "$qt_base_dir/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
+    my $cmd = "$qt_base_dir/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
 
     my $retval = system($cmd);
     $retval = system('make') if $retval == 0;

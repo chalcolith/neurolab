@@ -5,9 +5,6 @@ QT += svg
 TARGET = neurolab
 TEMPLATE = app
 
-macx { CONFIG += x86 }
-macx { CONFIG -= x86_64 }
-
 include(../version.txt)
 
 INCLUDEPATH += ../thirdparty/qtpropertybrowser/qtpropertybrowser-2.5_1-opensource/src

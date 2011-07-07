@@ -1052,7 +1052,11 @@ namespace GridItems
 
         foreach (NeuroNetworkItem *ni, _top_connections)
         {
+#ifdef __APPLE__
+            IdType wanted_id = reinterpret_cast<quint64>(ni);
+#else
             IdType wanted_id = reinterpret_cast<IdType>(ni);
+#endif
             NeuroNetworkItem *wanted_item = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);
 
             if (wanted_item)
@@ -1066,7 +1070,11 @@ namespace GridItems
         toAdd.clear();
         foreach (NeuroNetworkItem *ni, _bottom_connections)
         {
+#ifdef __APPLE__
+            IdType wanted_id = reinterpret_cast<quint64>(ni);
+#else
             IdType wanted_id = reinterpret_cast<IdType>(ni);
+#endif
             NeuroNetworkItem *wanted_item = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);
 
             if (wanted_item)
@@ -1082,7 +1090,11 @@ namespace GridItems
         QMap<NeuroNetworkItem *, QMap<Index, Index> >::const_iterator i = _edges.constBegin(), end = _edges.constEnd();
         while (i != end)
         {
+#ifdef __APPLE__
+            IdType wanted_id = reinterpret_cast<quint64>(i.key());
+#else
             IdType wanted_id = reinterpret_cast<IdType>(i.key());
+#endif
             NeuroNetworkItem *wanted_item = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);
             if (wanted_item)
                 new_edges[wanted_item] = i.value();

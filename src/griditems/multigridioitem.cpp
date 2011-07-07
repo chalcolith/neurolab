@@ -298,7 +298,11 @@ namespace GridItems
 
     void MultiGridIOItem::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> &idMap)
     {
+#ifdef __APPLE__
+        IdType wanted_id = reinterpret_cast<quint64>(_top_item);
+#else
         IdType wanted_id = reinterpret_cast<IdType>(_top_item);
+#endif
         if (wanted_id != 0)
         {
             NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);
@@ -306,7 +310,11 @@ namespace GridItems
                 _top_item = ni;
         }
 
+#ifdef __APPLE__
+        wanted_id = reinterpret_cast<quint64>(_bottom_item);
+#else
         wanted_id = reinterpret_cast<IdType>(_bottom_item);
+#endif
         if (wanted_id != 0)
         {
             NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(idMap[wanted_id]);

@@ -358,7 +358,11 @@ namespace NeuroGui
         NeuroNetworkItem::idsToPointers(idMap);
         MixinArrow::idsToPointers(idMap);
 
+#ifdef __APPLE__
+        NeuroItem::IdType governingId = reinterpret_cast<quint64>(_governingItem);
+#else
         NeuroItem::IdType governingId = reinterpret_cast<NeuroItem::IdType>(_governingItem);
+#endif
         NeuroItem *wanted_item = idMap[governingId];
 
         if (governingId && wanted_item)
@@ -370,7 +374,11 @@ namespace NeuroGui
             throw Common::FileFormatError(tr("Subconnection item in file has dangling governing item: %1").arg(governingId));
         }
 
+#ifdef __APPLE__
+        NeuroItem::IdType parentId = reinterpret_cast<quint64>(_parentSubnetworkItem);
+#else
         NeuroItem::IdType parentId = reinterpret_cast<NeuroItem::IdType>(_parentSubnetworkItem);
+#endif
         SubNetworkItem *wanted_parent = dynamic_cast<SubNetworkItem *>(idMap[parentId]);
 
         if (parentId && wanted_parent)

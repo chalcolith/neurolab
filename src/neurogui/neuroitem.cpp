@@ -848,7 +848,11 @@ namespace NeuroGui
 
         foreach (NeuroItem *ni, _connections)
         {
+#ifdef __APPLE__
+            IdType wanted_id = reinterpret_cast<quint64>(ni);
+#else
             IdType wanted_id = reinterpret_cast<IdType>(ni);
+#endif
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)

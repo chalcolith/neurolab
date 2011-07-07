@@ -6,8 +6,6 @@ TARGET = griditems
 TEMPLATE = lib
 
 macx { CONFIG += lib_bundle }
-macx { CONFIG += x86 }
-macx { CONFIG -= x86_64 }
 
 include(../version.txt)
 

@@ -144,7 +144,7 @@ namespace NeuroGui
                 toBack *= qMin(max_c_len, qMax(len * 3, static_cast<qreal>(NeuroItem::NODE_WIDTH)));
 
                 c1 = (center + toBack) - myPos;
-            }                       
+            }
 
             if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
             {
@@ -415,7 +415,11 @@ namespace NeuroGui
 
     void MixinArrow::idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap)
     {
+#ifdef __APPLE__
+        NeuroItem::IdType frontId = reinterpret_cast<quint64>(_frontLinkTarget);
+#else
         NeuroItem::IdType frontId = reinterpret_cast<NeuroItem::IdType>(_frontLinkTarget);
+#endif
         NeuroItem *frontItem = idMap[frontId];
 
         if (frontId && frontItem)
@@ -427,7 +431,11 @@ namespace NeuroGui
             throw Common::FileFormatError(QObject::tr("Link in file has dangling ID: %1").arg(frontId));
         }
 
+#ifdef __APPLE__
+        NeuroItem::IdType backId = reinterpret_cast<quint64>(_backLinkTarget);
+#else
         NeuroItem::IdType backId = reinterpret_cast<NeuroItem::IdType>(_backLinkTarget);
+#endif
         NeuroItem *backItem = idMap[backId];
 
         if (backId && backItem)
@@ -444,7 +452,11 @@ namespace NeuroGui
 
         foreach (NeuroItem *ni, _incoming)
         {
+#ifdef __APPLE__
+            NeuroItem::IdType wanted_id = reinterpret_cast<quint64>(ni);
+#else
             NeuroItem::IdType wanted_id = reinterpret_cast<NeuroItem::IdType>(ni);
+#endif
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)
