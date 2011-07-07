@@ -3,7 +3,7 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '/opt/QtSDK/Desktop/Qt/473/gcc';
+my $qt_base_dir = '~/QtSDK/Desktop/Qt/473/gcc';
 
 my $cwd = getcwd();
 if ($cwd =~ /^(.*src)/)
