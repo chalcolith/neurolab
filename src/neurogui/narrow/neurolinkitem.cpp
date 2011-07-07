@@ -119,6 +119,9 @@ namespace NeuroGui
 
         if (newLength != _cellIndices.size())
         {
+            bool fr = frozen();
+            int per = persist();
+
             // disconnect connections
             foreach (NeuroItem *ni, connections())
                 removeEdges(ni);
@@ -154,6 +157,9 @@ namespace NeuroGui
             // re-connect
             foreach (NeuroItem *ni, connections())
                 addEdges(ni);
+
+            setFrozen(fr);
+            setPersist(per);
         }
 
         // update property if necessary

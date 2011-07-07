@@ -143,6 +143,7 @@ namespace NeuroGui
         void newNetworkOpened(LabNetwork *);
         void newDataFileOpened(LabDataFile *);
 
+        void itemChanged(NeuroItem *);
         void itemSelected(NeuroItem *);
         void itemDeleted(NeuroItem *);
 
@@ -174,6 +175,7 @@ namespace NeuroGui
         void createdItem(NeuroItem *);
         void propertyValueChanged(QtProperty *, const QVariant &);
 
+        void changedItem(NeuroItem *);
         void selectedItem(NeuroItem *);
         void deletedItem(NeuroItem *);
 

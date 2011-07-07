@@ -114,6 +114,9 @@ namespace NeuroLib
         /// \see NeuroCell::weight()
         void setWeight(const Value & weight) { _weight = weight; }
 
+        inline int persist() const { return _persist; }
+        inline void setPersist(const int & p) { _persist = p % 15; }
+
         /// \return The distance in which the node's output sigmoid curve goes from close to 0 to close to 1
         ///         (conceptually the inverse of the slope of the curve).
         /// \see NeuroCell::NeuroCell()
@@ -184,8 +187,10 @@ namespace NeuroLib
         Value _output_value;
         Value _running_average; ///< The running average of output values.
 
-        KindOfCell _kind   : 3;
-        bool       _frozen : 1;
+        Step       _persist : 4; ///< How long an cell will hold its value before decaying.
+
+        KindOfCell _kind    : 3; ///< What kind of cell it is.
+        bool       _frozen  : 1; ///< Whether or not the cell is frozen.
     }; // class NeuroCell
 
 } // namespace NeuroLib

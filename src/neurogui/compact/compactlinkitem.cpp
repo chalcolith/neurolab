@@ -121,6 +121,9 @@ namespace NeuroGui
 
         if (newLength != length())
         {
+            bool fr = frozen();
+            int per = persist();
+
             // disconnect connections
             foreach (NeuroItem *item, connections())
                 removeEdges(item);
@@ -166,6 +169,9 @@ namespace NeuroGui
             // re-connect
             foreach (NeuroItem *item, connections())
                 addEdges(item);
+
+            setFrozen(fr);
+            setPersist(per);
         }
 
         if (updateValue)

@@ -57,6 +57,7 @@ namespace NeuroGui
     protected:
         Property<NeuroNetworkItem, QVariant::Bool, bool, bool> _frozen_property;
         Property<NeuroNetworkItem, QVariant::Double, double, Value> _value_property;
+        Property<NeuroNetworkItem, QVariant::Int, int, int> _persist_property;
 
         mutable QList<Index> _incoming_cells; // these are just for convenience;
         mutable QList<Index> _outgoing_cells;
@@ -71,6 +72,9 @@ namespace NeuroGui
 
         virtual Value outputValue() const = 0;
         virtual void setOutputValue(const Value &) = 0;
+
+        int persist() const;
+        void setPersist(const int & p);
 
         bool frozen() const;
         void setFrozen(const bool & f);

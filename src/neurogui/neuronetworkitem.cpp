@@ -53,12 +53,41 @@ namespace NeuroGui
           _value_property(this, &NeuroNetworkItem::outputValue, &NeuroNetworkItem::setOutputValue,
               tr("Output Value"),
               tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
+          _persist_property(this, &NeuroNetworkItem::persist, &NeuroNetworkItem::setPersist,
+              tr("Persistance"),
+              tr("The number of steps an item's neuro-net cells will stay active before beginning to decay.")),
           _override_index(-1)
     {
     }
 
     NeuroNetworkItem::~NeuroNetworkItem()
     {
+    }
+
+    int NeuroNetworkItem::persist() const
+    {
+        QList<Index> cells = allCells();
+        const NeuroNet::ASYNC_STATE *cell = cells.size() > 0 ? getCell(cells.first()) : 0;
+        return cell ? cell->current().persist() : 1;
+    }
+
+    void NeuroNetworkItem::setPersist(const int & _p)
+    {
+        int p = _p;
+
+        if (p < 1)
+            p = 1;
+        if (p > 15)
+            p = 15;
+
+        foreach (Index index, allCells())
+        {
+            NeuroNet::ASYNC_STATE *cell = getCell(index);
+            if (cell)
+                cell->current().setPersist(p);
+        }
+
+        _persist_property.setValueInPropertyBrowser(QVariant(p));
     }
 
     bool NeuroNetworkItem::frozen() const

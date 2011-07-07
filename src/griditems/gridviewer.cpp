@@ -53,9 +53,9 @@ namespace GridItems
           _distance(8), _angle(0),
           _grid_item(0)
     {
-        bool res = connect(MainWindow::instance(), SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
-        res = connect(MainWindow::instance(), SIGNAL(postStep()), this, SLOT(postStep()));
-        res = true;
+        connect(MainWindow::instance(), SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
+        connect(MainWindow::instance(), SIGNAL(postStep()), this, SLOT(postStep()));
+        connect(MainWindow::instance(), SIGNAL(itemChanged(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
     }
 
     GridViewer::~GridViewer()

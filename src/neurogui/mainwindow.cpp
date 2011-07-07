@@ -972,6 +972,11 @@ namespace NeuroGui
         }
     }
 
+    void MainWindow::changedItem(NeuroItem *item)
+    {
+        emit itemChanged(item);
+    }
+
     void MainWindow::selectedItem(NeuroItem *item)
     {
         emit itemSelected(item);

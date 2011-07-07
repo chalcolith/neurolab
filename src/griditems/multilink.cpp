@@ -89,6 +89,9 @@ namespace GridItems
 
         if (new_width != width())
         {
+            bool fr = frozen();
+            int per = persist();
+
             // disconnect connections (from the other end, since the grid item has special handling)
             foreach (NeuroItem *item, connections())
             {
@@ -147,6 +150,9 @@ namespace GridItems
                 if (ni)
                     ni->addEdges(this);
             }
+
+            setFrozen(fr);
+            setPersist(per);
         }
 
         if (updateValue)
@@ -170,6 +176,9 @@ namespace GridItems
 
         if (new_len != length())
         {
+            bool fr = frozen();
+            int per = persist();
+
             // disconnect connections (from the other end)
             foreach (NeuroItem *item, connections())
             {
@@ -251,6 +260,9 @@ namespace GridItems
                 if (ni)
                     ni->addEdges(this);
             }
+
+            setFrozen(fr);
+            setPersist(per);
         }
 
         if (updateValue)

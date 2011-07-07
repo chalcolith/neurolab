@@ -56,6 +56,7 @@ namespace NeuroLib
         NEUROLIB_FILE_VERSION_1   = 1,
         NEUROLIB_FILE_VERSION_2   = 2,
         NEUROLIB_FILE_VERSION_3   = 3,
+        NEUROLIB_FILE_VERSION_4   = 4,
         NEUROLIB_NUM_FILE_VERSIONS
     };
 

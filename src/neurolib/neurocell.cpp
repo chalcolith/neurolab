@@ -51,7 +51,7 @@ namespace NeuroLib
         : _weight(weight), _run(run),
         _output_value(current_value),
         _running_average(current_value),
-        _kind(k), _frozen(false)
+        _persist(1), _kind(k), _frozen(false)
     {
     }
 
@@ -114,14 +114,17 @@ namespace NeuroLib
         Value diff, delta;
         int num_neighbors;
 
+        Value avg_threshold = qMin((Value)prev._persist, network->learnTime());
+
         switch (prev._kind)
         {
         case NODE:
             {
                 // node output
                 next_value = sigmoid(prev._weight, prev._run, input_sum);
+                Value decay_factor = sigmoid(avg_threshold / network->learnTime(), next_value, prev._running_average);
 
-                next_value = qMax(next_value, prev._output_value * (ONE - network->decay()));
+                next_value = qMax(next_value, prev._output_value * (ONE - decay_factor * network->decay()));
                 next_value *= inhibit_factor;
 
                 // hebbian learning (link learning)
@@ -197,7 +200,8 @@ namespace NeuroLib
             break;
         case INHIBITORY_LINK:
             // the weight should be negative, so only clip the inputs
-            next_value = qBound(ZERO, input_sum, ONE) * inhibit_factor * prev._weight;
+            next_value = qBound(ZERO, input_sum, ONE) * inhibit_factor;
+            next_value *= prev._weight;
             break;
         default:
             break;
@@ -211,6 +215,7 @@ namespace NeuroLib
     {
         ds << static_cast<quint8>(_kind);
         ds << static_cast<bool>(_frozen);
+        ds << static_cast<quint8>(_persist);
 
         switch (_kind)
         {
@@ -234,17 +239,22 @@ namespace NeuroLib
         ds << static_cast<float>(_running_average);
     }
 
-    void NeuroCell::readBinary(QDataStream & ds, const Automata::AutomataFileVersion &)
+    void NeuroCell::readBinary(QDataStream & ds, const Automata::AutomataFileVersion & file_version)
     {
         // if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_OLD)
         {
-            quint8 k;
+            quint8 k, p;
             quint16 s;
             float n;
             bool f;
 
             ds >> k; _kind = static_cast<NeuroCell::KindOfCell>(k);
             ds >> f; _frozen = static_cast<bool>(f);
+
+            if (file_version.client_version >= NeuroLib::NEUROLIB_FILE_VERSION_4)
+            {
+                ds >> p; _persist = p;
+            }
 
             switch (_kind)
             {

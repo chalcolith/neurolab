@@ -421,13 +421,19 @@ namespace NeuroGui
         del->setEnabled(scene->selectedItems().size() > 0 || scene->itemUnderMouse());
     }
 
-    void NeuroItem::setChanged(bool changed)
+    void NeuroItem::setChanged(bool ch)
     {
         Q_ASSERT(_network != 0);
-        _network->setChanged(changed);
+        _network->setChanged(ch);
 
         updateShape();
         update();
+
+        if (ch)
+        {
+            emit changed();
+            MainWindow::instance()->changedItem(this);
+        }
     }
 
     void NeuroItem::updateProperties()

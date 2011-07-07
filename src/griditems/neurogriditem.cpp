@@ -727,6 +727,11 @@ namespace GridItems
             min_y = max_y - 2;
         }
 
+        max_x += 30;
+        min_x -= 30;
+        max_y += 30;
+        min_y += 30;
+
         // make copies of the pattern for each grid square
         _gl_line_array.resize(_num_vert * _num_horiz * pattern_cells_to_lines.size() * 6);
         _gl_line_color_array.resize(_num_vert * _num_horiz * pattern_cells_to_lines.size() * 6);
