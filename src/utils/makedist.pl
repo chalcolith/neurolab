@@ -17,7 +17,7 @@ die "You must be in the src directory to run makedist.\n" unless -d 'utils';
 my $is_darwin = `uname` =~ 'Darwin';
 
 print "cleaning...\n";
-&run('sh utils/distclean.sh');
+#&run('sh utils/distclean.sh');
 unlink 'utils/incversion/incversion';
 
 print "updating...\n";
@@ -141,7 +141,8 @@ sub build
 
     chdir $path or die "Unable to cd to $path: $!\n";
 
-    my $cmd = "$qt_base_dir/bin/qmake $project -spec linux-g++ CONFIG-=debug CONFIG+=release";
+    my $spec = $is_darwin ? "macx-g++" : "linux-g++";
+    my $cmd = "$qt_base_dir/bin/qmake $project -spec $spec CONFIG-=debug CONFIG+=release";
 
     my $retval = system($cmd);
     $retval = system('make') if $retval == 0;

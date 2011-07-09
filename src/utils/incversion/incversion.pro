@@ -7,6 +7,7 @@
 QT       -= gui
 
 TARGET = incversion
+CONFIG += debug_and_release
 CONFIG   += console static
 CONFIG   -= app_bundle
 

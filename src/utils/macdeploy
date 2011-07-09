@@ -5,7 +5,7 @@ use strict;
 my $release_dir = '../neurolab_all-build-desktop/debug';
 $release_dir = '../neurolab_all-build-desktop/release' if grep /--release/, @ARGV;
 
-my $qtlibdir = '/Library/Frameworks';
+my $qtlibdir = '~/QtSDK/Desktop/Qt/473/gcc/lib';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 for my $arg (@ARGV)
@@ -66,7 +66,7 @@ sub process_libraries
         my $relpath;
 
         # recursively process library
-        if ($library =~ /\W(Qt\w+)/)
+        if ($library =~ /\W(Qt[^\/]+)$/)
         {
             my $libname = $1;
             $relpath = &process_qt_library($app_dir, $library, $libname);
@@ -128,13 +128,13 @@ sub process_qt_library
 
         unless (grep {$_ eq $qtlib} @libraries_done)
         {
-            print "copying Qt library $qtlib\n";
+            print "copying Qt library $qtlib ($libname)\n";
 
             my $subdir = "$app_dir/Contents/Frameworks/$libname.framework";
             unless ($qtlib =~ /^\@/ || -d $subdir)
             {
                 &run("mkdir -p '$app_dir/Contents/Frameworks'");
-                &run("cp -R '$qtlibdir/$libname.framework/' '$subdir'");
+                &run("cp -R $qtlibdir/$libname.framework $subdir");
 
                 &run("install_name_tool -id '\@executable_path/../$relpath' '$binary'");
                 &run("strip '$binary'") if $release_dir eq 'release';
@@ -155,22 +155,24 @@ sub get_libraries
     my @all_libraries = grep /.+/, map { $1 if /^\s+(.*)\s+\(compatibility/ } `otool -L '$binary'`;
     my @libraries = ();
 
+    print "libraries: @all_libraries\n";
+
     for my $library (@all_libraries)
     {
         #print "considering $library\n";
         next if grep { $_ eq $library } @libraries;
 
-        if ($library =~ /Qt\w+/)
+        if ($library =~ /Qt[^\/]+$/)
         {
             if ($copy_qt)
             {
-                #print "need Qt library $library\n";
+                print "need Qt library $library\n";
                 push @libraries, $library;
             }
         }
         elsif ($library !~ /^[\/]/)
         {
-            #print "need library $library\n";
+            print "need library $library\n";
             push @libraries, $library;
         }
     }
@@ -181,7 +183,7 @@ sub get_libraries
 sub run
 {
     my ($cmd) = @_;
-    #print "$cmd\n";
+    print "$cmd\n";
     my $retval = system($cmd);
     die "aborted: $!\n" if $retval != 0;
 }
