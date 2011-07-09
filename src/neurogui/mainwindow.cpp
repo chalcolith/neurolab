@@ -686,7 +686,7 @@ namespace NeuroGui
     void MainWindow::setStatus(const QString & status)
     {
         _ui->statusBar->showMessage(status);
-        qDebug() << status;
+        //qDebug() << status;
     }
 
     void MainWindow::setProgressRange(int minimum, int maximum)
