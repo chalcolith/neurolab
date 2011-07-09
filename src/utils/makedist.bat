@@ -23,9 +23,9 @@ set PROJECT_NAME=neurolab_all
 set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
 set DISTRIB_DIR=..\distrib
 
-for /f usebackq %%i in (`dir /b /od C:\Qt\*`) do set QT_DIST_DIR=C:\Qt\%%i
+set QT_DIST_DIR=C:\QtSDK\Desktop\Qt\4.7.3\mingw
 set QTDIR=%QT_DIST_DIR%
-set MINGW_DIR=C:\Qt\QtCreator-2.1.0\MinGW
+set MINGW_DIR=C:\QtSDK\mingw
 set QMAKESPEC=win32-g++
 
 echo determining qt path...
