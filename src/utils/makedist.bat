@@ -116,12 +116,16 @@ xcopy /y ..\samples\*.nln %RELEASE_DIR%\samples
 xcopy /y ..\samples\*.nnn %RELEASE_DIR%\samples 
 if ERRORLEVEL 1 goto :EOF
 
+echo copying plugins...
+call :copyfile %SHADOW_DIR%\release\plugins\*.dll %RELEASE_DIR%\plugins
+
 echo copying libraries...
 call :copyfile "%MINGW_DIR%\bin\libgcc_s_dw2-1.dll" %RELEASE_DIR%
 call :copyfile "%MINGW_DIR%\bin\mingwm10.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\bin\qtcore4.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\bin\qtgui4.dll" %RELEASE_DIR%
 call :copyfile "%QT_DIST_DIR%\bin\qtsvg4.dll" %RELEASE_DIR%
+call :copyfile "%QT_DIST_DIR%\bin\qtopengl4.dll" %RELEASE_DIR%
 if ERRORLEVEL 1 goto :EOF
 
 echo copying program...
