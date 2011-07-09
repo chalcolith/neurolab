@@ -32,13 +32,13 @@ for my $entry (@entries)
 sub process_app
 {
     my ($app_dir, $app_name) = @_;
-    print "processing $app_dir\n";
+    #print "processing $app_dir\n";
 
     my $binary = "$app_dir/Contents/MacOS/$app_name";
     &process_libraries($app_dir, $binary);
 
     my $framework_dir = "$app_dir/Contents/Frameworks";
-    print "frameworks: $framework_dir\n";
+    #print "frameworks: $framework_dir\n";
     opendir my $dh, $framework_dir or die "unable to open $framework_dir: $!\n";
     my @dirs = readdir $dh;
     closedir $dh;
@@ -128,7 +128,7 @@ sub process_qt_library
 
         unless (grep {$_ eq $qtlib} @libraries_done)
         {
-            print "copying Qt library $qtlib ($libname)\n";
+            #print "copying Qt library $qtlib ($libname)\n";
 
             my $subdir = "$app_dir/Contents/Frameworks/$libname.framework";
             unless ($qtlib =~ /^\@/ || -d $subdir)
@@ -155,7 +155,7 @@ sub get_libraries
     my @all_libraries = grep /.+/, map { $1 if /^\s+(.*)\s+\(compatibility/ } `otool -L '$binary'`;
     my @libraries = ();
 
-    print "libraries: @all_libraries\n";
+    #print "libraries: @all_libraries\n";
 
     for my $library (@all_libraries)
     {
@@ -166,13 +166,13 @@ sub get_libraries
         {
             if ($copy_qt)
             {
-                print "need Qt library $library\n";
+                #print "need Qt library $library\n";
                 push @libraries, $library;
             }
         }
         elsif ($library !~ /^[\/]/)
         {
-            print "need library $library\n";
+            #print "need library $library\n";
             push @libraries, $library;
         }
     }
@@ -183,7 +183,7 @@ sub get_libraries
 sub run
 {
     my ($cmd) = @_;
-    print "$cmd\n";
+    #print "$cmd\n";
     my $retval = system($cmd);
     die "aborted: $!\n" if $retval != 0;
 }

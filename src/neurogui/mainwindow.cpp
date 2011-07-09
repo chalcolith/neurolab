@@ -412,7 +412,9 @@ namespace NeuroGui
                 Plugin::cleanup_all();
             }
             else
+            {
                 event->ignore();
+            }
         }
     }
 

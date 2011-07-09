@@ -105,6 +105,7 @@ else
     &run("cp -a $qt_base_dir/lib/libQtCore.so* $release_dir");
     &run("cp -a $qt_base_dir/lib/libQtSvg.so* $release_dir");
     &run("cp -a $qt_base_dir/lib/libQtGui.so* $release_dir");
+    &run("cp -a $qt_base_dir/lib/libQtOpenGL.so* $release_dir");
 
     &run("cp -a $build_dir/release/* $release_dir");
 
