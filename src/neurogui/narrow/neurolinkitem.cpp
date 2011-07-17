@@ -404,7 +404,10 @@ namespace NeuroGui
         NeuroLinkItem::addToShape(drawPath, texts);
 
         QVector2D front(_line.p2());
-        QVector2D dir(front - c2);
+        QVector2D back(_line.p1());
+        QVector2D dir = (front - c2).normalized() * 0.6
+                + (front - c1).normalized() * 0.25
+                + (front - back).normalized() * 0.15;
 
         addPoint(drawPath, _line.p2(), dir.normalized(), ELLIPSE_WIDTH);
     }

@@ -27,3 +27,4 @@ glob:distrib/*.exe
 glob:distrib/*.msi
 glob:distrib/WindowsInstaller*
 glob:.DS_Store
+glob:issues
