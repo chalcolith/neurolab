@@ -780,10 +780,10 @@ namespace NeuroGui
         _max_steps = numSteps * 3; // takes 3 steps of the automaton to fully process
         _step_time.start();
 
-        emit actionsEnabled(false);
 
         if (numSteps > 1)
         {
+            emit actionsEnabled(false);
             emit statusChanged(tr("Stepping %1 times...").arg(numSteps));
             emit stepProgressRangeChanged(0, _max_steps);
             emit stepProgressValueChanged(0);
