@@ -163,6 +163,12 @@ namespace NeuroGui
 
         drawPath.moveTo(back);
         drawPath.cubicTo(c1.toPointF(), c2.toPointF(), front);
+
+        // set label pos
+        QPointF label_pos = ((c1 + c2) * 0.5).toPointF();
+        label_pos.setX(label_pos.x() + NeuroItem::NODE_WIDTH/2);
+
+        _self->setLabelPos(label_pos);
     }
 
     void MixinArrow::addPoint(QPainterPath & drawPath, const QPointF & pos, const QVector2D & dir, const qreal & len) const
