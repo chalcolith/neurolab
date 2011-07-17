@@ -122,7 +122,7 @@ namespace NeuroLib
             {
                 // node output
                 next_value = sigmoid(prev._weight, prev._run, input_sum);
-                Value decay_factor = sigmoid(avg_threshold / network->learnTime(), next_value, prev._running_average);
+                Value decay_factor = prev._persist > 1 ? sigmoid(avg_threshold / network->learnTime(), next_value, prev._running_average) : 1;
 
                 next_value = qMax(next_value, prev._output_value * (ONE - decay_factor * network->decay()));
                 next_value *= inhibit_factor;
