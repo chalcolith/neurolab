@@ -347,6 +347,9 @@
    <property name="text">
     <string>Step</string>
    </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
   </action>
   <action name="action_Reset">
    <property name="text">
