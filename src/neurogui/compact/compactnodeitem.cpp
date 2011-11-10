@@ -285,21 +285,13 @@ namespace NeuroGui
     {
         CompactItem::idsToPointers(idMap);
 
-#ifdef __APPLE__
-        IdType wanted_id = reinterpret_cast<quint64>(_tipLinkItem);
-#else
-        IdType wanted_id = reinterpret_cast<IdType>(_tipLinkItem);
-#endif
+        IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(_tipLinkItem));
         _tipLinkItem = idMap[wanted_id]; // can be null
 
         QList<NeuroItem *> itemsToAdd;
         foreach (NeuroItem *ni, _baseLinkItems)
         {
-#ifdef __APPLE__
-            wanted_id = reinterpret_cast<quint64>(ni);
-#else
-            wanted_id = reinterpret_cast<IdType>(ni);
-#endif
+            wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(ni));
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)

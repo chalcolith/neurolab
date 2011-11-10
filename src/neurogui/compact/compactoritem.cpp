@@ -394,11 +394,7 @@ namespace NeuroGui
         QSet<NeuroItem *> itemsToAdd;
         foreach (NeuroItem *ni, _shortcutItems)
         {
-#ifdef __APPLE__
-            NeuroItem::IdType wanted_id = reinterpret_cast<quint64>(ni);
-#else
-            NeuroItem::IdType wanted_id = reinterpret_cast<NeuroItem::IdType>(ni);
-#endif
+            NeuroItem::IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(ni));
             NeuroItem *wanted_item = idMap[wanted_id];
 
             if (wanted_item)

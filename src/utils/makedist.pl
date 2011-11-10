@@ -3,7 +3,7 @@
 use strict;
 use Cwd;
 
-my $qt_base_dir = '~/QtSDK/Desktop/Qt/473/gcc';
+my $qt_base_dir = '~/QtSDK/Desktop/Qt/474/gcc';
 
 my $cwd = getcwd();
 if ($cwd =~ /^(.*src)/)
@@ -53,7 +53,7 @@ $hg_id =~ s/\s+$//;
 print "hg id is $hg_id\n";
 
 # build neurolab
-my $build_dir = '../neurolab_all-build-desktop';
+my $build_dir = '../neurolab_all-build-desktop-Desktop_Qt_4_7_4_for_GCC__Qt_SDK__Release';
 
 print "build neurolab...\n";
 &build($build_dir, '../src/neurolab_all.pro');

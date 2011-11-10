@@ -353,11 +353,7 @@ namespace GridItems
         QSet<NeuroItem *> toAdd;
         foreach (NeuroItem *item, _connections1)
         {
-#ifdef __APPLE__
-            IdType wanted_id = reinterpret_cast<quint64>(item);
-#else
-            IdType wanted_id = reinterpret_cast<IdType>(item);
-#endif
+            IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(item));
             NeuroItem *wanted_item = idMap[wanted_id];
             if (wanted_item)
                 toAdd.insert(wanted_item);
@@ -369,11 +365,7 @@ namespace GridItems
         toAdd.clear();
         foreach (NeuroItem *item, _connections2)
         {
-#ifdef __APPLE__
-            IdType wanted_id = reinterpret_cast<quint64>(item);
-#else
-            IdType wanted_id = reinterpret_cast<IdType>(item);
-#endif
+            IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(item));
             NeuroItem *wanted_item = idMap[wanted_id];
             if (wanted_item)
                 toAdd.insert(wanted_item);

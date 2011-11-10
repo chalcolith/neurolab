@@ -402,13 +402,8 @@ namespace NeuroGui
         {
             SubConnectionItem *val_ptr = _subconnections[key_ptr];
 
-#ifdef __APPLE__
-            NeuroItem::IdType key_id = reinterpret_cast<quint64>(key_ptr);
-            NeuroItem::IdType val_id = reinterpret_cast<quint64>(val_ptr);
-#else
-            NeuroItem::IdType key_id = reinterpret_cast<NeuroItem::IdType>(key_ptr);
-            NeuroItem::IdType val_id = reinterpret_cast<NeuroItem::IdType>(val_ptr);
-#endif
+            IdType key_id = static_cast<IdType>(reinterpret_cast<quint64>(key_ptr));
+            IdType val_id = static_cast<IdType>(reinterpret_cast<quint64>(val_ptr));
 
             key_ptr = idMap[key_id];
             val_ptr = dynamic_cast<SubConnectionItem *>(idMap[val_id]);

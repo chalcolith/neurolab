@@ -94,12 +94,10 @@ namespace NeuroLib
         }
 
         Value input_sum = 0, inhibit_sum = 0;
-        bool inhibited = false;
         for (int i = 0; i < neighbor_indices.size(); ++i)
         {
             if (neighbors[i]._output_value < ZERO)
             {
-                inhibited = true;
                 inhibit_sum += -neighbors[i]._output_value;
             }
             else
