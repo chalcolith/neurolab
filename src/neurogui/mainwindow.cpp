@@ -662,6 +662,7 @@ namespace NeuroGui
     {
         filterActions();
         setTitle(QString());
+        emit changeNetwork();
     }
 
     void MainWindow::setTitle(const QString & title)

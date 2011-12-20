@@ -53,9 +53,10 @@ namespace GridItems
           _distance(8), _angle(0),
           _grid_item(0)
     {
+        connect(MainWindow::instance(), SIGNAL(newNetworkOpened(LabNetwork*)), this, SLOT(newNetworkOpened(LabNetwork*)));
         connect(MainWindow::instance(), SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
-        connect(MainWindow::instance(), SIGNAL(postStep()), this, SLOT(postStep()));
         connect(MainWindow::instance(), SIGNAL(itemChanged(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
+        connect(MainWindow::instance(), SIGNAL(postStep()), this, SLOT(postStep()));
     }
 
     GridViewer::~GridViewer()
@@ -78,11 +79,67 @@ namespace GridItems
         settings.endGroup();
     }
 
+    void GridViewer::setGridItem(NeuroGridItem *grid_item)
+    {
+        if (_grid_item)
+        {
+            disconnect(_grid_item, SIGNAL(changed()), this, SLOT(networkChanged()));
+            disconnect(_grid_item, SIGNAL(gridChanged()), this, SLOT(networkChanged()));
+        }
+
+        _grid_item = grid_item;
+
+        if (_grid_item)
+        {
+            connect(_grid_item, SIGNAL(changed()), this, SLOT(networkChanged()));
+            connect(_grid_item, SIGNAL(gridChanged()), this, SLOT(networkChanged()));
+        }
+    }
+
+    void GridViewer::newNetworkOpened(LabNetwork *new_network)
+    {
+        if (new_network)
+            setGridItem(0);
+        else
+            _grid_item = 0;
+
+        updateGL();
+    }
+
+    void GridViewer::networkChanged()
+    {
+        if (_grid_item)
+            updateGL();
+    }
+
     void GridViewer::selectedItem(NeuroGui::NeuroItem *item)
     {
         NeuroGridItem *gi = dynamic_cast<NeuroGridItem *>(item);
-        _grid_item = gi;
-        updateGL();
+
+        if (gi)
+        {
+            setGridItem(gi);
+            updateGL();
+        }
+    }
+
+    void GridViewer::changedItem(NeuroItem *item)
+    {
+        NeuroGridItem *gi = dynamic_cast<NeuroGridItem *>(item);
+
+        if (gi == _grid_item)
+            updateGL();
+    }
+
+    void GridViewer::deletedItem(NeuroItem *item)
+    {
+        NeuroGridItem *gi = dynamic_cast<NeuroGridItem *>(item);
+
+        if (gi == _grid_item)
+        {
+            setGridItem(0);
+            updateGL();
+        }
     }
 
     void GridViewer::postStep()
@@ -171,6 +228,9 @@ namespace GridItems
 
     void GridViewer::paintGL()
     {
+        if (!this->isVisible())
+            return;
+
         glFogf(GL_FOG_START, _distance - 1.0);
         glFogf(GL_FOG_END, _distance + 1.0);
 
@@ -179,7 +239,8 @@ namespace GridItems
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glTranslated(0, 0, -_distance);
-        glRotated(_angle, 0, 1, 0.01);
+        glRotated(10, 1, 0, 0);
+        glRotated(_angle, 0, 1, 0);
 
 #ifdef DEBUG
         glColor3f(0, 0, 0);

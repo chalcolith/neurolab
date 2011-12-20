@@ -83,7 +83,10 @@ namespace GridItems
 
         connect(network, SIGNAL(networkChanged()), this, SLOT(networkChanged()));
         connect(network, SIGNAL(stepClicked()), this, SLOT(networkStepClicked()));
+        connect(network, SIGNAL(postStep()), this, SLOT(networkPostStep()));
         connect(network, SIGNAL(stepFinished()), this, SLOT(networkStepFinished()));
+        connect(&_horizontal_property, SIGNAL(valueInBrowserChanged()), this, SLOT(propertyChanged()));
+        connect(&_vertical_property, SIGNAL(valueInBrowserChanged()), this, SLOT(propertyChanged()));
     }
 
     NeuroGridItem::~NeuroGridItem()
@@ -94,6 +97,12 @@ namespace GridItems
     {
         SubNetworkItem::makeSubNetwork();
         resizeScene();
+    }
+
+    void NeuroGridItem::propertyChanged()
+    {
+        _pattern_changed = true;
+        generateGrid();
     }
 
     void NeuroGridItem::networkChanged()
@@ -107,6 +116,12 @@ namespace GridItems
     }
 
     void NeuroGridItem::networkPostStep()
+    {
+        copyColors();
+        emit gridChanged();
+    }
+
+    void NeuroGridItem::copyColors()
     {
         // copy colors
         foreach (Index cell_index, _all_grid_cells)
@@ -180,6 +195,8 @@ namespace GridItems
         QRect newSceneRect(topLeft.toPoint(), bottomRight.toPoint());
 
         treeNode()->scene()->setSceneRect(newSceneRect);
+
+        emit gridChanged();
     }
 
     QList<NeuroGridItem::Index> NeuroGridItem::getIncomingCellsFor(const NeuroItem *item) const
@@ -340,10 +357,13 @@ namespace GridItems
     void NeuroGridItem::onEnterView()
     {
         resizeScene();
+
+        emit gridChanged();
     }
 
     void NeuroGridItem::onLeaveView()
     {
+        emit gridChanged();
     }
 
     void NeuroGridItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -424,9 +444,17 @@ namespace GridItems
         return true;
     }
 
+    void NeuroGridItem::onSelected()
+    {
+        generateGrid();
+        emit gridChanged();
+    }
+
     void NeuroGridItem::onAttachedBy(NeuroItem *item)
     {
         NeuroNetworkItem::onAttachedBy(item); // we don't want any sub-connection items
+
+        _pattern_changed = true;
 
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni)
@@ -449,10 +477,14 @@ namespace GridItems
         {
             MixinRemember::onAttachedBy(link);
         }
+
+        emit gridChanged();
     }
 
     void NeuroGridItem::onDetach(NeuroItem *item)
     {
+        _pattern_changed = true;
+
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni)
         {
@@ -467,6 +499,8 @@ namespace GridItems
         }
 
         NeuroNetworkItem::onDetach(item); // no subconnection items
+
+        emit gridChanged();
     }
 
     void NeuroGridItem::adjustLinks()
@@ -503,7 +537,8 @@ namespace GridItems
     }
 
     static void set_gl_vertex(int & vertex_index, QVector<float> & vertices, QVector<float> & colors,
-                              QMap<NeuroGridItem::Index, int> & color_index, NeuroGridItem::Index cell_index, const QPointF & pt,
+                              QMap<NeuroGridItem::Index, int> & color_index,
+                              NeuroGridItem::Index cell_index, const QPointF & pt,
                               float min_x, float max_x, float min_y, float max_y,
                               int col, int row, int num_cols, int num_rows)
     {
@@ -762,15 +797,18 @@ namespace GridItems
                         if (pattern_cells_to_lines.contains(pat_index))
                         {
                             const QLineF ln = pattern_cells_to_lines[pat_index];
-                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array, _gl_line_colors, pat_index, ln.p1(),
+                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array,
+                                          _gl_line_colors, copy_index, ln.p1(),
                                           min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
-                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array, _gl_line_colors, -1, ln.p2(),
+                            set_gl_vertex(line_index, _gl_line_array, _gl_line_color_array,
+                                          _gl_line_colors, -1, ln.p2(),
                                           min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
                         }
                         else if (pattern_cells_to_points.contains(pat_index))
                         {
                             const QPointF pt = pattern_cells_to_points[pat_index];
-                            set_gl_vertex(point_index, _gl_point_array, _gl_point_color_array, _gl_point_colors, pat_index, pt,
+                            set_gl_vertex(point_index, _gl_point_array, _gl_point_color_array,
+                                          _gl_point_colors, copy_index, pt,
                                           min_x, max_x, min_y, max_y, col, row, _num_horiz, _num_vert);
                         }
                     }
@@ -921,9 +959,12 @@ namespace GridItems
             addEdges(item);
 
         // done
+        copyColors();
         QApplication::restoreOverrideCursor();
         MainWindow::instance()->setStatus(tr("Generated neural network grid."));
         _pattern_changed = false;
+
+        emit gridChanged();
 
 #ifdef DEBUG
         // dump graph

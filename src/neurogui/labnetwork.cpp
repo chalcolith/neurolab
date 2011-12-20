@@ -218,6 +218,10 @@ namespace NeuroGui
         QList<QGraphicsItem *> items = scene()->selectedItems();
         for (int i = 0; i < items.size(); ++i)
         {
+            NeuroItem *ni = dynamic_cast<NeuroItem *>(items[i]);
+            if (ni)
+                ni->onSelected();
+
             PropertyObject *po = dynamic_cast<PropertyObject *>(items[i]);
             if (po)
                 property_objects.append(po);

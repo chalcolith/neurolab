@@ -203,6 +203,9 @@ namespace NeuroGui
         /// Returns the target point for an attached link (in scene coordinates; usually the center of the item).
         virtual QPointF targetPointFor(const NeuroItem *) const { return scenePos(); }
 
+        /// Called when item is selected.
+        virtual void onSelected() {}
+
         /// Called when a moving item is attached to a stationary one.
         virtual void onAttachTo(NeuroItem *item) { _connections.insert(item); }
 

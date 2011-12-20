@@ -19,7 +19,8 @@ SOURCES += neurogriditem.cpp \
            multilink.cpp \
            multiitem.cpp \
     gridsplugin.cpp \
-    gridviewer.cpp
+    gridviewer.cpp \
+    textgridioitem.cpp
 
 HEADERS += griditems_global.h \
            neurogriditem.h\
@@ -28,7 +29,8 @@ HEADERS += griditems_global.h \
            multilink.h \
            multiitem.h \
     gridsplugin.h \
-    gridviewer.h
+    gridviewer.h \
+    textgridioitem.h
 
 CONFIG(release, debug|release) { BUILDDIR=release }
 CONFIG(debug, debug|release) {

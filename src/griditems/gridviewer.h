@@ -68,10 +68,16 @@ namespace GridItems
         void saveSettings(QSettings &);
 
     public slots:
+        void newNetworkOpened(LabNetwork *);
+        void networkChanged();
         void selectedItem(NeuroItem *);
+        void changedItem(NeuroItem *);
+        void deletedItem(NeuroItem *);
         void postStep();
 
     protected:
+        void setGridItem(NeuroGridItem *grid_item);
+
         virtual void initializeGL();
         virtual void resizeGL(int w, int h);
         virtual void paintGL();

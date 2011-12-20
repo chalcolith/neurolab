@@ -101,8 +101,12 @@ namespace GridItems
 
         virtual void adjustLinks();
 
+    signals:
+        void gridChanged();
+
     public slots:
         void networkChanged();
+        void propertyChanged();
         void networkStepClicked();
         void networkPostStep();
         void networkStepFinished();
@@ -121,6 +125,7 @@ namespace GridItems
         virtual bool canCreateNewItem(const QString &, const QPointF &) const;
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;
 
+        virtual void onSelected();
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
 
@@ -135,6 +140,7 @@ namespace GridItems
 
     private:
         void adjustIOItem(MultiGridIOItem *gi, bool top);
+        void copyColors();
     };
 
 }
