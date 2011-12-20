@@ -1,5 +1,6 @@
 @echo off
 
+REM Make sure we are in the src directory.
 pushd "%~dp0\.."
 
 if not exist utils goto wrongdir
@@ -20,10 +21,10 @@ REM Build settings
 :build
 echo setting build settings...
 set PROJECT_NAME=neurolab_all
-set SHADOW_DIR=..\%PROJECT_NAME%-build-desktop
+set SHADOW_DIR=..\build-release
 set DISTRIB_DIR=..\distrib
 
-set QT_DIST_DIR=C:\QtSDK\Desktop\Qt\4.7.3\mingw
+set QT_DIST_DIR=C:\QtSDK\Desktop\Qt\4.7.4\mingw
 set QTDIR=%QT_DIST_DIR%
 set MINGW_DIR=C:\QtSDK\mingw
 set QMAKESPEC=win32-g++
@@ -172,7 +173,7 @@ goto :EOF
 REM ----------------------------
 :makezip
 pushd "%DISTRIB_DIR%\%1-%2"
-set ZIPFILE=..\zips\neurocogling-neurolab-%1-%2-win32.zip
+set ZIPFILE=..\zips\neurolab-%1-%2-win32.zip
 echo deleting existing zip
 if exist "%ZIPFILE%" del /q "%ZIPFILE%"
 echo making zip %ZIPFILE%

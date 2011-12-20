@@ -47,11 +47,15 @@ The project is developed in the <a href="http://qt.nokia.com/downloads">Qt Creat
 Due to limitations in the Qt Creator build system, you will need to clone your copy of the NeuroLab repository to a directory that does
 not have spaces in its path.
 
+NOTE: If you want to use the automated build tools, set your shadow directories to be "build-debug" and "build-release" instead of the defaults
+provided by Qt Creator.  You might want to do this anyway on Windows, because the default paths are likely to lead to path names that are too long
+for windows to handle during the build, and you will get strange errors.
+
 Once you have installed the Qt SDK, open the file <tt>src/neurolab_all.pro</tt> in Qt Creator.
 
 \subsection building_linux Building on Linux
 
-On Linux you will need to add or modify the build variable LD_LIBRARY_PATH to include "." before you will be able to run NeuroLab
+On Linux you might need to add or modify the build variable LD_LIBRARY_PATH to include "." before you will be able to run NeuroLab
 from the debugger.
 
 \subsection building_osx Building on Mac OS X

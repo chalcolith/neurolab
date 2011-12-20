@@ -7,4 +7,4 @@ rm -rf `find . -name 'debug'`
 rm -rf `find . -name 'release'`
 rm -rf `find . -name '*.o'`
 
-rm -rf ../*-build-*
+rm -rf ../*build*

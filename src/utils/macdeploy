@@ -2,8 +2,8 @@
 
 use strict;
 
-my $release_dir = '../neurolab_all-build-desktop/debug';
-$release_dir = '../neurolab_all-build-desktop/release' if grep /--release/, @ARGV;
+my $release_dir = '../build-debug/debug';
+$release_dir = '../build-release/release' if grep /--release/, @ARGV;
 
 my $qtlibdir = '~/QtSDK/Desktop/Qt/473/gcc/lib';
 my $copy_qt = grep /--copyqt/, @ARGV;

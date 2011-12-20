@@ -53,7 +53,7 @@ $hg_id =~ s/\s+$//;
 print "hg id is $hg_id\n";
 
 # build neurolab
-my $build_dir = '../neurolab_all-build-desktop-Desktop_Qt_4_7_4_for_GCC__Qt_SDK__Release';
+my $build_dir = '../build-release';
 
 print "build neurolab...\n";
 &build($build_dir, '../src/neurolab_all.pro');
@@ -117,7 +117,7 @@ else
     print "creating tgz file...\n";
     &run("mkdir -p $distrib_dir/tgz");
 
-    my $zipfile = "neurocogling-neurolab-$version-$hg_id-linux.tgz";
+    my $zipfile = "neurolab-$version-$hg_id-linux.tgz";
 
     $zipfile =~ s/linux/linux64/ if `uname -a` =~ 'x86_64';
 
