@@ -56,6 +56,7 @@ namespace GridItems
         connect(MainWindow::instance(), SIGNAL(newNetworkOpened(LabNetwork*)), this, SLOT(newNetworkOpened(LabNetwork*)));
         connect(MainWindow::instance(), SIGNAL(itemSelected(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
         connect(MainWindow::instance(), SIGNAL(itemChanged(NeuroItem*)), this, SLOT(selectedItem(NeuroItem*)));
+        connect(MainWindow::instance(), SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(deletedItem(NeuroItem*)));
         connect(MainWindow::instance(), SIGNAL(postStep()), this, SLOT(postStep()));
     }
 
@@ -81,19 +82,7 @@ namespace GridItems
 
     void GridViewer::setGridItem(NeuroGridItem *grid_item)
     {
-        if (_grid_item)
-        {
-            disconnect(_grid_item, SIGNAL(changed()), this, SLOT(networkChanged()));
-            disconnect(_grid_item, SIGNAL(gridChanged()), this, SLOT(networkChanged()));
-        }
-
         _grid_item = grid_item;
-
-        if (_grid_item)
-        {
-            connect(_grid_item, SIGNAL(changed()), this, SLOT(networkChanged()));
-            connect(_grid_item, SIGNAL(gridChanged()), this, SLOT(networkChanged()));
-        }
     }
 
     void GridViewer::newNetworkOpened(LabNetwork *new_network)
@@ -145,7 +134,10 @@ namespace GridItems
     void GridViewer::postStep()
     {
         if (_grid_item)
+        {
+            _grid_item->copyColors();
             updateGL();
+        }
     }
 
     void GridViewer::initializeGL()
@@ -249,6 +241,8 @@ namespace GridItems
 
         if (_grid_item)
         {
+            _grid_item->generateGrid();
+
             if (_grid_item->glPointArray().size() > 0)
             {
                 glVertexPointer(3, GL_FLOAT, 0, _grid_item->glPointArray().data());

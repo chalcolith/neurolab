@@ -176,8 +176,6 @@ namespace NeuroGui
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
         NeuroNarrowItem::setPenProperties(pen);
-        if (_override_index == -1)
-            setPenGradient(pen, _line);
     }
 
     void NeuroLinkItem::setPenGradient(QPen &pen, const QLineF &line) const

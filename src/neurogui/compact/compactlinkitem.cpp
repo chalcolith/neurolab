@@ -209,13 +209,6 @@ namespace NeuroGui
 
     CompactLinkItem::Value CompactLinkItem::outputValue() const
     {
-        if (_override_index != -1)
-        {
-            const NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
-            if (cell)
-                return cell->current().outputValue();
-        }
-
         return qMax(frontwardOutputValue(), backwardOutputValue());
     }
 
@@ -391,9 +384,6 @@ namespace NeuroGui
     void CompactLinkItem::setPenProperties(QPen &pen) const
     {
         CompactItem::setPenProperties(pen);
-
-        if (_override_index == -1)
-            setPenGradient(pen, _line);
     }
 
     void CompactLinkItem::setPenGradient(QPen &pen, const QLineF &line) const

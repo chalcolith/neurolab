@@ -112,6 +112,7 @@ namespace GridItems
         void networkStepFinished();
         void generateGrid();
         void resizeScene();
+        void copyColors();
 
     protected:
         virtual void onEnterView();
@@ -119,6 +120,7 @@ namespace GridItems
 
         virtual void makeSubNetwork();
 
+        virtual QPointF targetPointFor(const NeuroItem *, bool front) const;
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
 
         virtual bool allowZoom() const { return false; }
@@ -140,7 +142,9 @@ namespace GridItems
 
     private:
         void adjustIOItem(MultiGridIOItem *gi, bool top);
-        void copyColors();
+
+        void removeAllEdges();
+        void addAllEdges(NeuroItem *except);
     };
 
 }

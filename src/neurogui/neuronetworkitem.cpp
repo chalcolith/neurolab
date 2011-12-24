@@ -55,8 +55,7 @@ namespace NeuroGui
               tr("The output value of the node or link, calculated from the values of its inputs in the previous step.")),
           _persist_property(this, &NeuroNetworkItem::persist, &NeuroNetworkItem::setPersist,
               tr("Persistance"),
-              tr("The number of steps an item's neuro-net cells will stay active before beginning to decay.")),
-          _override_index(-1)
+              tr("The number of steps an item's neuro-net cells will stay active before beginning to decay."))
     {
     }
 

@@ -62,8 +62,6 @@ namespace NeuroGui
         mutable QList<Index> _incoming_cells; // these are just for convenience;
         mutable QList<Index> _outgoing_cells;
 
-        Index _override_index;
-
     public:
         explicit NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNetworkItem();
@@ -78,8 +76,6 @@ namespace NeuroGui
 
         bool frozen() const;
         void setFrozen(const bool & f);
-
-        void setOverrideIndex(const Index & idx) { _override_index = idx; }
 
         virtual QList<Index> allCells() const = 0;
 

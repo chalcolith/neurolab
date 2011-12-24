@@ -305,13 +305,6 @@ namespace GridItems
 
     MultiLink::Value MultiLink::outputValue() const
     {
-        if (_override_index != -1)
-        {
-            const NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
-            if (cell)
-                return cell->current().outputValue();
-        }
-
         Value max = 0;
         foreach (QList<Index> line, _frontward_lines)
         {
@@ -337,14 +330,6 @@ namespace GridItems
 
     void MultiLink::setOutputValue(const Value & val)
     {
-        if (_override_index != -1)
-        {
-            NeuroNet::ASYNC_STATE *cell = getCell(_override_index);
-            if (cell)
-                cell->current().setOutputValue(val);
-            return;
-        }
-
         foreach (QList<Index> line, _frontward_lines)
         {
             if (line.size() > 0)
@@ -476,8 +461,6 @@ namespace GridItems
     void MultiLink::setPenProperties(QPen &pen) const
     {
         MultiItem::setPenProperties(pen);
-        if (_override_index == -1)
-            setPenGradient(pen, _line);
     }
 
     void MultiLink::setPenGradient(QPen & pen, const QLineF & line) const
