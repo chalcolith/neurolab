@@ -100,6 +100,7 @@ namespace Automata
             {
                 index = _free_nodes.pop();
                 _nodes[index] = node;
+                _edges[index].clear();
             }
             else
             {
@@ -124,7 +125,7 @@ namespace Automata
                     throw Common::Exception("You cannot remove a node that does not exist.");
 #endif
 
-                _edges[index].resize(0);
+                _edges[index].clear();
 
                 foreach (TIndex src, _edges_to[index])
                 {

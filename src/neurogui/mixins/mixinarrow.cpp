@@ -137,7 +137,7 @@ namespace NeuroGui
 
             if (_backLinkTarget)
             {
-                QVector2D center(_backLinkTarget->targetPointFor(_self));
+                QVector2D center(_backLinkTarget->targetPointFor(_self, false));
                 QVector2D toBack = QVector2D(line().p1()) - center;
                 qreal len = toBack.length();
                 toBack.normalize();
@@ -148,7 +148,7 @@ namespace NeuroGui
 
             if (_frontLinkTarget && !dynamic_cast<NeuroLinkItem *>(_frontLinkTarget))
             {
-                QVector2D center(_frontLinkTarget->targetPointFor(_self));
+                QVector2D center(_frontLinkTarget->targetPointFor(_self, true));
                 QVector2D toFront = QVector2D(line().p2()) - center;
                 qreal len = toFront.length();
                 toFront.normalize();

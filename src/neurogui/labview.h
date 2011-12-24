@@ -67,7 +67,11 @@ namespace NeuroGui
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
 
+    signals:
+        void viewResized();
+
     protected:
+        virtual void resizeEvent(QResizeEvent *event);
         virtual void dragMoveEvent(QDragMoveEvent *event);
         virtual void dropEvent(QDropEvent *event);
     };

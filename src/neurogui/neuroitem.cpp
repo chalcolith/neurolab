@@ -643,6 +643,11 @@ namespace NeuroGui
         return shape().intersects(mouseRect);
     }
 
+    QPointF NeuroItem::targetPointFor(const NeuroItem *, bool) const
+    {
+        return scenePos();
+    }
+
     bool NeuroItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         Q_ASSERT(_network != 0);

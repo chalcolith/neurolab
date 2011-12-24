@@ -350,7 +350,7 @@ namespace GridItems
                 neuronet->removeEdge(i.key(), i.value());
                 ++i;
             }
-            item_edges.clear();
+            _edges.remove(ni);
         }
     }
 
@@ -536,6 +536,9 @@ namespace GridItems
         return all_copies[(row * num_cols) + col];
     }
 
+    static double GL_WIDTH = 2;
+    static double GL_HEIGHT = 3;
+
     static void set_gl_vertex(int & vertex_index, QVector<float> & vertices, QVector<float> & colors,
                               QMap<NeuroGridItem::Index, int> & color_index,
                               NeuroGridItem::Index cell_index, const QPointF & pt,
@@ -549,19 +552,18 @@ namespace GridItems
 
         if (num_cols > 1)
         {
-            float cyl_phi = (col + pat_x) * M_PI * 2 / num_cols;
-            float cyl_y = num_rows > 1 ? 2.0 - (row + pat_y) * 4 / num_rows : 0;
+            float cyl_phi = (((float)col + pat_x)/num_cols) * M_PI * 2;
 
-            x = ::cos(cyl_phi);
-            y = cyl_y;
-            z = -::sin(cyl_phi);
+            x = ::cos(cyl_phi) * GL_WIDTH;
+            z = -::sin(cyl_phi) * GL_WIDTH;
         }
         else
         {
-            x = -1 + pat_x * 2;
-            y = num_rows > 1 ? 2.0 - pat_y * 4 / num_rows : 0;
+            x = pat_x * GL_WIDTH - GL_WIDTH/2;
             z = 0;
         }
+
+        y = GL_HEIGHT/2 - (((float)row + pat_y)/num_rows) * GL_HEIGHT;
 
         if (cell_index != -1)
             color_index[cell_index] = vertex_index;
@@ -725,8 +727,8 @@ namespace GridItems
         }
 
         // get min and max extents of pattern positions
-        float min_x = FLT_MAX, max_x = FLT_MIN;
-        float min_y = FLT_MAX, max_y = FLT_MIN;
+        float min_x = FLT_MAX, max_x = -min_x;
+        float min_y = FLT_MAX, max_y = -min_y;
 
         foreach (QLineF line, pattern_cells_to_lines)
         {
@@ -762,10 +764,10 @@ namespace GridItems
             min_y = max_y - 2;
         }
 
-        max_x += 30;
-        min_x -= 30;
-        max_y += 30;
-        min_y += 30;
+        max_x += 1;
+        min_x -= 1;
+        max_y += 1;
+        min_y -= 1;
 
         // make copies of the pattern for each grid square
         _gl_line_array.resize(_num_vert * _num_horiz * pattern_cells_to_lines.size() * 6);
@@ -967,24 +969,26 @@ namespace GridItems
         emit gridChanged();
 
 #ifdef DEBUG
-        // dump graph
-        {
-            QFile file("neuronet_after_gen.gv");
-            if (file.open(QIODevice::WriteOnly))
-            {
-                QTextStream ts(&file);
-                neuronet->dumpGraph(ts, true);
-            }
-        }
+//        // dump graph
+//        {
+//            QFile file("neuronet_after_gen.gv");
+//            if (file.open(QIODevice::WriteOnly))
+//            {
+//                QTextStream ts(&file);
+//                neuronet->dumpGraph(ts, true);
+//            }
+//        }
 #endif
     }
 
     void NeuroGridItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
+        const_cast<NeuroGridItem *>(this)->generateGrid();
+
         SubNetworkItem::writeBinary(ds, file_version);
 
-        ds << _num_horiz;
-        ds << _num_vert;
+        ds << static_cast<quint32>(_num_horiz);
+        ds << static_cast<quint32>(_num_vert);
 
         ds << static_cast<quint32>(_edges.size());
         QMap<NeuroNetworkItem *, QMap<Index, Index> >::const_iterator i = _edges.constBegin(), i_end = _edges.constEnd();
@@ -1013,8 +1017,9 @@ namespace GridItems
 
         if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_9)
         {
-            ds >> _num_horiz;
-            ds >> _num_vert;
+            quint32 num;
+            ds >> num; _num_horiz = num;
+            ds >> num; _num_vert = num;
 
             _edges.clear();
             if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_11)
@@ -1099,7 +1104,7 @@ namespace GridItems
             if (wanted_item)
                 toAdd.insert(wanted_item);
             else
-                throw Common::FileFormatError(tr("Dangling top connection node in file: %1").arg(wanted_id));
+                throw Common::FileFormatError(tr("Dangling top connection node in file: %1").arg(static_cast<quint32>(wanted_id)));
         }
 
         _top_connections = toAdd;
@@ -1113,7 +1118,7 @@ namespace GridItems
             if (wanted_item)
                 toAdd.insert(wanted_item);
             else
-                throw Common::FileFormatError(tr("Dangling top connection node in file: %1").arg(wanted_id));
+                throw Common::FileFormatError(tr("Dangling top connection node in file: %1").arg(static_cast<quint32>(wanted_id)));
         }
 
         _bottom_connections = toAdd;
@@ -1128,7 +1133,7 @@ namespace GridItems
             if (wanted_item)
                 new_edges[wanted_item] = i.value();
             else
-                throw Common::FileFormatError(tr("Dangling edge node in file: %1").arg(wanted_id));
+                throw Common::FileFormatError(tr("Dangling edge node in file: %1").arg(static_cast<quint32>(wanted_id)));
 
             ++i;
         }

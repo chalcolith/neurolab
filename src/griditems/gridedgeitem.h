@@ -60,6 +60,8 @@ namespace GridItems
         mutable QVector2D _point1;
         mutable QVector2D _point2;
 
+        mutable bool _adjustLinksNextUpdate;
+
     public:
         GridEdgeItem(NeuroGui::LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~GridEdgeItem();
@@ -81,9 +83,10 @@ namespace GridItems
         virtual void addEdges(NeuroItem *) {}
         virtual void removeEdges(NeuroItem *) {}
 
-        virtual QPointF targetPointFor(const NeuroItem *) const;
+        virtual QPointF targetPointFor(const NeuroItem *, bool front) const;
         virtual void addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const;
         virtual void adjustLinks();
+        virtual void adjustLink(NeuroGui::MixinArrow *link, QSet<NeuroGui::MixinArrow *> &alreadyAdjusted);
 
         bool isConnectedToTop(const NeuroItem *) const;
         bool isConnectedToBottom(const NeuroItem *) const;
@@ -91,6 +94,9 @@ namespace GridItems
         bool isConnectedToRight(const NeuroItem *) const;
 
         virtual QList<Index> allCells() const { return QList<Index>(); }
+
+    public slots:
+        void viewResized();
 
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;

@@ -165,7 +165,7 @@ namespace GridItems
         glFogf (GL_FOG_DENSITY, 0.35);
         glHint(GL_FOG_HINT, GL_NICEST);
         glFogi(GL_FOG_MODE, GL_LINEAR);
-        static GLfloat fc[4] = { 0.5, 0.5, 0.5, 0.5 };
+        static GLfloat fc[4] = { 0.85, 0.85, 0.85, 0.85 };
         glFogfv(GL_FOG_COLOR, fc);
 
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -188,41 +188,41 @@ namespace GridItems
 #ifdef DEBUG
     static void draw_cube()
     {
-        // front
-        glBegin(GL_LINE_STRIP);
-        glVertex3d(-1, -1, 1);
-        glVertex3d(1, -1, 1);
-        glVertex3d(1, 1, 1);
-        glVertex3d(-1, 1, 1);
-        glVertex3d(-1, -1, 1);
-        glEnd();
+//        // front
+//        glBegin(GL_LINE_STRIP);
+//        glVertex3d(-1, -1, 1);
+//        glVertex3d(1, -1, 1);
+//        glVertex3d(1, 1, 1);
+//        glVertex3d(-1, 1, 1);
+//        glVertex3d(-1, -1, 1);
+//        glEnd();
 
-        // left
-        glBegin(GL_LINE_STRIP);
-        glVertex3d(-1, -1, -1);
-        glVertex3d(-1, -1, 1);
-        glVertex3d(-1, 1, 1);
-        glVertex3d(-1, 1, -1);
-        glVertex3d(-1, -1, -1);
-        glEnd();
+//        // left
+//        glBegin(GL_LINE_STRIP);
+//        glVertex3d(-1, -1, -1);
+//        glVertex3d(-1, -1, 1);
+//        glVertex3d(-1, 1, 1);
+//        glVertex3d(-1, 1, -1);
+//        glVertex3d(-1, -1, -1);
+//        glEnd();
 
-        // back
-        glBegin(GL_LINE_STRIP);
-        glVertex3d(1, -1, -1);
-        glVertex3d(-1, -1, -1);
-        glVertex3d(-1, 1, -1);
-        glVertex3d(1, 1, -1);
-        glVertex3d(1, -1, -1);
-        glEnd();
+//        // back
+//        glBegin(GL_LINE_STRIP);
+//        glVertex3d(1, -1, -1);
+//        glVertex3d(-1, -1, -1);
+//        glVertex3d(-1, 1, -1);
+//        glVertex3d(1, 1, -1);
+//        glVertex3d(1, -1, -1);
+//        glEnd();
 
-        // right
-        glBegin(GL_LINE_STRIP);
-        glVertex3d(1, -1, -1);
-        glVertex3d(1, -1, 1);
-        glVertex3d(1, 1, 1);
-        glVertex3d(1, 1, -1);
-        glVertex3d(1, -1, -1);
-        glEnd();
+//        // right
+//        glBegin(GL_LINE_STRIP);
+//        glVertex3d(1, -1, -1);
+//        glVertex3d(1, -1, 1);
+//        glVertex3d(1, 1, 1);
+//        glVertex3d(1, 1, -1);
+//        glVertex3d(1, -1, -1);
+//        glEnd();
     }
 #endif
 

@@ -201,7 +201,7 @@ namespace NeuroGui
         bool containsScenePos(const QPointF & scenePos);
 
         /// Returns the target point for an attached link (in scene coordinates; usually the center of the item).
-        virtual QPointF targetPointFor(const NeuroItem *) const { return scenePos(); }
+        virtual QPointF targetPointFor(const NeuroItem *item, bool front) const;
 
         /// Called when item is selected.
         virtual void onSelected() {}

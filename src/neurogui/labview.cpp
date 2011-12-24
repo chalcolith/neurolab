@@ -91,6 +91,12 @@ namespace NeuroGui
         }
     }
 
+    void LabView::resizeEvent(QResizeEvent *event)
+    {
+        QGraphicsView::resizeEvent(event);
+        emit viewResized();
+    }
+
     void LabView::dragMoveEvent(QDragMoveEvent *event)
     {
         const QMimeData *mimeData = event->mimeData();

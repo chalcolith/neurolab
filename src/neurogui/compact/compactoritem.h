@@ -64,7 +64,7 @@ namespace NeuroGui
         virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
         virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
 
-        virtual QPointF targetPointFor(const NeuroItem *item) const;
+        virtual QPointF targetPointFor(const NeuroItem *item, bool front) const;
 
     public slots:
         void postStep();

@@ -212,7 +212,7 @@ namespace NeuroGui
 
         if (_frontLinkTarget)
         {
-            QVector2D center(_frontLinkTarget->targetPointFor(this));
+            QVector2D center(_frontLinkTarget->targetPointFor(this, true));
             QVector2D toFront = QVector2D(line().p2()) - center;
             c2 = (center + toFront * 3) - myPos;
         }

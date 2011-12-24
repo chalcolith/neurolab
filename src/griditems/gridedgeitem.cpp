@@ -40,6 +40,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../neurogui/labscene.h"
 #include "../neurogui/labnetwork.h"
 
+#include <QScrollBar>
+
 using namespace NeuroGui;
 
 namespace GridItems
@@ -47,9 +49,13 @@ namespace GridItems
 
     NEUROITEM_DEFINE_RESTRICTED_PLUGIN_CREATOR(GridEdgeItem, QObject::tr("Grid Items"), QObject::tr("Edge Connector"), ":/griditems/icons/grid_connector.png", GridItems::VERSION(), NeuroGridItem)
 
+    static const int GAP = 2;
+    static const int LONG = NeuroItem::NODE_WIDTH/2;
+    static const int SHORT = NeuroItem::NODE_WIDTH/3;
+
     GridEdgeItem::GridEdgeItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context)
         : NeuroNetworkItem(network, scenePos, context), MixinRemember(this),
-          _vertical(false)
+          _vertical(false), _adjustLinksNextUpdate(true)
     {
         if (context == NeuroItem::CREATE_UI)
         {
@@ -78,16 +84,31 @@ namespace GridItems
                 movePos.setX((sceneRect.left() + sceneRect.right()) / 2.0);
             setPos(movePos);
         }
+
+        if (network->view())
+        {
+            connect(network->view(), SIGNAL(viewResized()), this, SLOT(viewResized()));
+        }
     }
 
     GridEdgeItem::~GridEdgeItem()
     {
     }
 
+    void GridEdgeItem::viewResized()
+    {
+        _adjustLinksNextUpdate = true;
+        setChanged(true);
+    }
+
     bool GridEdgeItem::handleMove(const QPointF & mousePos, QPointF & movePos)
     {
         movePos = scenePos();
-        movePos.setX(mousePos.x());
+
+        if (_vertical)
+            movePos.setX(mousePos.x());
+        else
+            movePos.setY(mousePos.y());
 
         return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
@@ -103,9 +124,24 @@ namespace GridItems
         return true;
     }
 
-    QVector2D GridEdgeItem::getAttachPos(MixinArrow *, const QVector2D &pos)
+    QVector2D GridEdgeItem::getAttachPos(MixinArrow *link, const QVector2D & pos)
     {
-        return pos;
+        // all vectors are in my frame
+
+        QVector2D myPoint1(mapFromScene(_point1.toPointF()));
+        QVector2D myPoint2(mapFromScene(_point2.toPointF()));
+
+        QVector2D fromPoint1 = pos - myPoint1;
+        QVector2D fromPoint2 = pos - myPoint2;
+
+        if (fromPoint1.lengthSquared() < fromPoint2.lengthSquared())
+        {
+            return myPoint1 + fromPoint1.normalized() * (LONG/2);
+        }
+        else
+        {
+            return myPoint2 + fromPoint2.normalized() * (LONG/2);
+        }
     }
 
     void GridEdgeItem::onAttachedBy(NeuroItem *item)
@@ -159,16 +195,12 @@ namespace GridItems
         NeuroNetworkItem::onDetach(item);
     }
 
-    QPointF GridEdgeItem::targetPointFor(const NeuroItem *item) const
+    QPointF GridEdgeItem::targetPointFor(const NeuroItem *item, bool front) const
     {
         const MixinArrow *link = dynamic_cast<const MixinArrow *>(item);
         if (link)
         {
-            QPointF connect_pos(item->scenePos());
-            if (_incomingAttachments.contains(link))
-                connect_pos = mapToScene(_incomingAttachments[link].toPointF());
-            else if (_outgoingAttachments.contains(link))
-                connect_pos = mapToScene(_outgoingAttachments[link].toPointF());
+            QPointF connect_pos = front ? link->line().p2() : link->line().p1();
 
             QVector2D to_pt1 = _point1 - QVector2D(connect_pos);
             QVector2D to_pt2 = _point2 - QVector2D(connect_pos);
@@ -184,10 +216,6 @@ namespace GridItems
         }
     }
 
-    static const int GAP = 2;
-    static const int LONG = NeuroItem::NODE_WIDTH/2;
-    static const int SHORT = NeuroItem::NODE_WIDTH/3;
-
     void GridEdgeItem::addToShape(QPainterPath &drawPath, QList<TextPathRec> &texts) const
     {
         NeuroNetworkItem::addToShape(drawPath, texts);
@@ -201,10 +229,22 @@ namespace GridItems
 
         // workaround for a bug in Qt where the scene rect leaves space for scroll bars
         qreal horiz_fudge = static_cast<qreal>(viewRect.width()) - sceneRect.width() - 1;
+        if (this->network()->view()->verticalScrollBar()->isVisible())
+            horiz_fudge -= this->network()->view()->verticalScrollBar()->width();
+
         qreal vert_fudge = static_cast<qreal>(viewRect.height()) - sceneRect.height() - 1;
+        if (this->network()->view()->horizontalScrollBar()->isVisible())
+            vert_fudge -= this->network()->view()->horizontalScrollBar()->height();
 
         if (_vertical)
         {
+            QVector2D sceneTop(scenePos().x(), sceneRect.top() + GAP);
+            QVector2D sceneBottom(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
+            QVector2D newCenter = (sceneTop + sceneBottom) * 0.5;
+
+            GridEdgeItem *gei = const_cast<GridEdgeItem *>(this);
+            gei->setPos(newCenter.toPointF());
+
             // top
             QPointF top = mapFromScene(scenePos().x(), sceneRect.top() + GAP);
             QRectF bound(top.x() - SHORT/2, top.y() - LONG/2, SHORT, LONG);
@@ -214,7 +254,8 @@ namespace GridItems
             drawPath.closeSubpath();
 
             // bottom
-            QPointF bot= mapFromScene(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
+            QPointF bot = mapFromScene(scenePos().x(), sceneRect.bottom() + vert_fudge - GAP);
+
             bound = QRectF(bot.x() - SHORT/2, bot.y() - LONG/2, SHORT, LONG);
 
             drawPath.moveTo(bot);
@@ -226,6 +267,13 @@ namespace GridItems
         }
         else
         {
+            QVector2D sceneTop(sceneRect.left() + GAP, scenePos().y());
+            QVector2D sceneBottom(sceneRect.right() + horiz_fudge - GAP, scenePos().y());
+            QVector2D newCenter = (sceneTop + sceneBottom) * 0.5;
+
+            GridEdgeItem *gei = const_cast<GridEdgeItem *>(this);
+            gei->setPos(newCenter.toPointF());
+
             // left
             QPointF left = mapFromScene(sceneRect.left() + GAP, scenePos().y());
             QRectF bound(left.x() - LONG/2, left.y() - SHORT/2, LONG, SHORT);
@@ -244,6 +292,13 @@ namespace GridItems
 
             _point1 = QVector2D(mapToScene(left));
             _point2 = QVector2D(mapToScene(right));
+        }
+
+        if (_adjustLinksNextUpdate)
+        {
+            GridEdgeItem *thisItem = const_cast<GridEdgeItem *>(this);
+            thisItem->adjustLinks();
+            _adjustLinksNextUpdate = false;
         }
     }
 
@@ -270,6 +325,59 @@ namespace GridItems
     void GridEdgeItem::adjustLinks()
     {
         MixinRemember::adjustLinks();
+    }
+
+    void GridEdgeItem::adjustLink(MixinArrow *link, QSet<MixinArrow *> &alreadyAdjusted)
+    {
+        LabScene *lab_scene = dynamic_cast<LabScene *>(this->scene());
+        Q_ASSERT(lab_scene);
+
+        bool frontLink = link->frontLinkTarget() == this;
+        bool backLink = link->backLinkTarget() == this;
+
+        bool rememberFront = _incomingAttachments.contains(link);
+        bool rememberBack = _outgoingAttachments.contains(link);
+
+        QLineF link_line = link->line();
+        QVector2D front(this->mapFromScene(link_line.p2())); // link's front in my frame
+        QVector2D back(this->mapFromScene(link_line.p1())); // link's back in my frame
+
+        QVector2D toPos = QVector2D(this->mapFromScene(lab_scene->lastMousePos())); // in my frame
+
+        if (frontLink)
+        {
+            if (rememberFront)
+                toPos = _incomingAttachments[link];
+
+            front = getAttachPos(link, toPos);
+            _incomingAttachments[link] = front;
+        }
+
+        if (backLink)
+        {
+            if (rememberBack)
+                toPos = _outgoingAttachments[link];
+
+            back = getAttachPos(link, toPos);
+            _outgoingAttachments[link] = back;
+        }
+
+        if (frontLink && backLink)
+        {
+            if (_vertical)
+            {
+                back.setX(0);
+                front.setX(0);
+            }
+            else
+            {
+                back.setY(0);
+                front.setY(0);
+            }
+        }
+
+        link->setLine(this->mapToScene(back.toPointF()), this->mapToScene(front.toPointF()));
+        alreadyAdjusted.insert(link);
     }
 
     void GridEdgeItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
