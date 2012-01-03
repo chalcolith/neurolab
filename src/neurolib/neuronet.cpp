@@ -36,6 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "neuronet.h"
 
+#include <QString>
+
 namespace NeuroLib
 {
 
@@ -143,6 +145,29 @@ namespace NeuroLib
         }
     }
 
+    static const QString NODE("N");
+    static const QString EXCITE("L");
+    static const QString INHIB("I");
+    static const QString OSC("O");
+    static const QString UNKNOWN("U");
+
+    static QString nodeType(NeuroCell & cell)
+    {
+        switch (cell.kind())
+        {
+        case NeuroCell::NODE:
+            return NODE;
+        case NeuroCell::EXCITORY_LINK:
+            return EXCITE;
+        case NeuroCell::INHIBITORY_LINK:
+            return INHIB;
+        case NeuroCell::OSCILLATOR:
+            return OSC;
+        default:
+            return UNKNOWN;
+        }
+    }
+
     void NeuroNet::dumpGraph(QTextStream & ts, bool reverse)
     {
         ts << "digraph neurolib_network {\n";
@@ -162,7 +187,7 @@ namespace NeuroLib
             if (neighbors.size() > 0)
             {
                 if (_nodes[i].q0.outputValue() > 0.5)
-                    ts << "  N" << i << " [color=\"red\"]" << "\n";
+                    ts << "  " << nodeType(_nodes[i].q0) << i << " [color=\"red\"]" << "\n";
 
                 foreach (const NeuroCell::Index & nbr, neighbors)
                 {
@@ -170,17 +195,17 @@ namespace NeuroLib
                         continue;
 
                     if (reverse)
-                        ts << "  N" << nbr << " -> " << "N" << i << "\n";
+                        ts << "  " << nodeType(_nodes[nbr].q0) << nbr << " -> " << nodeType(_nodes[i].q0) << i << "\n";
                     else
-                        ts << "  N" << i << " -> " << "N" << nbr << "\n";
+                        ts << "  " << nodeType(_nodes[i].q0) << i << " -> " << nodeType(_nodes[nbr].q0) << nbr << "\n";
                 }
             }
             else
             {
-//                if (_nodes[i].q0.outputValue() > 0.5)
-//                    ts << "  N" << i << " [color=\"red\"]" << "\n";
-//                else
-//                    ts << "  N" << i << "\n";
+                if (_nodes[i].q0.outputValue() > 0.5)
+                    ts << "  " << nodeType(_nodes[i].q0) << i << " [color=\"red\"]" << "\n";
+                else
+                    ts << "  " << nodeType(_nodes[i].q0) << i << "\n";
             }
         }
 

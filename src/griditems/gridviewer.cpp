@@ -36,6 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "gridviewer.h"
 #include "../neurogui/mainwindow.h"
+#include "../neurogui/labnetwork.h"
+#include "../neurogui/labview.h"
 
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -239,7 +241,8 @@ namespace GridItems
         draw_cube();
 #endif
 
-        if (_grid_item)
+        // don't display if we are editing the grid itself
+        if (_grid_item && _grid_item->network()->treeNode() != _grid_item->treeNode())
         {
             _grid_item->generateGrid();
 

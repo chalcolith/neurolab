@@ -108,6 +108,9 @@ namespace NeuroGui
         virtual bool canCutAndPaste() const { return true; }
 
         virtual QList<Index> allCells() const;
+        virtual QList<Index> getFrontwardCells() const;
+        virtual QList<Index> getBackwardCells() const;
+
         virtual Index getIncomingCellFor(const NeuroItem *) const;
         virtual Index getOutgoingCellFor(const NeuroItem *) const;
 

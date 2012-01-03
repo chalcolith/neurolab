@@ -54,8 +54,8 @@ namespace GridItems
 
         bool _vertical;
 
-        QSet<NeuroItem *> _connections1;
-        QSet<NeuroItem *> _connections2;
+        QSet<NeuroGui::MixinArrow *> _connections1;
+        QSet<NeuroGui::MixinArrow *> _connections2;
 
         mutable QVector2D _point1;
         mutable QVector2D _point2;
@@ -88,15 +88,15 @@ namespace GridItems
         virtual void adjustLinks();
         virtual void adjustLink(NeuroGui::MixinArrow *link, QSet<NeuroGui::MixinArrow *> &alreadyAdjusted);
 
-        bool isConnectedToTop(const NeuroItem *) const;
-        bool isConnectedToBottom(const NeuroItem *) const;
-        bool isConnectedToLeft(const NeuroItem *) const;
-        bool isConnectedToRight(const NeuroItem *) const;
+        bool isConnectedToTop(const NeuroGui::MixinArrow *, bool & front) const;
+        bool isConnectedToBottom(const NeuroGui::MixinArrow *, bool & front) const;
+        bool isConnectedToLeft(const NeuroGui::MixinArrow *, bool & front) const;
+        bool isConnectedToRight(const NeuroGui::MixinArrow *, bool & front) const;
 
         virtual QList<Index> allCells() const { return QList<Index>(); }
 
     public slots:
-        void viewResized();
+        void resizeView();
 
     protected:
         virtual void writeBinary(QDataStream &ds, const NeuroGui::NeuroLabFileVersion &file_version) const;

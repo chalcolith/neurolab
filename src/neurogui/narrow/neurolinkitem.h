@@ -81,6 +81,8 @@ namespace NeuroGui
         /// \see NeuroLinkItem::length()
         void setLength(const int & value);
 
+        virtual QList<Index> getFrontwardCells() const;
+
         virtual bool canAttachTo(const QPointF &, NeuroItem *) const;
         virtual bool canAttachTwice(NeuroItem *) const;
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;

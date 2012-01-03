@@ -489,7 +489,7 @@ namespace NeuroGui
         _shapePath.setFillRule(Qt::WindingFill);
 
         // add texts
-#if 0 && defined(DEBUG)
+#if defined(DEBUG)
         _texts.append(TextPathRec(_label_pos, QString("%1 (%2)").arg(_label).arg(id())));
 #else
         if (!_label.isEmpty())

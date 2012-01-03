@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../neurogui_global.h"
 #include "../neuroitem.h"
+#include "../../neurolib/neurocell.h"
 
 #include <QLineF>
 #include <QVector2D>
@@ -119,6 +120,9 @@ namespace NeuroGui
 
         /// Used to shortcut setting the gradient for subconnection items.
         virtual void setPenGradient(QPen &, const QLineF &) const {}
+
+        virtual QList<NeuroLib::NeuroCell::Index> getFrontwardCells() const { return QList<NeuroLib::NeuroCell::Index>(); }
+        virtual QList<NeuroLib::NeuroCell::Index> getBackwardCells() const { return QList<NeuroLib::NeuroCell::Index>(); }
 
     protected:
         /// Draws the arrow's shaft.

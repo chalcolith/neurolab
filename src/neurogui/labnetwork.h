@@ -178,6 +178,7 @@ namespace NeuroGui
         void selectionChanged();
         void changeItemLabel(NeuroItem *, const QString & label);
 
+        void resizeView();
         void setZoom(int new_zoom);
 
         void futureFinished();
@@ -189,6 +190,8 @@ namespace NeuroGui
         void exportPDF();
 
     signals:
+        void viewResized();
+
         void networkChanged();
         void propertyObjectChanged(QList<PropertyObject *> property_objects);
         void itemLabelChanged(NeuroItem *, const QString & label);

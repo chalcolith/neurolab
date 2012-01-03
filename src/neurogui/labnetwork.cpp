@@ -250,6 +250,11 @@ namespace NeuroGui
         emit itemLabelChanged(item, label);
     }
 
+    void LabNetwork::resizeView()
+    {
+        emit viewResized();
+    }
+
     void LabNetwork::setZoom(int new_zoom)
     {
         if (view())

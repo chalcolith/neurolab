@@ -236,6 +236,16 @@ namespace NeuroGui
         return result;
     }
 
+    QList<CompactLinkItem::Index> CompactLinkItem::getFrontwardCells() const
+    {
+        return _frontward_cells;
+    }
+
+    QList<CompactLinkItem::Index> CompactLinkItem::getBackwardCells() const
+    {
+        return _backward_cells;
+    }
+
     CompactLinkItem::Index CompactLinkItem::getIncomingCellFor(const NeuroItem *item) const
     {
         if (item == _frontLinkTarget)

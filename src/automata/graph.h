@@ -291,7 +291,7 @@ namespace Automata
             }
         }
 
-        /// Returns the vector of the indices of all nodes to which their is an edge from the given node.
+        /// Returns the vector of the indices of all nodes to which there is an edge from the given node.
         /// \param index The index of the node.
         const QVector<TIndex> & neighbors(const TIndex & index) const
         {

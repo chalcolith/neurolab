@@ -61,11 +61,14 @@ namespace NeuroGui
 
         _view = new LabView(_scene, _tree ? _tree->_parent : 0);
         _view->centerOn(0, 0);
+
+        connect(_view, SIGNAL(viewResized()), _tree->network(), SLOT(resizeView()));
     }
 
     LabTreeNode::LabTreeNode(LabScene *_scene, LabView *_view, LabTree *_tree, LabTreeNode *_parent)
         : _id(_tree->NEXT_ID++), _tree(_tree), _parent(_parent), _scene(_scene), _view(_view), _currentAction(0)
     {
+        connect(_view, SIGNAL(viewResized()), _tree->network(), SLOT(resizeView()));
     }
 
     LabTreeNode::~LabTreeNode()

@@ -110,11 +110,45 @@ namespace GridItems
         void networkStepClicked();
         void networkPostStep();
         void networkStepFinished();
+
         void generateGrid();
+
         void resizeScene();
         void copyColors();
 
     protected:
+        void startGenerateGrid(NeuroLib::NeuroNet *neuronet);
+        void collectPatternCells(NeuroLib::NeuroNet *neuronet,
+                                 QVector<Index> &all_pattern_cells,
+                                 QVector<QMap<Index, QVector<Index> > > &pattern_connections,
+                                 QVector<Index> &pattern_top_incoming, QVector<Index> &pattern_top_outgoing,
+                                 QVector<Index> &pattern_bot_incoming, QVector<Index> &pattern_bot_outgoing,
+                                 QMap<Index, QLineF> &pattern_cells_to_lines,
+                                 QMap<Index, QPointF> &pattern_cells_to_points,
+                                 bool &hasTopEdge, bool &hasBottomEdge,
+                                 bool &hasLeftEdge, bool &hasRightEdge);
+        void recordPatternPositions(NeuroGui::NeuroNetworkItem *ni,
+                                    QMap<Index, QLineF> & pattern_cells_to_lines,
+                                    QMap<Index, QPointF> & pattern_cells_to_points);
+        void getMinMaxCoords(QMap<Index, QLineF> & pattern_cells_to_lines,
+                             QMap<Index, QPointF> & pattern_cells_to_points,
+                             float & min_x, float & max_x, float & min_y, float & max_y,
+                             bool &hasTopEdge, bool &hasBottomEdge, bool &hasLeftEdge, bool &hasRightEdge);
+        void makeCopies(NeuroLib::NeuroNet *neuronet,
+                        QVector<Index> & all_pattern_cells,
+                        QMap<Index, QLineF> & pattern_cells_to_lines,
+                        QMap<Index, QPointF> & pattern_cells_to_points,
+                        QVector<QMap<Index, Index> > & all_copies,
+                        float min_x, float max_x, float min_y, float max_y);
+        void connectCopies(NeuroLib::NeuroNet *neuronet,
+                           QVector<QMap<Index, Index> > & all_copies,
+                           QVector<QMap<Index, QVector<Index> > > & pattern_connections,
+                           QVector<Index> & pattern_top_incoming, QVector<Index> & pattern_top_outgoing,
+                           QVector<Index> & pattern_bot_incoming, QVector<Index> & pattern_bot_outgoing);
+        void finishGenerateGrid(NeuroLib::NeuroNet *neuronet);
+
+        void generateGridOld();
+
         virtual void onEnterView();
         virtual void onLeaveView();
 
@@ -143,8 +177,8 @@ namespace GridItems
     private:
         void adjustIOItem(MultiGridIOItem *gi, bool top);
 
-        void removeAllEdges();
         void addAllEdges(NeuroItem *except);
+        void removeAllEdges();
     };
 
 }

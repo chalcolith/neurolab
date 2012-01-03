@@ -85,20 +85,18 @@ namespace GridItems
             setPos(movePos);
         }
 
-        if (network->view())
-        {
-            connect(network->view(), SIGNAL(viewResized()), this, SLOT(viewResized()));
-        }
+        connect(network, SIGNAL(viewResized()), this, SLOT(resizeView()));
     }
 
     GridEdgeItem::~GridEdgeItem()
     {
     }
 
-    void GridEdgeItem::viewResized()
+    void GridEdgeItem::resizeView()
     {
         _adjustLinksNextUpdate = true;
-        setChanged(true);
+        updateShape();
+        update();
     }
 
     bool GridEdgeItem::handleMove(const QPointF & mousePos, QPointF & movePos)
@@ -113,10 +111,51 @@ namespace GridItems
         return NeuroNetworkItem::handleMove(mousePos, movePos);
     }
 
-    bool GridEdgeItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const
+    bool GridEdgeItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const
     {
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
-        return link != 0;
+        if (link)
+        {
+            // find out where we're already attached
+            bool alreadyAttached = false;
+            QVector2D linkPoint, attachPoint, otherPoint;
+            if (link->frontLinkTarget() == this)
+            {
+                alreadyAttached = true;
+                linkPoint = QVector2D(link->line().p2());
+            }
+            else if (link->backLinkTarget() == this)
+            {
+                alreadyAttached = true;
+                linkPoint = QVector2D(link->line().p1());
+            }
+
+            if (!alreadyAttached)
+                return true;
+
+            // to which of our points is the link already attached?
+            QVector2D linkTo1 = _point1 - linkPoint;
+            QVector2D linkTo2 = _point2 - linkPoint;
+
+            if (linkTo1.lengthSquared() < linkTo2.lengthSquared())
+            {
+                attachPoint = _point1;
+                otherPoint = _point2;
+            }
+            else
+            {
+                attachPoint = _point2;
+                otherPoint = _point1;
+            }
+
+            // are we trying to attach to the same point?
+            QVector2D posToAttach = attachPoint - QVector2D(pos);
+            QVector2D posToOther = otherPoint - QVector2D(pos);
+
+            return posToAttach.lengthSquared() > posToOther.lengthSquared();
+        }
+
+        return false;
     }
 
     bool GridEdgeItem::canBeAttachedToTwice(NeuroItem *) const
@@ -155,8 +194,8 @@ namespace GridItems
 
             if (link->frontLinkTarget() == this && link->backLinkTarget() == this)
             {
-                _connections1.insert(item);
-                _connections2.insert(item);
+                _connections1.insert(link);
+                _connections2.insert(link);
             }
             else
             {
@@ -175,9 +214,9 @@ namespace GridItems
                     qreal dist2 = (_point2 - attachPt).lengthSquared();
 
                     if (dist1 < dist2)
-                        _connections1.insert(item);
+                        _connections1.insert(link);
                     else
-                        _connections2.insert(item);
+                        _connections2.insert(link);
                 }
             }
         }
@@ -185,12 +224,14 @@ namespace GridItems
 
     void GridEdgeItem::onDetach(NeuroItem *item)
     {
-        _connections1.remove(item);
-        _connections2.remove(item);
-
         MixinArrow *link = dynamic_cast<MixinArrow *>(item);
         if (link)
+        {
+            _connections1.remove(link);
+            _connections2.remove(link);
+
             MixinRemember::onDetach(link);
+        }
 
         NeuroNetworkItem::onDetach(item);
     }
@@ -206,9 +247,9 @@ namespace GridItems
             QVector2D to_pt2 = _point2 - QVector2D(connect_pos);
 
             if (to_pt1.lengthSquared() < to_pt2.lengthSquared())
-                return _point1.toPointF();
+                return (_point1 + (_point1 - _point2).normalized() * 10.0).toPointF();
             else
-                return _point2.toPointF();
+                return (_point2 + (_point2 - _point1).normalized() * 10.0).toPointF();
         }
         else
         {
@@ -302,24 +343,60 @@ namespace GridItems
         }
     }
 
-    bool GridEdgeItem::isConnectedToTop(const NeuroItem *item) const
+    bool GridEdgeItem::isConnectedToTop(const NeuroGui::MixinArrow *item, bool &front) const
     {
-        return _vertical && _connections1.contains(const_cast<NeuroItem *>(item));
+        if (_vertical && _connections1.contains(const_cast<NeuroGui::MixinArrow *>(item)))
+        {
+            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
+            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+
+            front = frontToPoint1.lengthSquared() < frontToPoint2.lengthSquared();
+            return true;
+        }
+
+        return false;
     }
 
-    bool GridEdgeItem::isConnectedToBottom(const NeuroItem *item) const
+    bool GridEdgeItem::isConnectedToBottom(const NeuroGui::MixinArrow *item, bool &front) const
     {
-        return _vertical && _connections2.contains(const_cast<NeuroItem *>(item));
+        if (_vertical && _connections2.contains(const_cast<NeuroGui::MixinArrow *>(item)))
+        {
+            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
+            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+
+            front = frontToPoint2.lengthSquared() < frontToPoint1.lengthSquared();
+            return true;
+        }
+
+        return false;
     }
 
-    bool GridEdgeItem::isConnectedToLeft(const NeuroItem *item) const
+    bool GridEdgeItem::isConnectedToLeft(const NeuroGui::MixinArrow *item, bool &front) const
     {
-        return !_vertical && _connections1.contains(const_cast<NeuroItem *>(item));
+        if (!_vertical && _connections1.contains(const_cast<NeuroGui::MixinArrow *>(item)))
+        {
+            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
+            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+
+            front = frontToPoint1.lengthSquared() < frontToPoint2.lengthSquared();
+            return true;
+        }
+
+        return false;
     }
 
-    bool GridEdgeItem::isConnectedToRight(const NeuroItem *item) const
+    bool GridEdgeItem::isConnectedToRight(const NeuroGui::MixinArrow *item, bool &front) const
     {
-        return !_vertical && _connections2.contains(const_cast<NeuroItem *>(item));
+        if (!_vertical && _connections2.contains(const_cast<NeuroGui::MixinArrow *>(item)))
+        {
+            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
+            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+
+            front = frontToPoint2.lengthSquared() < frontToPoint1.lengthSquared();
+            return true;
+        }
+
+        return false;
     }
 
     void GridEdgeItem::adjustLinks()
@@ -413,18 +490,18 @@ namespace GridItems
         quint32 num = _connections1.size();
         ds << num;
 
-        foreach (const NeuroItem *item, _connections1)
+        foreach (const MixinArrow *item, _connections1)
         {
-            IdType id = item->id();
+            IdType id = item->self()->id();
             ds << id;
         }
 
         num = _connections2.size();
         ds << num;
 
-        foreach (const NeuroItem *item, _connections2)
+        foreach (const MixinArrow *item, _connections2)
         {
-            IdType id = item->id();
+            IdType id = item->self()->id();
             ds << id;
         }
     }
@@ -441,7 +518,7 @@ namespace GridItems
         {
             IdType id;
             ds >> id;
-            _connections1.insert(reinterpret_cast<NeuroItem *>(id));
+            _connections1.insert(reinterpret_cast<MixinArrow *>(id));
         }
 
         _connections2.clear();
@@ -450,7 +527,7 @@ namespace GridItems
         {
             IdType id;
             ds >> id;
-            _connections2.insert(reinterpret_cast<NeuroItem *>(id));
+            _connections2.insert(reinterpret_cast<MixinArrow *>(id));
         }
     }
 
@@ -458,11 +535,11 @@ namespace GridItems
     {
         NeuroNetworkItem::idsToPointers(idMap);
 
-        QSet<NeuroItem *> toAdd;
-        foreach (NeuroItem *item, _connections1)
+        QSet<MixinArrow *> toAdd;
+        foreach (MixinArrow *item, _connections1)
         {
             IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(item));
-            NeuroItem *wanted_item = idMap[wanted_id];
+            MixinArrow *wanted_item = dynamic_cast<MixinArrow *>(idMap[wanted_id]);
             if (wanted_item)
                 toAdd.insert(wanted_item);
             else
@@ -471,10 +548,10 @@ namespace GridItems
         _connections1 = toAdd;
 
         toAdd.clear();
-        foreach (NeuroItem *item, _connections2)
+        foreach (MixinArrow *item, _connections2)
         {
             IdType wanted_id = static_cast<NeuroItem::IdType>(reinterpret_cast<quint64>(item));
-            NeuroItem *wanted_item = idMap[wanted_id];
+            MixinArrow *wanted_item = dynamic_cast<MixinArrow *>(idMap[wanted_id]);
             if (wanted_item)
                 toAdd.insert(wanted_item);
             else

@@ -167,6 +167,11 @@ namespace NeuroGui
             _length_property.setValueInPropertyBrowser(QVariant(newLength));
     }
 
+    QList<NeuroLinkItem::Index> NeuroLinkItem::getFrontwardCells() const
+    {
+        return _cellIndices;
+    }
+
     void NeuroLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
     {
         NeuroNarrowItem::addToShape(drawPath, texts);
