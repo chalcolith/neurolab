@@ -1112,7 +1112,7 @@ namespace GridItems
         _all_grid_cells.clear();
     }
 
-    void NeuroGridItem::finishGenerateGrid(NeuroLib::NeuroNet *neuronet)
+    void NeuroGridItem::finishGenerateGrid(NeuroLib::NeuroNet *)
     {
         // re-connect edges
         addAllEdges(0);
