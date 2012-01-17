@@ -83,10 +83,10 @@ namespace GridItems
         virtual ~NeuroGridItem();
 
         qint32 horizontalCols() const { return _num_horiz; }
-        void setHorizontalCols(const qint32 & num) { _num_horiz = num; }
+        void setHorizontalCols(const qint32 & num) { _num_horiz = qMax(1, num); }
 
         qint32 verticalRows() const { return _num_vert; }
-        void setVerticalRows(const qint32 & num) { _num_vert = num; }
+        void setVerticalRows(const qint32 & num) { _num_vert = qMax(1, num); }
 
         const QVector<float> & glLineArray() const { return _gl_line_array; }
         const QVector<float> & glPointArray() const { return _gl_point_array; }

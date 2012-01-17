@@ -75,7 +75,7 @@ namespace NeuroGui
             return _backwardTipCell;
     }
 
-    QPointF CompactOrItem::targetPointFor(const NeuroItem *item, bool front) const
+    QPointF CompactOrItem::targetPointFor(const NeuroItem *item, bool) const
     {
         const MixinArrow *link;
 

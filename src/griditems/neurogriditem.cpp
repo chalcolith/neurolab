@@ -127,11 +127,10 @@ namespace GridItems
         {
             if (_gl_line_colors.contains(cell_index))
             {
+                int color_index = _gl_line_colors[cell_index];
                 NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(cell_index);
-                if (cell)
+                if (cell && color_index < _gl_line_color_array.size())
                 {
-                    int color_index = _gl_line_colors[cell_index];
-
                     qreal t = qBound(0.0f, cell->current().outputValue(), 1.0f);
                     QColor color = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
@@ -146,18 +145,17 @@ namespace GridItems
             }
             else if (_gl_point_colors.contains(cell_index))
             {
+                int color_index = _gl_point_colors[cell_index];
                 NeuroLib::NeuroNet::ASYNC_STATE *cell = getCell(cell_index);
-                if (cell)
+                if (cell && color_index < _gl_point_color_array.size())
                 {
-                    int color_index = _gl_line_colors[cell_index];
-
                     qreal t = qBound(0.0f, cell->current().outputValue(), 1.0f);
                     QColor color = lerp(NORMAL_LINE_COLOR, ACTIVE_COLOR, t);
 
                     // two vertices for lines
-                    _gl_line_color_array[color_index++] = color.redF();
-                    _gl_line_color_array[color_index++] = color.greenF();
-                    _gl_line_color_array[color_index++] = color.blueF();
+                    _gl_point_color_array[color_index++] = color.redF();
+                    _gl_point_color_array[color_index++] = color.greenF();
+                    _gl_point_color_array[color_index++] = color.blueF();
                 }
             }
         }
@@ -625,7 +623,7 @@ namespace GridItems
         NeuroLib::NeuroNet *neuronet = network()->neuronet();
         startGenerateGrid(neuronet);
 
-        // get pattern cells; map pattern cells to 2d pattern positions; get min and max coordinate extents
+        // get pattern cells; map pattern cells to 2d pattern positions
         QVector<Index> all_pattern_cells;
         QVector<QMap<Index, QVector<Index> > > pattern_connections(4);
         QVector<Index> pattern_top_incoming, pattern_top_outgoing;
@@ -641,6 +639,7 @@ namespace GridItems
                             pattern_cells_to_lines, pattern_cells_to_points,
                             hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge);
 
+        //  get min and max coordinate extents
         float min_x, max_x, min_y, max_y;
         getMinMaxCoords(pattern_cells_to_lines, pattern_cells_to_points,
                         min_x, max_x, min_y, max_y,
@@ -651,7 +650,7 @@ namespace GridItems
         makeCopies(neuronet, all_pattern_cells, pattern_cells_to_lines, pattern_cells_to_points,
                    all_copies, min_x, max_x, min_y, max_y);
 
-        // connect edges
+        // connect outside edges
         connectCopies(neuronet, all_copies, pattern_connections,
                       pattern_top_incoming, pattern_top_outgoing,
                       pattern_bot_incoming, pattern_bot_outgoing);

@@ -105,6 +105,7 @@ namespace GridItems
 
         _viewer = new GridViewer(format);
         _viewer->setMinimumSize(250, 0);
+        _viewer->setObjectName("gridViewer");
 
         QVBoxLayout *layout = new QVBoxLayout();
         layout->addWidget(_viewer);

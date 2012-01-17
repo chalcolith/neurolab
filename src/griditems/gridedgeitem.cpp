@@ -163,7 +163,7 @@ namespace GridItems
         return true;
     }
 
-    QVector2D GridEdgeItem::getAttachPos(MixinArrow *link, const QVector2D & pos)
+    QVector2D GridEdgeItem::getAttachPos(MixinArrow *, const QVector2D & pos)
     {
         // all vectors are in my frame
 
@@ -348,9 +348,9 @@ namespace GridItems
         if (_vertical && _connections1.contains(const_cast<NeuroGui::MixinArrow *>(item)))
         {
             QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
-            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+            QVector2D backToPoint1 = _point1 - QVector2D(item->line().p1());
 
-            front = frontToPoint1.lengthSquared() < frontToPoint2.lengthSquared();
+            front = frontToPoint1.lengthSquared() < backToPoint1.lengthSquared();
             return true;
         }
 
@@ -361,10 +361,10 @@ namespace GridItems
     {
         if (_vertical && _connections2.contains(const_cast<NeuroGui::MixinArrow *>(item)))
         {
-            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
             QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+            QVector2D backToPoint2 = _point2 - QVector2D(item->line().p1());
 
-            front = frontToPoint2.lengthSquared() < frontToPoint1.lengthSquared();
+            front = frontToPoint2.lengthSquared() < backToPoint2.lengthSquared();
             return true;
         }
 
@@ -376,9 +376,9 @@ namespace GridItems
         if (!_vertical && _connections1.contains(const_cast<NeuroGui::MixinArrow *>(item)))
         {
             QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
-            QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+            QVector2D backToPoint1 = _point1 - QVector2D(item->line().p1());
 
-            front = frontToPoint1.lengthSquared() < frontToPoint2.lengthSquared();
+            front = frontToPoint1.lengthSquared() < backToPoint1.lengthSquared();
             return true;
         }
 
@@ -389,10 +389,10 @@ namespace GridItems
     {
         if (!_vertical && _connections2.contains(const_cast<NeuroGui::MixinArrow *>(item)))
         {
-            QVector2D frontToPoint1 = _point1 - QVector2D(item->line().p2());
             QVector2D frontToPoint2 = _point2 - QVector2D(item->line().p2());
+            QVector2D backToPoint2 = _point2 - QVector2D(item->line().p1());
 
-            front = frontToPoint2.lengthSquared() < frontToPoint1.lengthSquared();
+            front = frontToPoint2.lengthSquared() < backToPoint2.lengthSquared();
             return true;
         }
 
