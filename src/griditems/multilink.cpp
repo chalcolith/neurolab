@@ -460,7 +460,12 @@ namespace GridItems
 
     void MultiLink::setPenProperties(QPen &pen) const
     {
-        MultiItem::setPenProperties(pen);
+        setPenGradient(pen, _line);
+
+        if (shouldHighlight())
+            pen.setWidth(HOVER_LINE_WIDTH);
+        else
+            pen.setWidth(NORMAL_LINE_WIDTH);
     }
 
     void MultiLink::setPenGradient(QPen & pen, const QLineF & line) const

@@ -114,7 +114,7 @@ namespace NeuroGui
         virtual void idsToPointers(const QMap<NeuroItem::IdType, NeuroItem *> & idMap);
 
         /// Add a new automaton cell.
-        virtual void addNewCell() = 0;
+        virtual Index addNewCell() = 0;
     };
 
 
@@ -134,7 +134,7 @@ namespace NeuroGui
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
-        virtual void addNewCell();
+        virtual Index addNewCell();
     };
 
 
@@ -153,7 +153,7 @@ namespace NeuroGui
 
     protected:
         virtual void addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const;
-        virtual void addNewCell();
+        virtual Index addNewCell();
     };
 
 } // namespace NeuroGui

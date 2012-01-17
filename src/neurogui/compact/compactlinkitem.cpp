@@ -393,7 +393,12 @@ namespace NeuroGui
 
     void CompactLinkItem::setPenProperties(QPen &pen) const
     {
-        CompactItem::setPenProperties(pen);
+        setPenGradient(pen, _line);
+
+        if (shouldHighlight())
+            pen.setWidth(HOVER_LINE_WIDTH);
+        else
+            pen.setWidth(NORMAL_LINE_WIDTH);
     }
 
     void CompactLinkItem::setPenGradient(QPen &pen, const QLineF &line) const

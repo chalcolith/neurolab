@@ -90,6 +90,7 @@ namespace GridItems
         // create and add doc widget
         _dock_widget = new QDockWidget(QObject::tr("Grid Viewer"));
         _dock_widget->setAllowedAreas(Qt::RightDockWidgetArea);
+        _dock_widget->setObjectName("gridViewerDock");
 
         QGLFormat format;
         format.setVersion(2, 1);

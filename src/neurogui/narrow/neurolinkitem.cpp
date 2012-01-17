@@ -91,12 +91,10 @@ namespace NeuroGui
                 if (i == _cellIndices.size() - 1)
                 {
                     cell->current().setWeight(value);
-                    //cell->former().setWeight(value);
                 }
                 else
                 {
                     cell->current().setWeight(1.1);
-                    //cell->former().setWeight(1.1);
                 }
             }
         }
@@ -133,20 +131,20 @@ namespace NeuroGui
             {
                 while (_cellIndices.size() < newLength)
                 {
-                    NeuroCell::Index lastIndex = _cellIndices.last();
-                    addNewCell();
+                    NeuroCell::Index firstIndex = _cellIndices.first();
+                    NeuroCell::Index newIndex = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK, NeuroCell::DEFAULT_LINK_WEIGHT));
+                    _cellIndices.insert(0, newIndex);
 
-                    NeuroCell::Index newIndex = _cellIndices.last();
-                    neuronet->addEdge(newIndex, lastIndex);
+                    neuronet->addEdge(firstIndex, newIndex);
                 }
             }
             else if (newLength < _cellIndices.size())
             {
                 while (_cellIndices.size() > newLength)
                 {
-                    NeuroCell::Index lastIndex = _cellIndices.last();
-                    cellsToDelete.append(lastIndex);
-                    _cellIndices.removeLast();
+                    NeuroCell::Index firstIndex = _cellIndices.first();
+                    cellsToDelete.append(firstIndex);
+                    _cellIndices.removeFirst();
                 }
             }
 
@@ -180,7 +178,12 @@ namespace NeuroGui
 
     void NeuroLinkItem::setPenProperties(QPen & pen) const
     {
-        NeuroNarrowItem::setPenProperties(pen);
+        setPenGradient(pen, _line);
+
+        if (shouldHighlight())
+            pen.setWidth(HOVER_LINE_WIDTH);
+        else
+            pen.setWidth(NORMAL_LINE_WIDTH);
     }
 
     void NeuroLinkItem::setPenGradient(QPen &pen, const QLineF &line) const
@@ -383,7 +386,7 @@ namespace NeuroGui
         if (context == CREATE_UI)
         {
             _cellIndices.clear();
-            addNewCell();
+            _cellIndices.append(addNewCell());
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
@@ -393,13 +396,13 @@ namespace NeuroGui
     {
     }
 
-    void NeuroExcitoryLinkItem::addNewCell()
+    NeuroCell::Index NeuroExcitoryLinkItem::addNewCell()
     {
         Q_ASSERT(network());
         Q_ASSERT(network()->neuronet());
 
         NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::EXCITORY_LINK, NeuroCell::DEFAULT_LINK_WEIGHT));
-        _cellIndices.append(index);
+        return index;
     }
 
     void NeuroExcitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
@@ -440,7 +443,7 @@ namespace NeuroGui
         if (context == CREATE_UI)
         {
             _cellIndices.clear();
-            addNewCell();
+            _cellIndices.append(addNewCell());
         }
 
         setLine(scenePos.x(), scenePos.y(), scenePos.x()+NeuroNarrowItem::NODE_WIDTH*2, scenePos.y()-NeuroNarrowItem::NODE_WIDTH*2);
@@ -450,10 +453,10 @@ namespace NeuroGui
     {
     }
 
-    void NeuroInhibitoryLinkItem::addNewCell()
+    NeuroCell::Index NeuroInhibitoryLinkItem::addNewCell()
     {
         NeuroCell::Index index = network()->neuronet()->addNode(NeuroCell(NeuroCell::INHIBITORY_LINK, -NeuroCell::DEFAULT_LINK_WEIGHT));
-        _cellIndices.append(index);
+        return index;
     }
 
     void NeuroInhibitoryLinkItem::addToShape(QPainterPath & drawPath, QList<TextPathRec> & texts) const
