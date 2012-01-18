@@ -9,7 +9,7 @@ The Neurocognitive Linguistics Laboratory program consists of the following modu
  - \ref Automata - A library for handling asynchronous automata over directed graphs.  The algorithm is from
    <a href="https://uhra.herts.ac.uk/dspace/bitstream/2299/1966/1/900614.pdf">Chrystopher L. Nehaniv, Asynchronous automata networks can emulate any synchronous automata network</a>.
  - \ref NeuroLib - Uses the \ref Automata module to implement Sydney Lamb's <a href="http://www.ruf.rice.edu/~lngbrain/shipman/">narrow network notation</a>, from which higher-level
-   relational network structures can be built.  It is implemented as a separate library so that simulations do not need the full
+   relational network structures (the "Compact" or "Abstract" notation) can be built.  It is implemented as a separate library so that simulations do not need the full
    gui; simulations can run in non-interactive batch-type programs, or in a server, or otherwise.  The data from the raw neural network
    is stored in a separate file from that of the GUI display.
  - \ref NeuroGui - The main Gui.  This is implemented as a separate library so that plugins can link to it.
