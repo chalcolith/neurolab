@@ -53,8 +53,8 @@ namespace Common
     public:
         /// Constructor.
         /// \param message A messsage to display.
-        Exception(const QString & message) : QtConcurrent::Exception(), _message(message) { qDebug() << "threw: " << message; }
-        Exception(const Exception & e) : QtConcurrent::Exception(e), _message(e._message) {}
+        Exception(const QString & message);
+        Exception(const Exception & e);
         virtual ~Exception() throw () {}
 
         const QString & message() const { return _message; }

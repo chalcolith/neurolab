@@ -246,22 +246,33 @@ namespace NeuroGui
         return _backward_cells;
     }
 
-    CompactLinkItem::Index CompactLinkItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<CompactLinkItem::Index> CompactLinkItem::getIncomingCellsFor(const NeuroItem *item) const
     {
-        if (item == _frontLinkTarget)
-            return _backward_cells.first();
-        else if (item == _backLinkTarget)
-            return _frontward_cells.first();
-        return -1;
+        QList<Index> result;
+        const NeuroInhibitoryLinkItem *inhibit = dynamic_cast<const NeuroInhibitoryLinkItem *>(item);
+        if (inhibit)
+        {
+            result.append(_frontward_cells.last());
+            result.append(_backward_cells.last());
+        }
+        else
+        {
+            if (item == _frontLinkTarget)
+                result.append(_backward_cells.first());
+            if (item == _backLinkTarget)
+                result.append(_frontward_cells.first());
+        }
+        return result;
     }
 
-    CompactLinkItem::Index CompactLinkItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<CompactLinkItem::Index> CompactLinkItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> result;
         if (item == _frontLinkTarget)
-            return _frontward_cells.last();
-        else if (item == _backLinkTarget)
-            return _backward_cells.last();
-        return -1;
+            result.append(_frontward_cells.last());
+        if (item == _backLinkTarget)
+            result.append(_backward_cells.last());
+        return result;
     }
 
     bool CompactLinkItem::handleMove(const QPointF &mousePos, QPointF &movePos)
@@ -294,14 +305,17 @@ namespace NeuroGui
 
         if (inhibit)
         {
-            NeuroCell::Index linkOut = inhibit->getOutgoingCellFor(this);
-            NeuroCell::Index myIn = _frontward_cells.first();
-            if (linkOut != -1 && myIn != -1)
-                network()->neuronet()->addEdge(myIn, linkOut);
+            foreach (const Index & linkOut, inhibit->getOutgoingCellsFor(this))
+            {
+                NeuroCell::Index myIn = _frontward_cells.first();
 
-            myIn = _backward_cells.first();
-            if (linkOut != -1 && myIn != -1)
-                network()->neuronet()->addEdge(myIn, linkOut);
+                if (linkOut != -1 && myIn != -1)
+                    network()->neuronet()->addEdge(myIn, linkOut);
+
+                myIn = _backward_cells.first();
+                if (linkOut != -1 && myIn != -1)
+                    network()->neuronet()->addEdge(myIn, linkOut);
+            }
         }
         else
         {
@@ -315,15 +329,16 @@ namespace NeuroGui
 
         if (inhibit)
         {
-            NeuroCell::Index linkOut = inhibit->getOutgoingCellFor(this);
+            foreach (const Index & linkOut, inhibit->getOutgoingCellsFor(this))
+            {
+                NeuroCell::Index myIn = _frontward_cells.first();
+                if (linkOut != -1 && myIn != -1)
+                    network()->neuronet()->removeEdge(myIn, linkOut);
 
-            NeuroCell::Index myIn = _frontward_cells.first();
-            if (linkOut != -1 && myIn != -1)
-                network()->neuronet()->removeEdge(myIn, linkOut);
-
-            myIn = _backward_cells.first();
-            if (linkOut != -1 && myIn != -1)
-                network()->neuronet()->removeEdge(myIn, linkOut);
+                myIn = _backward_cells.first();
+                if (linkOut != -1 && myIn != -1)
+                    network()->neuronet()->removeEdge(myIn, linkOut);
+            }
         }
         else
         {

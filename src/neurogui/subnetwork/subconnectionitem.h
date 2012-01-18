@@ -138,8 +138,9 @@ namespace NeuroGui
         void setInitialPosAndDir(const QVector2D & initialPos, const QVector2D & initialDir);
 
         virtual QList<Index> allCells() const { return QList<Index>(); }
-        virtual Index getIncomingCellFor(const NeuroItem *) const;
-        virtual Index getOutgoingCellFor(const NeuroItem *) const;
+
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *) const;
 
     protected:
         virtual bool canAttachTo(const QPointF &, NeuroItem *) const;

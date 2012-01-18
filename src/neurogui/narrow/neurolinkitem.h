@@ -91,8 +91,8 @@ namespace NeuroGui
         virtual void onAttachedBy(NeuroItem *);
         virtual void onDetach(NeuroItem *);
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *item) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *item) const;
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
         virtual bool handleMove(const QPointF & mousePos, QPointF & movePos);
         virtual void adjustLinks();

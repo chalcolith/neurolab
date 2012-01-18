@@ -489,8 +489,8 @@ namespace NeuroGui
         _shapePath.setFillRule(Qt::WindingFill);
 
         // add texts
-#if defined(DEBUG)
-        _texts.append(TextPathRec(_label_pos, QString("%1 (%2)").arg(_label).arg(id())));
+#if 0 && defined(DEBUG)
+        //_texts.append(TextPathRec(_label_pos, QString("%1 (%2)").arg(_label).arg(id())));
 #else
         if (!_label.isEmpty())
             _texts.append(TextPathRec(_label_pos, _label));
@@ -626,6 +626,8 @@ namespace NeuroGui
 
                 _setting_pos = false;
             }
+
+            MainWindow::instance()->changedItem(this);
             break;
         default:
             break;

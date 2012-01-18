@@ -61,8 +61,8 @@ namespace NeuroGui
 
         bool shortcut() const { return _shortcut; }
 
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const;
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *) const;
 
         virtual QPointF targetPointFor(const NeuroItem *item, bool front) const;
 

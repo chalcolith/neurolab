@@ -81,8 +81,8 @@ namespace NeuroGui
 
         virtual QList<Index> allCells() const { return QList<Index>(); }
 
-        virtual Index getIncomingCellFor(const NeuroItem *) const;
-        virtual Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
     signals:
         /// Emitted when the subnetwork item is deleted.

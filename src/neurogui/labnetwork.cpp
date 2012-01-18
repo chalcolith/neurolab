@@ -64,7 +64,7 @@ namespace NeuroGui
     /// \param parent The QObject that should own this network object.
     LabNetwork::LabNetwork(QWidget *parent)
         : PropertyObject(parent),
-        _tree(0), _neuronet(0), _running(false), _changed(false), first_change(true),
+        _tree(0), _neuronet(0), _loading(false), _running(false), _changed(false), first_change(true),
         _filename_property(this, &LabNetwork::fname, 0, tr("Filename"), "", false),
         _decay_property(this, &LabNetwork::decay, &LabNetwork::setDecay,
                         tr("Decay Rate"), tr("Rate at which active nodes and links will decay.")),
@@ -306,6 +306,7 @@ namespace NeuroGui
 
         // read network
         LabNetwork *ln = new LabNetwork(MainWindow::instance());
+        ln->_loading = true;
         ln->_fname = nln_fname;
 
         {
@@ -380,6 +381,7 @@ namespace NeuroGui
         }
 
         //
+        ln->_loading = false;
         ln->actionsEnabled(true);
         return ln;
     }

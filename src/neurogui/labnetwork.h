@@ -69,7 +69,7 @@ namespace NeuroGui
         NeuroLib::NeuroNet *_neuronet;
         QMap<NeuroItem::IdType, NeuroItem *> _idMap; ///< Maps Ids to pointers.
 
-        bool _running;
+        bool _loading, _running;
 
         bool _changed, first_change;
         QString _fname;
@@ -90,6 +90,9 @@ namespace NeuroGui
     public:
         explicit LabNetwork(QWidget *parent = 0);
         virtual ~LabNetwork();
+
+        /// \return Whether or not the network is currently loading.
+        bool loading() const { return _loading; }
 
         /// \return Whether or not the network is currently running.
         bool running() const { return _running; }

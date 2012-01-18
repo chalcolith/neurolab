@@ -242,7 +242,7 @@ namespace GridItems
 #endif
 
         // don't display if we are editing the grid itself
-        if (_grid_item && _grid_item->network()->treeNode() != _grid_item->treeNode())
+        if (_grid_item && _grid_item->network() && _grid_item->network()->treeNode() != _grid_item->treeNode() && !_grid_item->network()->loading())
         {
             _grid_item->generateGrid();
 

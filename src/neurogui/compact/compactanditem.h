@@ -73,8 +73,9 @@ namespace NeuroGui
         void setDelay(const qint32 & d);
 
         virtual QList<Index> allCells() const;
-        virtual Index getIncomingCellFor(const NeuroItem *) const;
-        virtual Index getOutgoingCellFor(const NeuroItem *) const;
+
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
     protected:
         virtual bool canBeAttachedBy(const QPointF &, NeuroItem *) const;

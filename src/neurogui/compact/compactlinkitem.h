@@ -111,8 +111,8 @@ namespace NeuroGui
         virtual QList<Index> getFrontwardCells() const;
         virtual QList<Index> getBackwardCells() const;
 
-        virtual Index getIncomingCellFor(const NeuroItem *) const;
-        virtual Index getOutgoingCellFor(const NeuroItem *) const;
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
 
     protected:
         virtual bool handleMove(const QPointF &mousePos, QPointF &movePos);

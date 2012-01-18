@@ -193,18 +193,20 @@ namespace NeuroGui
         return typeName.contains("LinkItem");
     }
 
-    NeuroCell::Index SubNetworkItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<SubNetworkItem::Index> SubNetworkItem::getIncomingCellsFor(const NeuroItem *item) const
     {
         if (_subconnections.contains(item))
-            return _subconnections[item]->getIncomingCellFor(this);
-        return -1;
+            return _subconnections[item]->getIncomingCellsFor(this);
+        else
+            return QList<Index>();
     }
 
-    NeuroCell::Index SubNetworkItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<SubNetworkItem::Index> SubNetworkItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
         if (_subconnections.contains(item))
-            return _subconnections[item]->getOutgoingCellFor(this);
-        return -1;
+            return _subconnections[item]->getOutgoingCellsFor(this);
+        else
+            return QList<Index>();
     }
 
     bool SubNetworkItem::canBeAttachedBy(const QPointF &, NeuroItem *item) const

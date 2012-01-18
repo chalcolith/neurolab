@@ -153,36 +153,46 @@ namespace NeuroGui
         NeuroNetworkItem::onAttachTo(item);
     }
 
-    NeuroCell::Index SubConnectionItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<SubConnectionItem::Index> SubConnectionItem::getIncomingCellsFor(const NeuroItem *item) const
     {
         Q_ASSERT(_governingItem);
+        QList<Index> results;
 
         if (item == _parentSubnetworkItem)
         {
             NeuroNetworkItem *netFront = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
-            return netFront ? netFront->getIncomingCellFor(this) : -1;
+            if (netFront)
+                results.append(netFront->getIncomingCellsFor(this));
         }
         else
         {
             NeuroNetworkItem *netGov = dynamic_cast<NeuroNetworkItem *>(_governingItem);
-            return netGov ? netGov->getIncomingCellFor(_parentSubnetworkItem) : -1;
+            if (netGov)
+                results.append(netGov->getIncomingCellsFor(_parentSubnetworkItem));
         }
+
+        return results;
     }
 
-    NeuroCell::Index SubConnectionItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<SubConnectionItem::Index> SubConnectionItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
         Q_ASSERT(_governingItem);
+        QList<Index> results;
 
         if (item == _parentSubnetworkItem)
         {
             NeuroNetworkItem *netFront = dynamic_cast<NeuroNetworkItem *>(_frontLinkTarget);
-            return netFront ? netFront->getOutgoingCellFor(this) : -1;
+            if (netFront)
+                results.append(netFront->getOutgoingCellsFor(this));
         }
         else
         {
             NeuroNetworkItem *netGov = dynamic_cast<NeuroNetworkItem *>(_governingItem);
-            return netGov ? netGov->getOutgoingCellFor(_parentSubnetworkItem) : -1;
+            if (netGov)
+                results.append(netGov->getOutgoingCellsFor(_parentSubnetworkItem));
         }
+
+        return results;
     }
 
     bool SubConnectionItem::handleMove(const QPointF &mousePos, QPointF &movePos)

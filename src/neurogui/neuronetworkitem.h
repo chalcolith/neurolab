@@ -59,9 +59,6 @@ namespace NeuroGui
         Property<NeuroNetworkItem, QVariant::Double, double, Value> _value_property;
         Property<NeuroNetworkItem, QVariant::Int, int, int> _persist_property;
 
-        mutable QList<Index> _incoming_cells; // these are just for convenience;
-        mutable QList<Index> _outgoing_cells;
-
     public:
         explicit NeuroNetworkItem(LabNetwork *network, const QPointF & scenePos, const CreateContext & context);
         virtual ~NeuroNetworkItem();
@@ -79,14 +76,8 @@ namespace NeuroGui
 
         virtual QList<Index> allCells() const = 0;
 
-        /// \deprecated
-        virtual Index getIncomingCellFor(const NeuroItem *) const { return -1; }
-
-        /// \deprecated
-        virtual Index getOutgoingCellFor(const NeuroItem *) const { return -1; }
-
-        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const;
-        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const;
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const = 0;
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const = 0;
 
         virtual void addEdges(NeuroItem *);
         virtual void removeEdges(NeuroItem *);

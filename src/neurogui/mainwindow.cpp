@@ -972,6 +972,7 @@ namespace NeuroGui
             }
 
             item->setSelected(true);
+            emit itemCreated(item);
         }
     }
 

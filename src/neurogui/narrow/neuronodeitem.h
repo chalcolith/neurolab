@@ -80,10 +80,11 @@ namespace NeuroGui
         virtual void writeBinary(QDataStream & ds, const NeuroLabFileVersion & file_version) const;
         virtual void readBinary(QDataStream & ds, const NeuroLabFileVersion & file_version);
 
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *item) const { return _cellIndices; }
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *item) const { return _cellIndices; }
+
     protected:
         virtual bool canCreateNewOnMe(const QString & typeName, const QPointF & pos) const;
-        virtual NeuroLib::NeuroCell::Index getIncomingCellFor(const NeuroItem *) const { return _cellIndices.size() > 0 ? _cellIndices.first() : -1; }
-        virtual NeuroLib::NeuroCell::Index getOutgoingCellFor(const NeuroItem *) const { return _cellIndices.size() > 0 ? _cellIndices.last() : -1; }
 
         virtual QVector2D getAttachPos(MixinArrow *link, const QVector2D &);
 

@@ -82,8 +82,10 @@
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
     <addaction name="menu_Recent_Networks"/>
+    <addaction name="separator"/>
     <addaction name="action_Save"/>
     <addaction name="action_Save_Network_As"/>
+    <addaction name="separator"/>
     <addaction name="action_Reload_Network"/>
     <addaction name="action_Close"/>
     <addaction name="separator"/>

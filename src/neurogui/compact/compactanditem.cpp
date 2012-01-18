@@ -138,44 +138,48 @@ namespace NeuroGui
         return result;
     }
 
-    CompactAndItem::Index CompactAndItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<CompactAndItem::Index> CompactAndItem::getIncomingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> results;
+
         if (item == _tipLinkItem)
         {
-            return _backwardTipCell;
+            results.append(_backwardTipCell);
         }
         else if (_sequential)
         {
             int index = _baseLinkItems.indexOf(const_cast<NeuroItem *>(item));
             if (index != -1 && index < _frontwardDelayLines.size())
-                return _frontwardDelayLines[index].size() > 0 ? _frontwardDelayLines[index].first() : _frontwardTipCell;
-            else
-                return -1;
+                results.append(_frontwardDelayLines[index].size() > 0 ? _frontwardDelayLines[index].first() : _frontwardTipCell);
         }
         else
         {
-            return _frontwardTipCell;
+            results.append(_frontwardTipCell);
         }
+
+        return results;
     }
 
-    CompactAndItem::Index CompactAndItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<CompactAndItem::Index> CompactAndItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> results;
+
         if (item == _tipLinkItem)
         {
-            return _frontwardTipCell;
+            results.append(_frontwardTipCell);
         }
         else if (_sequential)
         {
             int index = _baseLinkItems.indexOf(const_cast<NeuroItem *>(item));
             if (index != -1 && index < _backwardDelayLines.size())
-                return _backwardDelayLines[index].size() > 0 ? _backwardDelayLines[index].last() : _backwardTipCell;
-            else
-                return -1;
+                results.append(_backwardDelayLines[index].size() > 0 ? _backwardDelayLines[index].last() : _backwardTipCell);
         }
         else
         {
-            return _backwardTipCell;
+            results.append(_backwardTipCell);
         }
+
+        return results;
     }
 
     bool CompactAndItem::canBeAttachedBy(const QPointF & pos, NeuroItem *item) const

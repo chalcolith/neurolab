@@ -236,25 +236,41 @@ namespace NeuroGui
 
     void NeuroLinkItem::adjustLinks()
     {
-        QVector2D center = QVector2D(scenePos()) + ((c1 + c2) * 0.5f);
+        QVector2D front(_line.p2());
+        QVector2D back(_line.p1());
+        QVector2D center = front + (c2 - front) * 0.33 + (back - front) * 0.1;
 
         foreach (NeuroItem *ni, _incoming)
         {
             MixinArrow *link = dynamic_cast<MixinArrow *>(ni);
             if (link)
-                link->setLine(link->line().p1(), center.toPointF());
+                link->setLine(link->line().p1(), mapToScene(center.toPointF()));
         }
     }
 
-    NeuroCell::Index NeuroLinkItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<NeuroLinkItem::Index> NeuroLinkItem::getIncomingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> result;
         const NeuroInhibitoryLinkItem *inhibit = dynamic_cast<const NeuroInhibitoryLinkItem *>(item);
-        return (item == _backLinkTarget || inhibit != 0) && _cellIndices.size() > 0 ? _cellIndices.first() : -1;
+        if (inhibit)
+        {
+            result.append(_cellIndices.last());
+        }
+        else if (item == _backLinkTarget)
+        {
+            result.append(_cellIndices.first());
+        }
+        return result;
     }
 
-    NeuroCell::Index NeuroLinkItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<NeuroLinkItem::Index> NeuroLinkItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
-        return item == _frontLinkTarget && _cellIndices.size() > 0 ? _cellIndices.last() : -1;
+        QList<Index> result;
+        if (item == _frontLinkTarget)
+        {
+            result.append(_cellIndices.last());
+        }
+        return result;
     }
 
     bool NeuroLinkItem::canAttachTo(const QPointF &, NeuroItem *item) const

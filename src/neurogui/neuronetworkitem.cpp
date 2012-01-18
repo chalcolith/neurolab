@@ -201,24 +201,6 @@ namespace NeuroGui
         pen.setColor(result);
     }
 
-    QList<NeuroNetworkItem::Index> NeuroNetworkItem::getIncomingCellsFor(const NeuroItem *item) const
-    {
-        _incoming_cells.clear();
-        Index idx = getIncomingCellFor(item);
-        if (idx != -1)
-            _incoming_cells.append(idx);
-        return _incoming_cells;
-    }
-
-    QList<NeuroNetworkItem::Index> NeuroNetworkItem::getOutgoingCellsFor(const NeuroItem *item) const
-    {
-        _outgoing_cells.clear();
-        Index idx = getOutgoingCellFor(item);
-        if (idx != -1)
-            _outgoing_cells.append(idx);
-        return _outgoing_cells;
-    }
-
     void NeuroNetworkItem::addEdges(NeuroItem *item)
     {
         Q_ASSERT(network());

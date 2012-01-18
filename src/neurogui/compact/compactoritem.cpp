@@ -59,20 +59,28 @@ namespace NeuroGui
     {
     }
 
-    NeuroCell::Index CompactOrItem::getIncomingCellFor(const NeuroItem *item) const
+    QList<CompactOrItem::Index> CompactOrItem::getIncomingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> results;
+
         if (item == _tipLinkItem)
-            return _backwardTipCell;
+            results.append(_backwardTipCell);
         else
-            return _frontwardTipCell;
+            results.append(_frontwardTipCell);
+
+        return results;
     }
 
-    NeuroCell::Index CompactOrItem::getOutgoingCellFor(const NeuroItem *item) const
+    QList<CompactOrItem::Index> CompactOrItem::getOutgoingCellsFor(const NeuroItem *item) const
     {
+        QList<Index> results;
+
         if (item == _tipLinkItem)
-            return _frontwardTipCell;
+            results.append(_frontwardTipCell);
         else
-            return _backwardTipCell;
+            results.append(_backwardTipCell);
+
+        return results;
     }
 
     QPointF CompactOrItem::targetPointFor(const NeuroItem *item, bool) const
@@ -116,15 +124,20 @@ namespace NeuroGui
                 continue;
 
             // if the link's output is not activated, forget about it
-            NeuroCell::Index linkOutgoingIndex = netItem->getOutgoingCellFor(linkTarget);
+            QList<Index> linkOutgoingIndices = netItem->getOutgoingCellsFor(linkTarget);
+            if (linkOutgoingIndices.size() == 0)
+                continue;
+
+            NeuroCell::Index linkOutgoingIndex = linkOutgoingIndices.first();
             NeuroNet::ASYNC_STATE *linkOutgoingCell = getCell(linkOutgoingIndex);
             if (!linkOutgoingCell || linkOutgoingCell->current().outputValue() < NeuroCell::EPSILON)
                 continue;
 
             // otherwise, get its incoming cell
-            NeuroCell::Index targetCellIndex = netTarget->getIncomingCellFor(ni);
-            if (targetCellIndex == -1)
+            QList<Index> targetCellIndices = netTarget->getIncomingCellsFor(ni);
+            if (targetCellIndices.size() == 0)
                 continue;
+            Index targetCellIndex = targetCellIndices.first();
 
             NeuroNet::ASYNC_STATE *targetCell = getCell(targetCellIndex);
             if (!targetCell)
@@ -180,12 +193,15 @@ namespace NeuroGui
                     if (baseLink)
                     {
                         NeuroItem *baseTarget = baseLink->frontLinkTarget() == this ? baseLink->backLinkTarget() : baseLink->frontLinkTarget();
-                        NeuroCell::Index baseOutgoingIndex = netBase->getOutgoingCellFor(baseTarget);
-                        if (baseOutgoingIndex != -1)
+                        QList<Index> baseOutgoingIndices = netBase->getOutgoingCellsFor(baseTarget);
+                        if (baseOutgoingIndices.size() > 0)
                         {
-                            NeuroNet::ASYNC_STATE *baseCell = &(*network()->neuronet())[baseOutgoingIndex];
-                            baseCell->current().setOutputValue(newValue);
-                            //baseCell->former().setOutputValue(newValue);
+                            Index baseOutgoingIndex = baseOutgoingIndices.first();
+                            if (baseOutgoingIndex != -1)
+                            {
+                                NeuroNet::ASYNC_STATE *baseCell = &(*network()->neuronet())[baseOutgoingIndex];
+                                baseCell->current().setOutputValue(newValue);
+                            }
                         }
                     }
                 }
@@ -194,7 +210,6 @@ namespace NeuroGui
             {
                 // inhibit this link's output
                 linkOutgoingCell->current().setOutputValue(0);
-                //linkOutgoingCell->former().setOutputValue(0);
             }
         }
     }

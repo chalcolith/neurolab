@@ -144,6 +144,7 @@ namespace NeuroGui
         void newDataFileOpened(LabDataFile *);
 
         void changeNetwork();
+        void itemCreated(NeuroItem *);
         void itemChanged(NeuroItem *);
         void itemSelected(NeuroItem *);
         void itemDeleted(NeuroItem *);

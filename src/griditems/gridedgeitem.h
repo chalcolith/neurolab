@@ -94,6 +94,8 @@ namespace GridItems
         bool isConnectedToRight(const NeuroGui::MixinArrow *, bool & front) const;
 
         virtual QList<Index> allCells() const { return QList<Index>(); }
+        virtual QList<Index> getIncomingCellsFor(const NeuroItem *) const { return QList<Index>(); }
+        virtual QList<Index> getOutgoingCellsFor(const NeuroItem *) const { return QList<Index>(); }
 
     public slots:
         void resizeView();

@@ -69,7 +69,7 @@ namespace GridItems
         : SubNetworkItem(network, scenePos, context),
           _horizontal_property(this, &NeuroGridItem::horizontalCols, &NeuroGridItem::setHorizontalCols, tr("Width")),
           _vertical_property(this, &NeuroGridItem::verticalRows, &NeuroGridItem::setVerticalRows, tr("Height")),
-          _num_horiz(1), _num_vert(1), _pattern_changed(true)
+          _num_horiz(1), _num_vert(1), _connections_changed(true), _pattern_changed(true)
     {
         if (context == NeuroItem::CREATE_UI)
         {
@@ -83,10 +83,14 @@ namespace GridItems
             treeNode()->setLabel(tr("Grid Item %1").arg(treeNode()->id()));
         }
 
-        connect(network, SIGNAL(networkChanged()), this, SLOT(networkChanged()));
+        connect(MainWindow::instance(), SIGNAL(itemCreated(NeuroItem*)), this, SLOT(itemChanged(NeuroItem*)));
+        connect(MainWindow::instance(), SIGNAL(itemChanged(NeuroItem*)), this, SLOT(itemChanged(NeuroItem*)));
+        connect(MainWindow::instance(), SIGNAL(itemDeleted(NeuroItem*)), this, SLOT(itemChanged(NeuroItem*)));
+
         connect(network, SIGNAL(stepClicked()), this, SLOT(networkStepClicked()));
         connect(network, SIGNAL(postStep()), this, SLOT(networkPostStep()));
         connect(network, SIGNAL(stepFinished()), this, SLOT(networkStepFinished()));
+
         connect(&_horizontal_property, SIGNAL(valueInBrowserChanged()), this, SLOT(propertyChanged()));
         connect(&_vertical_property, SIGNAL(valueInBrowserChanged()), this, SLOT(propertyChanged()));
     }
@@ -101,12 +105,13 @@ namespace GridItems
         resizeScene();
     }
 
-    void NeuroGridItem::propertyChanged()
+    void NeuroGridItem::itemChanged(NeuroItem *item)
     {
-        _pattern_changed = true;
+        if (item && item->scene() && this->treeNode() && (item == this || item->scene() == this->treeNode()->scene()))
+            _pattern_changed = true;
     }
 
-    void NeuroGridItem::networkChanged()
+    void NeuroGridItem::propertyChanged()
     {
         _pattern_changed = true;
     }
@@ -118,6 +123,26 @@ namespace GridItems
 
     void NeuroGridItem::networkPostStep()
     {
+    }
+
+    void NeuroGridItem::networkStepFinished()
+    {
+        // this gets set by networkChanged(), but since we've just finished a step,
+        // we don't want to re-generate the grid unless something else changes
+        _pattern_changed = false;
+        _connections_changed = false;
+
+#ifdef DEBUG
+        // dump graph
+        {
+            QFile file("neuronet_after_step.gv");
+            if (file.open(QIODevice::WriteOnly))
+            {
+                QTextStream ts(&file);
+                network()->neuronet()->dumpGraph(ts, true);
+            }
+        }
+#endif
     }
 
     void NeuroGridItem::copyColors()
@@ -159,25 +184,6 @@ namespace GridItems
                 }
             }
         }
-    }
-
-    void NeuroGridItem::networkStepFinished()
-    {
-        // this gets set by networkChanged(), but since we've just finished a step,
-        // we don't want to re-generate the grid unless something else changes
-        _pattern_changed = false;
-
-#ifdef DEBUG
-        // dump graph
-        {
-            QFile file("neuronet_after_step.gv");
-            if (file.open(QIODevice::WriteOnly))
-            {
-                QTextStream ts(&file);
-                network()->neuronet()->dumpGraph(ts, true);
-            }
-        }
-#endif
     }
 
     void NeuroGridItem::resizeScene()
@@ -338,7 +344,7 @@ namespace GridItems
         foreach (NeuroNetworkItem *ni, bottom_connected)
         {
             bottom_incoming.append(ni->getIncomingCellsFor(this));
-            bottom_outgoing.append(ni->getOutgoingCellFor(this));
+            bottom_outgoing.append(ni->getOutgoingCellsFor(this));
         }
 
         connect_cell_groups(neuronet, this->_bot_outgoing, bottom_incoming);
@@ -485,7 +491,7 @@ namespace GridItems
     {
         NeuroNetworkItem::onAttachedBy(item); // we don't want any sub-connection items
 
-        _pattern_changed = true;
+        _connections_changed = true;
 
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni)
@@ -514,7 +520,7 @@ namespace GridItems
 
     void NeuroGridItem::onDetach(NeuroItem *item)
     {
-        _pattern_changed = true;
+        _connections_changed = true;
 
         NeuroNetworkItem *ni = dynamic_cast<NeuroNetworkItem *>(item);
         if (ni)
@@ -617,46 +623,86 @@ namespace GridItems
 
     void NeuroGridItem::generateGrid()
     {
-        if (!_pattern_changed || !network() || !network()->neuronet())
+        if (!network() || network()->loading() || !network()->neuronet() || !scene() || !treeNode() || !treeNode()->scene())
             return;
 
         NeuroLib::NeuroNet *neuronet = network()->neuronet();
-        startGenerateGrid(neuronet);
 
-        // get pattern cells; map pattern cells to 2d pattern positions
-        QVector<Index> all_pattern_cells;
-        QVector<QMap<Index, QVector<Index> > > pattern_connections(4);
-        QVector<Index> pattern_top_incoming, pattern_top_outgoing;
-        QVector<Index> pattern_bot_incoming, pattern_bot_outgoing;
-        QMap<Index, QLineF> pattern_cells_to_lines;
-        QMap<Index, QPointF> pattern_cells_to_points;
-        bool hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge;
+        if (_pattern_changed)
+        {
+            MainWindow::instance()->setStatus(tr("Generating neural network grid..."));
+            QApplication::setOverrideCursor(Qt::WaitCursor);
 
-        collectPatternCells(neuronet,
-                            all_pattern_cells, pattern_connections,
-                            pattern_top_incoming, pattern_top_outgoing,
-                            pattern_bot_incoming, pattern_bot_outgoing,
-                            pattern_cells_to_lines, pattern_cells_to_points,
+            removeAllEdges();
+
+            // remove old pattern cells
+            foreach (const Index & index, _all_grid_cells)
+            {
+                neuronet->removeNode(index);
+            }
+            _all_grid_cells.clear();
+
+            // get pattern cells; map pattern cells to 2d pattern positions
+            QVector<Index> all_pattern_cells;
+            QVector<QMap<Index, QVector<Index> > > pattern_connections(4);
+            QVector<Index> pattern_top_incoming, pattern_top_outgoing;
+            QVector<Index> pattern_bot_incoming, pattern_bot_outgoing;
+            QMap<Index, QLineF> pattern_cells_to_lines;
+            QMap<Index, QPointF> pattern_cells_to_points;
+            bool hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge;
+
+            collectPatternCells(neuronet,
+                                all_pattern_cells, pattern_connections,
+                                pattern_top_incoming, pattern_top_outgoing,
+                                pattern_bot_incoming, pattern_bot_outgoing,
+                                pattern_cells_to_lines, pattern_cells_to_points,
+                                hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge);
+
+            //  get min and max coordinate extents
+            float min_x, max_x, min_y, max_y;
+            getMinMaxCoords(pattern_cells_to_lines, pattern_cells_to_points,
+                            min_x, max_x, min_y, max_y,
                             hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge);
 
-        //  get min and max coordinate extents
-        float min_x, max_x, min_y, max_y;
-        getMinMaxCoords(pattern_cells_to_lines, pattern_cells_to_points,
-                        min_x, max_x, min_y, max_y,
-                        hasTopEdge, hasBottomEdge, hasLeftEdge, hasRightEdge);
+            // make enough copies of the pattern, and connect their internal edges
+            QVector<QMap<Index, Index> > all_copies(_num_vert * _num_horiz);
+            makeCopies(neuronet, all_pattern_cells, pattern_cells_to_lines, pattern_cells_to_points,
+                       all_copies, min_x, max_x, min_y, max_y);
 
-        // make enough copies of the pattern, and connect their internal edges
-        QVector<QMap<Index, Index> > all_copies(_num_vert * _num_horiz);
-        makeCopies(neuronet, all_pattern_cells, pattern_cells_to_lines, pattern_cells_to_points,
-                   all_copies, min_x, max_x, min_y, max_y);
+            // connect outside edges
+            connectCopies(neuronet, all_copies, pattern_connections,
+                          pattern_top_incoming, pattern_top_outgoing,
+                          pattern_bot_incoming, pattern_bot_outgoing);
 
-        // connect outside edges
-        connectCopies(neuronet, all_copies, pattern_connections,
-                      pattern_top_incoming, pattern_top_outgoing,
-                      pattern_bot_incoming, pattern_bot_outgoing);
+            // done
+            addAllEdges(0);
+            _pattern_changed = false;
+            _connections_changed = false;
 
-        // done
-        finishGenerateGrid(neuronet);
+            copyColors();
+            QApplication::restoreOverrideCursor();
+            MainWindow::instance()->setStatus(tr("Generated neural network grid."));
+
+            emit gridChanged();
+
+    #ifdef DEBUG
+            // dump graph
+            {
+                QFile file("neuronet_after_gen.gv");
+                if (file.open(QIODevice::WriteOnly))
+                {
+                    QTextStream ts(&file);
+                    neuronet->dumpGraph(ts, true);
+                }
+            }
+    #endif
+        }
+        else if (_connections_changed)
+        {
+            removeAllEdges();
+            addAllEdges(0);
+            _connections_changed = false;
+        }
     }
 
     void NeuroGridItem::connectCopies(NeuroLib::NeuroNet *neuronet,
@@ -1095,49 +1141,15 @@ namespace GridItems
         }
     }
 
-    void NeuroGridItem::startGenerateGrid(NeuroLib::NeuroNet *neuronet)
+    template <typename TCollection, typename TData, typename TWrite>
+    static void write_collection(QDataStream & ds, const TCollection & collection)
     {
-        // set status; this might take a while
-        MainWindow::instance()->setStatus(tr("Generating neural network grid..."));
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-
-        // clear outside edges
-        removeAllEdges();
-
-        // delete all existing used cells from the automaton (this will also delete edges)
-        foreach (const Index & index, _all_grid_cells)
+        ds << static_cast<quint32>(collection.size());
+        foreach (const TData & data, collection)
         {
-            neuronet->removeNode(index);
+            ds << static_cast<TWrite>(data);
         }
-        _all_grid_cells.clear();
     }
-
-    void NeuroGridItem::finishGenerateGrid(NeuroLib::NeuroNet *neuronet)
-    {
-        // re-connect edges
-        addAllEdges(0);
-
-        // done
-        copyColors();
-        QApplication::restoreOverrideCursor();
-        MainWindow::instance()->setStatus(tr("Generated neural network grid."));
-        _pattern_changed = false;
-
-        emit gridChanged();
-
-#ifdef DEBUG
-        // dump graph
-        {
-            QFile file("neuronet_after_gen.gv");
-            if (file.open(QIODevice::WriteOnly))
-            {
-                QTextStream ts(&file);
-                neuronet->dumpGraph(ts, true);
-            }
-        }
-#endif
-    }
-
 
     void NeuroGridItem::writeBinary(QDataStream &ds, const NeuroLabFileVersion &file_version) const
     {
@@ -1148,6 +1160,7 @@ namespace GridItems
         ds << static_cast<quint32>(_num_horiz);
         ds << static_cast<quint32>(_num_vert);
 
+        // write edges
         ds << static_cast<quint32>(_edges.size());
         QMap<NeuroNetworkItem *, QMap<Index, Index> >::const_iterator i = _edges.constBegin(), i_end = _edges.constEnd();
         while (i != i_end)
@@ -1167,6 +1180,48 @@ namespace GridItems
             }
             ++i;
         }
+
+        // write cells and graphics
+        write_collection<QSet<Index>, Index, quint32>(ds, _all_grid_cells);
+        write_collection<QList<Index>, Index, quint32>(ds, _top_incoming);
+        write_collection<QList<Index>, Index, quint32>(ds, _top_outgoing);
+        write_collection<QList<Index>, Index, quint32>(ds, _bot_incoming);
+        write_collection<QList<Index>, Index, quint32>(ds, _bot_outgoing);
+        write_collection<QVector<float>, float, float>(ds, _gl_line_array);
+        write_collection<QVector<float>, float, float>(ds, _gl_point_array);
+        write_collection<QVector<float>, float, float>(ds, _gl_line_color_array);
+        write_collection<QVector<float>, float, float>(ds, _gl_point_color_array);
+
+        ds << static_cast<quint32>(_gl_line_colors.size());
+        foreach (const Index & index, _gl_line_colors.keys())
+        {
+            ds << static_cast<quint32>(index);
+            ds << static_cast<quint32>(_gl_line_colors[index]);
+        }
+
+        ds << static_cast<quint32>(_gl_point_colors.size());
+        foreach (const Index & index, _gl_point_colors.keys())
+        {
+            ds << static_cast<quint32>(index);
+            ds << static_cast<quint32>(_gl_point_colors[index]);
+        }
+    }
+
+    template <typename TCollection, typename TData, typename TRead>
+    static void read_collection(QDataStream & ds, TCollection & collection)
+    {
+        collection.clear();
+
+        quint32 size;
+        ds >> size;
+
+        for (quint32 i = 0; i < size; ++i)
+        {
+            TRead val;
+            ds >> val;
+
+            collection.append(static_cast<TData>(val));
+        }
     }
 
     void NeuroGridItem::readBinary(QDataStream &ds, const NeuroLabFileVersion &file_version)
@@ -1179,6 +1234,7 @@ namespace GridItems
             ds >> num; _num_horiz = num;
             ds >> num; _num_vert = num;
 
+            // read edges
             _edges.clear();
             if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_11)
             {
@@ -1200,6 +1256,50 @@ namespace GridItems
                         ds >> val;
                         edge_map.insert(key, val);
                     }
+                }
+            }
+
+            // cells and graphics
+            if (file_version.neurolab_version >= NeuroGui::NEUROLAB_FILE_VERSION_13)
+            {
+                _all_grid_cells.clear();
+                ds >> num;
+                for (quint32 i = 0; i < num; ++i)
+                {
+                    quint32 val;
+                    ds >> val;
+                    _all_grid_cells.insert(static_cast<Index>(val));
+                }
+
+                read_collection<QList<Index>, Index, quint32>(ds, _top_incoming);
+                read_collection<QList<Index>, Index, quint32>(ds, _top_outgoing);
+                read_collection<QList<Index>, Index, quint32>(ds, _bot_incoming);
+                read_collection<QList<Index>, Index, quint32>(ds, _bot_outgoing);
+                read_collection<QVector<float>, float, float>(ds, _gl_line_array);
+                read_collection<QVector<float>, float, float>(ds, _gl_point_array);
+                read_collection<QVector<float>, float, float>(ds, _gl_line_color_array);
+                read_collection<QVector<float>, float, float>(ds, _gl_point_color_array);
+
+                _gl_line_colors.clear();
+                ds >> num;
+                for (quint32 i = 0; i < num; ++i)
+                {
+                    quint32 index, val;
+                    ds >> index;
+                    ds >> val;
+
+                    _gl_line_colors[static_cast<Index>(index)] = static_cast<int>(val);
+                }
+
+                _gl_point_colors.clear();
+                ds >> num;
+                for (quint32 i = 0; i < num; ++i)
+                {
+                    quint32 index, val;
+                    ds >> index;
+                    ds >> val;
+
+                    _gl_point_colors[static_cast<Index>(index)] = static_cast<int>(val);
                 }
             }
         }
@@ -1302,7 +1402,10 @@ namespace GridItems
     void NeuroGridItem::postLoad()
     {
         SubNetworkItem::postLoad();
+
         // grid is generated when saving; no need to re-generate
+        _connections_changed = false;
+        _pattern_changed = false;
     }
 
 } // namespace GridItems

@@ -59,7 +59,7 @@ namespace GridItems
         qint32 _num_horiz;
         qint32 _num_vert;
 
-        bool _pattern_changed;
+        bool _connections_changed, _pattern_changed;
 
         QSet<NeuroNetworkItem *> _top_connections, _bottom_connections;
 
@@ -105,7 +105,7 @@ namespace GridItems
         void gridChanged();
 
     public slots:
-        void networkChanged();
+        void itemChanged(NeuroItem *item);
         void propertyChanged();
         void networkStepClicked();
         void networkPostStep();
@@ -117,7 +117,6 @@ namespace GridItems
         void copyColors();
 
     protected:
-        void startGenerateGrid(NeuroLib::NeuroNet *neuronet);
         void collectPatternCells(NeuroLib::NeuroNet *neuronet,
                                  QVector<Index> &all_pattern_cells,
                                  QVector<QMap<Index, QVector<Index> > > &pattern_connections,
@@ -145,9 +144,6 @@ namespace GridItems
                            QVector<QMap<Index, QVector<Index> > > & pattern_connections,
                            QVector<Index> & pattern_top_incoming, QVector<Index> & pattern_top_outgoing,
                            QVector<Index> & pattern_bot_incoming, QVector<Index> & pattern_bot_outgoing);
-        void finishGenerateGrid(NeuroLib::NeuroNet *neuronet);
-
-        void generateGridOld();
 
         virtual void onEnterView();
         virtual void onLeaveView();

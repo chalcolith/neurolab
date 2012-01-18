@@ -39,4 +39,15 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace Common
 {
 
+    Exception::Exception(const QString &message)
+         : QtConcurrent::Exception(), _message(message)
+    {
+        qDebug() << "threw: " << message;
+    }
+
+    Exception::Exception(const Exception &e)
+        : QtConcurrent::Exception(e), _message(e._message)
+    {
+    }
+
 } // namespace Common
