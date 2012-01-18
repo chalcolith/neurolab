@@ -5,7 +5,7 @@ use strict;
 my $release_dir = '../build-debug/debug';
 $release_dir = '../build-release/release' if grep /--release/, @ARGV;
 
-my $qtlibdir = '~/QtSDK/Desktop/Qt/473/gcc/lib';
+my $qtlibdir = '~/QtSDK/Desktop/Qt/474/gcc/lib';
 my $copy_qt = grep /--copyqt/, @ARGV;
 
 for my $arg (@ARGV)
